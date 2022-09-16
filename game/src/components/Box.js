@@ -6,14 +6,6 @@ const PLAYER = 1;
 const BALL = 2;
 export { BACKGROUND, PLAYER, BALL };
 /* style sheet */
-const backgroundStyle = {
-  height: "35px",
-  width: "35px",
-  borderStyle: "solid",
-  justifyContent: "center",
-  backgroundColor: "black",
-  borderRadius: "2px",
-};
 const playerStyle = {
   height: "35px",
   width: "35px",
@@ -48,7 +40,7 @@ const getStyle = (val) => {
 };
 
 const Box = (props) => (
-  <div style={backgroundStyle}>
+  <div className="backgroundStyle">
     <div style={getStyle(props.name)} />
   </div>
 );
