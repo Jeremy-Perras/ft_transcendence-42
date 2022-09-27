@@ -1,6 +1,7 @@
-FROM node:carbon AS development
+# Stage 1: build
+FROM node:14 AS development
 
-WORKDIR /usr/frontend/src/app
+WORKDIR /usr/react-ts/src/app
 
 COPY package*.json ./
 

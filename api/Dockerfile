@@ -1,3 +1,4 @@
+# Specify Node Version and Image
 # Name Image development (can be anything)
 FROM node:14 AS development
 
@@ -6,13 +7,14 @@ WORKDIR /usr/src/app
 
 # Copy package-lock.json & package.json from host to inside container working directory
 COPY package*.json ./
+COPY ts*.json ./
 
 # Install deps inside container
 RUN npm install
 
 RUN npm run build
 
-EXPOSE 3000
+EXPOSE 3001
 
 ################
 ## PRODUCTION ##
@@ -28,7 +30,7 @@ WORKDIR /usr/src/app
 
 COPY --from=development /usr/src/app/ .
 
-EXPOSE 3000
+EXPOSE 3001
 
 # run app
 CMD [ "node", "dist/main"]
