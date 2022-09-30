@@ -1,0 +1,10 @@
+.gameInterface {
+  position: absolute;
+  //width: 1000px;
+  //margin-top: 0px;
+  // margin: 0 auto;
+  width: var(--width);
+  height: var(--height);
+  font-size: 32px;
+  font-family: Arial, Helvetica, sans-serif;
+}
