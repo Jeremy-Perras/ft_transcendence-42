@@ -10,10 +10,10 @@ export class UserController {
     constructor(
     private userService: UserService
     ){}
-    @Post()
-    create(@Body() createUserDto:CreateUserDto):Observable<boolean>{
-        return of(true);
-    }
+@Post()
+create(@Body() createUserDto:CreateUserDto):Observable<boolean>{
+    return of(true);
+}
 
 
 @Get()
