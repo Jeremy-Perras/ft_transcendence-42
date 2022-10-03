@@ -23,8 +23,9 @@ export class CanvasView {
 	}
 
 	initStartButton(startFunction: (view: CanvasView) => void): void {
-		console.log("b");
-		this.start?.addEventListener('click', () => startFunction(this))
+		startFunction(this);
+		//console.log("b");
+		//this.start?.addEventListener('click', () => startFunction(this))
 	}
 
 	drawScore(score: number): void {

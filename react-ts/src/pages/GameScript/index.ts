@@ -3,8 +3,8 @@ import { Ball } from "./sprites/Ball";
 import { Brick } from "./sprites/Brick";
 import { Paddle } from "./sprites/Paddle";
 
-import PADDLE_IMAGE from "./img/paddle.png";
-import BALL_IMAGE from "./img/ball.png";
+// import PADDLE_IMAGE from "./img/paddle.png";
+// import BALL_IMAGE from "./img/ball.png";
 
 import {
 	PADDLE_SPEED,
@@ -54,3 +54,4 @@ function startGame(view: CanvasView) {
 
 const view = new CanvasView('#playField');
 view.initStartButton(startGame);
+// 

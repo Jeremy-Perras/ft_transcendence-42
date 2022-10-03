@@ -1,4 +1,4 @@
-import BRICK_IMAGE from 'img/brick.png';
+import BRICK_IMAGE from './img/brick.png';
 
 const canvas: HTMLCanvasElement | null = document.querySelector('#playField');
 
