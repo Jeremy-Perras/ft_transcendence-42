@@ -3,8 +3,8 @@ import { Ball } from "../pages/GameScript/sprites/Ball";
 import { Brick } from "../pages/GameScript/sprites/Brick";
 import { Paddle } from "../pages/GameScript/sprites/Paddle";
 
-import PADDLE_IMAGE from "./img/paddle.png";
-import BALL_IMAGE from "./img/ball.png";
+import PADDLE_IMAGE from "../pages/GameScript/img/paddle.png";
+import BALL_IMAGE from "../pages/GameScript/img/ball.png";
 
 import {
     PADDLE_SPEED,
@@ -18,6 +18,7 @@ import {
 } from "../pages/GameScript/setup";
 
 import { createBricks } from "../pages/GameScript/helpers"
+import Canvas from "./Canvas";
 
 export default function Start() {
     function handleClick() {
@@ -37,13 +38,16 @@ export default function Start() {
 
         function gameLoop(
             view: CanvasView,
-            bricks: Brick[]
-            // paddle: Paddle,
+            bricks: Brick[],
+            paddle: Paddle
             // ball: Ball
         ) {
             view.clear();
             view.drawBricks(bricks);
-            requestAnimationFrame(() => gameLoop(view, bricks));
+            view.drawSprite(paddle);
+            if ((paddle.isMovingLeft && paddle.pos.x > 0) || (paddle.isMovingRight && paddle.pos.x < view.canvas.width - paddle.width)) { paddle.movePaddle(); }
+
+            requestAnimationFrame(() => gameLoop(view, bricks, paddle));
         }
 
         function startGame(view: CanvasView) {
@@ -52,7 +56,17 @@ export default function Start() {
             view.drawInfo('');
             view.drawScore(0);
             const bricks = createBricks();
-            gameLoop(view, bricks);
+            const paddle = new Paddle(
+                PADDLE_SPEED,
+                PADDLE_WIDTH,
+                PADDLE_HEIGHT,
+                {
+                    x: PADDLE_STARTX,
+                    y: view.canvas.height - PADDLE_HEIGHT - 5
+                },
+                PADDLE_IMAGE
+            )
+            gameLoop(view, bricks, paddle);
         }
 
         const view = new CanvasView('#playField');
