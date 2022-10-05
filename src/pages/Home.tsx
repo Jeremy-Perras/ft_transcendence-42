@@ -1,7 +1,13 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import Navigation from "../components/Navigation";
 
-function Input({ input, setInput }: any) {
+type InputProps = {
+  input: string;
+  setInput: React.Dispatch<React.SetStateAction<string>>;
+};
+
+function Input({ input, setInput }: InputProps) {
   const handleChange = (e: React.FormEvent<HTMLInputElement>) => {
     console.log(e);
     setInput(e.currentTarget.value);
@@ -21,15 +27,18 @@ function Home() {
   const [input, setInput] = useState("");
 
   return (
-    <div className="m-4">
-      Home
-      <Input input={input} setInput={setInput} />
-      {input && (
-        <Link className="border-2 border-solid" to={`Profile/${input}`}>
-          go to {input}&apos; s profile
-        </Link>
-      )}
-    </div>
+    <>
+      <Navigation />
+      <div className="m-4">
+        Home
+        <Input input={input} setInput={setInput} />
+        {input && (
+          <Link className="border-2 border-solid" to={`Profile/${input}`}>
+            go to {input}&apos; s profile
+          </Link>
+        )}
+      </div>
+    </>
   );
 }
 export default Home;
