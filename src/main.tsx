@@ -37,22 +37,28 @@ const App = () => {
 
   return (
     <div className="relative flex h-full">
-      <div className="flex grow-0 basis-12 bg-slate-900 2xl:block 2xl:basis-64">
-        <div className="flex grow justify-center">
-          <span className="hidden text-white 2xl:block">PONG</span>
-          <Icon
-            className="2xl:hidden"
-            path={mdiMenu}
-            size={1.4}
-            color="white"
-          />
-        </div>
+      <div className="absolute top-0 left-0 m-1 flex">
+        <Icon
+          className="mr-2"
+          path={rightBar ? mdiChevronRight : mdiAccountGroup}
+          title="Close menu"
+          size={1}
+        />
+        <Icon
+          path={rightBar ? mdiChevronRight : mdiAccountGroup}
+          title="Close menu"
+          size={1}
+        />
       </div>
-
       <div className="flex grow basis-auto flex-col  bg-slate-50">
-        <div className="flex">
-          <button>create game</button>
-          <button>join game</button>
+        <div className="flex justify-center p-3 text-8xl font-bold">Title</div>
+        <div className="flex h-full  flex-row flex-wrap justify-center">
+          <button className="m-2 self-center rounded-full bg-blue-500 p-2 py-2  px-4  font-bold text-white hover:bg-blue-700">
+            create game
+          </button>
+          <button className="m-2 self-center rounded-full bg-blue-500 p-2 py-2 px-4 font-bold text-white hover:bg-blue-700">
+            join game
+          </button>
         </div>
         {!rightBar && (
           <RightBarBtn
@@ -61,8 +67,6 @@ const App = () => {
             setRightBar={setRightBar}
           />
         )}
-
-        <p>hello</p>
       </div>
 
       <div
