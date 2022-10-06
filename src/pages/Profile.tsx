@@ -6,10 +6,10 @@ function Profile() {
 
   return (
     <div>
-      <p>Profile {id}</p>
+      <p>Profile! {id}</p>
       <p>
         <Link className="border-2 border-solid" to={"/"}>
-          Home
+          Home!
         </Link>
       </p>
     </div>

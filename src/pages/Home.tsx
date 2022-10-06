@@ -22,7 +22,7 @@ function Home() {
 
   return (
     <div className="m-4">
-      Home
+      Home!
       <Input input={input} setInput={setInput} />
       {input && (
         <Link className="border-2 border-solid" to={`Profile/${input}`}>
