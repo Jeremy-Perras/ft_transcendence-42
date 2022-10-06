@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import Icon from "@mdi/react";
-import { mdiAccountGroup, mdiChevronRight, mdiMenu } from "@mdi/js";
+import { mdiAccountGroup, mdiChevronRight, mdiCloseThick, mdiMenu } from "@mdi/js";
 
 import "./index.css";
 
@@ -47,10 +47,38 @@ const JoinGameBtn = ({
 
   return (
     <button
-      className={`${className} m-2 flex self-center rounded-full bg-blue-500 p-2 py-2 px-4 font-bold text-white hover:bg-blue-700`}
+      className={`${className} m-2 flex self-center rounded-full bg-blue-500 p-2 py-2 px-4 font-bold text-white hover:bg-blue-700 transition-all shadow-inner`}
       onClick={togglePopUp}
     >
       Join game !
+    </button>
+  );
+};
+
+
+const ClosePopUp = ({
+  className,
+  popup,
+  setPopUp,
+}: {
+  className?: string;
+  popup: boolean;
+  setPopUp: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
+  const togglePopUp = () => {
+    setPopUp(!popup);
+  };
+
+  return (
+    <button
+      className={`${className} absolute top-0 right-0 m-2`}
+      onClick={togglePopUp}
+    >
+      <Icon
+        path={mdiCloseThick}
+        title="Close popup"
+        size={1}
+      />
     </button>
   );
 };
@@ -79,29 +107,29 @@ const App = () => {
             <div className="flex justify-center p-3 text-8xl font-bold">
               Title
             </div>
-            <div className="flex h-full  flex-row flex-wrap justify-center">
-              <button className="m-2 self-center rounded-full bg-blue-500 p-2 py-2  px-4  font-bold text-white hover:bg-blue-700">
-                create game
+            <div className="flex h-full w-full  flex-row flex-wrap justify-center">
+              <button className="m-2 self-center rounded-full bg-blue-500 p-2 py-2  px-4  font-bold text-white hover:bg-blue-700 transition-all shadow-inner">
+                Create game
               </button>
 
               <JoinGameBtn className="" popup={popup} setPopUp={setPopUp} />
 
               <div
-                className={`${
-                  popup ? "" : "hidden"
-                } absolute top-0 left-0 flex h-full w-full justify-center    bg-gray-900/30 `}
+                className={`${popup ? "" : "hidden"
+                  } absolute top-0 left-0 flex h-full w-full justify-center    bg-gray-900/80 `}
               >
-                <div className="relative flex h-2/3 w-2/3 flex-row self-center border-2 bg-sky-400">
+                <div className="relative flex h-2/3 w-2/3 flex-row self-center bg-slate-200">
+                  <ClosePopUp className="" popup={popup} setPopUp={setPopUp} />
                   <div className="flex h-full w-2/3"></div>
                   <div className="w-1/3 flex-col ">
                     <div className="flex h-1/2 w-full justify-center">
-                      <button className="flex h-2/3 w-1/3 items-center justify-center self-center rounded-full bg-blue-500  font-bold text-white hover:bg-blue-700">
-                        Button
+                      <button className="flex shadow-inner h-2/3 w-2/3 items-center justify-center self-center rounded-full bg-slate-500 transition-all font-bold text-white hover:bg-slate-700 hover:text-xl">
+                        Join classic game
                       </button>
                     </div>
                     <div className="flex h-1/2 w-full justify-center">
-                      <button className=" flex h-2/3 w-1/3 items-center justify-center self-center rounded-full bg-blue-500  font-bold text-white hover:bg-blue-700">
-                        Button
+                      <button className=" flex shadow-inner h-2/3 w-2/3 items-center justify-center self-center rounded-full bg-slate-500 transition-all font-bold text-white hover:bg-slate-700 hover:text-xl">
+                        Join custom game
                       </button>
                     </div>
                   </div>
