@@ -32,9 +32,32 @@ const RightBarBtn = ({
   );
 };
 
+const JoinGameBtn = ({
+  className,
+  popup,
+  setPopUp,
+}: {
+  className?: string;
+  popup: boolean;
+  setPopUp: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
+  const togglePopUp = () => {
+    setPopUp(!popup);
+  };
+
+  return (
+    <button
+      className={`${className} m-2 flex self-center rounded-full bg-blue-500 p-2 py-2 px-4 font-bold text-white hover:bg-blue-700`}
+      onClick={togglePopUp}
+    >
+      Join game !
+    </button>
+  );
+};
+
 const App = () => {
   const [rightBar, setRightBar] = React.useState(false);
-
+  const [popup, setPopUp] = React.useState(false);
   return (
     <>
       <div className="relative flex h-full">
@@ -52,7 +75,7 @@ const App = () => {
           />
         </div>
         <div className="relative h-full w-full">
-          <div className="flex grow basis-auto flex-col  bg-slate-50">
+          <div className="flex h-full w-full grow basis-auto  flex-col  bg-slate-50">
             <div className="flex justify-center p-3 text-8xl font-bold">
               Title
             </div>
@@ -61,10 +84,13 @@ const App = () => {
                 create game
               </button>
 
-              <button className="m-2 self-center rounded-full bg-blue-500 p-2 py-2 px-4 font-bold text-white hover:bg-blue-700">
-                join game
-              </button>
-              <div className="absolute top-0 left-0 flex h-full w-full justify-center    bg-gray-900/30 ">
+              <JoinGameBtn className="" popup={popup} setPopUp={setPopUp} />
+
+              <div
+                className={`${
+                  popup ? "" : "hidden"
+                } absolute top-0 left-0 flex h-full w-full justify-center    bg-gray-900/30 `}
+              >
                 <div className="relative flex h-2/3 w-2/3 flex-row self-center border-2 bg-sky-400">
                   <div className="flex h-full w-2/3"></div>
                   <div className="w-1/3 flex-col ">
@@ -74,7 +100,7 @@ const App = () => {
                       </button>
                     </div>
                     <div className="flex h-1/2 w-full justify-center">
-                      <button className=" flex h-auto w-full items-center justify-center self-center rounded-full bg-blue-500  font-bold text-white hover:bg-blue-700">
+                      <button className=" flex h-2/3 w-1/3 items-center justify-center self-center rounded-full bg-blue-500  font-bold text-white hover:bg-blue-700">
                         Button
                       </button>
                     </div>
