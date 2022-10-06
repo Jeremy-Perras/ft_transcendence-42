@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import Icon from "@mdi/react";
-import { mdiAccountGroup, mdiChevronRight, mdiMenu } from "@mdi/js";
+import { mdiAccountGroup, mdiChevronRight, mdiMenu, mdiTennisBall } from "@mdi/js";
 
 import "./index.css";
 
@@ -50,9 +50,25 @@ const App = () => {
       </div>
 
       <div className="flex grow basis-auto flex-col  bg-slate-50">
-        <div className="flex">
-          <button>create game</button>
-          <button>join game</button>
+        <div className="flex h-14 justify-center space-x-5 bg-gradient-to-r from-violet-500 to-fuchsia-500">
+          <div className="translate-x-full translate-y-10 animate-spin">
+            <Icon
+              path={mdiTennisBall}
+              title="User Profile"
+              size={0.5}
+              // horizontal
+              // vertical
+              // rotate={90}
+              color="red"
+              // spin
+            />
+          </div>
+          <button className="rounded-full bg-blue-500 py-2 px-4 font-bold text-white hover:bg-blue-700">
+            create game
+          </button>
+          <button className="rounded-full bg-blue-500 py-2 px-4 font-bold text-white hover:bg-blue-700">
+            join game
+          </button>
         </div>
         {!rightBar && (
           <RightBarBtn
