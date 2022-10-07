@@ -12,6 +12,9 @@ module.exports = {
           to: { opacity: 1 },
         },
       },
+      fontFamily: {
+        cursive: ["Silkscreen"],
+      },
     },
   },
   // eslint-disable-next-line @typescript-eslint/no-var-requires
