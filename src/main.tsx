@@ -1,7 +1,12 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import Icon from "@mdi/react";
-import { mdiAccountGroup, mdiChevronRight, mdiCloseThick, mdiMenu } from "@mdi/js";
+import {
+  mdiAccountGroup,
+  mdiChevronRight,
+  mdiCloseThick,
+  mdiMenu,
+} from "@mdi/js";
 
 import "./index.css";
 
@@ -47,14 +52,13 @@ const JoinGameBtn = ({
 
   return (
     <button
-      className={`${className} m-2 flex self-center rounded-full bg-blue-500 p-2 py-2 px-4 font-bold text-white hover:bg-blue-700 transition-all shadow-inner`}
+      className={`${className} m-2 flex self-center rounded-full bg-blue-500 p-2 py-2 px-4 font-bold text-white shadow-inner transition-all hover:bg-blue-700`}
       onClick={togglePopUp}
     >
       Join game !
     </button>
   );
 };
-
 
 const ClosePopUp = ({
   className,
@@ -74,18 +78,56 @@ const ClosePopUp = ({
       className={`${className} absolute top-0 right-0 m-2`}
       onClick={togglePopUp}
     >
-      <Icon
-        path={mdiCloseThick}
-        title="Close popup"
-        size={1}
-      />
+      <Icon path={mdiCloseThick} title="Close popup" size={1} />
     </button>
   );
+};
+const CreateGameBtn = ({
+  className,
+  creategame,
+  setCreateGame,
+}: {
+  className?: string;
+  creategame: boolean;
+  setCreateGame: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
+  const togglePopUp = () => {
+    setCreateGame(!creategame);
+  };
+
+  return (
+    <button
+      className={`${className} m-2 flex self-center rounded-full bg-blue-500 p-2 py-2 px-4 font-bold text-white shadow-inner transition-all hover:bg-blue-700`}
+      onClick={togglePopUp}
+    >
+      Create game !
+    </button>
+  );
+};
+const CreateGameOption1 = ({
+  className,
+  checked,
+  onChange,
+}: {
+  className?: string;
+  checked: boolean;
+  onChange: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
+  const togglePopUp = () => {
+    onChange(!checked);
+  };
+
+  return <div className={`${className} `} onClick={togglePopUp}></div>;
 };
 
 const App = () => {
   const [rightBar, setRightBar] = React.useState(false);
   const [popup, setPopUp] = React.useState(false);
+  const [creategame, setCreateGame] = React.useState(false);
+  const [checked, setChecked] = React.useState(false);
+  const handleChange = () => {
+    setChecked(!checked);
+  };
   return (
     <>
       <div className="relative flex h-full">
@@ -108,27 +150,76 @@ const App = () => {
               Title
             </div>
             <div className="flex h-full w-full  flex-row flex-wrap justify-center">
-              <button className="m-2 self-center rounded-full bg-blue-500 p-2 py-2  px-4  font-bold text-white hover:bg-blue-700 transition-all shadow-inner">
-                Create game
-              </button>
+              <CreateGameBtn
+                className=""
+                creategame={creategame}
+                setCreateGame={setCreateGame}
+              />
+              <div
+                className={`${
+                  creategame ? "" : "hidden"
+                } absolute top-0 left-0 flex h-full w-full justify-center    bg-gray-900/80 `}
+              >
+                <div
+                  className={`${
+                    checked ? "bg-red-400" : "bg-yellow-200"
+                  } flex h-2/3 w-2/3 flex-row self-center bg-slate-200 `}
+                >
+                  <div className="w-2/3">
+                    {checked && (
+                      <CreateGameOption1
+                        className=""
+                        checked={checked}
+                        onChange={handleChange}
+                      />
+                    )}
+                  </div>
+                  <div className=" flex  w-1/3 flex-col justify-center space-y-4">
+                    <div className="">
+                      <label htmlFor="red-toggle">
+                        Setting
+                        <input
+                          className=" w-7 rounded-full bg-red-600"
+                          type="checkbox"
+                          checked={checked}
+                          onChange={handleChange}
+                        />
+                      </label>
+                    </div>
+
+                    <div>
+                      <label htmlFor="yellow-toggle">
+                        Setting
+                        <input
+                          className="w-7 rounded-full bg-yellow-500"
+                          type="checkbox"
+                          value=""
+                          id="yellow-toggle"
+                        ></input>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
               <JoinGameBtn className="" popup={popup} setPopUp={setPopUp} />
 
               <div
-                className={`${popup ? "" : "hidden"
-                  } absolute top-0 left-0 flex h-full w-full justify-center    bg-gray-900/80 `}
+                className={`${
+                  popup ? "" : "hidden"
+                } absolute top-0 left-0 flex h-full w-full justify-center    bg-gray-900/80 `}
               >
                 <div className="relative flex h-2/3 w-2/3 flex-row self-center bg-slate-200">
                   <ClosePopUp className="" popup={popup} setPopUp={setPopUp} />
                   <div className="flex h-full w-2/3"></div>
                   <div className="w-1/3 flex-col ">
                     <div className="flex h-1/2 w-full justify-center">
-                      <button className="flex shadow-inner h-2/3 w-2/3 items-center justify-center self-center rounded-full bg-slate-500 transition-all font-bold text-white hover:bg-slate-700 hover:text-xl">
+                      <button className="flex h-2/3 w-2/3 items-center justify-center self-center rounded-full bg-slate-500 font-bold text-white shadow-inner transition-all hover:bg-slate-700 hover:text-xl">
                         Join classic game
                       </button>
                     </div>
                     <div className="flex h-1/2 w-full justify-center">
-                      <button className=" flex shadow-inner h-2/3 w-2/3 items-center justify-center self-center rounded-full bg-slate-500 transition-all font-bold text-white hover:bg-slate-700 hover:text-xl">
+                      <button className=" flex h-2/3 w-2/3 items-center justify-center self-center rounded-full bg-slate-500 font-bold text-white shadow-inner transition-all hover:bg-slate-700 hover:text-xl">
                         Join custom game
                       </button>
                     </div>
