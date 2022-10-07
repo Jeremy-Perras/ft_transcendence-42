@@ -12,8 +12,8 @@
     "@headlessui/react": "^1.7.3",
     "@mdi/js": "^7.0.96",
     "@mdi/react": "^1.6.1",
-    "@radix-ui/react-dialog": "1.0.0",
-    "@radix-ui/react-popover": "1.0.0",
+    "@radix-ui/react-dialog": "^1.0.0",
+    "@react-hookz/web": "^15.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "tailwindcss-radix": "^2.6.0"
@@ -21,6 +21,7 @@
   "devDependencies": {
     "@types/react": "^18.0.17",
     "@types/react-dom": "^18.0.6",
+    "@types/react-transition-group": "^4.4.5",
     "@typescript-eslint/eslint-plugin": "^5.39.0",
     "@typescript-eslint/parser": "^5.39.0",
     "@vitejs/plugin-react": "^2.1.0",
