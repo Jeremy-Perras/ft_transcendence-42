@@ -24,8 +24,8 @@ const Open_back = ({
   );
 };
 
-const Rules = () => {
-  return <div className="h-full w-full bg-black"></div>;
+const Rules = ({ className }: { className: string }) => {
+  return <div className={`${className}  bg-black`}></div>;
 };
 const First_Card = ({
   isOpen,
@@ -45,8 +45,9 @@ const First_Card = ({
       }}
       className="flex h-full w-full items-center justify-center"
     >
+      <Rules className="w-full h-full bg-black" />
       <motion.div
-        className="m-2 h-full w-full rounded bg-gray-500"
+        className="m-2 h-full w-full rounded "
         initial={{ opacity: 0.6 }}
         whileHover={{ scale: [null, 1.3, 1.2], opacity: 1 }}
         whileTap={{ scale: 1.1 }}
