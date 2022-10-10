@@ -4,7 +4,7 @@ import ReactDOM from "react-dom/client";
 import { motion } from "framer-motion";
 
 import Verso from "./pongClassic.png";
-import Recto from "./Recto.png";
+import Recto from "./pong_classic.png";
 import "./index.css";
 import { useTransform } from "framer-motion";
 import { useMotionValue } from "framer-motion";
@@ -59,8 +59,12 @@ const First_Card = ({
   const isEnter = () => {
     setState(!state);
   };
+  const newLocal = "spring";
   return (
-    <div
+    <motion.div
+      initial={{ x: "-100%" }}
+      transition={{ duration: 2 }}
+      animate={{ x: "calc(0vw )" }}
       style={{
         backgroundImage: `url(${Verso})`, //change bg if is open or not
         backgroundRepeat: "no-repeat",
@@ -68,25 +72,23 @@ const First_Card = ({
         height: "70%",
         backgroundSize: "40%",
       }}
-      className={` ${
-        state ? " " : "bg-black"
-      } flex h-full w-full items-center justify-center`}
-      onMouseEnter={isEnter}
-      onMouseLeave={isEnter}
+      className="m-2 flex h-full w-full items-center justify-center  bg-slate-700"
     >
-      {/* <Rules className="" state={state} setState={setState} /> */}
       <motion.div
-        className="m-2 h-full w-full rounded "
-        initial={{ opacity: 0.6 }}
-        whileHover={{ scale: [null, 1.3, 1.2], opacity: 1 }}
+        className={` ${
+          state ? " " : "bg-blue-600 "
+        } m-2 h-full w-full rounded-3xl `}
+        onMouseEnter={isEnter}
+        onMouseLeave={isEnter}
+        initial={{ opacity: 0.3 }}
+        whileHover={{ scale: [null, 1.1, 1.1], opacity: 0.6 }}
         whileTap={{ scale: 1.1 }}
-        transition={{ duration: 0.3 }}
+        transition={{ duration: 0.8 }}
         onClick={() => setIsOpen((isOpen) => !isOpen)}
       />
-    </div>
+    </motion.div>
   );
 };
-
 const Second_Card = ({
   isOpen,
   setIsOpen,
@@ -101,8 +103,12 @@ const Second_Card = ({
   const isEnter = () => {
     setState(!state);
   };
+  const newLocal = "spring";
   return (
-    <div
+    <motion.div
+      initial={{ x: "-200%" }}
+      transition={{ duration: 2 }}
+      animate={{ x: "calc(0vw )" }}
       style={{
         backgroundImage: `url(${Verso})`, //change bg if is open or not
         backgroundRepeat: "no-repeat",
@@ -110,25 +116,23 @@ const Second_Card = ({
         height: "70%",
         backgroundSize: "40%",
       }}
-      className={` ${
-        state ? " " : "bg-black"
-      } flex h-full w-full items-center justify-center`}
-      onMouseEnter={isEnter}
-      onMouseLeave={isEnter}
+      className="m-2 flex h-full w-full items-center  justify-center bg-slate-700 "
     >
-      {/* <Rules className="" state={state} setState={setState} /> */}
       <motion.div
-        className="m-2 h-full w-full rounded "
-        initial={{ opacity: 0.6 }}
-        whileHover={{ scale: [null, 1.3, 1.2], opacity: 1 }}
+        className={` ${
+          state ? " " : "bg-blue-600 "
+        } m-2 h-full w-full rounded-3xl `}
+        onMouseEnter={isEnter}
+        onMouseLeave={isEnter}
+        initial={{ opacity: 0.3 }}
+        whileHover={{ scale: [null, 1.1, 1.1], opacity: 0.6 }}
         whileTap={{ scale: 1.1 }}
-        transition={{ duration: 0.3 }}
+        transition={{ duration: 0.8 }}
         onClick={() => setIsOpen((isOpen) => !isOpen)}
       />
-    </div>
+    </motion.div>
   );
 };
-
 const Third_Card = ({
   isOpen,
   setIsOpen,
@@ -144,30 +148,28 @@ const Third_Card = ({
     setState(!state);
   };
   return (
-    <div
+    <motion.div
+      initial={{ x: "-300%" }}
+      transition={{ duration: 2 }}
+      animate={{ x: "calc(0vw )" }}
       style={{
-        backgroundImage: `url(${Verso})`, //change bg if is open or not
+        backgroundImage: `url(${Recto})`, //change bg if is open or not
         backgroundRepeat: "no-repeat",
         backgroundPosition: "center",
         height: "70%",
-        backgroundSize: "40%",
+        backgroundSize: "100%",
       }}
-      className={` ${
-        state ? " " : "bg-blue-600"
-      } flex h-full w-full items-center justify-center`}
-      onMouseEnter={isEnter}
-      onMouseLeave={isEnter}
+      className="m-2 flex h-full w-full items-center  justify-center rounded-3xl bg-slate-700 opacity-60"
     >
-      {/* <Rules className="" state={state} setState={setState} /> */}
       <motion.div
-        className="m-2 h-full w-full rounded bg-slate-700"
-        initial={{ opacity: 0.6 }}
-        whileHover={{ scale: [null, 1.3, 1.2], opacity: 1 }}
+        className="m-2 flex h-full w-full items-center  justify-center rounded-3xl bg-slate-700"
+        initial={{ opacity: 0.3 }}
+        whileHover={{ scale: [null, 1.1], opacity: 1 }}
         whileTap={{ scale: 1.1 }}
-        transition={{ duration: 0.3 }}
+        transition={{ duration: 0.8 }}
         onClick={() => setIsOpen((isOpen) => !isOpen)}
       />
-    </div>
+    </motion.div>
   );
 };
 const App = () => {
@@ -177,7 +179,19 @@ const App = () => {
   const [stateThird, setStateThird] = React.useState(true);
   return (
     <>
-      <div className="flex h-full w-full flex-row items-center justify-center bg-slate-200 p-2">
+      <div
+        // className=" h-full w-full items-center justify-center  rounded-t-3xl bg-slate-600"
+        className="flex h-full w-full flex-row items-center justify-center bg-slate-200 p-5"
+        // animate={{
+        //   scale: [1, 2, 2, 1, 1],
+        // }}
+      >
+        {/* <motion.div
+          className="flex h-full w-full flex-row items-center justify-center bg-slate-200 p-2"
+          initial={{ x: "-100%" }}
+          transition={{ duration: 1 }}
+          animate={{ x: "calc(100vw - 100%)" }}
+        > */}
         <First_Card
           isOpen={isOpen}
           setIsOpen={setIsOpen}
@@ -196,6 +210,7 @@ const App = () => {
           state={stateThird}
           setState={setStateThird}
         />
+        {/* </motion.div> */}
       </div>
 
       {isOpen ? <Open_back isOpen={isOpen} setIsOpen={setIsOpen} /> : ""}
