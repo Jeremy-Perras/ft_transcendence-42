@@ -3,6 +3,9 @@ module.exports = {
   content: ["./index.html", "./src/**/*.tsx"],
   theme: {
     extend: {
+      screens: {
+        smh: { raw: "(min-height: 640px)" },
+      },
       spacing: {
         128: "32rem",
       },
