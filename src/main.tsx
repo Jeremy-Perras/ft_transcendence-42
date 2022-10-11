@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { useAnimationFrame } from "framer-motion";
 import Verso from "./pongClassic.png";
 import Recto from "./pixil-frame-2.png";
-import Ball from "./pixil-frame-5.gif";
+import Ball from "./New_Piskel4.gif";
 import Gift from "./New_Piskel5.png";
 import Fire from "./New_Piskel1.png";
 import Fire2 from "./New_Piskel2.gif";
@@ -62,40 +62,32 @@ const First_Card = ({
   const isEnter = () => {
     setState(!state);
   };
+
   return (
-    <>
+    <motion.div
+      initial={{ x: "-200%" }}
+      transition={{ duration: 2 }}
+      animate={{ x: "calc(0vw )" }}
+      style={{
+        backgroundImage: `url(${Fire2})`, //change bg if is open or not
+        backgroundRepeat: "no-repeat",
+        backgroundPosition: "center",
+      }}
+      className=" relative m-2 flex h-full w-full items-center justify-center   "
+      onMouseEnter={isEnter}
+      onMouseLeave={isEnter}
+    >
       <motion.div
-        initial={{ x: "-100%" }}
-        transition={{ duration: 2 }}
-        animate={{ x: "calc(0vw )" }}
-        // style={{
-        //   backgroundImage: `url(${Fire})`, //change bg if is open or not
-        //   backgroundRepeat: "no-repeat",
-        //   backgroundPosition: "center",
-        //   height: "70%",
-        //   backgroundSize: "40%",
-        // }}
-        className="font-adelia m-2 flex h-full w-full items-center justify-center "
-      >
-        <motion.div
-          className={` ${
-            state ? " " : "bg-black "
-          } m-2 h-full w-full rounded-3xl `}
-          style={{
-            backgroundImage: `url(${Fire2})`, //change bg if is open or not
-            backgroundRepeat: "no-repeat",
-            backgroundPosition: "center",
-          }}
-          onMouseEnter={isEnter}
-          onMouseLeave={isEnter}
-          initial={{ opacity: 0.3 }}
-          whileHover={{ scale: [null, 1.5], opacity: 0.6 }}
-          whileTap={{ scale: 1.8 }}
-          transition={{ duration: 0.8 }}
-          onClick={() => setIsOpen((isOpen) => !isOpen)}
-        />
-      </motion.div>
-    </>
+        className={` ${
+          state ? " " : "   bg-blue-600"
+        } rounded-xl absolute inset-x-0  bottom-0 h-1/2 w-full `}
+        initial={{ opacity: 0.3 }}
+        // whileHover={{ scale: [null, 1.1, 1.1], opacity: 0.6 }}
+        // whileTap={{ scale: 1.1 }}
+        transition={{ duration: 0.8 }}
+        onClick={() => setIsOpen((isOpen) => !isOpen)}
+      />
+    </motion.div>
   );
 };
 const Second_Card = ({
@@ -157,7 +149,7 @@ const Third_Card = ({
 
   return (
     <motion.div
-      initial={{ x: "-300%" }}
+      initial={{ x: "-200%" }}
       transition={{ duration: 2 }}
       animate={{ x: "calc(0vw )" }}
       style={{
@@ -165,20 +157,17 @@ const Third_Card = ({
         backgroundRepeat: "no-repeat",
         backgroundPosition: "center",
       }}
-      className="m-2 flex h-full w-full items-center  justify-center rounded-3xl  opacity-60"
+      className=" relative m-2 flex h-full w-full items-center justify-center   "
+      onMouseEnter={isEnter}
+      onMouseLeave={isEnter}
     >
       <motion.div
-        className="m-2 flex h-full w-full items-center  justify-center rounded-3xl"
-        // style={{
-        //   backgroundImage: `url(${Recto})`, //change bg if is open or not
-        //   backgroundRepeat: "no-repeat",
-        //   backgroundPosition: "center",
-        //   height: "70%",
-        //   backgroundSize: "100%",
-        // }}
+        className={` ${
+          state ? " " : "   bg-blue-600"
+        } rounded-xl absolute inset-x-0  bottom-0 h-1/2 w-full `}
         initial={{ opacity: 0.3 }}
-        whileHover={{ scale: [null, 1.4], opacity: 1 }}
-        whileTap={{ scale: 1.6 }}
+        // whileHover={{ scale: [null, 1.1, 1.1], opacity: 0.6 }}
+        // whileTap={{ scale: 1.1 }}
         transition={{ duration: 0.8 }}
         onClick={() => setIsOpen((isOpen) => !isOpen)}
       />
@@ -198,9 +187,13 @@ const App = () => {
   // });
   return (
     <>
+      <h1 className="font-adelia text-center text-blue-600 text-2xl  bg-slate-900">
+        {" "}
+        Bonjours
+      </h1>
       <div
         // className=" h-full w-full items-center justify-center  rounded-t-3xl bg-slate-600"
-        className="font-adelia text-blue-600 text-2xl flex h-full w-full flex-row items-center justify-center bg-slate-200 from-neutral-900 p-5 font-bold"
+        className=" flex h-full w-full flex-row items-center justify-center bg-slate-900 from-neutral-900 p-5 font-bold"
         // animate={{
         //   scale: [1, 2, 2, 1, 1],
         // }}
@@ -230,7 +223,6 @@ const App = () => {
           setState={setStateThird}
         />
         {/* </motion.div> */}
-        Bonjours
       </div>
 
       {isOpen ? <Open_back isOpen={isOpen} setIsOpen={setIsOpen} /> : ""}
