@@ -1,28 +1,65 @@
-import { useEffect, useState } from "react";
-import { createMemoryRouter, RouterProvider } from "react-router-dom";
+import { useState } from "react";
+import {
+  createMemoryRouter,
+  Outlet,
+  RouterProvider,
+  useLocation,
+  useNavigationType,
+} from "react-router-dom";
 import Discussions from "./pages/discussions";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useMediaQuery } from "@react-hookz/web";
 import Channel from "./pages/channel";
 import Chat from "./pages/chat";
 import Profile from "./pages/profile";
+import { AnimatePresence, motion } from "framer-motion";
+
+const AnimationLayout = () => {
+  const { pathname } = useLocation();
+
+  console.log(useNavigationType());
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        className="h-full w-full"
+        key={pathname}
+        transition={{ duration: 0.2, ease: "easeIn" }}
+        initial={{ x: "100%" }}
+        animate={{ x: 0 }}
+        exit={{ x: "100%" }}
+      >
+        <Outlet />
+      </motion.div>
+    </AnimatePresence>
+  );
+};
 
 const router = createMemoryRouter([
   {
-    path: "/",
-    element: <Discussions />,
-  },
-  {
-    path: "/channel/:channelId",
-    element: <Channel />,
-  },
-  {
-    path: "/chat/:userId",
-    element: <Chat />,
-  },
-  {
-    path: "/profile/:userId",
-    element: <Profile />,
+    element: <AnimationLayout />,
+    children: [
+      {
+        path: "/",
+        element: <Discussions />,
+      },
+      {
+        path: "/create-channel",
+        element: <Channel />,
+      },
+      {
+        path: "/channel/:channelId",
+        element: <Channel />,
+      },
+      {
+        path: "/chat/:userId",
+        element: <Chat />,
+      },
+      {
+        path: "/profile/:userId",
+        element: <Profile />,
+      },
+    ],
   },
 ]);
 
@@ -69,11 +106,11 @@ export default function SideBar() {
           forceMount
           onInteractOutside={(e) => !smallScreen && e.preventDefault()}
           onOpenAutoFocus={(e) => !smallScreen && e.preventDefault()}
-          className={`absolute right-0 flex h-full w-full flex-col bg-slate-50 sm:w-128 2xl:relative ${
+          className={`absolute right-0 flex h-full w-full flex-col bg-slate-50 font-cursive sm:w-128 2xl:relative ${
             showSideBar ? "translate-x-0" : "translate-x-full"
           } ${smallScreen ? "transition-transform duration-200" : ""}`}
         >
-          {smallScreen ? (
+          {/* {smallScreen ? (
             <Dialog.Close className="absolute top-1 right-2">
               <svg
                 className="h-8 w-8 text-slate-800"
@@ -87,7 +124,7 @@ export default function SideBar() {
                 />
               </svg>
             </Dialog.Close>
-          ) : null}
+          ) : null} */}
           <RouterProvider router={router} />
         </Dialog.Content>
       </Dialog.Root>
