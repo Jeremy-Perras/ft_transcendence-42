@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import Header from "../header.component";
 
 function Empty() {
   return (
@@ -26,7 +25,6 @@ function Empty() {
 export default function Discussions() {
   return (
     <>
-      <Header />
       <Empty />
       <Link to="/create-channel">create</Link>
       {/* <h1 className="text-lg">home</h1>

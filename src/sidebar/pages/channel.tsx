@@ -1,10 +1,8 @@
 import { Link } from "react-router-dom";
-import Header from "../header.component";
 
 export default function Channel() {
   return (
     <>
-      <Header />
       <h1 className="text-lg">channel</h1>
       <ul>
         <li>

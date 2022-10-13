@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   createMemoryRouter,
   Outlet,
@@ -13,47 +13,52 @@ import { useMediaQuery } from "@react-hookz/web";
 import Channel from "./pages/channel";
 import Chat from "./pages/chat";
 import Profile from "./pages/profile";
-import { AnimatePresence, motion, useAnimation } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import Header from "./header.component";
+import { SideBarContext } from "./sidebar.context";
+
+const SidebarLayout = () => {
+  return (
+    <div className="h-full w-full bg-slate-50">
+      <Header />
+      <Outlet />
+    </div>
+  );
+};
 
 const AnimationLayout = () => {
   const { pathname } = useLocation();
 
-  // console.log(useNavigationType());
-
-  // const variants = {
-  //   visible: {
-  //     x: "100%",
-  //   },
-  //   hidden: {
-  //     x: 0,
-  //   },
-  // };
-  // const nav = useNavigationType();
-  // const controls = useAnimation();
-
-  // useEffect(() => {
-  //   if (nav === "PUSH") {
-  //     controls.set({ x: "100%" });
-  //     controls.start({
-  //       x: 0,
-  //       transition: { duration: 3 },
-  //     });
-  //   }
-  // }, [nav]);
+  const nav = useNavigationType();
+  const variants = {
+    visible: {
+      transition: {
+        duration: nav === "PUSH" ? 0.2 : 0,
+        ease: "easeIn",
+      },
+      x: 0,
+    },
+    hidden: {
+      transition: {
+        duration: 0.2,
+        ease: "easeIn",
+      },
+      x: nav === "PUSH" ? "100%" : 0,
+      zIndex: nav === "PUSH" ? 10 : 0,
+    },
+  };
 
   const out = useOutlet();
 
   return (
     <AnimatePresence initial={false}>
       <motion.div
-        className="h-full w-full"
+        className="h-full w-full bg-slate-50"
         key={pathname}
-        // animate={controls}
-        // variants={variants}
-        transition={{ duration: 2, ease: "easeIn" }}
-        initial={{ x: "100%", position: "absolute", background: "red" }}
-        animate={{ x: 0 }}
-        exit={{ x: "100%", transition: { duration: 2 } }}
+        variants={variants}
+        initial={{ x: "100%", position: "absolute" }}
+        animate="visible"
+        exit="hidden"
       >
         {out}
       </motion.div>
@@ -63,27 +68,32 @@ const AnimationLayout = () => {
 
 const router = createMemoryRouter([
   {
-    element: <AnimationLayout />,
+    element: <SidebarLayout />,
     children: [
       {
-        path: "/",
-        element: <Discussions />,
-      },
-      {
-        path: "/create-channel",
-        element: <Channel />,
-      },
-      {
-        path: "/channel/:channelId",
-        element: <Channel />,
-      },
-      {
-        path: "/chat/:userId",
-        element: <Chat />,
-      },
-      {
-        path: "/profile/:userId",
-        element: <Profile />,
+        element: <AnimationLayout />,
+        children: [
+          {
+            path: "/",
+            element: <Discussions />,
+          },
+          {
+            path: "/create-channel",
+            element: <Channel />,
+          },
+          {
+            path: "/channel/:channelId",
+            element: <Channel />,
+          },
+          {
+            path: "/chat/:userId",
+            element: <Chat />,
+          },
+          {
+            path: "/profile/:userId",
+            element: <Profile />,
+          },
+        ],
       },
     ],
   },
@@ -104,7 +114,7 @@ export default function SideBar() {
           className="absolute top-1 right-2 z-10 animate-[fadeIn_400ms_ease_200ms_1_normal_backwards] "
         >
           <svg
-            className="h-10 w-10"
+            className="h-10 w-10 text-slate-50"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
@@ -151,7 +161,9 @@ export default function SideBar() {
               </svg>
             </Dialog.Close>
           ) : null} */}
-          <RouterProvider router={router} />
+          <SideBarContext.Provider value={setShowSideBar}>
+            <RouterProvider router={router} />
+          </SideBarContext.Provider>
         </Dialog.Content>
       </Dialog.Root>
     </div>
