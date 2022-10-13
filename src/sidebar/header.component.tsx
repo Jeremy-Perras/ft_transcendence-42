@@ -3,12 +3,13 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 
 export default function Header() {
   const [search, setSearch] = useState("");
+  const [home] = useState(useLocation().pathname === "/");
   const location = useLocation();
   const navigate = useNavigate();
 
   return (
     <div className="flex border-b-2 border-black  font-cursive">
-      {location.pathname === "/" ? (
+      {home ? (
         <Link
           to="/create-channel"
           className="border-r-2 transition-colors duration-200 hover:text-blue-900"

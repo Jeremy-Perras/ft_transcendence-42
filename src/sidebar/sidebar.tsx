@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   createMemoryRouter,
   Outlet,
   RouterProvider,
   useLocation,
   useNavigationType,
+  useOutlet,
 } from "react-router-dom";
 import Discussions from "./pages/discussions";
 import * as Dialog from "@radix-ui/react-dialog";
@@ -12,24 +13,49 @@ import { useMediaQuery } from "@react-hookz/web";
 import Channel from "./pages/channel";
 import Chat from "./pages/chat";
 import Profile from "./pages/profile";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useAnimation } from "framer-motion";
 
 const AnimationLayout = () => {
   const { pathname } = useLocation();
 
-  console.log(useNavigationType());
+  // console.log(useNavigationType());
+
+  // const variants = {
+  //   visible: {
+  //     x: "100%",
+  //   },
+  //   hidden: {
+  //     x: 0,
+  //   },
+  // };
+  // const nav = useNavigationType();
+  // const controls = useAnimation();
+
+  // useEffect(() => {
+  //   if (nav === "PUSH") {
+  //     controls.set({ x: "100%" });
+  //     controls.start({
+  //       x: 0,
+  //       transition: { duration: 3 },
+  //     });
+  //   }
+  // }, [nav]);
+
+  const out = useOutlet();
 
   return (
-    <AnimatePresence>
+    <AnimatePresence initial={false}>
       <motion.div
         className="h-full w-full"
         key={pathname}
-        transition={{ duration: 0.2, ease: "easeIn" }}
-        initial={{ x: "100%" }}
+        // animate={controls}
+        // variants={variants}
+        transition={{ duration: 2, ease: "easeIn" }}
+        initial={{ x: "100%", position: "absolute", background: "red" }}
         animate={{ x: 0 }}
-        exit={{ x: "100%" }}
+        exit={{ x: "100%", transition: { duration: 2 } }}
       >
-        <Outlet />
+        {out}
       </motion.div>
     </AnimatePresence>
   );

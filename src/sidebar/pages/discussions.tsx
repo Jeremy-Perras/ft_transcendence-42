@@ -5,7 +5,7 @@ function Empty() {
   return (
     <div className="flex h-full select-none flex-col items-center justify-center text-slate-200">
       <svg
-        className=" -mt-20 w-96"
+        className="-mt-20 w-96"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 24 24"
