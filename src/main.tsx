@@ -5,8 +5,8 @@ import { motion } from "framer-motion";
 import { useAnimationFrame } from "framer-motion";
 import Verso from "./pongClassic.png";
 import Recto from "./pixil-frame-2.png";
-import Ball from "./New_Piskel4.gif";
-import Gift from "./New_Piskel5.png";
+import Ball from "./New_Piskel7.gif";
+import Gift from "./New_Piskel6.png";
 import Fire from "./New_Piskel1.png";
 import Fire2 from "./New_Piskel2.gif";
 import title from "./New_Piskel2.gif";
@@ -80,7 +80,7 @@ const First_Card = ({
       <motion.div
         className={` ${
           state ? " " : "   bg-blue-600"
-        } rounded-xl absolute inset-x-0  bottom-0 h-1/2 w-full `}
+        } absolute inset-x-0 bottom-0  h-1/2 w-full rounded-xl `}
         initial={{ opacity: 0.3 }}
         // whileHover={{ scale: [null, 1.1, 1.1], opacity: 0.6 }}
         // whileTap={{ scale: 1.1 }}
@@ -157,20 +157,23 @@ const Third_Card = ({
         backgroundRepeat: "no-repeat",
         backgroundPosition: "center",
       }}
-      className=" relative m-2 flex h-full w-full items-center justify-center   "
+      className=" relative m-2   flex h-full  w-full justify-center   text-blue-600   "
       onMouseEnter={isEnter}
       onMouseLeave={isEnter}
     >
+      Speed
       <motion.div
         className={` ${
           state ? " " : "   bg-blue-600"
-        } rounded-xl absolute inset-x-0  bottom-0 h-1/2 w-full `}
+        } absolute bottom-1/3 h-1/6 w-full  rounded-xl align-baseline`}
         initial={{ opacity: 0.3 }}
         // whileHover={{ scale: [null, 1.1, 1.1], opacity: 0.6 }}
         // whileTap={{ scale: 1.1 }}
         transition={{ duration: 0.8 }}
         onClick={() => setIsOpen((isOpen) => !isOpen)}
-      />
+      >
+        <h1 className="absolute h-full w-full text-center">Speed</h1>
+      </motion.div>
     </motion.div>
   );
 };
@@ -187,13 +190,13 @@ const App = () => {
   // });
   return (
     <>
-      <h1 className="font-adelia text-center text-blue-600 text-2xl  bg-slate-900">
+      <h1 className="font-adelia bg-slate-900 text-center text-2xl  text-blue-600">
         {" "}
         Bonjours
       </h1>
       <div
         // className=" h-full w-full items-center justify-center  rounded-t-3xl bg-slate-600"
-        className=" flex h-full w-full flex-row items-center justify-center bg-slate-900 from-neutral-900 p-5 font-bold"
+        className=" flex h-full w-full flex-row items-center justify-center bg-slate-900 from-neutral-900 p-5  font-bold"
         // animate={{
         //   scale: [1, 2, 2, 1, 1],
         // }}
@@ -210,6 +213,7 @@ const App = () => {
           state={stateFirst}
           setState={setStateFirst}
         />
+
         <Second_Card
           isOpen={isOpen}
           setIsOpen={setIsOpen}
