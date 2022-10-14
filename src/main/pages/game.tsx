@@ -11,8 +11,8 @@ import React from "react";
 
 const loadingCircleTransition = {
   duration: 0.5,
-  yoyo: Infinity,
-  ease: "easeInOut",
+  // yoyo: Infinity,
+  // ease: "easeInOut",
 };
 
 const Open_back = ({
@@ -25,8 +25,7 @@ const Open_back = ({
   const [angle, setAngle] = React.useState(0);
   React.useEffect(() => {
     setTimeout(() => {
-      angle >= 360 ? setAngle(0) : angle;
-      setAngle((angle) => angle + 10);
+      setAngle((angle) => angle + 45);
     }, 1000);
   });
   return (
@@ -40,16 +39,7 @@ const Open_back = ({
         >
           <motion.span
             className="h-12 w-12 rounded-full border-2 border-dotted border-indigo-600 bg-red-400  "
-            variants={{
-              start: {
-                x: 10 + Math.cos(angle),
-                y: 10 + Math.sin(angle),
-              },
-              end: {
-                x: 10 + Math.cos(360),
-                y: 10 + Math.sin(360),
-              },
-            }}
+            animate={{ x: 100 * Math.cos(angle), y: 100 * Math.sin(angle) }}
             transition={loadingCircleTransition}
           />
         </motion.div>
