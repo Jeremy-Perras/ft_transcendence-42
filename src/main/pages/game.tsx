@@ -25,15 +25,21 @@ const GameMode = ({ imgs, name, textEffects }: GameModeType) => {
 
   return (
     <motion.div
-      className="mb-0 flex h-1/3 w-full flex-row"
+      className="mb-0 flex h-full w-full flex-row"
       initial={{ scale: 0, opacity: 0.5 }}
       animate={{ scale: 1, opacity: 1 }}
-      transition={{ duration: 3 }}
+      transition={{ duration: 2 }}
     >
       <motion.div
-        transition={{ duration: 0.2 }}
-        initial={{ opacity: 0.9 }}
-        whileHover={{ scale: [null, 1.2], opacity: 1 }}
+        transition={{
+          duration: 0.5,
+          type: "ease",
+        }}
+        initial={{ opacity: 0.8 }}
+        whileHover={{
+          scale: [null, 1.2, 1.15],
+          opacity: 1,
+        }}
         whileTap={{ scale: 1.1 }}
       >
         <div className="relative m-2 w-full justify-center">
@@ -44,7 +50,7 @@ const GameMode = ({ imgs, name, textEffects }: GameModeType) => {
           />
         </div>
         <div
-          className={`${textEffects} m-2 h-auto w-full text-center font-Games text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl`}
+          className={`${textEffects} h-auto w-full text-center font-Games text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl`}
         >
           {name}
         </div>
@@ -109,12 +115,8 @@ export default function Game() {
 
   return (
     <div className="flex h-full w-full flex-col items-center justify-center bg-black">
-      <img
-        // src={new URL("/pictures/title.svg", import.meta.url).href}
-        src={LogoImage}
-        className="absolute top-5  w-full max-w-lg"
-      ></img>
-      <div className="flex h-1/3 flex-row ">
+      <img src={LogoImage} className="absolute top-5  w-full max-w-lg"></img>
+      <div className="flex h-1/3 w-10/12 flex-row">
         {gameModes.map((gameMode) => {
           return <GameMode key={gameMode.name} {...gameMode} />;
         })}
