@@ -7,7 +7,7 @@ import {
   useNavigationType,
   useOutlet,
 } from "react-router-dom";
-import Discussions from "./pages/discussions";
+import Home from "./pages/home";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useMediaQuery } from "@react-hookz/web";
 import Channel from "./pages/channel";
@@ -15,7 +15,7 @@ import Chat from "./pages/chat";
 import Profile from "./pages/profile";
 import { AnimatePresence, motion } from "framer-motion";
 import Header from "./header.component";
-import { SideBarContext } from "./sidebar.context";
+import { SideBarContext } from "./context/show-sidebar";
 
 const SidebarLayout = () => {
   return (
@@ -75,7 +75,7 @@ const router = createMemoryRouter([
         children: [
           {
             path: "/",
-            element: <Discussions />,
+            element: <Home />,
           },
           {
             path: "/create-channel",
