@@ -17,6 +17,7 @@ module.exports = {
       },
       fontFamily: {
         cursive: ["Silkscreen"],
+        Games: ["Games"],
       },
     },
   },

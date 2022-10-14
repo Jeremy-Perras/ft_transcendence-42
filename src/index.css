@@ -3,3 +3,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@font-face {
+    font-family: "Games";
+    src: url("./assets/Font/3Dventure.ttf");
+  }
