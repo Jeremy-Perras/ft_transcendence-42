@@ -12,6 +12,7 @@
     "@headlessui/react": "^1.7.3",
     "@mdi/js": "^7.0.96",
     "@mdi/react": "^1.6.1",
+    "@radix-ui/react-aspect-ratio": "^1.0.0",
     "@radix-ui/react-dialog": "^1.0.0",
     "@react-hookz/web": "^15.1.0",
     "framer-motion": "^7.5.3",

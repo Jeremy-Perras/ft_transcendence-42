@@ -3,9 +3,60 @@ import { motion } from "framer-motion";
 import Ball from "../../assets/Pictures/Ball.gif";
 import Fire from "../../assets/Pictures/Fire.gif";
 import Gift from "../../assets/Pictures/Gift.png";
-import Title from "../../assets/Pictures/Frame_1.svg";
+import Title from "../../assets/Pictures/Vector5.svg";
+import Test from "../../assets/Pictures/Test.png";
+import * as AspectRatio from "@radix-ui/react-aspect-ratio";
 import * as Dialog from "@radix-ui/react-dialog";
+import React from "react";
 
+const loadingCircleTransition = {
+  duration: 0.5,
+  yoyo: Infinity,
+  ease: "easeInOut",
+};
+
+const Open_back = ({
+  isOpen,
+  setIsOpen,
+}: {
+  isOpen: boolean;
+  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
+  const [angle, setAngle] = React.useState(0);
+  React.useEffect(() => {
+    setTimeout(() => {
+      angle >= 360 ? setAngle(0) : angle;
+      setAngle((angle) => angle + 10);
+    }, 1000);
+  });
+  return (
+    <div className="r-1/4 absolute top-1/4 h-full w-full ">
+      <AspectRatio.Root ratio={2 / 1.5}>
+        <motion.div
+          className="flex h-full w-full flex-row  place-content-center items-center bg-black opacity-75"
+          onClick={() => setIsOpen((isOpen) => !isOpen)}
+          initial="start"
+          animate="end"
+        >
+          <motion.span
+            className="h-12 w-12 rounded-full border-2 border-dotted border-indigo-600 bg-red-400  "
+            variants={{
+              start: {
+                x: 10 + Math.cos(angle),
+                y: 10 + Math.sin(angle),
+              },
+              end: {
+                x: 10 + Math.cos(360),
+                y: 10 + Math.sin(360),
+              },
+            }}
+            transition={loadingCircleTransition}
+          />
+        </motion.div>
+      </AspectRatio.Root>
+    </div>
+  );
+};
 const First_Card = () => {
   return (
     <motion.div
@@ -30,17 +81,31 @@ const First_Card = () => {
   );
 };
 
-const Second_Card = () => {
+const Second_Card = ({
+  isOpen,
+  setIsOpen,
+}: {
+  isOpen: boolean;
+  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
+  const [onEnter, setOnEnter] = React.useState(false);
+
+  const isEnter = () => {
+    setOnEnter(!onEnter);
+  };
   return (
     <motion.div
       className="flex h-full w-full flex-col  justify-center"
       initial={{ x: "-200%" }}
       transition={{ duration: 2 }}
       animate={{ x: "calc(0vw )" }}
+      onMouseEnter={isEnter}
+      onMouseLeave={isEnter}
+      onClick={() => setIsOpen((isOpen) => !isOpen)}
     >
       <div
         style={{
-          backgroundImage: `url(${Fire})`,
+          backgroundImage: onEnter ? `url(${Fire})` : `url(${Test})`,
           backgroundRepeat: "no-repeat",
           backgroundPosition: "bottom",
         }}
@@ -53,7 +118,13 @@ const Second_Card = () => {
   );
 };
 
-const Third_Card = () => {
+const Third_Card = ({
+  isOpen,
+  setIsOpen,
+}: {
+  isOpen: boolean;
+  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
   return (
     <motion.div
       initial={{ x: "-300%" }}
@@ -77,6 +148,7 @@ const Third_Card = () => {
 };
 
 export default function Game() {
+  const [isOpen, setIsOpen] = React.useState(false);
   return (
     <>
       <div className="flex h-full w-full flex-row items-center justify-center bg-slate-900">
@@ -89,12 +161,13 @@ export default function Game() {
           }}
         ></h1>
         <First_Card />
-        <Second_Card />
-        <Third_Card />
+        <Second_Card isOpen={isOpen} setIsOpen={setIsOpen} />
+        <Third_Card isOpen={isOpen} setIsOpen={setIsOpen} />
         <Link className="absolute top-0 left-0 text-blue-600" to="/">
           home
         </Link>
       </div>
+      {isOpen ? <Open_back isOpen={isOpen} setIsOpen={setIsOpen} /> : ""}
     </>
   );
 }
