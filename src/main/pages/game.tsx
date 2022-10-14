@@ -22,27 +22,37 @@ const Open_back = ({
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
-  const [angle, setAngle] = React.useState(0);
+  const [number, setNumber] = React.useState(0);
   React.useEffect(() => {
     setTimeout(() => {
-      setAngle((angle) => angle + 45);
+      number >= 3 ? setNumber(0) : number;
+      setNumber((number) => number + 1);
     }, 1000);
   });
   return (
     <div className="r-1/4 absolute top-1/4 h-full w-full ">
       <AspectRatio.Root ratio={2 / 1.5}>
-        <motion.div
+        <div
           className="flex h-full w-full flex-row  place-content-center items-center bg-black opacity-75"
           onClick={() => setIsOpen((isOpen) => !isOpen)}
-          initial="start"
-          animate="end"
         >
-          <motion.span
-            className="h-12 w-12 rounded-full border-2 border-dotted border-indigo-600 bg-red-400  "
-            animate={{ x: 100 * Math.cos(angle), y: 100 * Math.sin(angle) }}
-            transition={loadingCircleTransition}
-          />
-        </motion.div>
+          <div
+            className={`${
+              number >= 0 ? "m-2 h-12 w-12 rounded-full bg-red-400" : "hidden"
+            }`}
+          ></div>
+          <div
+            className={`${
+              number >= 1 ? "m-2 h-12 w-12 rounded-full bg-red-400" : "hidden"
+            }`}
+          ></div>
+          <div
+            className={`${
+              number >= 3 ? "m-2 h-12 w-12 rounded-full bg-red-400" : "hidden"
+            }`}
+            // {...console.log(number)}
+          ></div>
+        </div>
       </AspectRatio.Root>
     </div>
   );
