@@ -25,35 +25,34 @@ const Open_back = ({
   const [number, setNumber] = React.useState(0);
   React.useEffect(() => {
     setTimeout(() => {
-      number >= 3 ? setNumber(0) : number;
       setNumber((number) => number + 1);
+      number >= 3 ? setNumber(0) : number;
     }, 1000);
   });
   return (
-    <div className="r-1/4 absolute top-1/4 h-full w-full ">
-      <AspectRatio.Root ratio={2 / 1.5}>
+    <div className="r-0 absolute top-1/4 h-1/2 w-full ">
+      {/* <AspectRatio.Root ratio={2 / 1.5}> */}
+      <div
+        className="flex h-full w-full flex-row  place-content-center items-center bg-black opacity-75"
+        onClick={() => setIsOpen((isOpen) => !isOpen)}
+      >
         <div
-          className="flex h-full w-full flex-row  place-content-center items-center bg-black opacity-75"
-          onClick={() => setIsOpen((isOpen) => !isOpen)}
-        >
-          <div
-            className={`${
-              number >= 0 ? "m-2 h-12 w-12 rounded-full bg-red-400" : "hidden"
-            }`}
-          ></div>
-          <div
-            className={`${
-              number >= 1 ? "m-2 h-12 w-12 rounded-full bg-red-400" : "hidden"
-            }`}
-          ></div>
-          <div
-            className={`${
-              number >= 3 ? "m-2 h-12 w-12 rounded-full bg-red-400" : "hidden"
-            }`}
-            // {...console.log(number)}
-          ></div>
-        </div>
-      </AspectRatio.Root>
+          className={`${
+            number >= 1 ? "m-2 h-12 w-12 rounded-full bg-red-400" : "hidden"
+          }`}
+        ></div>
+        <div
+          className={`${
+            number >= 2 ? "m-2 h-12 w-12 rounded-full bg-red-400" : "hidden"
+          }`}
+        ></div>
+        <div
+          className={`${
+            number >= 3 ? "m-2 h-12 w-12 rounded-full bg-red-400" : "hidden"
+          }`}
+        ></div>
+      </div>
+      {/* </AspectRatio.Root> */}
     </div>
   );
 };
