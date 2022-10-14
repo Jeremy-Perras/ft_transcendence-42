@@ -5,5 +5,5 @@
 @tailwind utilities;
 @font-face {
     font-family: "Games";
-    src: url("./assets/Font/3Dventure.ttf");
+    src: url("/fonts/3Dventure.ttf");
   }

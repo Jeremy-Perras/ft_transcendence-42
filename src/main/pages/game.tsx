@@ -2,15 +2,26 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import * as Dialog from "@radix-ui/react-dialog";
 import React from "react";
+import { ModuleNamespace } from "vite/types/hot";
+import LogoImage from "../../assets/pictures/title.svg";
 
-const GameMode = ({ imgUrl, name, textEffects }: GameModeType) => {
-  const [image, setImage] = React.useState(0);
+let intervalId = -1;
+const GameMode = ({ imgs, name, textEffects }: GameModeType) => {
+  const [animationIndex, setanimationIndex] = React.useState(0);
+
   React.useEffect(() => {
-    setTimeout(() => {
-      image == 20 ? setImage(0) : image;
-      setImage((image) => image + 1);
-    }, 50);
-  });
+    if (intervalId == -1) {
+      intervalId = setInterval(() => {
+        setanimationIndex((animationIndex) => {
+          return animationIndex == imgs.length - 1 ? 0 : animationIndex + 1;
+        });
+      }, 50);
+      return () => {
+        clearInterval(intervalId);
+        intervalId = -1;
+      };
+    }
+  }, []);
 
   return (
     <motion.div
@@ -25,9 +36,9 @@ const GameMode = ({ imgUrl, name, textEffects }: GameModeType) => {
         whileHover={{ scale: [null, 1.2], opacity: 1 }}
         whileTap={{ scale: 1.1 }}
       >
-        <div className="relative m-2  w-full justify-center">
+        <div className="relative m-2 w-full justify-center">
           <img
-            src={imgUrl}
+            src={new URL(imgs[animationIndex], import.meta.url).href}
             className="align-self-end m-auto mb-0 w-1/2"
             alt="bonus"
           />
@@ -43,7 +54,7 @@ const GameMode = ({ imgUrl, name, textEffects }: GameModeType) => {
 };
 
 type GameModeType = {
-  imgUrl: string;
+  imgs: string[];
   name: string;
   textEffects: string;
 };
@@ -51,25 +62,59 @@ type GameModeType = {
 export default function Game() {
   const gameModes: GameModeType[] = [
     {
-      imgUrl: "/pictures/bouncing_ball/bouncing_ball1.svg",
+      imgs: (() => {
+        const modules = import.meta.glob(
+          "../../assets/pictures/bouncing_ball/*.svg",
+          {
+            eager: true,
+          }
+        );
+        return Object.keys(modules)
+          .sort()
+          .map((m) => m);
+      })(),
       name: "classic",
       textEffects: "text-white",
     },
     {
-      imgUrl: "/pictures/fire.gif",
+      imgs: (() => {
+        const modules = import.meta.glob(
+          "../../assets/pictures/fireball/*.svg",
+          {
+            eager: true,
+          }
+        );
+        return Object.keys(modules)
+          .sort()
+          .map((m) => m);
+      })(),
+
       name: "fireball",
       textEffects: "text-red-500",
     },
     {
-      imgUrl: "/pictures/gift.png",
+      imgs: (() => {
+        const modules = import.meta.glob("../../assets/pictures/bonus/*.svg", {
+          eager: true,
+        });
+        return Object.keys(modules)
+          .sort()
+          .map((m) => m);
+      })(),
+
       name: "bonus",
       textEffects: "text-amber-500",
     },
   ];
+
   return (
     <div className="flex h-full w-full flex-col items-center justify-center bg-black">
-      <img src="/pictures/title.svg" className="mt-5  w-full "></img>
-      <div className="flex h-1/3 flex-row">
+      <img
+        // src={new URL("/pictures/title.svg", import.meta.url).href}
+        src={LogoImage}
+        className="absolute top-5  w-full max-w-lg"
+      ></img>
+      <div className="flex h-1/3 flex-row ">
         {gameModes.map((gameMode) => {
           return <GameMode key={gameMode.name} {...gameMode} />;
         })}
