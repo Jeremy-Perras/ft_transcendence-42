@@ -134,7 +134,7 @@ const GameMode = ({
           if (angle >= Math.PI * 2) return 0;
           else return angle;
         });
-      }, 50);
+      }, 10);
     }
   }, []);
   const [angle, setAngle] = React.useState(0);
@@ -170,13 +170,21 @@ const GameMode = ({
             //     x: 50 * Math.cos(angle),
             //   },
             // }}
-            animate={{ x: 30 * Math.cos(angle), y: 30 * Math.sin(angle) }}
+            animate={{
+              x: 50 * Math.cos(angle),
+              // y: 50 * Math.sin(angle),
+              scale: 1 + (50 * angle) / 360,
+            }}
             // transition={{ duration: 0.6 }}
           />
         </div>
         <motion.div
           className={`${textEffects} h-auto w-full text-center font-cursive text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl`}
-          animate={{ x: 30 * Math.cos(angle), y: 30 * Math.sin(angle) }}
+          animate={{
+            x: 50 * Math.cos(angle),
+            // y: 50 * Math.sin(angle),
+            scale: 1 + (50 * angle) / 360,
+          }}
         >
           {name}
         </motion.div>
