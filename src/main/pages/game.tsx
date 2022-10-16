@@ -170,15 +170,16 @@ const GameMode = ({
             //     x: 50 * Math.cos(angle),
             //   },
             // }}
-            animate={{ x: 50 * Math.cos(angle), y: 50 * Math.cos(angle) }}
+            animate={{ x: 30 * Math.cos(angle), y: 30 * Math.sin(angle) }}
             // transition={{ duration: 0.6 }}
           />
         </div>
-        <div
+        <motion.div
           className={`${textEffects} h-auto w-full text-center font-cursive text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl`}
+          animate={{ x: 30 * Math.cos(angle), y: 30 * Math.sin(angle) }}
         >
           {name}
-        </div>
+        </motion.div>
       </motion.div>
     </motion.div>
   );
