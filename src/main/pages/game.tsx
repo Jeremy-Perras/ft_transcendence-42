@@ -130,11 +130,11 @@ const GameMode = ({
 
       setInterval(() => {
         setAngle((angle) => {
-          angle = angle + 180;
-          if (angle >= 360) return 0;
+          angle = angle + Math.PI / 180;
+          if (angle >= Math.PI * 2) return 0;
           else return angle;
         });
-      }, 1000);
+      }, 50);
     }
   }, []);
   const [angle, setAngle] = React.useState(0);
@@ -170,7 +170,7 @@ const GameMode = ({
             //     x: 50 * Math.cos(angle),
             //   },
             // }}
-            animate={{ x: 50 * Math.cos(angle) }}
+            animate={{ x: 50 * Math.cos(angle), y: 50 * Math.cos(angle) }}
             // transition={{ duration: 0.6 }}
           />
         </div>
