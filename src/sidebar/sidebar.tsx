@@ -65,7 +65,7 @@ const router = createMemoryRouter([
 
 export default function SideBar() {
   const [newMessage, setNewMessage] = useState(false);
-  const [showSideBar, setShowSideBar] = useState(true);
+  const [showSideBar, setShowSideBar] = useState(false);
   const smallScreen = useMediaQuery("(max-width: 1536px)");
 
   // useEffect(() => setShowSideBar(!smallScreen), [smallScreen]);
