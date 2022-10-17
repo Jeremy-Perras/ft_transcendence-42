@@ -179,7 +179,7 @@ const GameMode = ({
           <div
             className={`${
               onEnter ? "visible" : "invisible"
-            } mb-10 flex  h-full w-full justify-center`}
+            } mb-10 hidden h-full w-full justify-center sm:flex`}
           >
             <motion.img
               src={Arrow}
@@ -189,7 +189,7 @@ const GameMode = ({
           </div>
           <motion.img
             src={new URL(imgs[animationIndex], import.meta.url).href}
-            className="align-self-end m-auto mb-0 w-1/2"
+            className="align-self-end m-auto mb-0 hidden w-1/2 sm:block"
             alt={name}
             animate={
               onEnter && name == "bonus"
@@ -274,13 +274,14 @@ export default function Game() {
     },
   ];
   const [isOpen, setIsOpen] = React.useState(false);
+
   return (
     <div className=" relative  flex h-full w-full flex-col items-center justify-center bg-black">
       <img
         src={LogoImage}
         className="absolute top-5  w-full max-w-sm sm:max-w-lg lg:max-w-xl 2xl:max-w-2xl"
       ></img>
-      <div className="flex h-1/3 w-10/12 flex-col sm:flex-row">
+      <div className="flex h-1/3 w-full  flex-col items-center justify-center sm:h-1/2 sm:flex-row">
         {gameModes.map((gameMode) => {
           return (
             <GameMode
