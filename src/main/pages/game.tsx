@@ -118,7 +118,6 @@ const GameMode = ({
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
-  const [screen, setScreen] = React.useState(window.innerWidth);
   const [onEnter, setOnEnter] = React.useState(false);
   const isEnter = () => {
     setOnEnter(!onEnter);
