@@ -118,6 +118,7 @@ const GameMode = ({
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
+  const [screen, setScreen] = React.useState(window.innerWidth);
   const [onEnter, setOnEnter] = React.useState(false);
   const isEnter = () => {
     setOnEnter(!onEnter);
@@ -176,9 +177,13 @@ const GameMode = ({
           className="relative w-full justify-center p-2"
           onClick={() => setIsOpen((isOpen) => !isOpen)}
         >
-          <div className=" mb-10 flex  h-full w-full justify-center">
+          <div
+            className={`${
+              onEnter ? "visible" : "invisible"
+            } mb-10 flex  h-full w-full justify-center`}
+          >
             <motion.img
-              src={`${onEnter ? Arrow : ""}`}
+              src={Arrow}
               animate={{ y: [0, 20, 0] }}
               transition={{ repeat: Infinity, duration: 1 }}
             />
@@ -270,7 +275,6 @@ export default function Game() {
     },
   ];
   const [isOpen, setIsOpen] = React.useState(false);
-  // console.log();
   return (
     <div className=" relative  flex h-full w-full flex-col items-center justify-center bg-black">
       <img
