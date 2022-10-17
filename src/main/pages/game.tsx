@@ -123,7 +123,7 @@ const GameMode = ({ imgs, name, textEffects, animate }: GameModeType) => {
   }, []);
 
   const isNarrow = useMediaQuery("(max-width : 640px)");
-  const isSmall = useMediaQuery("(max-height : 640px)");
+  const isSmall = useMediaQuery("(max-height : 720px)");
 
   return (
     <motion.div
@@ -160,14 +160,16 @@ const GameMode = ({ imgs, name, textEffects, animate }: GameModeType) => {
           {!isSmall && (
             <motion.img
               src={new URL(imgs[animationIndex], import.meta.url).href}
-              className="mb-0 w-1/4 sm:w-1/2"
+              className="w-1/4 sm:w-1/2"
               alt={name}
               animate={animate(isSelected)}
             />
           )}
         </div>
         <motion.div
-          className={`${textEffects} mt-0 font-cursive text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl`}
+          className={`${
+            isSmall && !isNarrow ? "pl-10 pr-10" : ""
+          } ${textEffects} font-cursive text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl`}
         >
           {name}
         </motion.div>
