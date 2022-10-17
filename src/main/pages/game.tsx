@@ -1,129 +1,113 @@
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
-
+import {
+  AnimationControls,
+  motion,
+  TargetAndTransition,
+  VariantLabels,
+} from "framer-motion";
+import { useMediaQuery } from "@react-hookz/web";
 import React, { useEffect } from "react";
 
 import LogoImage from "../../assets/pictures/title.svg";
 import Arrow from "../../assets/pictures/Arrow.svg";
 
-let init = false;
-let init2 = 0;
+// const AngleSide = ({
+//   widthString,
+//   side,
+//   top,
+// }: {
+//   widthString: string;
+//   top: string;
+//   side: string;
+// }) => {
+//   return (
+//     <div
+//       className={`${
+//         widthString == "0"
+//           ? "hidden"
+//           : `${top}  ${side} absolute  h-1 w-1 bg-neutral-800`
+//       }`}
+//     ></div>
+//   );
+// };
+
+// let init = false;
+// const OpenBack = ({
+//   isOpen,
+//   setIsOpen,
+// }: {
+//   isOpen: boolean;
+//   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+// }) => {
+//   const [width, setWidth] = React.useState(0);
+//   const [widthString, setWidthString] = React.useState("0");
+//   React.useEffect(() => {
+//     if (!init) {
+//       init = true;
+//       setInterval(() => {
+//         setWidth((width) => {
+//           if (width == 1) return 0;
+//           else return width + 1 / 4;
+//         });
+//       }, 1000);
+//     }
+//   }, []);
+//   useEffect(() => {
+//     switch (width) {
+//       case 0:
+//         setWidthString("0");
+//         break;
+//       case 1 / 4:
+//         setWidthString("1/4");
+//         break;
+//       case 1 / 2:
+//         setWidthString("1/2");
+//         break;
+//       case 3 / 4:
+//         setWidthString("3/4");
+//         break;
+//       case 4 / 4:
+//         setWidthString("full");
+//         break;
+//     }
+//   }, [width]);
+
+//   return (
+//     <div className="r-0 absolute  top-1/4 h-1/2 w-full">
+//       <div className="relative flex h-full w-full  place-content-center items-center bg-neutral-800 ">
+//         <div className="flex h-1/4 w-3/4 flex-col  items-center justify-center  font-cursive text-xl text-white sm:text-4xl">
+//           <div className={`relative h-1/4 w-${widthString}   bg-white`}>
+//             <AngleSide widthString={widthString} top="top-0" side="left-0" />
+//             <AngleSide widthString={widthString} top="top-0" side="right-0" />
+//             <AngleSide widthString={widthString} top="bottom-0" side="left-0" />
+//             <AngleSide
+//               widthString={widthString}
+//               top="bottom-0"
+//               side="right-0"
+//             />
+//           </div>
+//           Waiting ...
+//         </div>
+//         <div
+//           className="absolute top-0 right-0 h-10 w-10 select-none bg-red-600 text-center font-cursive text-3xl text-white"
+//           onClick={() => setIsOpen((isOpen) => !isOpen)}
+//         >
+//           <AngleSide widthString="full" top="top-0" side="left-0" />
+//           <AngleSide widthString="full" top="top-0" side="right-0" />
+//           <AngleSide widthString="full" top="bottom-0" side="left-0" />
+//           <AngleSide widthString="full" top="bottom-0" side="right-0" />X
+//           {(init = false)}
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+
 let intervalId = -1;
-
-const AngleSide = ({
-  weightString,
-  side,
-  top,
-}: {
-  weightString: string;
-  top: string;
-  side: string;
-}) => {
-  return (
-    <div
-      className={`${
-        weightString == "0"
-          ? "hidden"
-          : `${top}  ${side} absolute  h-1 w-1 bg-neutral-800`
-      }`}
-    ></div>
-  );
-};
-
-const OpenBack = ({
-  isOpen,
-  setIsOpen,
-}: {
-  isOpen: boolean;
-  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
-}) => {
-  const [weight, setWeight] = React.useState(0);
-  const [weightString, setWeightString] = React.useState("0");
-  React.useEffect(() => {
-    if (!init) {
-      init = true;
-      setInterval(() => {
-        setWeight((weight) => {
-          if (weight == 1) return 0;
-          else return weight + 1 / 4;
-        });
-      }, 1000);
-    }
-  }, []);
-  useEffect(() => {
-    switch (weight) {
-      case 0:
-        setWeightString("0");
-        break;
-      case 1 / 4:
-        setWeightString("1/4");
-        break;
-      case 1 / 2:
-        setWeightString("1/2");
-        break;
-      case 3 / 4:
-        setWeightString("3/4");
-        break;
-      case 4 / 4:
-        setWeightString("full");
-        break;
-    }
-  }, [weight]);
-
-  return (
-    <div className="r-0 absolute  top-1/4 h-1/2 w-full">
-      <div className="relative flex h-full w-full  place-content-center items-center bg-neutral-800 ">
-        <div className="flex h-1/4 w-3/4 flex-col  items-center justify-center  font-cursive text-xl text-white sm:text-4xl">
-          <div className={`relative h-1/4 w-${weightString}   bg-white`}>
-            <AngleSide weightString={weightString} top="top-0" side="left-0" />
-            <AngleSide weightString={weightString} top="top-0" side="right-0" />
-            <AngleSide
-              weightString={weightString}
-              top="bottom-0"
-              side="left-0"
-            />
-            <AngleSide
-              weightString={weightString}
-              top="bottom-0"
-              side="right-0"
-            />
-          </div>
-          Waiting ...
-        </div>
-        <div
-          className="absolute top-0 right-0 h-10 w-10 select-none bg-red-600 text-center font-cursive text-3xl text-white"
-          onClick={() => setIsOpen((isOpen) => !isOpen)}
-        >
-          <AngleSide weightString="full" top="top-0" side="left-0" />
-          <AngleSide weightString="full" top="top-0" side="right-0" />
-          <AngleSide weightString="full" top="bottom-0" side="left-0" />
-          <AngleSide weightString="full" top="bottom-0" side="right-0" />X
-          {(init = false)}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const GameMode = ({
-  imgs,
-  name,
-  textEffects,
-  isOpen,
-  setIsOpen,
-}: {
-  imgs: string[];
-  name: string;
-  textEffects: string;
-  isOpen: boolean;
-  setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
-}) => {
-  const [onEnter, setOnEnter] = React.useState(false);
-  const isEnter = () => {
-    setOnEnter(!onEnter);
-  };
+const GameMode = ({ imgs, name, textEffects, animate }: GameModeType) => {
+  const [isSelected, setIsSelected] = React.useState(false);
   const [animationIndex, setanimationIndex] = React.useState(0);
-  const [angle, setAngle] = React.useState(0);
+
   React.useEffect(() => {
     if (intervalId == -1) {
       intervalId = setInterval(() => {
@@ -137,30 +121,21 @@ const GameMode = ({
       };
     }
   }, []);
-  React.useEffect(() => {
-    if (init2 != 3) {
-      init2 = init2 + 1;
 
-      setInterval(() => {
-        setAngle((angle) => {
-          angle = angle + Math.PI / 180;
-          if (angle >= Math.PI * 2) return 0;
-          else return angle;
-        });
-      }, 10);
-    }
-  }, []);
+  const isNarrow = useMediaQuery("(max-width : 640px)");
+  const isSmall = useMediaQuery("(max-height : 640px)");
 
   return (
     <motion.div
-      className=" relative mb-0 flex h-full w-full flex-row  "
       initial={{ scale: 0, opacity: 0.5 }}
       animate={{ scale: 1, opacity: 1 }}
       transition={{ duration: 2 }}
-      onMouseEnter={isEnter}
-      onMouseLeave={isEnter}
+      onMouseOver={() => setIsSelected(true)}
+      onMouseOut={() => setIsSelected(false)}
     >
+      {/* fusion */}
       <motion.div
+        className="flex flex-col items-center"
         transition={{
           duration: 0.5,
           type: "ease",
@@ -172,46 +147,27 @@ const GameMode = ({
         }}
         whileTap={{ scale: 1.1 }}
       >
-        <div
-          className="relative w-full justify-center p-2"
-          onClick={() => setIsOpen((isOpen) => !isOpen)}
-        >
-          <div
-            className={`${
-              onEnter ? "visible" : "invisible"
-            } mb-10 hidden h-full w-full justify-center sm:flex`}
-          >
+        <div className="relative flex justify-center">
+          {isSelected && !isSmall && !isNarrow && (
             <motion.img
+              className="absolute -top-5 left-1/2"
               src={Arrow}
+              initial={{ x: "-50%" }}
               animate={{ y: [0, 20, 0] }}
               transition={{ repeat: Infinity, duration: 1 }}
             />
-          </div>
-          <motion.img
-            src={new URL(imgs[animationIndex], import.meta.url).href}
-            className="align-self-end m-auto mb-0 hidden w-1/2 sm:block"
-            alt={name}
-            animate={
-              onEnter && name == "bonus"
-                ? {
-                    rotate: [0, -5, 5, 0],
-                    transition: {
-                      duration: 1,
-                      delay: 0.1,
-                      repeat: Infinity,
-                    },
-                  }
-                : name == "bonus"
-                ? {
-                    scale: 1 + 0.1 * Math.cos(angle + (2 * Math.PI) / 3),
-                    rotate: 0,
-                  }
-                : ""
-            }
-          />
+          )}
+          {!isSmall && (
+            <motion.img
+              src={new URL(imgs[animationIndex], import.meta.url).href}
+              className="mb-0 w-1/4 sm:w-1/2"
+              alt={name}
+              animate={animate(isSelected)}
+            />
+          )}
         </div>
         <motion.div
-          className={`${textEffects} h-auto w-full text-center font-cursive text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl`}
+          className={`${textEffects} mt-0 font-cursive text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl`}
         >
           {name}
         </motion.div>
@@ -224,8 +180,12 @@ type GameModeType = {
   imgs: string[];
   name: string;
   textEffects: string;
+  animate: (
+    isEnter: boolean
+  ) => boolean | VariantLabels | AnimationControls | TargetAndTransition;
 };
 
+//function import
 export default function Game() {
   const gameModes: GameModeType[] = [
     {
@@ -242,6 +202,7 @@ export default function Game() {
       })(),
       name: "classic",
       textEffects: "text-white",
+      animate: (isEnter) => false,
     },
     {
       imgs: (() => {
@@ -258,6 +219,7 @@ export default function Game() {
 
       name: "fireball",
       textEffects: "text-red-500",
+      animate: (isEnter) => false,
     },
     {
       imgs: (() => {
@@ -271,34 +233,42 @@ export default function Game() {
 
       name: "bonus",
       textEffects: "text-amber-500",
+      animate: (isEnter: boolean) => {
+        return isEnter
+          ? {
+              rotate: [0, -5, 5, 0],
+              transition: {
+                duration: 1,
+                delay: 0.1,
+                repeat: Infinity,
+              },
+            }
+          : {
+              scale: 1 + 0.1 * Math.cos(0 + (2 * Math.PI) / 3),
+              rotate: 0,
+            };
+      },
     },
   ];
-  const [isOpen, setIsOpen] = React.useState(false);
+  // const [isOpen, setIsOpen] = React.useState(false);
 
   return (
-    <div className=" relative  flex h-full w-full flex-col items-center justify-center bg-black">
+    <div className="relative flex h-full w-full flex-col items-center bg-black">
       <img
         src={LogoImage}
-        className="absolute top-5  w-full max-w-sm sm:max-w-lg lg:max-w-xl 2xl:max-w-2xl"
-      ></img>
-      <div className="flex h-1/3 w-full  flex-col items-center justify-center sm:h-1/2 sm:flex-row">
+        className="mt-5 w-full max-w-sm transition-opacity sm:max-w-lg lg:max-w-xl 2xl:max-w-2xl"
+      />
+
+      <div className="flex h-full w-full flex-col justify-center sm:flex-row sm:items-center">
         {gameModes.map((gameMode) => {
-          return (
-            <GameMode
-              key={gameMode.name}
-              name={gameMode.name}
-              imgs={gameMode.imgs}
-              textEffects={gameMode.textEffects}
-              isOpen={isOpen}
-              setIsOpen={setIsOpen}
-            />
-          );
+          return <GameMode key={gameMode.name} {...gameMode} />;
         })}
       </div>
+
       <Link className="absolute top-0 left-0 text-blue-600" to="/">
         Home
       </Link>
-      {isOpen ? <OpenBack isOpen={isOpen} setIsOpen={setIsOpen} /> : ""}
+      {/* {isOpen ? <OpenBack isOpen={isOpen} setIsOpen={setIsOpen} /> : ""} */}
     </div>
   );
 }
