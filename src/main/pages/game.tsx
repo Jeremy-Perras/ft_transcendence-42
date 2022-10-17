@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import React, { useEffect } from "react";
 
 import LogoImage from "../../assets/pictures/title.svg";
+import Arrow from "../../assets/pictures/Arrow.svg";
 
 let init = false;
 let init2 = 0;
@@ -23,7 +24,7 @@ const AngleSide = ({
       className={`${
         weightString == "0"
           ? "hidden"
-          : `${top}  ${side} absolute  h-1 w-1 bg-slate-900`
+          : `${top}  ${side} absolute  h-1 w-1 bg-neutral-800`
       }`}
     ></div>
   );
@@ -71,9 +72,9 @@ const OpenBack = ({
 
   return (
     <div className="r-0 absolute  top-1/4 h-1/2 w-full">
-      <div className="relative flex h-full w-full  place-content-center items-center bg-slate-900 ">
-        <div className="flex h-1/4 w-3/4 flex-col  items-center justify-center  font-cursive text-4xl text-white">
-          <div className={`relative h-1/4 w-${weightString}   bg-red-600`}>
+      <div className="relative flex h-full w-full  place-content-center items-center bg-neutral-800 ">
+        <div className="flex h-1/4 w-3/4 flex-col  items-center justify-center  font-cursive text-xl text-white sm:text-4xl">
+          <div className={`relative h-1/4 w-${weightString}   bg-white`}>
             <AngleSide weightString={weightString} top="top-0" side="left-0" />
             <AngleSide weightString={weightString} top="top-0" side="right-0" />
             <AngleSide
@@ -117,6 +118,10 @@ const GameMode = ({
   isOpen: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
+  const [onEnter, setOnEnter] = React.useState(false);
+  const isEnter = () => {
+    setOnEnter(!onEnter);
+  };
   const [animationIndex, setanimationIndex] = React.useState(0);
   const [angle, setAngle] = React.useState(0);
   React.useEffect(() => {
@@ -145,12 +150,15 @@ const GameMode = ({
       }, 10);
     }
   }, []);
+
   return (
     <motion.div
-      className="mb-0 flex h-full w-full flex-row"
+      className=" relative mb-0 flex h-full w-full flex-row  "
       initial={{ scale: 0, opacity: 0.5 }}
       animate={{ scale: 1, opacity: 1 }}
       transition={{ duration: 2 }}
+      onMouseEnter={isEnter}
+      onMouseLeave={isEnter}
     >
       <motion.div
         transition={{
@@ -168,58 +176,38 @@ const GameMode = ({
           className="relative w-full justify-center p-2"
           onClick={() => setIsOpen((isOpen) => !isOpen)}
         >
+          <div className=" mb-10 flex  h-full w-full justify-center">
+            <motion.img
+              src={`${onEnter ? Arrow : ""}`}
+              animate={{ y: [0, 20, 0] }}
+              transition={{ repeat: Infinity, duration: 1 }}
+            />
+          </div>
           <motion.img
             src={new URL(imgs[animationIndex], import.meta.url).href}
             className="align-self-end m-auto mb-0 w-1/2"
-            alt="bonus"
+            alt={name}
             animate={
-              name == "bonus"
+              onEnter && name == "bonus"
                 ? {
-                    // x: 50 * Math.cos(angle + (2 * Math.PI) / 3),
-                    // y: 50 * Math.sin(angle + (2 * Math.PI) / 3),
-                    scale: 1 + 0.5 * Math.cos(angle + (2 * Math.PI) / 3),
+                    rotate: [0, -5, 5, 0],
+                    transition: {
+                      duration: 1,
+                      delay: 0.1,
+                      repeat: Infinity,
+                    },
+                  }
+                : name == "bonus"
+                ? {
+                    scale: 1 + 0.1 * Math.cos(angle + (2 * Math.PI) / 3),
+                    rotate: 0,
                   }
                 : ""
-              // : name == "fireball"
-              // ? {
-              //     // x: 50 * Math.cos(angle + (4 * Math.PI) / 3),
-              //     // y: 50 * Math.sin(angle + (4 * Math.PI) / 3),
-              //     scale: 0.8 + 0.5 * Math.cos(angle + (4 * Math.PI) / 3),
-              //   }
-              // : name == "classic"
-              // ? {
-              //     // x: 50 * Math.cos(angle),
-              //     // y: 50 * Math.sin(angle),
-              //     scale: 0.8 + 0.5 * Math.cos(angle),
-              //   }
-              // : ""
             }
           />
         </div>
         <motion.div
           className={`${textEffects} h-auto w-full text-center font-cursive text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl`}
-          // animate={
-          //   name == "bonus"
-          //     ? {
-          //         // x: 50 * Math.cos(angle + (2 * Math.PI) / 3),
-          //         // y: 50 * Math.sin(angle + (2 * Math.PI) / 3),
-          //         scale: 0.8 + 0.5 * Math.cos(angle + (2 * Math.PI) / 3),
-          //       }
-          //     : ""
-          // : name == "fireball"
-          // ? {
-          //     // x: 50 * Math.cos(angle + (4 * Math.PI) / 3),
-          //     // y: 50 * Math.sin(angle + (4 * Math.PI) / 3),
-          //     scale: 0.8 + 0.5 * Math.cos(angle + (4 * Math.PI) / 3),
-          //   }
-          // : name == "classic"
-          // ? {
-          //     // x: 50 * Math.cos(angle),
-          //     // y: 50 * Math.sin(angle),
-          //     scale: 0.8 + 0.5 * Math.cos(angle),
-          //   }
-          // : ""
-          // }
         >
           {name}
         </motion.div>
@@ -282,10 +270,14 @@ export default function Game() {
     },
   ];
   const [isOpen, setIsOpen] = React.useState(false);
+
   return (
     <div className=" relative  flex h-full w-full flex-col items-center justify-center bg-black">
-      <img src={LogoImage} className="absolute top-5  w-full max-w-lg"></img>
-      <div className="flex h-1/3 w-10/12 flex-row">
+      <img
+        src={LogoImage}
+        className="absolute top-5  w-full max-w-sm sm:max-w-lg lg:max-w-xl 2xl:max-w-2xl"
+      ></img>
+      <div className="flex h-1/3 w-10/12 flex-col sm:flex-row">
         {gameModes.map((gameMode) => {
           return (
             <GameMode
