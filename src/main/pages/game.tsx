@@ -270,7 +270,7 @@ export default function Game() {
     },
   ];
   const [isOpen, setIsOpen] = React.useState(false);
-
+  // console.log();
   return (
     <div className=" relative  flex h-full w-full flex-col items-center justify-center bg-black">
       <img
