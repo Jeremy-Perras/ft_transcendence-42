@@ -2,6 +2,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Error404 from "./pages/error-404";
 import Game from "./pages/game";
 import Home from "./pages/home";
+import Waiting from "./pages/waiting";
 
 const router = createBrowserRouter([
   {
@@ -12,6 +13,10 @@ const router = createBrowserRouter([
   {
     path: "/game/:gameId",
     element: <Game />,
+  },
+  {
+    path: "/waiting",
+    element: <Waiting />,
   },
 ]);
 
