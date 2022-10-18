@@ -15,7 +15,7 @@ const AngleSide = ({
       className={`${
         widthString == "0"
           ? "hidden"
-          : `${top}  ${side}  absolute h-3 w-2 bg-black`
+          : `${top} ${side} absolute h-3 w-2 bg-black`
       }`}
     ></div>
   );
