@@ -5,24 +5,34 @@ import {
   Body,
   Patch,
   Param,
+  Put,
   Delete,
 } from "@nestjs/common";
+import { CreateUserDto, UpdateUserDto } from "./users.dto";
 import { UsersService } from "./users.service";
-import { CreateUserDto } from "./dto/create-user.dto";
-import { UpdateUserDto } from "./dto/update-user.dto";
 
 @Controller("api/users")
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Post()
-  create(@Body() createUserDto: CreateUserDto) {
+  @Post("oauth")
+  oauth(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
   }
 
-  @Get()
-  findAll() {
-    return this.usersService.findAll();
+  @Post("2fa")
+  twofa(@Body() createUserDto: CreateUserDto) {
+    return this.usersService.create(createUserDto);
+  }
+
+  @Get("me")
+  me() {
+    return this.usersService.me();
+  }
+
+  @Patch()
+  update(@Body() updateUserDto: UpdateUserDto) {
+    return this.usersService.update(0, updateUserDto);
   }
 
   @Get(":id")
@@ -30,13 +40,33 @@ export class UsersController {
     return this.usersService.findOne(+id);
   }
 
-  @Patch(":id")
-  update(@Param("id") id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
+  @Put(":id/block")
+  block(@Param("id") id: string) {
+    return this.usersService.block(id);
   }
 
-  @Delete(":id")
-  remove(@Param("id") id: string) {
-    return this.usersService.remove(+id);
+  @Delete(":id/block")
+  unblock(@Param("id") id: string) {
+    return this.usersService.findOne(+id);
+  }
+
+  @Put(":id/friend")
+  friend(@Param("id") id: string) {
+    return this.usersService.findOne(+id);
+  }
+
+  @Delete(":id/friend")
+  unfriend(@Param("id") id: string) {
+    return this.usersService.findOne(+id);
+  }
+
+  @Post("avatar")
+  changeAvatar(@Body() body: any) {
+    return this.usersService.findOne(0);
+  }
+
+  @Get("search/:query")
+  findAll(@Param("query") query: string) {
+    return this.usersService.findAll();
   }
 }

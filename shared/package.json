@@ -1,0 +1,27 @@
+{
+  "name": "shared",
+  "version": "0.0.1",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/shared.umd.cjs",
+  "module": "./dist/shared.js",
+  "exports": {
+    ".": {
+      "import": "./dist/shared.js",
+      "require": "./dist/shared.umd.cjs"
+    }
+  },
+  "typings": "./dist/main.d.ts",
+  "scripts": {
+    "compile": "vite build && tsc"
+  },
+  "dependencies": {
+    "zod": "^3.19.1"
+  },
+  "devDependencies": {
+    "@types/node": "^16.0.0",
+    "vite-plugin-dts": "^1.6.6"
+  }
+}

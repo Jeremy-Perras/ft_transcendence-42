@@ -10,7 +10,7 @@ import { ServeStaticModule } from "@nestjs/serve-static";
   imports: [
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, "../../../", "client/dist"),
-      exclude: ["/api/*"],
+      exclude: ["/api*"],
     }),
     MessagesModule,
     ChannelsModule,

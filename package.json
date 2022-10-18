@@ -5,9 +5,13 @@
   "author": "",
   "license": "ISC",
   "private": true,
+  "scripts": {
+    "deploy": "npm run compile -w shared && npm run build -w client && npm run start -w server"
+  },
   "workspaces": [
     "./server",
-    "./client"
+    "./client",
+    "./shared"
   ],
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.40.0",

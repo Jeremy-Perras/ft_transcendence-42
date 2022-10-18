@@ -14,8 +14,13 @@
     "skipLibCheck": true,
     "sourceMap": true,
     "isolatedModules": true,
-    "moduleResolution": "Node"
+    "moduleResolution": "Node",
+    "composite": true
   },
-  "references": [{ "path": "./server" }, { "path": "./client" }],
+  "references": [
+    { "path": "./server" },
+    { "path": "./client" },
+    { "path": "./shared" }
+  ],
   "exclude": ["node_modules"]
 }
