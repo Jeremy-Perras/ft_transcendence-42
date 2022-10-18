@@ -34,56 +34,52 @@ const GameMode = ({ imgs, name, textEffects, animate }: GameModeType) => {
   const isSmall = useMediaQuery("(max-height : 720px)");
 
   return (
-    <motion.div
-      initial={{ scale: 0, opacity: 0.5 }}
-      animate={{ scale: 1, opacity: 1 }}
-      transition={{ duration: 2 }}
-      onMouseOver={() => setIsSelected(true)}
-      onMouseOut={() => setIsSelected(false)}
-    >
-      <Link to="/waiting">
+    <Link to="/waiting">
+      <motion.div
+        className="flex flex-col items-center"
+        initial={{ scale: 0, opacity: 0.5 }}
+        animate={{
+          scale: 1,
+          opacity: 0.8,
+          transition: { duration: 0.8 },
+        }}
+        whileHover={{
+          scale: [null, 1.2, 1.15],
+          opacity: 1,
+          transition: { duration: 0.5 },
+        }}
+        whileTap={{ scale: 1.1 }}
+        onMouseOver={() => setIsSelected(true)}
+        onMouseOut={() => setIsSelected(false)}
+      >
+        <div className="relative flex justify-center">
+          {isSelected && !isSmall && !isNarrow && (
+            <motion.img
+              className="absolute -top-5 left-1/2"
+              src={Arrow}
+              initial={{ x: "-50%" }}
+              animate={{ y: [0, 20, 0] }}
+              transition={{ repeat: Infinity, duration: 1 }}
+            />
+          )}
+          {!isSmall && (
+            <motion.img
+              src={new URL(imgs[animationIndex], import.meta.url).href}
+              className="w-1/4 sm:w-1/2"
+              alt={name}
+              animate={animate(isSelected)}
+            />
+          )}
+        </div>
         <motion.div
-          className="flex flex-col items-center"
-          transition={{
-            duration: 0.5,
-            type: "ease",
-          }}
-          initial={{ opacity: 0.8 }}
-          whileHover={{
-            scale: [null, 1.2, 1.15],
-            opacity: 1,
-          }}
-          whileTap={{ scale: 1.1 }}
+          className={`${
+            isSmall && !isNarrow ? "pl-10 pr-10" : ""
+          } ${textEffects} font-cursive text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl`}
         >
-          <div className="relative flex justify-center">
-            {isSelected && !isSmall && !isNarrow && (
-              <motion.img
-                className="absolute -top-5 left-1/2"
-                src={Arrow}
-                initial={{ x: "-50%" }}
-                animate={{ y: [0, 20, 0] }}
-                transition={{ repeat: Infinity, duration: 1 }}
-              />
-            )}
-            {!isSmall && (
-              <motion.img
-                src={new URL(imgs[animationIndex], import.meta.url).href}
-                className="w-1/4 sm:w-1/2"
-                alt={name}
-                animate={animate(isSelected)}
-              />
-            )}
-          </div>
-          <motion.div
-            className={`${
-              isSmall && !isNarrow ? "pl-10 pr-10" : ""
-            } ${textEffects} font-cursive text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl`}
-          >
-            {name}
-          </motion.div>
+          {name}
         </motion.div>
-      </Link>
-    </motion.div>
+      </motion.div>
+    </Link>
   );
 };
 
