@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import LogoImage from "../../assets/images/title.svg";
+import LogoImage from "../../assets/images/logo.svg";
 
 const AngleSide = ({
   widthString,

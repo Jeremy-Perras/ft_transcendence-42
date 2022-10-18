@@ -6,18 +6,17 @@ import {
   VariantLabels,
 } from "framer-motion";
 import { useMediaQuery } from "@react-hookz/web";
-import React, { useEffect } from "react";
+import { useEffect, useState } from "react";
 
-import LogoImage from "../../assets/images/title.svg";
-import Arrow from "../../assets/game_modes/arrow.svg";
-import Icon from "@mdi/react";
+import LogoImage from "../../assets/images/logo.svg";
+import ArrowImage from "../../assets/game_modes/arrow.svg";
 
 let intervalId = -1;
-const GameMode = ({ imgs, name, textEffects, animate }: GameModeType) => {
-  const [isSelected, setIsSelected] = React.useState(false);
-  const [animationIndex, setanimationIndex] = React.useState(0);
+const GameMode = ({ imgs, name, alt, textEffects, animate }: GameModeType) => {
+  const [isSelected, setIsSelected] = useState(false);
+  const [animationIndex, setanimationIndex] = useState(0);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (intervalId == -1) {
       intervalId = setInterval(() => {
         setanimationIndex((animationIndex) => {
@@ -57,7 +56,7 @@ const GameMode = ({ imgs, name, textEffects, animate }: GameModeType) => {
           {isSelected && !isSmall && !isNarrow && (
             <motion.img
               className="absolute -top-5 left-1/2"
-              src={Arrow}
+              src={ArrowImage}
               initial={{ x: "-50%" }}
               animate={{ y: [0, 20, 0] }}
               transition={{ repeat: Infinity, duration: 1 }}
@@ -67,11 +66,12 @@ const GameMode = ({ imgs, name, textEffects, animate }: GameModeType) => {
             <motion.img
               src={new URL(imgs[animationIndex], import.meta.url).href}
               className="w-1/4 sm:w-1/2"
-              alt={name}
+              alt={alt}
               animate={animate(isSelected)}
             />
           )}
         </div>
+        {/* TODO */}
         <motion.div
           className={`${
             isSmall && !isNarrow ? "pl-10 pr-10" : ""
@@ -87,6 +87,7 @@ const GameMode = ({ imgs, name, textEffects, animate }: GameModeType) => {
 type GameModeType = {
   imgs: string[];
   name: string;
+  alt: string;
   textEffects: string;
   animate: (
     isEnter: boolean
@@ -133,18 +134,21 @@ export default function Game() {
     {
       imgs: importAnimation("classic"),
       name: "classic",
+      alt: "classic mode",
       textEffects: "text-white",
       animate: (isEnter) => false,
     },
     {
       imgs: importAnimation("fireball"),
       name: "fireball",
+      alt: "speed mode",
       textEffects: "text-red-500",
       animate: (isEnter) => false,
     },
     {
       name: "bonus",
       imgs: importAnimation("bonus"),
+      alt: "bonus mode",
       textEffects: "text-amber-500",
       animate: (isEnter: boolean) => {
         return isEnter
@@ -171,9 +175,8 @@ export default function Game() {
     <div className="relative flex h-full w-full flex-col items-center bg-black">
       <img
         src={LogoImage}
-        className="mt-5 w-full max-w-sm transition-opacity sm:max-w-lg lg:max-w-xl 2xl:max-w-2xl"
+        className="w-sm mt-5 transition-opacity sm:max-w-lg lg:max-w-xl 2xl:max-w-2xl"
       />
-
       <div className="flex h-full w-full flex-col justify-center sm:flex-row sm:items-center">
         {gameModes.map((gameMode) => {
           return <GameMode key={gameMode.name} {...gameMode} />;
