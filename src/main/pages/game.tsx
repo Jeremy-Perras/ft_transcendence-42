@@ -8,8 +8,8 @@ import {
 import { useMediaQuery } from "@react-hookz/web";
 import React, { useEffect } from "react";
 
-import LogoImage from "../../assets/pictures/title.svg";
-import Arrow from "../../assets/pictures/Arrow.svg";
+import LogoImage from "../../assets/images/title.svg";
+import Arrow from "../../assets/game_modes/arrow.svg";
 
 let intervalId = -1;
 const GameMode = ({ imgs, name, textEffects, animate }: GameModeType) => {
@@ -92,52 +92,58 @@ type GameModeType = {
   ) => boolean | VariantLabels | AnimationControls | TargetAndTransition;
 };
 
+function importAnimation(mode: string) {
+  let modules: Record<string, unknown>;
+  switch (mode) {
+    case "classic": {
+      modules = import.meta.glob(
+        "../../assets/game_modes/bouncing_ball/*.svg",
+        {
+          eager: true,
+        }
+      );
+      break;
+    }
+    case "fireball": {
+      modules = import.meta.glob("../../assets/game_modes/fireball/*.svg", {
+        eager: true,
+      });
+      break;
+    }
+    case "bonus": {
+      modules = import.meta.glob("../../assets/game_modes/bonus/*.svg", {
+        eager: true,
+      });
+      break;
+    }
+    default: {
+      return ["", ""];
+      break;
+    }
+  }
+  return (() =>
+    Object.keys(modules)
+      .sort()
+      .map((m) => m))();
+}
+
 export default function Game() {
   const gameModes: GameModeType[] = [
     {
-      imgs: (() => {
-        const modules = import.meta.glob(
-          "../../assets/pictures/bouncing_ball/*.svg",
-          {
-            eager: true,
-          }
-        );
-        return Object.keys(modules)
-          .sort()
-          .map((m) => m);
-      })(),
+      imgs: importAnimation("classic"),
       name: "classic",
       textEffects: "text-white",
       animate: (isEnter) => false,
     },
     {
-      imgs: (() => {
-        const modules = import.meta.glob(
-          "../../assets/pictures/fireball/*.svg",
-          {
-            eager: true,
-          }
-        );
-        return Object.keys(modules)
-          .sort()
-          .map((m) => m);
-      })(),
-
+      imgs: importAnimation("fireball"),
       name: "fireball",
       textEffects: "text-red-500",
       animate: (isEnter) => false,
     },
     {
-      imgs: (() => {
-        const modules = import.meta.glob("../../assets/pictures/bonus/*.svg", {
-          eager: true,
-        });
-        return Object.keys(modules)
-          .sort()
-          .map((m) => m);
-      })(),
-
       name: "bonus",
+      imgs: importAnimation("bonus"),
       textEffects: "text-amber-500",
       animate: (isEnter: boolean) => {
         return isEnter
