@@ -10,6 +10,7 @@ import React, { useEffect } from "react";
 
 import LogoImage from "../../assets/images/title.svg";
 import Arrow from "../../assets/game_modes/arrow.svg";
+import Icon from "@mdi/react";
 
 let intervalId = -1;
 const GameMode = ({ imgs, name, textEffects, animate }: GameModeType) => {
@@ -178,10 +179,6 @@ export default function Game() {
           return <GameMode key={gameMode.name} {...gameMode} />;
         })}
       </div>
-
-      <Link className="absolute top-0 left-0 text-blue-600" to="/">
-        Home
-      </Link>
     </div>
   );
 }
