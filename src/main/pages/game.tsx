@@ -7,8 +7,8 @@ import {
 } from "framer-motion";
 import { useMediaQuery } from "@react-hookz/web";
 import { useEffect, useState } from "react";
+import Title from "../../components/title";
 
-import LogoImage from "../../assets/images/logo.svg";
 import ArrowImage from "../../assets/game_modes/arrow.svg";
 
 let intervalId = -1;
@@ -172,11 +172,8 @@ export default function Game() {
   ];
 
   return (
-    <div className="relative flex h-full w-full flex-col items-center bg-black">
-      <img
-        src={LogoImage}
-        className="w-sm mt-5 transition-opacity sm:max-w-lg lg:max-w-xl 2xl:max-w-2xl"
-      />
+    <div className="flex h-full w-full flex-col items-center bg-black">
+      <Title />
       <div className="flex h-full w-full flex-col justify-center sm:flex-row sm:items-center">
         {gameModes.map((gameMode) => {
           return <GameMode key={gameMode.name} {...gameMode} />;

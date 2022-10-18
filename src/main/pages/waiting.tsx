@@ -1,5 +1,6 @@
-import React, { useEffect } from "react";
-import LogoImage from "../../assets/images/logo.svg";
+import { useEffect, useState } from "react";
+import Title from "../../components/title";
+let intervalId = -1;
 
 const AngleSide = ({
   widthString,
@@ -20,11 +21,11 @@ const AngleSide = ({
     ></div>
   );
 };
-let intervalId = -1;
+
 export default function Waiting() {
-  const [width, setWidth] = React.useState(0);
-  const [widthString, setWidthString] = React.useState("0");
-  React.useEffect(() => {
+  const [width, setWidth] = useState(0);
+  const [widthString, setWidthString] = useState("0");
+  useEffect(() => {
     if (intervalId == -1) {
       intervalId = setInterval(() => {
         setWidth((width) => {
@@ -59,25 +60,16 @@ export default function Waiting() {
   }, [width]);
 
   return (
-    <div className="relative flex h-full w-full flex-col items-center bg-black">
-      <img
-        src={LogoImage}
-        className="mt-5 w-full max-w-sm sm:max-w-lg lg:max-w-xl 2xl:max-w-2xl"
-      />
-      <div className="relative flex h-full w-full  place-content-center items-center bg-black ">
-        <div className="flex h-1/4 w-3/4 flex-col  items-center justify-center  font-cursive text-xl text-white sm:text-4xl">
-          <div className={`relative h-1/4 ${widthString}   bg-white`}>
-            <AngleSide widthString={widthString} top="top-0" side="left-0" />
-            <AngleSide widthString={widthString} top="top-0" side="right-0" />
-            <AngleSide widthString={widthString} top="bottom-0" side="left-0" />
-            <AngleSide
-              widthString={widthString}
-              top="bottom-0"
-              side="right-0"
-            />
-          </div>
-          Waiting ...
+    <div className="flex h-full  w-full flex-col items-center space-y-5 bg-black  sm:space-y-80">
+      <Title />
+      <div className="flex h-1/4 w-3/4 flex-col items-center justify-center font-cursive text-xl text-white sm:text-4xl">
+        <div className={`relative h-1/4 ${widthString}   bg-white`}>
+          <AngleSide widthString={widthString} top="top-0" side="left-0" />
+          <AngleSide widthString={widthString} top="top-0" side="right-0" />
+          <AngleSide widthString={widthString} top="bottom-0" side="left-0" />
+          <AngleSide widthString={widthString} top="bottom-0" side="right-0" />
         </div>
+        <span> Waiting ...</span>
       </div>
     </div>
   );
