@@ -17,17 +17,20 @@ const GameMode = ({ imgs, name, alt, textEffects, animate }: GameModeType) => {
 
   useEffect(() => {
     if (intervalId == -1) {
-      intervalId = setInterval(() => {
-        setanimationIndex((animationIndex) => {
-          return animationIndex == imgs.length - 1 ? 0 : animationIndex + 1;
-        });
-      }, 50);
+      intervalId = setInterval(
+        () => {
+          setanimationIndex((animationIndex) => {
+            return animationIndex == imgs.length - 1 ? 0 : animationIndex + 1;
+          });
+        },
+        isSelected ? 30 : 50
+      );
       return () => {
         clearInterval(intervalId);
         intervalId = -1;
       };
     }
-  }, []);
+  }, [animationIndex]);
 
   const isNarrow = useMediaQuery("(max-width : 640px)");
   const isSmall = useMediaQuery("(max-height : 720px)");
@@ -54,7 +57,7 @@ const GameMode = ({ imgs, name, alt, textEffects, animate }: GameModeType) => {
         <div className="relative flex justify-center">
           {isSelected && !isSmall && !isNarrow && (
             <motion.img
-              className="absolute -top-5 left-1/2"
+              className="absolute -top-20 left-1/2"
               src={ArrowImage}
               initial={{ x: "-50%" }}
               animate={{ y: [0, 20, 0] }}
@@ -64,7 +67,7 @@ const GameMode = ({ imgs, name, alt, textEffects, animate }: GameModeType) => {
           {!isSmall && (
             <motion.img
               src={new URL(imgs[animationIndex], import.meta.url).href}
-              className="w-1/4 sm:w-1/2"
+              className="mb-2 w-1/4 sm:w-1/2"
               alt={alt}
               animate={animate(isSelected)}
             />
