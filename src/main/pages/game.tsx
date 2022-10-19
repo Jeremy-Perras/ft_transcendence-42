@@ -134,21 +134,21 @@ export default function Game() {
     {
       imgs: importAnimation("classic"),
       name: "classic",
-      alt: "classic mode",
+      alt: "Click to play classic mode",
       textEffects: "text-white",
       animate: (isEnter) => false,
     },
     {
       imgs: importAnimation("fireball"),
       name: "fireball",
-      alt: "speed mode",
+      alt: "Click to play inspeed mode",
       textEffects: "text-red-500",
       animate: (isEnter) => false,
     },
     {
       name: "bonus",
       imgs: importAnimation("bonus"),
-      alt: "bonus mode",
+      alt: "Click to play bonus mode",
       textEffects: "text-amber-500",
       animate: (isEnter: boolean) => {
         return isEnter
@@ -172,13 +172,10 @@ export default function Game() {
   ];
 
   return (
-    <div className="flex h-full w-full flex-col items-center bg-black">
-      <Title />
-      <div className="flex h-full w-full flex-col justify-center sm:flex-row sm:items-center">
-        {gameModes.map((gameMode) => {
-          return <GameMode key={gameMode.name} {...gameMode} />;
-        })}
-      </div>
+    <div className="flex h-full w-full flex-col justify-center bg-black sm:flex-row sm:items-center">
+      {gameModes.map((gameMode) => {
+        return <GameMode key={gameMode.name} {...gameMode} />;
+      })}
     </div>
   );
 }

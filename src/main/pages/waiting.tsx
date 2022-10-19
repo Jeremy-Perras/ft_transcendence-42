@@ -2,24 +2,8 @@ import { useEffect, useState } from "react";
 import Title from "../../components/title";
 let intervalId = -1;
 
-const AngleSide = ({
-  widthString,
-  side,
-  top,
-}: {
-  widthString: string;
-  top: string;
-  side: string;
-}) => {
-  return (
-    <div
-      className={`${
-        widthString == "0"
-          ? "hidden"
-          : `${top}  ${side}  absolute h-3 w-2 bg-black`
-      }`}
-    ></div>
-  );
+const AngleSide = ({ className }: { className: string }) => {
+  return <div className={`${className}`}></div>;
 };
 
 export default function Waiting() {
@@ -29,7 +13,7 @@ export default function Waiting() {
     if (intervalId == -1) {
       intervalId = setInterval(() => {
         setWidth((width) => {
-          if (width == 4) return 0;
+          if (width == 5) return 0;
           else return width + 1;
         });
       }, 1000);
@@ -45,32 +29,32 @@ export default function Waiting() {
         setWidthString("w-0");
         break;
       case 1:
-        setWidthString("w-1/4");
+        setWidthString("w-1/6");
         break;
       case 2:
-        setWidthString("w-1/2");
+        setWidthString("w-2/6");
         break;
       case 3:
-        setWidthString("w-3/4");
+        setWidthString("w-3/6");
         break;
       case 4:
-        setWidthString("w-full");
+        setWidthString("w-4/6");
+        break;
+      case 5:
+        setWidthString("w-5/6");
         break;
     }
   }, [width]);
 
   return (
-    <div className="flex h-full  w-full flex-col items-center space-y-5 bg-black  sm:space-y-80">
-      <Title />
-      <div className="flex h-1/4 w-3/4 flex-col items-center justify-center font-cursive text-xl text-white sm:text-4xl">
-        <div className={`relative h-1/4 ${widthString}   bg-white`}>
-          <AngleSide widthString={widthString} top="top-0" side="left-0" />
-          <AngleSide widthString={widthString} top="top-0" side="right-0" />
-          <AngleSide widthString={widthString} top="bottom-0" side="left-0" />
-          <AngleSide widthString={widthString} top="bottom-0" side="right-0" />
-        </div>
-        <span> Waiting ...</span>
+    <div className="flex h-full w-full flex-col items-center justify-center font-cursive text-xl text-white sm:text-4xl">
+      <div className={`relative h-36 ${widthString}   bg-white`}>
+        <AngleSide className={"absolute top-0 left-0 h-3 w-2 bg-black"} />
+        <AngleSide className={"absolute top-0 right-0 h-3 w-2 bg-black"} />
+        <AngleSide className={"absolute bottom-0 left-0 h-3 w-2 bg-black"} />
+        <AngleSide className={"absolute bottom-0 right-0 h-3 w-2 bg-black"} />
       </div>
+      <span> Waiting ...</span>
     </div>
   );
 }
