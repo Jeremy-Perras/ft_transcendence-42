@@ -1,7 +1,7 @@
-import { ChannelSchema } from "./schemas/Channel";
-import { GameSchema } from "./schemas/Game";
-import { MessageSchema } from "./schemas/Message";
-import { UserSchema } from "./schemas/User";
+import { ChannelSchema } from "./schemas/channel";
+import { GameSchema } from "./schemas/game";
+import { MessageSchema } from "./schemas/message";
+import { UserSchema } from "./schemas/user";
 import { GameModeSchema } from "./schemas/GameMode";
 import { GameModes } from "./game/GameModes";
 

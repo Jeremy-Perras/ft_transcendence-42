@@ -3,33 +3,21 @@ import { PrismaService } from "src/prisma/prisma.service";
 import { CreateUserDto, UpdateUserDto } from "./users.dto";
 import { generateMock } from "@anatine/zod-mock";
 import { UserSchema } from "shared";
+import { userInfo } from "os";
 
 @Injectable()
 export class UsersService {
   constructor(private prisma: PrismaService) {}
 
-  create(createUserDto: CreateUserDto) {
-    return "This action adds a new user";
-  }
-
-  findAll() {
-    return `This action returns all users`;
+  findAll(query: string) {
+    console.log(query);
+    return `This action returns users with ${query}  `;
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} user`;
-  }
-
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} user`;
-  }
-
-  block(id: string) {
-    return "ok";
+    let user = generateMock(UserSchema);
+    user.id = id;
+    return user;
   }
 
   me() {
