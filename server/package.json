@@ -1,0 +1,44 @@
+{
+  "name": "server",
+  "private": true,
+  "version": "0.0.1",
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
+  },
+  "scripts": {
+    "prebuild": "rimraf dist",
+    "build": "nest build",
+    "start": "nest start",
+    "start:dev": "nest start --watch",
+    "start:debug": "nest start --debug --watch",
+    "start:prod": "node dist/main",
+    "prisma:deploy": "prisma generate && prisma migrate reset"
+  },
+  "dependencies": {
+    "@anatine/zod-mock": "^3.6.0",
+    "@anatine/zod-nestjs": "^1.8.0",
+    "@faker-js/faker": "^7.6.0",
+    "@nestjs/common": "^9.0.0",
+    "@nestjs/core": "^9.0.0",
+    "@nestjs/mapped-types": "*",
+    "@nestjs/platform-express": "^9.0.0",
+    "@nestjs/serve-static": "^3.0.0",
+    "@prisma/client": "^4.4.0",
+    "reflect-metadata": "^0.1.13",
+    "rimraf": "^3.0.2",
+    "rxjs": "^7.2.0",
+    "shared": "0.0.1",
+    "zod": "^3.19.1"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^9.0.0",
+    "@nestjs/schematics": "^9.0.0",
+    "@types/express": "^4.17.13",
+    "@types/node": "^16.0.0",
+    "prisma": "^4.4.0",
+    "source-map-support": "^0.5.20",
+    "ts-loader": "^9.2.3",
+    "ts-node": "^10.0.0",
+    "tsconfig-paths": "4.1.0"
+  }
+}
