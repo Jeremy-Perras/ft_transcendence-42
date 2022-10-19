@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { UserSchema } from "./User";
+import { UserSchema } from "./user";
 
 export const MessageSchema = z.object({
   author: UserSchema,

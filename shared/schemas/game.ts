@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { GameModeSchema } from "./GameMode";
-import { UserSchema } from "./User";
+import { UserSchema } from "./user";
 
 export const GameSchema = z.object({
   id: z.number().positive(),

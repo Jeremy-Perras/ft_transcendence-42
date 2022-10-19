@@ -15,28 +15,17 @@ import { UpdateChannelDto } from "./dto/update-channel.dto";
 export class ChannelsController {
   constructor(private readonly channelsService: ChannelsService) {}
 
-  @Post()
-  create(@Body() createChannelDto: CreateChannelDto) {
-    return this.channelsService.create(createChannelDto);
-  }
-
   @Get()
   findAll() {
     return this.channelsService.findAll();
   }
 
   @Get(":id")
-  findOne(@Param("id") id: string) {
-    return this.channelsService.findOne(+id);
+  findOne(@Param("id") name: string) {
+    return this.channelsService.findOne(name);
   }
-
-  @Patch(":id")
-  update(@Param("id") id: string, @Body() updateChannelDto: UpdateChannelDto) {
-    return this.channelsService.update(+id, updateChannelDto);
-  }
-
-  @Delete(":id")
-  remove(@Param("id") id: string) {
-    return this.channelsService.remove(+id);
+  @Get(":id/messages")
+  findMessages(@Param("id") name: string) {
+    return this.channelsService.findMessages(name);
   }
 }

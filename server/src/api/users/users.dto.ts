@@ -3,6 +3,5 @@ import { UserSchema } from "shared";
 
 export class CreateUserDto extends createZodDto(UserSchema) {}
 
-export class UpdateUserDto extends createZodDto(
-  UserSchema.omit({ name: true })
-) {}
+export class UpdateUserDto extends createZodDto(UserSchema) {}
+export class Userschema extends createZodDto(UserSchema) {}

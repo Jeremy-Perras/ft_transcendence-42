@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { MessageSchema } from "./Message";
-import { UserSchema } from "./User";
+import { MessageSchema } from "./message";
+import { UserSchema } from "./user";
 
 export const ChannelSchema = z.object({
   user: UserSchema,
