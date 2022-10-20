@@ -15,7 +15,8 @@ export class UsersController {
     return this.usersService.getUserById(id);
   }
 
-  @Get() getUsers(@Query("q") query: string) {
+  @Get()
+  getUsers(@Query("q") query: string) {
     return this.usersService.getUsers(query);
   }
 }
