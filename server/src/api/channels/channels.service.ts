@@ -32,7 +32,7 @@ export class ChannelsService {
 
   getChannelByName(name: string) {
     return generateMock(ChannelSchema, {
-      strinMap: { name: () => `${name}` },
+      stringMap: { name: () => `${name}` },
     });
   }
 }
