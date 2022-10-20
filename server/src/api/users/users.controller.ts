@@ -1,17 +1,6 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Put,
-  Delete,
-  Query,
-} from "@nestjs/common";
-import { CreateUserDto, UpdateUserDto, Userschema } from "./users.dto";
+import { Controller, Get, Param, Query } from "@nestjs/common";
 import { UsersService } from "./users.service";
-import { ApiCreatedResponse } from "@nestjs/swagger";
+
 @Controller("api/users")
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
