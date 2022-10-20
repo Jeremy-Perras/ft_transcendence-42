@@ -1,20 +1,21 @@
 import { generateMock } from "@anatine/zod-mock";
 import { Injectable } from "@nestjs/common";
-import { channel } from "diagnostics_channel";
-import { ChannelSchema, MessageSchema } from "shared";
+import { ChannelSchema } from "shared";
 
 @Injectable()
 export class ChannelsService {
   findAll() {
-    return `This action returns all channels`;
+    return generateMock(ChannelSchema);
   }
 
   findOne(name: string) {
-    let channel = generateMock(ChannelSchema);
-    //TODO compilation issue from ChannelSchema
+    const channel = generateMock(ChannelSchema);
+    channel.name = name;
     return channel;
   }
+
   findMessages(name: string) {
+    void name;
     return generateMock(ChannelSchema).messages;
   }
 }

@@ -1,15 +1,5 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-} from "@nestjs/common";
+import { Controller, Get, Param } from "@nestjs/common";
 import { ChannelsService } from "./channels.service";
-import { CreateChannelDto } from "./dto/create-channel.dto";
-import { UpdateChannelDto } from "./dto/update-channel.dto";
 
 @Controller("api/channels")
 export class ChannelsController {
@@ -24,6 +14,7 @@ export class ChannelsController {
   findOne(@Param("id") name: string) {
     return this.channelsService.findOne(name);
   }
+
   @Get(":id/messages")
   findMessages(@Param("id") name: string) {
     return this.channelsService.findMessages(name);
