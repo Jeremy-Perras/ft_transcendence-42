@@ -1,23 +1,18 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
-async function useGetChannel(url: string): Promise<string> {
+function useGetChannel(url: string) {
   const [data, setData] = useState(null);
-  useEffect(() => {
-    let ignore = false;
-    fetch(new URL(url))
-      .then((response) => response.json())
-      .then((json) => {
-        if (!ignore) {
-          console.log(json);
-        }
-      });
-    return () => {
-      ignore = true;
-    };
-  }, [url]);
 
-  return "";
+  useEffect(() => {
+    (async () => {
+      const response = await fetch(url);
+      if (response.ok) {
+        const json = await response.json();
+        console.log(json);
+      }
+    })();
+  }, [url]);
 }
 
 // const res = await fetch(url);
