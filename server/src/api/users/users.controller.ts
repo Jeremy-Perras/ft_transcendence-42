@@ -11,14 +11,11 @@ export class UsersController {
   }
 
   @Get(":id")
-  findOne(@Param("id") id: number) {
-    return this.usersService.findOne(id);
+  getUserById(@Param("id") id: number) {
+    return this.usersService.getUserById(id);
   }
 
-  @Get()
-  findAll(@Query("q") query: string) {
-    if (query) {
-      return this.usersService.findAll(query);
-    }
+  @Get() getUsers(@Query("q") query: string) {
+    return this.usersService.getUsers(query);
   }
 }

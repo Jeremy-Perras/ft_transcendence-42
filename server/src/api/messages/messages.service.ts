@@ -2,15 +2,27 @@ import { Injectable } from "@nestjs/common";
 import { PrismaService } from "src/prisma/prisma.service";
 import { generateMock } from "@anatine/zod-mock";
 import { MessageSchema } from "shared";
-import { Userschema } from "../users/users.dto";
 
 @Injectable()
 export class MessagesService {
-  findDirectMessages(query: number) {
-    return generateMock(MessageSchema);
+  getDirectMessages(userId: number) {
+    const message1 = generateMock(MessageSchema);
+    message1.author.id = userId;
+    const message2 = generateMock(MessageSchema);
+    message2.author.id = userId;
+    const message3 = generateMock(MessageSchema);
+    message3.author.id = userId;
+    return { message1, message2, message3 };
   }
 
-  findChannelMessages(query: string) {
-    return generateMock(MessageSchema);
+  getChannelMessages(channelName: string) {
+    const message1 = generateMock(MessageSchema);
+    const message2 = generateMock(MessageSchema);
+    const message3 = generateMock(MessageSchema);
+    const message4 = generateMock(MessageSchema);
+    const message5 = generateMock(MessageSchema);
+    const message6 = generateMock(MessageSchema);
+
+    return { message1, message2, message3, message4, message5, message6 };
   }
 }
