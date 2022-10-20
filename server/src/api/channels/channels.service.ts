@@ -4,18 +4,13 @@ import { ChannelSchema } from "shared";
 
 @Injectable()
 export class ChannelsService {
-  findAll() {
-    return generateMock(ChannelSchema);
+  findAll(query: string) {
+    return `This action returns channels with name containing ${query}`;
   }
 
   findOne(name: string) {
     const channel = generateMock(ChannelSchema);
     channel.name = name;
     return channel;
-  }
-
-  findMessages(name: string) {
-    void name;
-    return generateMock(ChannelSchema).messages;
   }
 }
