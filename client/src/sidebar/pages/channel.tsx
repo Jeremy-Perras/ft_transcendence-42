@@ -1,15 +1,22 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { ChannelSchema } from "shared";
 
 function useGetChannel(url: string) {
   const [data, setData] = useState(null);
 
   useEffect(() => {
     (async () => {
-      const response = await fetch(url);
-      if (response.ok) {
-        const json = await response.json();
-        console.log(json);
+      try {
+        const response = await fetch(url);
+        if (response.status === 200) {
+          const json = await response.json();
+          const channel = ChannelSchema.parse(json);
+          console.log(channel)
+        } else 
+          throw Error("Not 200!!")
+      } catch (error) {
+        console.log(error);
       }
     })();
   }, [url]);
@@ -20,7 +27,7 @@ function useGetChannel(url: string) {
 
 export default function Channel() {
   const [test, setTest] = useState("");
-  const url = "http://localhost:3000/api/channels/v";
+  const url = "http://localhost:3000/api/channels/1";
   const results = useGetChannel(url);
   return (
     <>
