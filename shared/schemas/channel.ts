@@ -7,8 +7,8 @@ export const ChannelSchema = z.object({
   owner: UserSchema,
   id: z.number().nonnegative(),
   name: z.string().min(1),
-  admins: z.set(UserSchema),
-  members: z.set(UserSchema),
-  messages: z.set(MessageSchema),
-  unreadMessages: z.set(MessageSchema),
+  admins: z.array(UserSchema),
+  members: z.array(UserSchema),
+  messages: z.array(MessageSchema),
+  unreadMessages: z.array(MessageSchema),
 });
