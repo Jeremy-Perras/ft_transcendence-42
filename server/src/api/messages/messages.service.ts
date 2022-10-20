@@ -15,7 +15,7 @@ export class MessagesService {
     return { message1, message2, message3 };
   }
 
-  getChannelMessages(channelName: string) {
+  getChannelMessages(channelId: number) {
     const message1 = generateMock(MessageSchema);
     const message2 = generateMock(MessageSchema);
     const message3 = generateMock(MessageSchema);

@@ -11,7 +11,7 @@ export class ChannelsController {
   }
 
   @Get(":name")
-  getChannelByName(@Param("name") name: string) {
-    return this.channelsService.getChannelByName(name);
+  getChannelById(@Param("name") id: number) {
+    return this.channelsService.getChannelById(id);
   }
 }

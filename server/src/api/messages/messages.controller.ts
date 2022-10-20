@@ -5,12 +5,12 @@ import { MessagesService } from "./messages.service";
 export class MessagesController {
   constructor(private readonly messagesService: MessagesService) {}
   @Get("/user/:id")
-  getDirectMessages(@Param("id") id: number) {
-    return this.messagesService.getDirectMessages(id);
+  getDirectMessages(@Param("id") userId: number) {
+    return this.messagesService.getDirectMessages(userId);
   }
 
-  @Get("/channel/:channel")
-  getChannelMessages(@Param("channel") channel: string) {
-    return this.messagesService.getChannelMessages(channel);
+  @Get("/channel/:id")
+  getChannelMessages(@Param("id") channelId: number) {
+    return this.messagesService.getChannelMessages(channelId);
   }
 }

@@ -30,9 +30,9 @@ export class ChannelsService {
     return { channel1, channel2, channel3 };
   }
 
-  getChannelByName(name: string) {
-    return generateMock(ChannelSchema, {
-      stringMap: { name: () => `${name}` },
-    });
+  getChannelById(id: number) {
+    const channel = generateMock(ChannelSchema);
+    channel.id = id;
+    return channel;
   }
 }
