@@ -6,12 +6,12 @@ export class ChannelsController {
   constructor(private readonly channelsService: ChannelsService) {}
 
   @Get()
-  findAll(@Query("q") query: string) {
-    return this.channelsService.findAll(query);
+  getChannels(@Query("q") query: string) {
+    return this.channelsService.getChannels(query);
   }
 
-  @Get(":id")
-  findOne(@Param("id") name: string) {
-    return this.channelsService.findOne(name);
+  @Get(":name")
+  getChannelByName(@Param("name") name: string) {
+    return this.channelsService.getChannelByName(name);
   }
 }
