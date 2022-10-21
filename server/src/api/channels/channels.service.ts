@@ -32,7 +32,6 @@ export class ChannelsService {
 
   getChannelById(id: number) {
     const channel = generateMock(ChannelSchema);
-    console.log(channel)
     return channel;
   }
 }
