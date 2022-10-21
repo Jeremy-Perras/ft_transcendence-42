@@ -21,19 +21,19 @@ async function getChannel(url: string) {
   }
 }
 
-const ChannelBanner = (channel: ChannelSchema) => {
+const ChannelBanner = (channel: any) => {
   return (
-    <div className="m-10 border-2 border-black text-sm">
-      <div>Channel Id : {channel.id}</div>
-      <div>Channel name : {channel.name}</div>
-      <div>Owner : {channel.owner.name}</div>
+    <div className="m-2 w-full border-2 border-black text-sm">
+      <div>Channel name: {channel.name}</div>
+      <div>Type: {channel.type}</div>
+      <div>Owner: {channel.owner.name}</div>
     </div>
   );
 };
 
-function ChannelQuery() {
+function ChannelListQuery() {
   const { isLoading, error, data, isFetching } = useQuery(["repoData"], () =>
-    getChannel("http://localhost:3000/api/channels?=2")
+    getChannel("http://localhost:3000/api/channels?q=5")
   );
 
   if (isLoading) return <div>Loading ...</div>;
@@ -45,14 +45,9 @@ function ChannelQuery() {
     console.log("Error");
     return <div>Error</div>;
   } else {
-    let banners = new Array();
-    for (let entry in data) {
-      const channel = ChannelSchema.parse(data[entry]) as ChannelSchema;
-      banners.push(channel);
-    }
     return (
       <>
-        {banners.map((channel) => {
+        {Object.values(data).map((channel: ChannelSchema) => {
           return <ChannelBanner key={channel.id} {...channel} />;
         })}
       </>
@@ -60,9 +55,52 @@ function ChannelQuery() {
   }
 }
 
+const displayMessages = (messages: any) => {
+  return (
+    <div>
+      {messages.map((message: any) => {
+        return (
+          <div className=" m-5 w-full border-2 bg-slate-100 p-2">
+            <div className="text-sm">{`${message.content}`}</div>
+            <div className="text-xs text-slate-500">{`Sent by ${message.author.name} at ${message.sentAt}`}</div>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+const UniqueChannelQuery = () => {
+  const { isLoading, error, data, isFetching } = useQuery(["repoData"], () =>
+    getChannel("http://localhost:3000/api/channels/onechannel")
+  );
+
+  if (isLoading) return <div>Loading ...</div>;
+  if (isFetching) {
+    console.warn("Fetching");
+    return <div>Fetching</div>;
+  }
+  if (error) {
+    console.log("Error");
+    return <div>Error</div>;
+  } else {
+    console.log(data as ChannelSchema);
+    const channel = ChannelSchema.parse(data);
+    return (
+      <div className="m-2 flex w-full flex-col border-2 border-slate-600">
+        <div className=" m-2 w-full flex-col border-2 border-black text-sm">
+          <div>Channel name: {channel.name}</div>
+          <div>Type: {channel.type}</div>
+          <div>Owner: {channel.owner.name}</div>
+        </div>
+        <div>{displayMessages(channel.messages)}</div>
+      </div>
+    );
+  }
+};
+
 export default function Channel() {
   const [test, setTest] = useState("");
-
   return (
     <QueryClientProvider client={queryClient}>
       <input type="text" onChange={(e) => setTest(e.target.value)} />
@@ -81,7 +119,8 @@ export default function Channel() {
           <Link to="/profile/user">profile</Link>
         </li>
       </ul>
-      <ChannelQuery />
+      <UniqueChannelQuery />
+      {/* <ChannelListQuery /> */}
     </QueryClientProvider>
   );
 }
