@@ -8,7 +8,7 @@ export class UsersService {
   constructor(private prisma: PrismaService) {}
 
   getUsers(query: string) {
-    if (query == "") {
+    if (query == undefined) {
       let user1 = generateMock(UserSchema);
       let user2 = generateMock(UserSchema);
       let user3 = generateMock(UserSchema);
