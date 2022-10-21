@@ -23,17 +23,19 @@ async function getChannel(url: string) {
 
 const ChannelBanner = (channel: any) => {
   return (
-    <div className="m-2 w-full border-2 border-black text-sm">
-      <div>Channel name: {channel.name}</div>
-      <div>Type: {channel.type}</div>
-      <div>Owner: {channel.owner.name}</div>
-    </div>
+    <Link to="/chat/test">
+      <div className="m-2 w-full border-2 border-black text-sm">
+        <div>Channel name: {channel.name}</div>
+        <div>Type: {channel.type}</div>
+        <div>Owner: {channel.owner.name}</div>
+      </div>
+    </Link>
   );
 };
 
-function ChannelListQuery() {
+function ChannelListQuery({ url }: { url: string }) {
   const { isLoading, error, data, isFetching } = useQuery(["repoData"], () =>
-    getChannel("http://localhost:3000/api/channels?q=5")
+    getChannel(url)
   );
 
   if (isLoading) return <div>Loading ...</div>;
@@ -47,7 +49,7 @@ function ChannelListQuery() {
   } else {
     return (
       <>
-        {Object.values(data).map((channel: ChannelSchema) => {
+        {Object.values(data).map((channel: any) => {
           return <ChannelBanner key={channel.id} {...channel} />;
         })}
       </>
@@ -58,9 +60,9 @@ function ChannelListQuery() {
 const displayMessages = (messages: any) => {
   return (
     <div>
-      {messages.map((message: any) => {
+      {messages.map((message: any, index: number) => {
         return (
-          <div className=" m-5 w-full border-2 bg-slate-100 p-2">
+          <div key={index} className=" m-5 w-full border-2 bg-slate-100 p-2">
             <div className="text-sm">{`${message.content}`}</div>
             <div className="text-xs text-slate-500">{`Sent by ${message.author.name} at ${message.sentAt}`}</div>
           </div>
@@ -70,9 +72,9 @@ const displayMessages = (messages: any) => {
   );
 };
 
-const UniqueChannelQuery = () => {
+const UniqueChannelQuery = ({ url }: { url: string }) => {
   const { isLoading, error, data, isFetching } = useQuery(["repoData"], () =>
-    getChannel("http://localhost:3000/api/channels/onechannel")
+    getChannel(url)
   );
 
   if (isLoading) return <div>Loading ...</div>;
@@ -84,7 +86,6 @@ const UniqueChannelQuery = () => {
     console.log("Error");
     return <div>Error</div>;
   } else {
-    console.log(data as ChannelSchema);
     const channel = ChannelSchema.parse(data);
     return (
       <div className="m-2 flex w-full flex-col border-2 border-slate-600">
@@ -119,8 +120,8 @@ export default function Channel() {
           <Link to="/profile/user">profile</Link>
         </li>
       </ul>
-      <UniqueChannelQuery />
-      {/* <ChannelListQuery /> */}
+      <ChannelListQuery url="http://localhost:3000/api/channels/" />
+      {/* <UniqueChannelQuery url="http://localhost:3000/api/channels/585" /> */}
     </QueryClientProvider>
   );
 }
