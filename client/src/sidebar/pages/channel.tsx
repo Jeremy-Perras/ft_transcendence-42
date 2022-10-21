@@ -32,11 +32,11 @@ function Example() {
   const { isLoading, error, data } = useQuery(["repoData"], () =>
     fetch("http://localhost:3000/api/channels/1").then((res) => res.json())
   );
-  console.log(data.name);
+  console.log(data);
   // if (isLoading) console.log("Loading...");
 
   // if (error) console.log("An error has occurred: ");
-
+  return <div></div>;
   // return (
   //   <div>
   //     <h1>{data.name}</h1>
@@ -51,13 +51,13 @@ export default function Channel() {
   const [test, setTest] = useState("");
   // const url = "http://localhost:3000/api/channels/1";
   // const results = useGetChannel(url);
-  var teste = Example();
+  // var teste = Example();
   return (
     <>
-      {/* <QueryClientProvider client={queryClient}>
+      <QueryClientProvider client={queryClient}>
         <Example />
-      </QueryClientProvider> */}
-      {/* <input type="text" onChange={(e) => setTest(e.target.value)} />
+      </QueryClientProvider>
+      <input type="text" onChange={(e) => setTest(e.target.value)} />
       <h1 className="text-lg">channel</h1>
       <ul>
         <li>
@@ -73,7 +73,7 @@ export default function Channel() {
           <Link to="/profile/user">profile</Link>
         </li>
       </ul>
-      <div className="text-white"></div> */}
+      <div className="text-white"></div>
     </>
   );
 }
