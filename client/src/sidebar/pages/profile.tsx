@@ -4,10 +4,10 @@ import {
   QueryClientProvider,
   useQuery,
 } from "@tanstack/react-query";
-import * as Avatar from "@radix-ui/react-avatar";
 
 import { UserSchema } from "shared";
 
+// TODO: diplay other users profile
 let queryClient = new QueryClient();
 
 async function getProfile(url: string) {

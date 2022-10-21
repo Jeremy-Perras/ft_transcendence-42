@@ -8,10 +8,13 @@ export class MessagesService {
   getDirectMessages(userId: number) {
     const message1 = generateMock(MessageSchema);
     message1.author.id = userId;
+    message1.author.name = "Direct chat test user";
     const message2 = generateMock(MessageSchema);
     message2.author.id = userId;
+    message2.author.name = "Direct chat test user";
     const message3 = generateMock(MessageSchema);
     message3.author.id = userId;
+    message3.author.name = "Direct chat test user";
     return { message1, message2, message3 };
   }
 
