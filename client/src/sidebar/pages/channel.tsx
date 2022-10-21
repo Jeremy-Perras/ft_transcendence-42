@@ -59,16 +59,18 @@ function ChannelListQuery({ url }: { url: string }) {
 
 const displayMessages = (messages: any) => {
   return (
-    <div>
+    <>
       {messages.map((message: any, index: number) => {
         return (
-          <div key={index} className=" m-5 w-full border-2 bg-slate-100 p-2">
-            <div className="text-sm">{`${message.content}`}</div>
-            <div className="text-xs text-slate-500">{`Sent by ${message.author.name} at ${message.sentAt}`}</div>
+          <div key={index}>
+            <div className="mt-5 flex w-auto flex-col border-2 bg-slate-100  ">
+              <div className="text-end text-sm">{`${message.content}`}</div>
+            </div>
+            <div className=" w-auto align-text-bottom text-xs text-slate-500">{`Sent by ${message.author.name} at ${message.sentAt}`}</div>
           </div>
         );
       })}
-    </div>
+    </>
   );
 };
 
@@ -86,15 +88,19 @@ const UniqueChannelQuery = ({ url }: { url: string }) => {
     console.log("Error");
     return <div>Error</div>;
   } else {
-    const channel = ChannelSchema.parse(data);
+    let channel = ChannelSchema.parse(data);
     return (
-      <div className="m-2 flex w-full flex-col border-2 border-slate-600">
-        <div className=" m-2 w-full flex-col border-2 border-black text-sm">
+      <div className="flex w-full flex-col items-center justify-center border-2 border-slate-600">
+        <div className=" w-full flex-col items-center justify-center border-2 border-black p-2  text-center text-sm">
           <div>Channel name: {channel.name}</div>
+
           <div>Type: {channel.type}</div>
+
           <div>Owner: {channel.owner.name}</div>
         </div>
-        <div>{displayMessages(channel.messages)}</div>
+        <div className="h-full w-full place-items-center">
+          {displayMessages(channel.messages)}
+        </div>
       </div>
     );
   }
@@ -120,8 +126,8 @@ export default function Channel() {
           <Link to="/profile/user">profile</Link>
         </li>
       </ul>
-      <ChannelListQuery url="http://localhost:3000/api/channels/" />
-      {/* <UniqueChannelQuery url="http://localhost:3000/api/channels/585" /> */}
+      {/* <ChannelListQuery url="http://localhost:3000/api/channels/" /> */}
+      <UniqueChannelQuery url="http://localhost:3000/api/channels/585" />
     </QueryClientProvider>
   );
 }
