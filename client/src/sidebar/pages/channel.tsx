@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   QueryClient,
@@ -6,6 +6,8 @@ import {
   useQuery,
 } from "@tanstack/react-query";
 import { ChannelSchema } from "shared";
+
+let queryClient = new QueryClient();
 
 async function getChannel(url: string) {
   try {
@@ -19,11 +21,19 @@ async function getChannel(url: string) {
   }
 }
 
-let queryClient = new QueryClient();
+const ChannelBanner = (channel: ChannelSchema) => {
+  return (
+    <div className="m-10 border-2 border-black text-sm">
+      <div>Channel Id : {channel.id}</div>
+      <div>Channel name : {channel.name}</div>
+      <div>Owner : {channel.owner.name}</div>
+    </div>
+  );
+};
 
-function Example() {
+function ChannelQuery() {
   const { isLoading, error, data, isFetching } = useQuery(["repoData"], () =>
-    getChannel("http://localhost:3000/api/channels/1")
+    getChannel("http://localhost:3000/api/channels?=2")
   );
 
   if (isLoading) return <div>Loading ...</div>;
@@ -35,13 +45,17 @@ function Example() {
     console.log("Error");
     return <div>Error</div>;
   } else {
-    const channel = ChannelSchema.parse(data);
+    let banners = new Array();
+    for (let entry in data) {
+      const channel = ChannelSchema.parse(data[entry]) as ChannelSchema;
+      banners.push(channel);
+    }
     return (
-      <div className="m-10 border-2 border-black text-sm">
-        <div>Channel Id : {channel.id}</div>
-        <div>Channel name : {channel.name}</div>
-        <div>Owner : {channel.owner.name}</div>
-      </div>
+      <>
+        {banners.map((channel) => {
+          return <ChannelBanner key={channel.id} {...channel} />;
+        })}
+      </>
     );
   }
 }
@@ -67,7 +81,7 @@ export default function Channel() {
           <Link to="/profile/user">profile</Link>
         </li>
       </ul>
-      <Example />
+      <ChannelQuery />
     </QueryClientProvider>
   );
 }
