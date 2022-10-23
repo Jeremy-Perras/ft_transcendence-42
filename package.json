@@ -1,17 +1,22 @@
 {
   "name": "ft_transcendence",
   "version": "1.0.0",
-  "description": "",
-  "author": "",
-  "license": "ISC",
   "private": true,
   "scripts": {
-    "deploy": "npm run compile -w shared && npm run build -w client && npm run prisma:deploy -w server  && npm run start -w server"
+    "dev:client": "npm run dev -w apps/client",
+    "dev:server": "npm run dev -w apps/server",
+    "dev:prisma": "npm run prisma:watch -w apps/server",
+    "build:client": "npm run build -w apps/client",
+    "build:server": "npm run build -w apps/server",
+    "build:all": "npm run build:client && npm run build:server",
+    "db:seed": "npm run prisma:seed -w apps/server",
+    "db:deploy": "npm run prisma:push -w apps/server && npm run prisma:generate -w apps/server",
+    "compile:shared": "npm run compile -w shared/schemas && npm run compile -w shared/game",
+    "deploy": "npm run compile:shared && npm run db:deploy && npm run db:seed && npm run build:all && node apps/server/dist/main"
   },
   "workspaces": [
-    "./server",
-    "./client",
-    "./shared"
+    "./apps/*",
+    "./shared/*"
   ],
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.40.0",
@@ -23,6 +28,6 @@
     "typescript": "^4.8.4"
   },
   "dependencies": {
-    "@tanstack/react-query": "^4.12.0"
+    "zod": "^3.19.1"
   }
 }

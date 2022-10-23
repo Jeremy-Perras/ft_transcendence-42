@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "baseUrl": "./",
-    "target": "ES2020",
+    "target": "ES2022",
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
@@ -15,12 +15,9 @@
     "sourceMap": true,
     "isolatedModules": true,
     "moduleResolution": "Node",
-    "composite": true
+    "composite": true,
+    "esModuleInterop": true
   },
-  "references": [
-    { "path": "./server" },
-    { "path": "./client" },
-    { "path": "./shared" }
-  ],
+  "references": [{ "path": "./apps/*" }, { "path": "./shared/*" }],
   "exclude": ["node_modules"]
 }
