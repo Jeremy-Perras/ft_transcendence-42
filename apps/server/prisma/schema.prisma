@@ -1,0 +1,139 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id Int @id @unique
+
+  name        String  @unique
+  avatar      String
+  twoFASecret String?
+
+  rank Int @default(0)
+
+  friendedBy User[] @relation("UserFriends")
+  friends    User[] @relation("UserFriends")
+
+  blockedBy User[] @relation("UserBlocking")
+  blocking  User[] @relation("UserBlocking")
+
+  channelsAsOwner  Channel[]
+  channelsAsAdmin  ChannelAdmin[]
+  channelsAsMember ChannelMember[]
+
+  channelMessages     ChannelMessage[]
+  channelMessageReads ChannelMessageReads[]
+
+  messageSent     DirectMessage[] @relation("MessageSent")
+  messageReceived DirectMessage[] @relation("MessageReceived")
+
+  gamesAsPlayer1 Game[] @relation("GamePlayer1")
+  gamesAsPlayer2 Game[] @relation("GamePlayer2")
+}
+
+model GameMode {
+  id Int @id @default(autoincrement())
+
+  name String @unique
+
+  Game Game[]
+}
+
+model Game {
+  id Int @id @default(autoincrement())
+
+  mode       GameMode @relation(fields: [gameModeId], references: [id])
+  gameModeId Int
+
+  startedAt  DateTime
+  finishedAt DateTime?
+
+  player1   User @relation("GamePlayer1", fields: [player1Id], references: [id])
+  player1Id Int
+  player2   User @relation("GamePlayer2", fields: [player2Id], references: [id])
+  player2Id Int
+
+  player1Score Int
+  player2Score Int
+}
+
+model ChannelAdmin {
+  channel   Channel @relation(fields: [channelId], references: [id])
+  channelId Int
+
+  user   User @relation(fields: [userId], references: [id])
+  userId Int
+
+  @@id([channelId, userId])
+}
+
+model ChannelMember {
+  channel   Channel @relation(fields: [channelId], references: [id])
+  channelId Int
+
+  user   User @relation(fields: [userId], references: [id])
+  userId Int
+
+  @@id([channelId, userId])
+}
+
+model Channel {
+  id Int @id @default(autoincrement())
+
+  inviteOnly Boolean
+  password   String?
+
+  channelMessages ChannelMessage[]
+
+  owner   User @relation(fields: [ownerId], references: [id])
+  ownerId Int
+
+  admins ChannelAdmin[]
+
+  members ChannelMember[]
+}
+
+model ChannelMessageReads {
+  channelMessage   ChannelMessage @relation(fields: [channelMessageId], references: [id])
+  channelMessageId Int
+
+  user   User @relation(fields: [userId], references: [id])
+  userId Int
+
+  readAt DateTime
+
+  @@id([channelMessageId, userId])
+}
+
+model ChannelMessage {
+  id Int @id @default(autoincrement())
+
+  author   User @relation(fields: [authorId], references: [id])
+  authorId Int
+
+  channel   Channel @relation(fields: [channelId], references: [id])
+  channelId Int
+
+  content String
+  sentAt  DateTime
+  readBy  ChannelMessageReads[]
+}
+
+model DirectMessage {
+  id Int @id @default(autoincrement())
+
+  author   User @relation("MessageSent", fields: [authorId], references: [id])
+  authorId Int
+
+  recipient   User @relation("MessageReceived", fields: [recipientId], references: [id])
+  recipientId Int
+
+  content String
+  sentAt  DateTime
+  readAt  DateTime?
+}

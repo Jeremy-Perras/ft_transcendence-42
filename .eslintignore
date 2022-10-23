@@ -1,4 +1,4 @@
-# logs
+# Logs
 logs
 *.log
 npm-debug.log*
@@ -7,14 +7,17 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# os
-.ds_store
+# OS
+.DS_Store
 
-# local
+# Local
+.env
 node_modules
 *.local
+dist/
+dev.db
 
-# ides and editors
+# IDEs and editors
 /.idea
 .project
 .classpath
@@ -23,7 +26,7 @@ node_modules
 .settings/
 *.sublime-workspace
 
-# ide - vscode
+# IDE - VSCode
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
