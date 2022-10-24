@@ -34,13 +34,11 @@ const DirectConversation = ({ userId }: { userId: number }) => {
     console.log("Error");
     return <div>Error</div>;
   } else {
-    console.log(Object.values(data));
     return (
       <div className="mb-2 mt-2 flex w-full flex-col border-t-2 border-slate-600">
         <div className="p-2 text-center">Conversation with user {userId}</div>
         {Object.values(data).map((message: any, index: number) => {
           let messages = MessageSchema.parse(message);
-          console.log(message);
           return (
             <div key={index}>
               <div className="mt-5 ml-2 mr-2 flex w-auto flex-col border-2 bg-slate-100">
