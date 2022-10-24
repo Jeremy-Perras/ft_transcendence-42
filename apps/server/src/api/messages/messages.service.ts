@@ -14,7 +14,7 @@ export class MessagesService {
     const message3 = generateMock(MessageSchema);
     message3.author.id = userId;
     message3.author.name = "Direct chat test user";
-    return { message1, message2, message3 };
+    return [message1, message2, message3];
   }
 
   getChannelMessages(channelId: number) {
@@ -25,6 +25,6 @@ export class MessagesService {
     const message5 = generateMock(MessageSchema);
     const message6 = generateMock(MessageSchema);
 
-    return { message1, message2, message3, message4, message5, message6 };
+    return [message1, message2, message3, message4, message5, message6];
   }
 }
