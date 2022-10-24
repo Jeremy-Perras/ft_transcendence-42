@@ -1,68 +1,80 @@
 import { ReactNode, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import {
   QueryClient,
   QueryClientProvider,
   useQuery,
 } from "@tanstack/react-query";
 import { ChannelSchema } from "@shared/schemas";
+import { z } from "zod";
 
-// TODO: replace anys
-let queryClient = new QueryClient();
+const channelDetailQuery = (id: string | undefined) => ({
+  queryKey: ["messages", id],
+  queryFn: async () => {
+    const resp = await fetch(`http://localhost:3000/api/channels/${id}`);
+    const data = await resp.json();
+    return data;
+  },
+});
 
-async function getChannel(url: string) {
-  try {
-    const response = await fetch(url);
-    if (response.status === 200) {
-      const json = await response.json();
-      return json;
-    } else throw Error("Not 200!!");
-  } catch (error) {
-    console.log(error);
-  }
-}
-
-const ChannelBanner = (channel: any) => {
-  return (
-    <Link to="/chat/test">
-      <div className="m-2 w-full border-2 border-black bg-slate-300 text-sm">
-        <div>Channel name: {channel.name}</div>
-        <div>Type: {channel.type}</div>
-        <div>Owner: {channel.owner.name}</div>
-      </div>
-    </Link>
-  );
-};
-
-// displays list of all channels or channels from search
-function ChannelListQuery({ url }: { url: string }) {
-  const { isLoading, error, data, isFetching } = useQuery(["repoData"], () =>
-    getChannel(url)
-  );
-
-  if (isLoading) return <div>Loading ...</div>;
-  if (isFetching) {
-    console.warn("Fetching");
-    return <div>Fetching</div>;
-  }
-  if (error) {
-    console.log("Error");
-    return <div>Error</div>;
-  } else {
+export const channelLoader =
+  (queryClient: QueryClient) =>
+  async ({ params }: { params: any }) => {
+    const query = channelDetailQuery(params.channelId);
     return (
-      <>
-        {Object.values(data).map((channel: any) => {
-          return <ChannelBanner key={channel.id} {...channel} />;
-        })}
-      </>
+      queryClient.getQueryData(query.queryKey) ??
+      (await queryClient.fetchQuery(query))
     );
-  }
-}
+  };
 
-const displayChannelMessages = (messages: any) => {
+// const ChannelBanner = (channel: any) => {
+//   const params = useParams();
+//   const { data }: { data: any } = useQuery(
+//     channelDetailQuery(params?.channelId)
+//   );
+
+//   return (
+//     <Link to="/chat/test">
+//       <div className="m-2 w-full border-2 border-black bg-slate-300 text-sm">
+//         <div>Channel name: {channel.name}</div>
+//         <div>Type: {channel.type}</div>
+//         <div>Owner: {channel.owner.name}</div>
+//       </div>
+//     </Link>
+//   );
+// };
+
+// // displays list of all channels or channels from search
+// function ChannelListQuery({ url }: { url: string }) {
+//   const { isLoading, error, data, isFetching } = useQuery(["repoData"], () =>
+//     getChannel(url)
+//   );
+
+//   if (isLoading) return <div>Loading ...</div>;
+//   if (isFetching) {
+//     console.warn("Fetching");
+//     return <div>Fetching</div>;
+//   }
+//   if (error) {
+//     console.log("Error");
+//     return <div>Error</div>;
+//   } else {
+//     return (
+//       <>
+//         {Object.values(data).map((channel: any) => {
+//           return <ChannelBanner key={channel.id} {...channel} />;
+//         })}
+//       </>
+//     );
+//   }
+// }
+
+const displayChannelMessages = (
+  messages: z.infer<typeof ChannelSchema.shape.messages>
+) => {
   return (
     <>
-      {messages.map((message: any, index: number) => {
+      {[...messages].map((message: any, index: number) => {
         return (
           <div key={index}>
             <div className="mt-5 ml-2 mr-2 flex w-auto flex-col border-2 bg-slate-100">
@@ -77,9 +89,10 @@ const displayChannelMessages = (messages: any) => {
 };
 
 // displays one channel with messages
-const UniqueChannelQuery = ({ url }: { url: string }) => {
-  const { isLoading, error, data, isFetching } = useQuery(["repoData"], () =>
-    getChannel(url)
+const UniqueChannelQuery = () => {
+  const params = useParams();
+  const { isLoading, isFetching, error, data } = useQuery(
+    channelDetailQuery(params?.channelId)
   );
 
   if (isLoading) return <div>Loading ...</div>;
@@ -91,7 +104,7 @@ const UniqueChannelQuery = ({ url }: { url: string }) => {
     console.log("Error");
     return <div>Error</div>;
   } else {
-    let channel = ChannelSchema.parse(data);
+    const channel = ChannelSchema.parse(data);
     return (
       <div className="mb-2 mt-2 flex w-full flex-col border-t-2 border-slate-600 p-2">
         <div className="w-full flex-col items-center justify-center border-2 border-black p-2 text-center text-sm">
@@ -108,7 +121,7 @@ const UniqueChannelQuery = ({ url }: { url: string }) => {
 
 export default function Channel() {
   return (
-    <QueryClientProvider client={queryClient}>
+    <>
       <h1 className="text-lg">channel</h1>
       <ul>
         <li>
@@ -125,7 +138,7 @@ export default function Channel() {
         </li>
       </ul>
       {/* <ChannelListQuery url="http://localhost:3000/api/channels/" /> */}
-      <UniqueChannelQuery url="http://localhost:3000/api/channels/test" />
-    </QueryClientProvider>
+      <UniqueChannelQuery />
+    </>
   );
 }
