@@ -1,130 +1,87 @@
-import { useState } from "react";
-import {
-  createMemoryRouter,
-  Outlet,
-  RouterProvider,
-  useLocation,
-  useNavigationType,
-  useOutlet,
-} from "react-router-dom";
-import Home from "./pages/home";
-import * as Dialog from "@radix-ui/react-dialog";
+import { useEffect, useState } from "react";
+import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { useMediaQuery } from "@react-hookz/web";
+import { SideBarContext } from "./context";
+import { SidebarLayout } from "./layout";
+import * as Dialog from "@radix-ui/react-dialog";
+import Home from "./pages/home";
 import Channel from "./pages/channel";
 import Chat from "./pages/chat";
 import Profile from "./pages/profile";
-import { AnimatePresence, motion } from "framer-motion";
-import Header from "./header.component";
-import { SideBarContext } from "./context/show-sidebar";
-
-const SidebarLayout = () => {
-  return (
-    <div className="h-full w-full bg-slate-50">
-      <Header />
-      <Outlet />
-    </div>
-  );
-};
-
-const AnimationLayout = () => {
-  const { pathname } = useLocation();
-
-  const nav = useNavigationType();
-  const variants = {
-    visible: {
-      transition: {
-        duration: nav === "PUSH" ? 0.2 : 0,
-        ease: "easeIn",
-      },
-      x: 0,
-    },
-    hidden: {
-      transition: {
-        duration: 0.2,
-        ease: "easeIn",
-      },
-      x: nav === "PUSH" ? "100%" : 0,
-      zIndex: nav === "PUSH" ? 10 : 0,
-    },
-  };
-
-  const out = useOutlet();
-
-  return (
-    <AnimatePresence initial={false}>
-      <motion.div
-        className="h-full w-full bg-slate-50"
-        key={pathname}
-        variants={variants}
-        initial={{ x: "100%", position: "absolute" }}
-        animate="visible"
-        exit="hidden"
-      >
-        {out}
-      </motion.div>
-    </AnimatePresence>
-  );
-};
+import { motion, useAnimationControls } from "framer-motion";
+import { ReactComponent as BackBurgerIcon } from "pixelarticons/svg/backburger.svg";
 
 const router = createMemoryRouter([
   {
     element: <SidebarLayout />,
     children: [
       {
-        element: <AnimationLayout />,
-        children: [
-          {
-            path: "/",
-            element: <Home />,
-          },
-          {
-            path: "/create-channel",
-            element: <Channel />,
-          },
-          {
-            path: "/channel/:channelId",
-            element: <Channel />,
-          },
-          {
-            path: "/chat/:userId",
-            element: <Chat />,
-          },
-          {
-            path: "/profile/:userId",
-            element: <Profile />,
-          },
-        ],
+        path: "/",
+        element: <Home />,
+      },
+      {
+        path: "/create-channel",
+        element: <Channel />,
+      },
+      {
+        path: "/channel/:channelId",
+        element: <Channel />,
+      },
+      {
+        path: "/chat/:userId",
+        element: <Chat />,
+      },
+      {
+        path: "/profile/:userId",
+        element: <Profile />,
       },
     ],
   },
 ]);
 
 export default function SideBar() {
+  const isSmallScreen = useMediaQuery("(max-width: 1536px)");
   const [newMessage, setNewMessage] = useState(false);
-  const [showSideBar, setShowSideBar] = useState(true);
-  const smallScreen = useMediaQuery("(max-width: 1536px)");
+  const [showSideBar, setShowSideBar] = useState(true); // TODO: set to false
+  const controls = useAnimationControls();
 
-  // useEffect(() => setShowSideBar(!smallScreen), [smallScreen]);
+  useEffect(() => {
+    if (typeof isSmallScreen !== "undefined") {
+      // setShowSideBar(!isSmallScreen);
+    }
+  }, [isSmallScreen]);
+
+  useEffect(() => {
+    const transition = {
+      duration: isSmallScreen ? 0.2 : 0,
+      ease: "easeIn",
+    };
+    (async () => {
+      switch (showSideBar) {
+        case true:
+          await controls.set({ visibility: "visible" });
+          controls.start({ x: 0, transition });
+          break;
+        case false:
+          await controls.start({ x: "100%", transition });
+          controls.set({ visibility: "hidden" });
+          break;
+      }
+    })();
+  }, [showSideBar]);
 
   return (
     <div className="shrink-0">
-      {!showSideBar && smallScreen ? (
+      {!showSideBar && isSmallScreen ? (
         <button
-          onClick={() => setShowSideBar(true)}
-          className="absolute top-1 right-2 z-10 animate-[fadeIn_400ms_ease_200ms_1_normal_backwards] "
+          onClick={() =>
+            setTimeout(() => {
+              setShowSideBar(true);
+            }, 1)
+          }
+          className="absolute top-1 right-2 z-10"
         >
-          <svg
-            className="h-10 w-10 text-slate-50"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-          >
-            {" "}
-            <path
-              d="M11 7h10v2H11V7zm-8 4h2V9h2v2h14v2H7v2H5v-2H3v-2zm4 4v2h2v-2H7zm0-6V7h2v2H7zm14 6H11v2h10v-2z"
-              fill="currentColor"
-            />{" "}
-          </svg>
+          <BackBurgerIcon className="w-8 text-slate-50 sm:w-9" />
           {newMessage ? (
             <span className="absolute top-0 right-0 flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping bg-red-400 opacity-75"></span>
@@ -133,37 +90,29 @@ export default function SideBar() {
           ) : null}
         </button>
       ) : null}
-      <Dialog.Root
-        open={showSideBar}
-        onOpenChange={setShowSideBar}
-        modal={false}
-      >
+      <Dialog.Root open={showSideBar} modal={false}>
         <Dialog.Content
           forceMount
-          onInteractOutside={(e) => !smallScreen && e.preventDefault()}
-          onOpenAutoFocus={(e) => !smallScreen && e.preventDefault()}
-          className={`absolute right-0 flex h-full w-full flex-col bg-slate-50 font-cursive sm:w-128 2xl:relative ${
-            showSideBar ? "translate-x-0" : "translate-x-full"
-          } ${smallScreen ? "transition-transform duration-200" : ""}`}
+          asChild
+          onEscapeKeyDown={(e) => {
+            e.preventDefault();
+            if (isSmallScreen) {
+              setShowSideBar(false);
+            }
+          }}
+          onInteractOutside={(e) => {
+            e.preventDefault();
+            if (isSmallScreen) {
+              setShowSideBar(false);
+            }
+          }}
+          className="invisible absolute right-0 flex h-full w-full flex-col bg-slate-50 font-cursive shadow-2xl shadow-black sm:w-128 2xl:relative"
         >
-          {/* {smallScreen ? (
-            <Dialog.Close className="absolute top-1 right-2">
-              <svg
-                className="h-8 w-8 text-slate-800"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  d="M5 5h2v2H5V5zm4 4H7V7h2v2zm2 2H9V9h2v2zm2 0h-2v2H9v2H7v2H5v2h2v-2h2v-2h2v-2h2v2h2v2h2v2h2v-2h-2v-2h-2v-2h-2v-2zm2-2v2h-2V9h2zm2-2v2h-2V7h2zm0 0V5h2v2h-2z"
-                  fill="currentColor"
-                />
-              </svg>
-            </Dialog.Close>
-          ) : null} */}
-          <SideBarContext.Provider value={setShowSideBar}>
-            <RouterProvider router={router} />
-          </SideBarContext.Provider>
+          <motion.div animate={controls}>
+            <SideBarContext.Provider value={setShowSideBar}>
+              <RouterProvider router={router} />
+            </SideBarContext.Provider>
+          </motion.div>
         </Dialog.Content>
       </Dialog.Root>
     </div>

@@ -1,13 +1,19 @@
-import { useMediaQuery } from "@react-hookz/web";
 import { useContext, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { SideBarContext } from "./context/show-sidebar";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  Outlet,
+  useLocation,
+  useNavigate,
+  useNavigationType,
+  useOutlet,
+} from "react-router-dom";
+import { useMediaQuery } from "@react-hookz/web";
 import { ReactComponent as ArrowLeftBoxIcon } from "pixelarticons/svg/arrow-left-box.svg";
 import { ReactComponent as CloseIcon } from "pixelarticons/svg/close.svg";
 import { ReactComponent as SearchIcon } from "pixelarticons/svg/search.svg";
 import { ReactComponent as BackBurgerIcon } from "pixelarticons/svg/backburger.svg";
 import { ReactComponent as MessagePlusIcon } from "pixelarticons/svg/message-plus.svg";
-import { AnimatePresence, motion } from "framer-motion";
+import { SideBarContext } from "./context";
 
 const SearchBar = () => {
   const [search, setSearch] = useState("");
@@ -55,12 +61,12 @@ const LeftButton = ({
   );
 };
 
-export default function Header() {
+function Header() {
   const location = useLocation();
   const home = location.pathname === "/";
   const navigate = useNavigate();
   const setShowSideBar = useContext(SideBarContext);
-  const smallScreen = useMediaQuery("(max-width: 1536px)");
+  const isSmallScreen = useMediaQuery("(max-width: 1536px)");
 
   return (
     <div className="flex border-b-2 border-black  font-cursive">
@@ -90,7 +96,7 @@ export default function Header() {
           </>
         )}
       </AnimatePresence>
-      {smallScreen ? (
+      {isSmallScreen ? (
         <button onClick={() => setShowSideBar && setShowSideBar(false)}>
           <BackBurgerIcon className="h-9 rotate-180 transition-colors duration-200 hover:text-slate-500" />
         </button>
@@ -98,3 +104,45 @@ export default function Header() {
     </div>
   );
 }
+
+export const SidebarLayout = () => {
+  const { pathname } = useLocation();
+  const nav = useNavigationType();
+  const outlet = useOutlet();
+
+  const variants = {
+    visible: {
+      transition: {
+        duration: nav === "PUSH" ? 0.2 : 0,
+        ease: "easeIn",
+      },
+      x: 0,
+    },
+    hidden: {
+      transition: {
+        duration: 0.2,
+        ease: "easeIn",
+      },
+      x: nav === "PUSH" ? "100%" : 0,
+      zIndex: nav === "PUSH" ? 10 : 0,
+    },
+  };
+
+  return (
+    <div className="h-full w-full bg-slate-50">
+      <Header />
+      <AnimatePresence initial={false}>
+        <motion.div
+          className="h-full w-full bg-slate-50"
+          key={pathname}
+          variants={variants}
+          initial={{ x: "100%", position: "absolute" }}
+          animate="visible"
+          exit="hidden"
+        >
+          <Outlet />
+        </motion.div>
+      </AnimatePresence>
+    </div>
+  );
+};
