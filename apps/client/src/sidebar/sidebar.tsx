@@ -10,6 +10,14 @@ import Chat from "./pages/chat";
 import Profile from "./pages/profile";
 import { motion, useAnimationControls } from "framer-motion";
 import { ReactComponent as BackBurgerIcon } from "pixelarticons/svg/backburger.svg";
+import {
+  QueryClient,
+  QueryClientProvider,
+  useQuery,
+} from "@tanstack/react-query";
+import { channelLoader } from "./pages/channel";
+
+const queryClient = new QueryClient();
 
 const router = createMemoryRouter([
   {
@@ -26,6 +34,7 @@ const router = createMemoryRouter([
       {
         path: "/channel/:channelId",
         element: <Channel />,
+        loader: channelLoader(queryClient),
       },
       {
         path: "/chat/:userId",
@@ -110,7 +119,9 @@ export default function SideBar() {
         >
           <motion.div animate={controls}>
             <SideBarContext.Provider value={setShowSideBar}>
-              <RouterProvider router={router} />
+              <QueryClientProvider client={queryClient}>
+                <RouterProvider router={router} />
+              </QueryClientProvider>
             </SideBarContext.Provider>
           </motion.div>
         </Dialog.Content>
