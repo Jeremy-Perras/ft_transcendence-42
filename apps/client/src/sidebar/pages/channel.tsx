@@ -99,7 +99,7 @@ const UniqueChannelQuery = ({ url }: { url: string }) => {
           <div>Owner: {channel.owner.name}</div>
         </div>
         <div className="h-full w-full place-items-center">
-          {displayChannelMessages(channel.messages)}
+          {displayChannelMessages([...channel.messages])}
         </div>
       </div>
     );

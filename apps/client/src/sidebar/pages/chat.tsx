@@ -4,6 +4,7 @@ import {
   QueryClientProvider,
   useQuery,
 } from "@tanstack/react-query";
+import { MessageSchema } from "@shared/schemas";
 
 let queryClient = new QueryClient();
 
@@ -33,16 +34,19 @@ const DirectConversation = ({ userId }: { userId: number }) => {
     console.log("Error");
     return <div>Error</div>;
   } else {
+    console.log(Object.values(data));
     return (
       <div className="mb-2 mt-2 flex w-full flex-col border-t-2 border-slate-600">
         <div className="p-2 text-center">Conversation with user {userId}</div>
         {Object.values(data).map((message: any, index: number) => {
+          let messages = MessageSchema.parse(message);
+          console.log(message);
           return (
             <div key={index}>
               <div className="mt-5 ml-2 mr-2 flex w-auto flex-col border-2 bg-slate-100">
-                <div className="text-end text-sm">{`${message.content}`}</div>
+                <div className="text-end text-sm">{`${messages.content}`}</div>
               </div>
-              <div className="ml-2 mr-2 w-auto align-text-bottom text-xs text-slate-500">{`Sent by ${message.author.name} at ${message.sentAt}`}</div>
+              <div className="ml-2 mr-2 w-auto align-text-bottom text-xs text-slate-500">{`Sent by ${messages.author.name} at ${messages.sentAt}`}</div>
             </div>
           );
         })}
