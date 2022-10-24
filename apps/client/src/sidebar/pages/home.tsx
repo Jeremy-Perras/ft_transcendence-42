@@ -77,16 +77,14 @@ const Chat = ({ id, type, name, lastMessage }: Chat) => {
     >
       <div className="flex h-20 w-20 justify-center bg-black text-white">
         {type == "friend" ? (
-          <Avatar.Root asChild>
-            <>
-              <Avatar.Image
-                className="h-20 w-20 object-cover "
-                src={`https://i.pravatar.cc/300?img=${id}`}
-              />
-              <Avatar.Fallback asChild delayMs={600}>
-                <UserIcon className="w-4/5" />
-              </Avatar.Fallback>
-            </>
+          <Avatar.Root>
+            <Avatar.Image
+              className="h-20 w-20 object-cover "
+              src={`https://i.pravatar.cc/300?img=${id}`}
+            />
+            <Avatar.Fallback delayMs={600}>
+              <UserIcon className="w-4/5" />
+            </Avatar.Fallback>
           </Avatar.Root>
         ) : (
           <UsersIcon className="mt-2 w-8/12" />
