@@ -9,19 +9,19 @@ import { ChannelSchema } from "@shared/schemas";
 import { z } from "zod";
 import { globalQueryFn } from "../sidebar";
 
-export const channelLoader =
-  (queryClient: QueryClient) =>
-  async ({ params }: { params: any }) => {
-    const query = globalQueryFn(
-      "http://localhost:3000/api/channels",
-      "channel",
-      params.channelId
-    );
-    return (
-      queryClient.getQueryData(query.queryKey) ??
-      (await queryClient.fetchQuery(query))
-    );
-  };
+// export const channelLoader =
+//   (queryClient: QueryClient) =>
+//   async ({ params }: { params: any }) => {
+//     const query = globalQueryFn(
+//       "http://localhost:3000/api/channels",
+//       "channel",
+//       params.channelId
+//     );
+//     return (
+//       queryClient.getQueryData(query.queryKey) ??
+//       (await queryClient.fetchQuery(query))
+//     );
+//   };
 
 // const ChannelBanner = (channel: any) => {
 //   const params = useParams();
@@ -87,13 +87,10 @@ const displayChannelMessages = (
 // displays one channel with messages
 const UniqueChannelQuery = () => {
   const params = useParams();
-  const { isLoading, isFetching, error, data } = useQuery(
-    globalQueryFn(
-      "http://localhost:3000/api/channels",
-      "channel",
-      params?.channelId
-    )
-  );
+  const { isLoading, isFetching, error, data } = useQuery([
+    "channels",
+    params?.channelId,
+  ]);
 
   if (isLoading) return <div>Loading ...</div>;
   if (isFetching) {
