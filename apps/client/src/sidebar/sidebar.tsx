@@ -7,7 +7,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import Home from "./pages/home";
 import Channel from "./pages/channel";
 import Chat from "./pages/chat";
-import Profile from "./pages/profile";
+import Profile, { userProfileLoader } from "./pages/profile";
 import { motion, useAnimationControls } from "framer-motion";
 import { ReactComponent as BackBurgerIcon } from "pixelarticons/svg/backburger.svg";
 import {
@@ -45,6 +45,7 @@ const router = createMemoryRouter([
       {
         path: "/profile/:userId",
         element: <Profile />,
+        loader: userProfileLoader(queryClient),
       },
     ],
   },
