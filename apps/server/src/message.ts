@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 import "reflect-metadata";
-import { Field, ObjectType, Int } from "@nestjs/graphql";
-import { IsNotEmpty, Min } from "class-validator";
+import { Field, ObjectType } from "@nestjs/graphql";
+import { IsNotEmpty } from "class-validator";
 import { User } from "./user";
 
 @ObjectType()

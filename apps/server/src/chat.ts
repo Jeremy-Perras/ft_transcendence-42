@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 import "reflect-metadata";
-import { Field, ObjectType, Int } from "@nestjs/graphql";
-import { IsNotEmpty, Min } from "class-validator";
+import { Field, ObjectType } from "@nestjs/graphql";
 import { User } from "./user";
 import { Message } from "./message";
 
@@ -12,8 +11,8 @@ export class Chat {
   author: User;
 
   @Field((type) => [Message], { nullable: true })
-  Message: [Message] | undefined;
+  Message: [Message] | null;
 
   @Field((type) => [Message], { nullable: true })
-  unreadMessages: [Message] | undefined;
+  unreadMessages: [Message] | null;
 }
