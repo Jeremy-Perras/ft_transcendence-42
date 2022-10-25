@@ -1,69 +1,8 @@
 import { ReactNode, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import {
-  QueryClient,
-  QueryClientProvider,
-  useQuery,
-} from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { ChannelSchema } from "@shared/schemas";
 import { z } from "zod";
-import { globalQueryFn } from "../sidebar";
-
-// export const channelLoader =
-//   (queryClient: QueryClient) =>
-//   async ({ params }: { params: any }) => {
-//     const query = globalQueryFn(
-//       "http://localhost:3000/api/channels",
-//       "channel",
-//       params.channelId
-//     );
-//     return (
-//       queryClient.getQueryData(query.queryKey) ??
-//       (await queryClient.fetchQuery(query))
-//     );
-//   };
-
-// const ChannelBanner = (channel: any) => {
-//   const params = useParams();
-//   const { data }: { data: any } = useQuery(
-//     channelDetailQuery(params?.channelId)
-//   );
-
-//   return (
-//     <Link to="/chat/test">
-//       <div className="m-2 w-full border-2 border-black bg-slate-300 text-sm">
-//         <div>Channel name: {channel.name}</div>
-//         <div>Type: {channel.type}</div>
-//         <div>Owner: {channel.owner.name}</div>
-//       </div>
-//     </Link>
-//   );
-// };
-
-// // displays list of all channels or channels from search
-// function ChannelListQuery({ url }: { url: string }) {
-//   const { isLoading, error, data, isFetching } = useQuery(["repoData"], () =>
-//     getChannel(url)
-//   );
-
-//   if (isLoading) return <div>Loading ...</div>;
-//   if (isFetching) {
-//     console.warn("Fetching");
-//     return <div>Fetching</div>;
-//   }
-//   if (error) {
-//     console.log("Error");
-//     return <div>Error</div>;
-//   } else {
-//     return (
-//       <>
-//         {Object.values(data).map((channel: any) => {
-//           return <ChannelBanner key={channel.id} {...channel} />;
-//         })}
-//       </>
-//     );
-//   }
-// }
 
 const displayChannelMessages = (
   messages: z.infer<typeof ChannelSchema.shape.messages>
