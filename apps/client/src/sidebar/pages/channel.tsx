@@ -8,12 +8,24 @@ import {
 import { ChannelSchema } from "@shared/schemas";
 import { z } from "zod";
 
+async function getChannel(id: string | undefined) {
+  const resp = await fetch(`http://localhost:3000/api/channels/${id}`);
+  const data = await resp.json();
+
+  return data ?? null;
+}
+
 const channelDetailQuery = (id: string | undefined) => ({
-  queryKey: ["messages", id],
+  queryKey: ["Channel", id],
   queryFn: async () => {
-    const resp = await fetch(`http://localhost:3000/api/channels/${id}`);
-    const data = await resp.json();
-    return data;
+    const channel = getChannel(id);
+    if (!channel) {
+      throw new Response("", {
+        status: 404,
+        statusText: "Not Found",
+      });
+    }
+    return channel;
   },
 });
 
@@ -26,48 +38,6 @@ export const channelLoader =
       (await queryClient.fetchQuery(query))
     );
   };
-
-// const ChannelBanner = (channel: any) => {
-//   const params = useParams();
-//   const { data }: { data: any } = useQuery(
-//     channelDetailQuery(params?.channelId)
-//   );
-
-//   return (
-//     <Link to="/chat/test">
-//       <div className="m-2 w-full border-2 border-black bg-slate-300 text-sm">
-//         <div>Channel name: {channel.name}</div>
-//         <div>Type: {channel.type}</div>
-//         <div>Owner: {channel.owner.name}</div>
-//       </div>
-//     </Link>
-//   );
-// };
-
-// // displays list of all channels or channels from search
-// function ChannelListQuery({ url }: { url: string }) {
-//   const { isLoading, error, data, isFetching } = useQuery(["repoData"], () =>
-//     getChannel(url)
-//   );
-
-//   if (isLoading) return <div>Loading ...</div>;
-//   if (isFetching) {
-//     console.warn("Fetching");
-//     return <div>Fetching</div>;
-//   }
-//   if (error) {
-//     console.log("Error");
-//     return <div>Error</div>;
-//   } else {
-//     return (
-//       <>
-//         {Object.values(data).map((channel: any) => {
-//           return <ChannelBanner key={channel.id} {...channel} />;
-//         })}
-//       </>
-//     );
-//   }
-// }
 
 const displayChannelMessages = (
   messages: z.infer<typeof ChannelSchema.shape.messages>
@@ -91,6 +61,9 @@ const displayChannelMessages = (
 // displays one channel with messages
 const UniqueChannelQuery = () => {
   const params = useParams();
+  // const [url, setUrl] = useState("http://localhost:3000/api/channels/");
+  // setUrl(params?.channelId);
+  // console.log(url);
   const { isLoading, isFetching, error, data } = useQuery(
     channelDetailQuery(params?.channelId)
   );

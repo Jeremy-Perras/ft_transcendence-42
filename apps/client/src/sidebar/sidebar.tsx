@@ -17,7 +17,20 @@ import {
 } from "@tanstack/react-query";
 import { channelLoader } from "./pages/channel";
 
-const queryClient = new QueryClient();
+const defaultQueryFn = async ({ queryKey }: { queryKey: any }) => {
+  console.log("test");
+  const resp = await fetch(`http://localhost:3000/api/channels/${queryKey[0]}`);
+  const data = await resp.json();
+  return data;
+};
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      queryFn: defaultQueryFn,
+    },
+  },
+});
 
 const router = createMemoryRouter([
   {

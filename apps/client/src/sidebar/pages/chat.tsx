@@ -3,9 +3,31 @@ import {
   QueryClient,
   QueryClientProvider,
   useQuery,
+  useQueryClient,
 } from "@tanstack/react-query";
 
-let queryClient = new QueryClient();
+const defaultQueryFn = async ({ queryKey }: { queryKey: any }) => {
+  let string = "http://localhost:3000/api/";
+  queryKey.map((Key: any) => (string = string + Key + "/"));
+  console.log(string);
+  const resp = await fetch(string);
+  const data = await resp.json();
+  if (!data) {
+    throw new Response("", {
+      status: 404,
+      statusText: "Not Found",
+    });
+  }
+  return data;
+};
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      queryFn: defaultQueryFn,
+    },
+  },
+});
 
 async function getDirectMessages(url: string) {
   try {
@@ -19,10 +41,48 @@ async function getDirectMessages(url: string) {
   }
 }
 
+async function getChat(id: string | undefined) {
+  // const resp = await fetch(`http://localhost:3000/api/chat/${id}`);
+  // const data = await resp.json();
+  // return data ?? null;
+}
+
+const chatDetailQuery = (id: string | undefined) => ({
+  queryKey: ["Channel", id],
+  queryFn: async () => {
+    const channel = getChat(id);
+    if (!channel) {
+      throw new Response("", {
+        status: 404,
+        statusText: "Not Found",
+      });
+    }
+    return channel;
+  },
+});
+export const chatLoader =
+  (queryClient: QueryClient) =>
+  async ({ params }: { params: any }) => {
+    const query = chatDetailQuery(params.channelId);
+    return (
+      queryClient.getQueryData(query.queryKey) ??
+      (await queryClient.fetchQuery(query))
+    );
+  };
+
 const DirectConversation = ({ userId }: { userId: number }) => {
-  const { isLoading, error, data, isFetching } = useQuery(["repoData"], () =>
-    getDirectMessages(`http://localhost:3000/api/messages/user/${userId}`)
-  );
+  // const queryClient = useQueryClient();
+
+  // All you have to do now is pass a key!
+  const { isLoading, data, error, isFetching } = useQuery([
+    "messages",
+    "user",
+    `${userId}`,
+  ]);
+
+  // const { isLoading, error, data, isFetching } = useQuery(["repoData"], () =>
+  //   getDirectMessages(`http://localhost:3000/api/messages/user/${userId}`)
+  // );
 
   if (isLoading) return <div>Loading ...</div>;
   if (isFetching) {
@@ -36,7 +96,7 @@ const DirectConversation = ({ userId }: { userId: number }) => {
     return (
       <div className="mb-2 mt-2 flex w-full flex-col border-t-2 border-slate-600">
         <div className="p-2 text-center">Conversation with user {userId}</div>
-        {Object.values(data).map((message: any, index: number) => {
+        {data.map((message: any, index: number) => {
           return (
             <div key={index}>
               <div className="mt-5 ml-2 mr-2 flex w-auto flex-col border-2 bg-slate-100">
