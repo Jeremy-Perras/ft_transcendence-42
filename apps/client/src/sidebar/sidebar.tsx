@@ -6,7 +6,7 @@ import { SidebarLayout } from "./layout";
 import * as Dialog from "@radix-ui/react-dialog";
 import Home from "./pages/home";
 import Channel from "./pages/channel";
-import Chat from "./pages/chat";
+import Chat, { chatLoader } from "./pages/chat";
 import Profile from "./pages/profile";
 import { motion, useAnimationControls } from "framer-motion";
 import { ReactComponent as BackBurgerIcon } from "pixelarticons/svg/backburger.svg";
@@ -18,9 +18,16 @@ import {
 import { channelLoader } from "./pages/channel";
 
 const defaultQueryFn = async ({ queryKey }: { queryKey: any }) => {
-  console.log("test");
-  const resp = await fetch(`http://localhost:3000/api/channels/${queryKey[0]}`);
+  let string = "http://localhost:3000/api/";
+  queryKey.map((Key: any) => (string = string + Key + "/"));
+  const resp = await fetch(string);
   const data = await resp.json();
+  if (!data) {
+    throw new Response("", {
+      status: 404,
+      statusText: "Not Found",
+    });
+  }
   return data;
 };
 
@@ -52,6 +59,7 @@ const router = createMemoryRouter([
       {
         path: "/chat/:userId",
         element: <Chat />,
+        // loader: chatLoader(queryClient),
       },
       {
         path: "/profile/:userId",

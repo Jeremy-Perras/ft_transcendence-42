@@ -1,33 +1,28 @@
 import { Link } from "react-router-dom";
-import {
-  QueryClient,
-  QueryClientProvider,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { QueryClient, useQuery } from "@tanstack/react-query";
 
-const defaultQueryFn = async ({ queryKey }: { queryKey: any }) => {
-  let string = "http://localhost:3000/api/";
-  queryKey.map((Key: any) => (string = string + Key + "/"));
-  console.log(string);
-  const resp = await fetch(string);
-  const data = await resp.json();
-  if (!data) {
-    throw new Response("", {
-      status: 404,
-      statusText: "Not Found",
-    });
-  }
-  return data;
-};
+// const defaultQueryFn = async ({ queryKey }: { queryKey: any }) => {
+//   let string = "http://localhost:3000/api/";
+//   queryKey.map((Key: any) => (string = string + Key + "/"));
+//   console.log(string);
+//   const resp = await fetch(string);
+//   const data = await resp.json();
+//   if (!data) {
+//     throw new Response("", {
+//       status: 404,
+//       statusText: "Not Found",
+//     });
+//   }
+//   return data;
+// };
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      queryFn: defaultQueryFn,
-    },
-  },
-});
+// const queryClient = new QueryClient({
+//   defaultOptions: {
+//     queries: {
+//       queryFn: defaultQueryFn,
+//     },
+//   },
+// });
 
 async function getDirectMessages(url: string) {
   try {
@@ -113,7 +108,7 @@ const DirectConversation = ({ userId }: { userId: number }) => {
 
 export default function Chat() {
   return (
-    <QueryClientProvider client={queryClient}>
+    <>
       <h1 className="text-lg">chat</h1>
       <ul>
         <li>
@@ -130,6 +125,6 @@ export default function Chat() {
         </li>
       </ul>
       <DirectConversation userId={123} />
-    </QueryClientProvider>
+    </>
   );
 }

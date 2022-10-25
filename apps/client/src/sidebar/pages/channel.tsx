@@ -65,7 +65,8 @@ const UniqueChannelQuery = () => {
   // setUrl(params?.channelId);
   // console.log(url);
   const { isLoading, isFetching, error, data } = useQuery(
-    channelDetailQuery(params?.channelId)
+    // channelDetailQuery(params?.channelId)
+    ["api", "channels", `${params?.channelId}`]
   );
 
   if (isLoading) return <div>Loading ...</div>;
