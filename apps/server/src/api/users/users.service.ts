@@ -14,7 +14,7 @@ export class UsersService {
       const user3 = generateMock(UserSchema);
       const user4 = generateMock(UserSchema);
       const user5 = generateMock(UserSchema);
-      return { user1, user2, user3, user4, user5 };
+      return [user1, user2, user3, user4, user5];
     }
 
     const user1 = generateMock(UserSchema);
@@ -23,17 +23,11 @@ export class UsersService {
     user1.name = query + "1";
     user2.name = query + "2";
     user3.name = query + "3";
-    return {
-      user1,
-      user2,
-      user3,
-    };
+    return [user1, user2, user3];
   }
 
   getUserById(id: number) {
-    const user = generateMock(UserSchema);
-    user.id = id;
-    return user;
+    return generateMock(UserSchema);
   }
 
   me() {
