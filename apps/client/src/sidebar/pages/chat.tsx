@@ -1,27 +1,46 @@
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import {
   QueryClient,
   QueryClientProvider,
   useQuery,
 } from "@tanstack/react-query";
 
-let queryClient = new QueryClient();
+//TODO: put globalQueryFn in another file
+export const globalQueryFn = (
+  url: string,
+  key: string,
+  id: string | undefined
+) => ({
+  queryKey: [key, id],
+  queryFn: async () => {
+    const resp = await fetch(`${url}/${id}`);
+    const data = await resp.json();
+    return data;
+  },
+});
 
-async function getDirectMessages(url: string) {
-  try {
-    const response = await fetch(url);
-    if (response.status === 200) {
-      const json = await response.json();
-      return json;
-    } else throw Error("Not 200!!");
-  } catch (error) {
-    console.log(error);
-  }
-}
+export const directMessagesLoader =
+  (queryClient: QueryClient) =>
+  async ({ params }: { params: any }) => {
+    const query = globalQueryFn(
+      "http://localhost:3000/api/messages/user",
+      "direct_messages",
+      params.userId
+    );
+    return (
+      queryClient.getQueryData(query.queryKey) ??
+      (await queryClient.fetchQuery(query))
+    );
+  };
 
 const DirectConversation = ({ userId }: { userId: number }) => {
-  const { isLoading, error, data, isFetching } = useQuery(["repoData"], () =>
-    getDirectMessages(`http://localhost:3000/api/messages/user/${userId}`)
+  const params = useParams();
+  const { isLoading, isFetching, error, data } = useQuery(
+    globalQueryFn(
+      "http://localhost:3000/api/messages/user",
+      "direct_messages",
+      params?.userId
+    )
   );
 
   if (isLoading) return <div>Loading ...</div>;
@@ -53,7 +72,7 @@ const DirectConversation = ({ userId }: { userId: number }) => {
 
 export default function Chat() {
   return (
-    <QueryClientProvider client={queryClient}>
+    <div>
       <h1 className="text-lg">chat</h1>
       <ul>
         <li>
@@ -70,6 +89,6 @@ export default function Chat() {
         </li>
       </ul>
       <DirectConversation userId={123} />
-    </QueryClientProvider>
+    </div>
   );
 }
