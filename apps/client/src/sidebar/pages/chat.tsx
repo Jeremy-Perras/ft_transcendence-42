@@ -6,29 +6,27 @@ import {
 } from "@tanstack/react-query";
 import { globalQueryFn } from "../sidebar";
 
-export const directMessagesLoader =
-  (queryClient: QueryClient) =>
-  async ({ params }: { params: any }) => {
-    const query = globalQueryFn(
-      "http://localhost:3000/api/messages/user",
-      "direct_messages",
-      params.userId
-    );
-    return (
-      queryClient.getQueryData(query.queryKey) ??
-      (await queryClient.fetchQuery(query))
-    );
-  };
+// export const directMessagesLoader =
+//   (queryClient: QueryClient) =>
+//   async ({ params }: { params: any }) => {
+//     const query = globalQueryFn(
+//       "http://localhost:3000/api/messages/user",
+//       "direct_messages",
+//       params.userId
+//     );
+//     return (
+//       queryClient.getQueryData(query.queryKey) ??
+//       (await queryClient.fetchQuery(query))
+//     );
+//   };
 
 const DirectConversation = () => {
   const params = useParams();
-  const { isLoading, isFetching, error, data } = useQuery(
-    globalQueryFn(
-      "http://localhost:3000/api/messages/user",
-      "direct_messages",
-      params?.userId
-    )
-  );
+  const { isLoading, isFetching, error, data } = useQuery([
+    "messages",
+    "user",
+    params?.userId,
+  ]);
 
   if (isLoading) return <div>Loading ...</div>;
   if (isFetching) {
@@ -44,7 +42,7 @@ const DirectConversation = () => {
         <div className="p-2 text-center">
           Conversation with user {params?.userId}
         </div>
-        {Object.values(data).map((message: any, index: number) => {
+        {data.map((message: any, index: number) => {
           return (
             <div key={index}>
               <div className="mt-5 ml-2 mr-2 flex w-auto flex-col border-2 bg-slate-100">

@@ -7,7 +7,8 @@ import * as Dialog from "@radix-ui/react-dialog";
 import Home from "./pages/home";
 import Channel from "./pages/channel";
 import Chat from "./pages/chat";
-import Profile, { userProfileLoader } from "./pages/profile";
+import Profile from "./pages/profile";
+
 import { motion, useAnimationControls } from "framer-motion";
 import { ReactComponent as BackBurgerIcon } from "pixelarticons/svg/backburger.svg";
 import {
@@ -15,21 +16,42 @@ import {
   QueryClientProvider,
   useQuery,
 } from "@tanstack/react-query";
-import { channelLoader } from "./pages/channel";
-import { directMessagesLoader } from "./pages/chat";
 
-const queryClient = new QueryClient();
+// const queryClient = new QueryClient();
 
-export const globalQueryFn = (
-  url: string,
-  key: string,
-  id: string | undefined
-) => ({
-  queryKey: [key, id],
-  queryFn: async () => {
-    const resp = await fetch(`${url}/${id}`);
-    const data = await resp.json();
-    return data;
+// export const globalQueryFn = (
+//   url: string,
+//   key: string,
+//   id: string | undefined
+// ) => ({
+//   queryKey: [key, id],
+//   queryFn: async () => {
+//     const resp = await fetch(`${url}/${id}`);
+//     const data = await resp.json();
+//     return data;
+//   },
+// });
+
+export const globalQueryFn = async ({ queryKey }: { queryKey: any }) => {
+  let string = "http://localhost:3000/api/";
+  queryKey.map((Key: any) => (string = string + Key + "/"));
+  console.log(string);
+  const resp = await fetch(string);
+  const data = await resp.json();
+  if (!data) {
+    throw new Response("", {
+      status: 404,
+      statusText: "Not Found",
+    });
+  }
+  return data;
+};
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      queryFn: globalQueryFn,
+    },
   },
 });
 
@@ -48,17 +70,14 @@ const router = createMemoryRouter([
       {
         path: "/channel/:channelId",
         element: <Channel />,
-        loader: channelLoader(queryClient),
       },
       {
         path: "/chat/:userId",
         element: <Chat />,
-        loader: directMessagesLoader(queryClient),
       },
       {
         path: "/profile/:userId",
         element: <Profile />,
-        loader: userProfileLoader(queryClient),
       },
     ],
   },
