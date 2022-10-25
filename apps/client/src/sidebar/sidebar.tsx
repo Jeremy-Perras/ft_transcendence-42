@@ -4,12 +4,15 @@ import { useMediaQuery } from "@react-hookz/web";
 import { SideBarContext } from "./context";
 import { SidebarLayout } from "./layout";
 import * as Dialog from "@radix-ui/react-dialog";
-import Home from "./pages/home";
+import Home, { homeLoader } from "./pages/home";
 import Channel from "./pages/channel";
 import Chat from "./pages/chat";
 import Profile from "./pages/profile";
 import { motion, useAnimationControls } from "framer-motion";
 import { ReactComponent as BackBurgerIcon } from "pixelarticons/svg/backburger.svg";
+import { useQueryClient } from "@tanstack/react-query";
+
+const queryClient = useQueryClient();
 
 const router = createMemoryRouter([
   {
@@ -18,6 +21,7 @@ const router = createMemoryRouter([
       {
         path: "/",
         element: <Home />,
+        loader: homeLoader(queryClient),
       },
       {
         path: "/create-channel",
