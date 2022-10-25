@@ -7,7 +7,7 @@ import {
 } from "@tanstack/react-query";
 import { ChannelSchema } from "@shared/schemas";
 import { z } from "zod";
-import { globalQueryFn } from "./chat";
+import { globalQueryFn } from "../sidebar";
 
 export const channelLoader =
   (queryClient: QueryClient) =>

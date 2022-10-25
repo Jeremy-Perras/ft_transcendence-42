@@ -4,20 +4,7 @@ import {
   QueryClientProvider,
   useQuery,
 } from "@tanstack/react-query";
-
-//TODO: put globalQueryFn in another file
-export const globalQueryFn = (
-  url: string,
-  key: string,
-  id: string | undefined
-) => ({
-  queryKey: [key, id],
-  queryFn: async () => {
-    const resp = await fetch(`${url}/${id}`);
-    const data = await resp.json();
-    return data;
-  },
-});
+import { globalQueryFn } from "../sidebar";
 
 export const directMessagesLoader =
   (queryClient: QueryClient) =>
