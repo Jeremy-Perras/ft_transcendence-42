@@ -20,6 +20,19 @@ import { directMessagesLoader } from "./pages/chat";
 
 const queryClient = new QueryClient();
 
+export const globalQueryFn = (
+  url: string,
+  key: string,
+  id: string | undefined
+) => ({
+  queryKey: [key, id],
+  queryFn: async () => {
+    const resp = await fetch(`${url}/${id}`);
+    const data = await resp.json();
+    return data;
+  },
+});
+
 const router = createMemoryRouter([
   {
     element: <SidebarLayout />,

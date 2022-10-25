@@ -6,9 +6,7 @@ import {
 } from "@tanstack/react-query";
 
 import { UserSchema } from "@shared/schemas";
-import { globalQueryFn } from "./chat";
-
-// TODO: diplay other users profile
+import { globalQueryFn } from "../sidebar";
 
 export const userProfileLoader =
   (queryClient: QueryClient) =>
@@ -16,7 +14,7 @@ export const userProfileLoader =
     const query = globalQueryFn(
       "http://localhost:3000/api/users",
       "profile",
-      "me" //replace with param.id
+      params?.userId
     );
     return (
       queryClient.getQueryData(query.queryKey) ??
@@ -62,9 +60,8 @@ const DisplayMyProfile = () => {
 
 const DisplayUserProfile = () => {
   const params = useParams();
-  // replace with params
   const { isLoading, error, data, isFetching } = useQuery(
-    globalQueryFn("http://localhost:3000/api/users", "profile", params?.id)
+    globalQueryFn("http://localhost:3000/api/users", "profile", params?.userId)
   );
 
   if (isLoading) return <div>Loading ...</div>;
@@ -76,12 +73,10 @@ const DisplayUserProfile = () => {
     console.log("Error");
     return <div>Error</div>;
   } else {
-    console.log(data);
     return (
       <div className="mb-2 mt-2 flex w-full flex-col border-t-2 border-slate-600">
         <div className="text-md justify-center text-slate-800">
-          {" "}
-          User profile{" "}
+          {params.userId} profile{" "}
         </div>
         <img
           className="m-2 h-20 w-20 object-cover"
