@@ -18,6 +18,6 @@
     "composite": true,
     "esModuleInterop": true
   },
-  "references": [{ "path": "./apps/*" }, { "path": "./shared/*" }],
+  "references": [{ "path": "./apps/*" }],
   "exclude": ["node_modules"]
 }

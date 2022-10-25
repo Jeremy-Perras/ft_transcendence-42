@@ -1,9 +1,7 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
 import "reflect-metadata";
 import { Field, ObjectType } from "@nestjs/graphql";
 import { IsNotEmpty } from "class-validator";
-import { User } from "./user";
+import { User } from "../user/user.model";
 
 @ObjectType()
 export class Message {

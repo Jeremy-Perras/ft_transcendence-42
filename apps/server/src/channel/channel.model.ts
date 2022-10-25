@@ -1,13 +1,11 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
 import "reflect-metadata";
-import { ObjectType, Field, Int } from "@nestjs/graphql";
+import { Field, Int, ObjectType } from "@nestjs/graphql";
 import { IsNotEmpty, Min } from "class-validator";
-import { Message } from "./message";
-import { User } from "./user";
+import { Message } from "../message/message.model";
+import { User } from "../user/user.model";
 
 @ObjectType()
-export class Post {
+export class Channel {
   @Field((type) => Int)
   @Min(0)
   id: number;
@@ -26,14 +24,14 @@ export class Post {
   name: string;
 
   @Field((type) => [User], { nullable: true })
-  admin?: [User] | null;
+  admin?: [User];
 
   @Field((type) => [User], { nullable: true })
-  user?: [User] | null;
+  user?: [User];
 
   @Field((type) => [Message], { nullable: true })
-  messages?: [Message] | null;
+  messages?: [Message];
 
   @Field((type) => [Message], { nullable: true })
-  unreadMessages?: [Message] | null;
+  unreadMessages?: [Message];
 }

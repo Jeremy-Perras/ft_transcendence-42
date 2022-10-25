@@ -8,8 +8,7 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "module": "CommonJS",
-    "esModuleInterop": false,
-    "strictPropertyInitialization": false,
+    "strictPropertyInitialization": false
   },
   "exclude": ["./dist", "./prisma", "vite.config.ts"]
 }

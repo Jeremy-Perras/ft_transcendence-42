@@ -1,9 +1,7 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
 import "reflect-metadata";
 import { Field, ObjectType } from "@nestjs/graphql";
-import { User } from "./user";
-import { Message } from "./message";
+import { User } from "../user/user.model";
+import { Message } from "../message/message.model";
 
 @ObjectType()
 export class Chat {
@@ -11,8 +9,8 @@ export class Chat {
   author: User;
 
   @Field((type) => [Message], { nullable: true })
-  Message: [Message] | null;
+  Message?: [Message];
 
   @Field((type) => [Message], { nullable: true })
-  unreadMessages: [Message] | null;
+  unreadMessages?: [Message];
 }
