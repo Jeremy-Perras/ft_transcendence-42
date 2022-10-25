@@ -16,6 +16,8 @@ node_modules
 *.local
 dist/
 dev.db
+dev.db-journal
+schema.gql
 
 # IDEs and editors
 /.idea
