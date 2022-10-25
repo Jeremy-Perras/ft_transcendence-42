@@ -33,7 +33,7 @@ export const directMessagesLoader =
     );
   };
 
-const DirectConversation = ({ userId }: { userId: number }) => {
+const DirectConversation = () => {
   const params = useParams();
   const { isLoading, isFetching, error, data } = useQuery(
     globalQueryFn(
@@ -54,7 +54,9 @@ const DirectConversation = ({ userId }: { userId: number }) => {
   } else {
     return (
       <div className="mb-2 mt-2 flex w-full flex-col border-t-2 border-slate-600">
-        <div className="p-2 text-center">Conversation with user {userId}</div>
+        <div className="p-2 text-center">
+          Conversation with user {params?.userId}
+        </div>
         {Object.values(data).map((message: any, index: number) => {
           return (
             <div key={index}>
@@ -88,7 +90,7 @@ export default function Chat() {
           <Link to="/profile/user">profile</Link>
         </li>
       </ul>
-      <DirectConversation userId={123} />
+      <DirectConversation />
     </div>
   );
 }
