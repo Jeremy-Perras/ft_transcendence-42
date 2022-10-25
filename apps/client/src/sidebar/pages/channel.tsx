@@ -7,20 +7,16 @@ import {
 } from "@tanstack/react-query";
 import { ChannelSchema } from "@shared/schemas";
 import { z } from "zod";
-
-const channelDetailQuery = (id: string | undefined) => ({
-  queryKey: ["messages", id],
-  queryFn: async () => {
-    const resp = await fetch(`http://localhost:3000/api/channels/${id}`);
-    const data = await resp.json();
-    return data;
-  },
-});
+import { globalQueryFn } from "./chat";
 
 export const channelLoader =
   (queryClient: QueryClient) =>
   async ({ params }: { params: any }) => {
-    const query = channelDetailQuery(params.channelId);
+    const query = globalQueryFn(
+      "http://localhost:3000/api/channels",
+      "channel",
+      params.channelId
+    );
     return (
       queryClient.getQueryData(query.queryKey) ??
       (await queryClient.fetchQuery(query))
@@ -92,7 +88,11 @@ const displayChannelMessages = (
 const UniqueChannelQuery = () => {
   const params = useParams();
   const { isLoading, isFetching, error, data } = useQuery(
-    channelDetailQuery(params?.channelId)
+    globalQueryFn(
+      "http://localhost:3000/api/channels",
+      "channel",
+      params?.channelId
+    )
   );
 
   if (isLoading) return <div>Loading ...</div>;

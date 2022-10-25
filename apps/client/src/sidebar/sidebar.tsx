@@ -16,6 +16,7 @@ import {
   useQuery,
 } from "@tanstack/react-query";
 import { channelLoader } from "./pages/channel";
+import { directMessagesLoader } from "./pages/chat";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +40,7 @@ const router = createMemoryRouter([
       {
         path: "/chat/:userId",
         element: <Chat />,
+        loader: directMessagesLoader(queryClient),
       },
       {
         path: "/profile/:userId",
