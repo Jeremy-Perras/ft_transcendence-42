@@ -9,9 +9,8 @@
     "build:client": "npm run build -w apps/client",
     "build:server": "npm run build -w apps/server",
     "build:all": "npm run build:client && npm run build:server",
-    "db:seed": "npm run prisma:seed -w apps/server",
     "db:deploy": "npm run prisma:push -w apps/server && npm run prisma:generate -w apps/server",
-    "deploy": "npm run db:deploy && npm run db:seed && npm run build:all && node apps/server/dist/main"
+    "deploy": "npm run db:deploy && npm run build:all && node apps/server/dist/main"
   },
   "workspaces": [
     "./apps/*"

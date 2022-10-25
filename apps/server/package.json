@@ -11,7 +11,7 @@
     "dev": "nest start --watch",
     "prisma:watch": "prisma generate --watch",
     "prisma:generate": "prisma generate",
-    "prisma:seed": "prisma db seed",
+    "prisma:seed": "rimraf prisma/dev.db && npm run prisma:push && prisma db seed",
     "prisma:push": "prisma db push --force-reset --accept-data-loss"
   },
   "dependencies": {
@@ -31,6 +31,7 @@
     "rxjs": "7.5.7"
   },
   "devDependencies": {
+    "@faker-js/faker": "^7.6.0",
     "@nestjs/cli": "^9.0.0",
     "@nestjs/schematics": "^9.0.0",
     "@types/express": "^4.17.13",
