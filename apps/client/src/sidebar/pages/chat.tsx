@@ -4,21 +4,6 @@ import {
   QueryClientProvider,
   useQuery,
 } from "@tanstack/react-query";
-import { globalQueryFn } from "../sidebar";
-
-// export const directMessagesLoader =
-//   (queryClient: QueryClient) =>
-//   async ({ params }: { params: any }) => {
-//     const query = globalQueryFn(
-//       "http://localhost:3000/api/messages/user",
-//       "direct_messages",
-//       params.userId
-//     );
-//     return (
-//       queryClient.getQueryData(query.queryKey) ??
-//       (await queryClient.fetchQuery(query))
-//     );
-//   };
 
 const DirectConversation = () => {
   const params = useParams();
