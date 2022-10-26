@@ -2,13 +2,12 @@ import { join } from "path";
 import { Module } from "@nestjs/common";
 import { ServeStaticModule } from "@nestjs/serve-static";
 import { GraphQLModule } from "@nestjs/graphql";
-import { PrismaService } from "./prisma.service";
 import { ApolloDriver, ApolloDriverConfig } from "@nestjs/apollo";
 import { ApolloServerPluginLandingPageLocalDefault } from "apollo-server-core";
-import { UserResolver } from "./user/user.resolver";
-import { MessageResolver } from "./message/message.resolver";
-import { ChannelResolver } from "./channel/channel.resolver";
-import { ChatResolver } from "./chat/chat.resolver";
+import { FakeAuthGuard } from "./auth/fake.guard";
+import { APP_GUARD } from "@nestjs/core";
+import { UserModule } from "./user/user.module";
+import { ChannelModule } from "./channel/channel.module";
 
 @Module({
   imports: [
@@ -16,6 +15,8 @@ import { ChatResolver } from "./chat/chat.resolver";
       rootPath: join(__dirname, "../../", "client/dist"),
       exclude: ["/graphql"],
     }),
+    UserModule,
+    ChannelModule,
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: join(process.cwd(), "src/schema.gql"),
@@ -26,11 +27,10 @@ import { ChatResolver } from "./chat/chat.resolver";
   ],
   controllers: [],
   providers: [
-    PrismaService,
-    UserResolver,
-    MessageResolver,
-    ChatResolver,
-    ChannelResolver,
+    {
+      provide: APP_GUARD,
+      useClass: FakeAuthGuard,
+    },
   ],
 })
 export class AppModule {}
