@@ -3,57 +3,13 @@ import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { useMediaQuery } from "@react-hookz/web";
 import { SideBarContext } from "./context";
 import { SidebarLayout } from "./layout";
+import { motion, useAnimationControls } from "framer-motion";
+import { ReactComponent as BackBurgerIcon } from "pixelarticons/svg/backburger.svg";
 import * as Dialog from "@radix-ui/react-dialog";
 import Home from "./pages/home";
 import Channel from "./pages/channel";
 import Chat from "./pages/chat";
 import Profile from "./pages/profile";
-
-import { motion, useAnimationControls } from "framer-motion";
-import { ReactComponent as BackBurgerIcon } from "pixelarticons/svg/backburger.svg";
-import {
-  QueryClient,
-  QueryClientProvider,
-  useQuery,
-} from "@tanstack/react-query";
-
-// const queryClient = new QueryClient();
-
-// export const globalQueryFn = (
-//   url: string,
-//   key: string,
-//   id: string | undefined
-// ) => ({
-//   queryKey: [key, id],
-//   queryFn: async () => {
-//     const resp = await fetch(`${url}/${id}`);
-//     const data = await resp.json();
-//     return data;
-//   },
-// });
-
-export const globalQueryFn = async ({ queryKey }: { queryKey: any }) => {
-  let string = "http://localhost:3000/api/";
-  queryKey.map((Key: any) => (string = string + Key + "/"));
-  console.log(string);
-  const resp = await fetch(string);
-  const data = await resp.json();
-  if (!data) {
-    throw new Response("", {
-      status: 404,
-      statusText: "Not Found",
-    });
-  }
-  return data;
-};
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      queryFn: globalQueryFn,
-    },
-  },
-});
 
 const router = createMemoryRouter([
   {
@@ -154,9 +110,7 @@ export default function SideBar() {
         >
           <motion.div animate={controls}>
             <SideBarContext.Provider value={setShowSideBar}>
-              <QueryClientProvider client={queryClient}>
-                <RouterProvider router={router} />
-              </QueryClientProvider>
+              <RouterProvider router={router} />
             </SideBarContext.Provider>
           </motion.div>
         </Dialog.Content>

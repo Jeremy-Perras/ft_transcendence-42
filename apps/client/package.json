@@ -2,25 +2,25 @@
   "name": "@apps/client",
   "private": true,
   "version": "1.0.0",
-  "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
-    "codegen": "graphql-codegen --watch"
+    "dev:codegen": "graphql-codegen --watch",
+    "codegen": "graphql-codegen",
+    "build": "npm run codegen && tsc && vite build"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.0.0",
     "@radix-ui/react-dialog": "^1.0.0",
     "@react-hookz/web": "^15.1.0",
+    "@tanstack/react-query": "^4.12.0",
     "framer-motion": "^7.5.3",
+    "graphql": "16.5.0",
+    "graphql-request": "^5.0.0",
     "pixelarticons": "^1.7.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.4.2",
-    "tailwindcss-radix": "^2.6.0",
-    "@tanstack/react-query": "^4.12.0",
-    "graphql": "16.5.0",
-    "graphql-request": "^5.0.0"
+    "tailwindcss-radix": "^2.6.0"
   },
   "devDependencies": {
     "@graphql-codegen/cli": "^2.13.7",

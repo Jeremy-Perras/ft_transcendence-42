@@ -4,6 +4,7 @@ import * as Avatar from "@radix-ui/react-avatar";
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { ReactComponent as UsersIcon } from "pixelarticons/svg/users.svg";
 import { ReactComponent as GamePadIcon } from "pixelarticons/svg/gamepad.svg";
+import { useFindUsersQuery } from "../../graphql/generated";
 
 const Empty = () => {
   return (
@@ -102,6 +103,11 @@ const Chat = ({ id, type, name, lastMessage }: Chat) => {
 };
 
 const Home = () => {
+  const { status, data, error, isFetching } = useFindUsersQuery(
+    { name: "ri" },
+    { staleTime: 1 }
+  );
+  console.log(status, data, error, isFetching);
   const [chats] = useState<Chat[]>(initial);
 
   return (
