@@ -96,6 +96,7 @@ async function main() {
   // public channels
   const pub = await prisma.channel.create({
     data: {
+      name: faker.name.jobType(),
       inviteOnly: false,
       owner: {
         connect: {
@@ -108,6 +109,7 @@ async function main() {
   // private channels
   const priv = await prisma.channel.create({
     data: {
+      name: faker.name.jobType(),
       inviteOnly: true,
       owner: {
         connect: {
@@ -121,6 +123,7 @@ async function main() {
   const passw = await prisma.channel.create({
     data: {
       inviteOnly: false,
+      name: faker.name.jobType(),
       password: "password",
       owner: {
         connect: {
@@ -143,7 +146,11 @@ async function main() {
     data: {
       admins: {
         create: {
-          userId: 2,
+          user: {
+            connect: {
+              id: 1,
+            },
+          },
         },
       },
     },
@@ -155,7 +162,11 @@ async function main() {
     data: {
       admins: {
         create: {
-          userId: 8,
+          user: {
+            connect: {
+              id: 2,
+            },
+          },
         },
       },
     },
@@ -169,7 +180,11 @@ async function main() {
     data: {
       members: {
         create: {
-          userId: 4,
+          user: {
+            connect: {
+              id: 3,
+            },
+          },
         },
       },
     },
