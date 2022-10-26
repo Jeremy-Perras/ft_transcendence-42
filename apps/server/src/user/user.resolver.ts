@@ -4,6 +4,7 @@ import { CurrentUser } from "../auth/currentUser.decorator";
 import { Channel } from "../channel/channel.model";
 import { PrismaService } from "../prisma/prisma.service";
 import { User } from "./user.model";
+import { Channel } from "../channel/channel.model";
 
 @Resolver(User)
 export class UserResolver {
@@ -55,5 +56,19 @@ export class UserResolver {
         rank: "asc",
       },
     });
+  }
+
+  @Query((returns) => [User])
+  async getAllFriends(@CurrentUser() me: User) {
+    return (
+      await this.prisma.user.findFirst({
+        select: {
+          friends: true,
+        },
+        where: {
+          id: me.id,
+        },
+      })
+    )?.friends;
   }
 }
