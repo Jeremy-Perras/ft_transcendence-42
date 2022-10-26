@@ -13,5 +13,5 @@ export class Message {
   content: string;
 
   @Field((type) => Date)
-  sendAt: Date;
+  sentAt: Date;
 }
