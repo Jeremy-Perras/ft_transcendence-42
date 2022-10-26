@@ -85,6 +85,8 @@ model ChannelMember {
 model Channel {
   id Int @id @default(autoincrement())
 
+  name String
+
   inviteOnly Boolean
   password   String?
 
