@@ -42,7 +42,7 @@ async function main() {
   // friends
   await prisma.user.update({
     where: {
-      id: 1,
+      id: 0,
     },
     data: {
       friends: {
@@ -56,7 +56,7 @@ async function main() {
     },
     data: {
       friends: {
-        connect: [{ id: 1 }, { id: 3 }, { id: 4 }],
+        connect: [{ id: 0 }, { id: 3 }, { id: 4 }],
       },
     },
   });
