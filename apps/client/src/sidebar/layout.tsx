@@ -131,10 +131,10 @@ export const SidebarLayout = () => {
       <Header />
       <AnimatePresence initial={false}>
         <motion.div
-          className="h-full overflow-auto"
+          className="h-full overflow-y-auto"
           key={pathname}
           variants={variants}
-          initial={{ x: "100%", position: "absolute" }}
+          initial={{ x: "100%" }}
           animate="visible"
           exit="hidden"
         >

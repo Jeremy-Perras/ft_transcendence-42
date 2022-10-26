@@ -1,0 +1,21 @@
+query getInfoUsers($userId: Int) {
+  user(id: $userId) {
+    typename
+    name
+    avatar
+    rank
+    channels {
+      typename
+      name
+      admins {
+        typename
+        name 
+      } 
+    }
+    friends {
+       typename
+      name
+      rank
+    }
+  }
+}

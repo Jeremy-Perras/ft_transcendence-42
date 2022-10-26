@@ -1,0 +1,16 @@
+query getChannelsMessages($name: String) {
+  channels(name: $name) {
+    messages {
+      sentAt
+      content
+      readBy {
+        user {
+          name
+        }
+      }
+      author {
+        name
+      }
+    }
+  }
+}

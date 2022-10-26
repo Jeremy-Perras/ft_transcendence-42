@@ -1,9 +1,9 @@
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import * as Avatar from "@radix-ui/react-avatar";
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { ReactComponent as UsersIcon } from "pixelarticons/svg/users.svg";
 import { ReactComponent as GamePadIcon } from "pixelarticons/svg/gamepad.svg";
-import { useGetChatQuery } from "../../graphql/generated";
+import { useGetChatQuery, useGetInfoUsersQuery } from "../../graphql/generated";
 
 const Empty = () => {
   return (
@@ -63,30 +63,42 @@ const Chat = ({ id, type, name, lastMessage }: Chat) => {
 };
 
 const Home = () => {
-  const { status, data, error, isFetching } = useGetChatQuery(
-    {},
-    {
-      select(data) {
-        const friends = data.user.friends;
-        const channels = data.user.channels;
-        const chat: (typeof friends[number] | typeof channels[number])[] = [
-          ...friends,
-          ...channels,
-        ];
-        return chat;
-      },
-    }
-  );
+  const { isLoading, data, error, isFetching } = useGetInfoUsersQuery();
 
-  return (
-    <>
-      {data?.map((chat) => (
-        <div key={chat.name}>
-          {chat.name} - {chat.typename}
+  if (isLoading) return <div>Loading ...</div>;
+  if (isFetching) {
+    console.warn("Fetching");
+    return <div>Fetching</div>;
+  }
+  if (error) {
+    console.log("Error");
+    return <div>Error</div>;
+  } else {
+    return (
+      <>
+        <div className="justify-items-center">
+          <span>
+            {data?.user.name} - Rank : {data?.user.rank}
+          </span>
+          <img src={data?.user.avatar} alt="Picture player" />
+          <span className="w-full text-left">Friends : </span>
+          {data?.user.friends.map((friend, index) => (
+            <div key={index}>
+              {friend.name} - Rank : {friend.rank}
+            </div>
+          ))}
+          <span className="w-full text-left">Channels :</span>
+          {data?.user.channels.map((chat) => (
+            <div key={chat.name}>
+              <Link to={`${"/channel/" + chat.name}`}>
+                {chat.typename === "Channel" ? chat.name : ""}
+              </Link>
+            </div>
+          ))}
         </div>
-      ))}
-    </>
-  );
+      </>
+    );
+  }
 };
 
 export default Home;
