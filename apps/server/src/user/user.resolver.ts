@@ -1,7 +1,6 @@
 import { Resolver, Query, Args, Int, registerEnumType } from "@nestjs/graphql";
 
 import { CurrentUser } from "../auth/currentUser.decorator";
-import { Channel } from "../channel/channel.model";
 import { PrismaService } from "../prisma/prisma.service";
 import { User } from "./user.model";
 import { Channel } from "../channel/channel.model";

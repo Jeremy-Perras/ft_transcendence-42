@@ -16,22 +16,19 @@ export class Channel {
   @Field((type) => Boolean)
   passwordProtected: boolean;
 
-  @Field((type) => User)
-  owner: User;
-
   @Field()
   @IsNotEmpty()
   name: string;
 
-  @Field((type) => [User], { nullable: true })
-  admin?: [User];
+  @Field((type) => User)
+  owner: User;
 
   @Field((type) => [User], { nullable: true })
-  user?: [User];
+  admins?: [User];
+
+  @Field((type) => [User], { nullable: true })
+  members?: [User];
 
   @Field((type) => [Message], { nullable: true })
   messages?: [Message];
-
-  @Field((type) => [Message], { nullable: true })
-  unreadMessages?: [Message];
 }
