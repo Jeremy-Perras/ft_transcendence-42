@@ -8,12 +8,14 @@ import {
 } from "@nestjs/graphql";
 import { Prisma } from "@prisma/client";
 import { CurrentUser } from "../auth/currentUser.decorator";
-import { Message } from "../message/message.model";
 import { PrismaService } from "../prisma/prisma.service";
 import { User } from "../user/user.model";
-import { Channel } from "./channel.model";
+import { userType } from "../user/user.resolver";
+import { Channel, ChannelMessage, ChannelMessageRead } from "./channel.model";
 
 type channelType = Omit<Channel, "owner">;
+type channelMessageType = Omit<ChannelMessage, "author" | "readBy">;
+type channelMessageReadType = Omit<ChannelMessageRead, "user">;
 
 @Resolver(Channel)
 export class ChannelResolver {
@@ -73,7 +75,7 @@ export class ChannelResolver {
   }
 
   @ResolveField()
-  async owner(@Root() channel: Channel): Promise<User | null> {
+  async owner(@Root() channel: Channel): Promise<userType | null> {
     const owner = await this.prisma.channel
       .findUnique({
         where: {
@@ -92,7 +94,7 @@ export class ChannelResolver {
   }
 
   @ResolveField()
-  async admins(@Root() channel: Channel): Promise<User[] | null> {
+  async admins(@Root() channel: Channel): Promise<userType[] | null> {
     const admins = await this.prisma.channelAdmin.findMany({
       select: { user: true },
       where: {
@@ -110,7 +112,7 @@ export class ChannelResolver {
   }
 
   @ResolveField()
-  async members(@Root() channel: Channel): Promise<User[] | null> {
+  async members(@Root() channel: Channel): Promise<userType[] | null> {
     const members = await this.prisma.channelMember.findMany({
       select: { user: true },
       where: {
@@ -131,42 +133,121 @@ export class ChannelResolver {
   async messages(
     @Root() channel: Channel,
     @CurrentUser() me: User
-  ): Promise<Message[] | null> {
-    const messages = await this.prisma.channel
-      .findFirst({
-        where: {
-          id: channel.id,
-          OR: [
+  ): Promise<channelMessageType[] | null> {
+    const c = await this.prisma.channel.findFirst({
+      select: {
+        channelMessages: {
+          orderBy: [
             {
-              ownerId: me.id,
-            },
-            {
-              admins: {
-                some: {
-                  userId: me.id,
-                },
-              },
-            },
-            {
-              members: {
-                some: {
-                  userId: me.id,
-                },
-              },
+              sentAt: "asc",
             },
           ],
+          select: { id: true, content: true, sentAt: true },
         },
-      })
-      .channelMessages({
-        select: { id: true, content: true, sentAt: true, author: true },
-      });
-    return messages
-      ? messages.map((message) => ({
+      },
+      where: {
+        id: channel.id,
+        OR: [
+          {
+            ownerId: me.id,
+          },
+          {
+            admins: {
+              some: {
+                userId: me.id,
+              },
+            },
+          },
+          {
+            members: {
+              some: {
+                userId: me.id,
+              },
+            },
+          },
+        ],
+      },
+    });
+    return c
+      ? c.channelMessages.map((message) => ({
           id: message.id,
-          author: message.author,
           content: message.content,
           sentAt: message.sentAt,
         }))
+      : null;
+  }
+}
+
+@Resolver(ChannelMessage)
+export class ChannelMessageResolver {
+  constructor(private prisma: PrismaService) {}
+
+  @ResolveField()
+  async author(
+    @Root() channelMessage: ChannelMessage
+  ): Promise<userType | null> {
+    const message = await this.prisma.channelMessage.findUnique({
+      select: { author: true },
+      where: {
+        id: channelMessage.id,
+      },
+    });
+    return message
+      ? {
+          id: message.author.id,
+          name: message.author.name,
+          rank: message.author.rank,
+          avatar: message.author.avatar,
+        }
+      : null;
+  }
+
+  @ResolveField()
+  async readBy(
+    @Root() channelMessage: ChannelMessage
+  ): Promise<channelMessageReadType[] | null> {
+    const reads = await this.prisma.channelMessageReads.findMany({
+      select: {
+        id: true,
+        readAt: true,
+        user: true,
+      },
+      where: {
+        channelMessageId: channelMessage.id,
+      },
+    });
+    return reads
+      ? reads.map((r) => ({
+          id: r.id,
+          readAt: r.readAt,
+        }))
+      : null;
+  }
+}
+
+@Resolver(ChannelMessageRead)
+export class ChannelMessageReadResolver {
+  constructor(private prisma: PrismaService) {}
+
+  @ResolveField()
+  async user(
+    @Root() channelMessageread: ChannelMessageRead
+  ): Promise<userType | null> {
+    const message = await this.prisma.channelMessageReads.findUnique({
+      select: {
+        user: true,
+      },
+      where: {
+        id: channelMessageread.id,
+      },
+    });
+    return message
+      ? {
+          id: message.user.id,
+          avatar: message.user.avatar,
+          name: message.user.name,
+          rank: message.user.rank,
+        }
       : null;
   }
 }

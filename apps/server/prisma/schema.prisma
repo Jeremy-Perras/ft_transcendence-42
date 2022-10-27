@@ -101,6 +101,8 @@ model Channel {
 }
 
 model ChannelMessageReads {
+  id Int @id @default(autoincrement())
+
   channelMessage   ChannelMessage @relation(fields: [channelMessageId], references: [id])
   channelMessageId Int
 
@@ -108,8 +110,6 @@ model ChannelMessageReads {
   userId Int
 
   readAt DateTime
-
-  @@id([channelMessageId, userId])
 }
 
 model ChannelMessage {

@@ -248,7 +248,7 @@ async function main() {
         sentAt: faker.date.recent(),
       },
     });
-    for (let ii = 0; ii < 10; ii++) {
+    for (let ii = 1; ii <= 10; ii++) {
       if (ii != p1) {
         await prisma.channelMessage.update({
           where: {
@@ -293,7 +293,7 @@ async function main() {
   }
 
   // games
-  for (let i = 0; i < 10; i++) {
+  for (let i = 1; i <= 10; i++) {
     const p1 = Math.floor(Math.random() * 10) + 1;
     let p2 = Math.floor(Math.random() * 10) + 1;
     if (p1 === p2) p2 = p1 === 10 ? 1 : p1 + 1;
