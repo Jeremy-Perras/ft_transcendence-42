@@ -50,7 +50,7 @@ export class UserResolver {
 
   @Query((returns) => [User])
   async users(
-    @Args("name", { type: () => Int, nullable: true }) name: string
+    @Args("name", { nullable: true }) name: string
   ): Promise<userType[]> {
     const users = await this.prisma.user.findMany({
       select: {
