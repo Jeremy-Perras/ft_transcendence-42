@@ -6,14 +6,14 @@ import {
   ResolveField,
   Root,
 } from "@nestjs/graphql";
-
 import { CurrentUser } from "../auth/currentUser.decorator";
+import { channelType } from "../channel/channel.resolver";
 import { PrismaService } from "../prisma/prisma.service";
 import { DirectMessage, User } from "./user.model";
 
 export type userType = Omit<
   User,
-  "friends" | "blocked" | "blocking" | "messages"
+  "friends" | "blocked" | "blocking" | "messages" | "channels"
 >;
 
 type directMessageType = Omit<DirectMessage, "author" | "recipient">;
@@ -41,6 +41,7 @@ export class UserResolver {
       throw new Error("User not found");
     }
     return {
+      typename: "User",
       id: user.id,
       name: user.name,
       avatar: user.avatar,
@@ -63,6 +64,7 @@ export class UserResolver {
     });
 
     return users.map((user) => ({
+      typename: "User",
       id: user.id,
       name: user.name,
       avatar: user.avatar,
@@ -80,10 +82,53 @@ export class UserResolver {
     });
     return u
       ? u.friends.map((user) => ({
+          typename: "User",
           id: user.id,
           name: user.name,
           avatar: user.avatar,
           rank: user.rank,
+        }))
+      : null;
+  }
+
+  @ResolveField()
+  async channels(@Root() user: User): Promise<channelType[] | null> {
+    const c = await this.prisma.channel.findMany({
+      select: {
+        id: true,
+        name: true,
+        inviteOnly: true,
+        password: true,
+      },
+      where: {
+        OR: [
+          {
+            ownerId: user.id,
+          },
+          {
+            admins: {
+              some: {
+                userId: user.id,
+              },
+            },
+          },
+          {
+            members: {
+              some: {
+                userId: user.id,
+              },
+            },
+          },
+        ],
+      },
+    });
+    return c
+      ? c.map((channel) => ({
+          typename: "Channel",
+          id: channel.id,
+          name: channel.name,
+          private: channel.inviteOnly,
+          passwordProtected: !!channel.password,
         }))
       : null;
   }
@@ -155,6 +200,7 @@ export class UserResolver {
             (a, b) => a.sentAt.getMilliseconds() - b.sentAt.getMilliseconds()
           )
           .map((message) => ({
+            typename: "DirectMessage",
             id: message.id,
             content: message.content,
             sentAt: message.sentAt,
@@ -178,6 +224,7 @@ export class DirectMessageResolver {
     });
     return m
       ? {
+          typename: "User",
           id: m.author.id,
           name: m.author.name,
           avatar: m.author.avatar,
@@ -196,6 +243,7 @@ export class DirectMessageResolver {
     });
     return m
       ? {
+          typename: "User",
           id: m.recipient.id,
           name: m.recipient.name,
           avatar: m.recipient.avatar,

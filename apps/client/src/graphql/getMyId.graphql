@@ -1,5 +1,0 @@
-query getMyId {
-  user {
-    id
-  }
-}

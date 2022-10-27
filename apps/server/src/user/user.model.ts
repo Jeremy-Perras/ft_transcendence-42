@@ -1,9 +1,13 @@
 import "reflect-metadata";
 import { Field, Int, ObjectType } from "@nestjs/graphql";
 import { IsNotEmpty, Min } from "class-validator";
+import { Channel } from "../channel/channel.model";
 
 @ObjectType()
 export class User {
+  @Field()
+  typename: "User";
+
   @Field((type) => Int)
   @Min(1)
   id: number;
@@ -28,12 +32,18 @@ export class User {
   @Field((type) => Boolean)
   blocking: boolean;
 
+  @Field((type) => [Channel])
+  channels: [Channel];
+
   @Field((type) => [DirectMessage])
   messages: [DirectMessage];
 }
 
 @ObjectType()
 export class DirectMessage {
+  @Field()
+  typename: "DirectMessage";
+
   @Field((type) => Int)
   id: number;
 
