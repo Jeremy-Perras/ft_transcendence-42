@@ -108,7 +108,7 @@ const Chat = ({ id, type, name, lastMessage }: Chat) => {
 
 const query = () => {
   let test = 3;
-  const { data } = useChannelsFromIdQuery(test);
+  const { data } = useChannelsFromIdQuery({ memberId: test });
   console.log(data);
   return data;
 };
