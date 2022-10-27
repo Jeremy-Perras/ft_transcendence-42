@@ -13,7 +13,7 @@ import { User } from "../user/user.model";
 import { userType } from "../user/user.resolver";
 import { Channel, ChannelMessage, ChannelMessageRead } from "./channel.model";
 
-type channelType = Omit<Channel, "owner">;
+export type channelType = Omit<Channel, "owner">;
 type channelMessageType = Omit<ChannelMessage, "author" | "readBy">;
 type channelMessageReadType = Omit<ChannelMessageRead, "user">;
 
@@ -38,6 +38,7 @@ export class ChannelResolver {
       throw new Error("Channel not found");
     }
     return {
+      typename: "Channel",
       id: channel.id,
       name: channel.name,
       private: channel.inviteOnly,
@@ -67,6 +68,7 @@ export class ChannelResolver {
       where,
     });
     return channels.map((channel) => ({
+      typename: "Channel",
       id: channel.id,
       name: channel.name,
       private: channel.inviteOnly,
@@ -85,6 +87,7 @@ export class ChannelResolver {
       .owner();
     return owner
       ? {
+          typename: "User",
           id: owner.id,
           name: owner.name,
           avatar: owner.avatar,
@@ -103,6 +106,7 @@ export class ChannelResolver {
     });
     return admins
       ? admins.map((admin) => ({
+          typename: "User",
           id: admin.user.id,
           name: admin.user.name,
           avatar: admin.user.avatar,
@@ -121,6 +125,7 @@ export class ChannelResolver {
     });
     return members
       ? members.map((member) => ({
+          typename: "User",
           id: member.user.id,
           name: member.user.name,
           avatar: member.user.avatar,
@@ -170,6 +175,7 @@ export class ChannelResolver {
     });
     return c
       ? c.channelMessages.map((message) => ({
+          typename: "ChannelMessage",
           id: message.id,
           content: message.content,
           sentAt: message.sentAt,
@@ -194,6 +200,7 @@ export class ChannelMessageResolver {
     });
     return message
       ? {
+          typename: "User",
           id: message.author.id,
           name: message.author.name,
           rank: message.author.rank,
@@ -218,6 +225,7 @@ export class ChannelMessageResolver {
     });
     return reads
       ? reads.map((r) => ({
+          typename: "ChannelMessageRead",
           id: r.id,
           readAt: r.readAt,
         }))
@@ -243,6 +251,7 @@ export class ChannelMessageReadResolver {
     });
     return message
       ? {
+          typename: "User",
           id: message.user.id,
           avatar: message.user.avatar,
           name: message.user.name,

@@ -19,7 +19,6 @@ const config: CodegenConfig = {
             },
           },
         },
-        // fetcher: "graphql-request",
       },
     },
   },

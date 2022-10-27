@@ -45,6 +45,7 @@ export type Channel = {
   owner: User;
   passwordProtected: Scalars['Boolean'];
   private: Scalars['Boolean'];
+  typename: Scalars['String'];
 };
 
 export type ChannelMessage = {
@@ -54,12 +55,14 @@ export type ChannelMessage = {
   id: Scalars['Int'];
   readBy: Array<ChannelMessageRead>;
   sentAt: Scalars['Timestamp'];
+  typename: Scalars['String'];
 };
 
 export type ChannelMessageRead = {
   __typename?: 'ChannelMessageRead';
   id: Scalars['Int'];
   readAt: Scalars['Timestamp'];
+  typename: Scalars['String'];
   user: User;
 };
 
@@ -71,6 +74,7 @@ export type DirectMessage = {
   readAt?: Maybe<Scalars['Timestamp']>;
   recipient: User;
   sentAt: Scalars['Timestamp'];
+  typename: Scalars['String'];
 };
 
 export type Query = {
@@ -109,93 +113,45 @@ export type User = {
   avatar: Scalars['String'];
   blocked: Scalars['Boolean'];
   blocking: Scalars['Boolean'];
+  channels: Array<Channel>;
   friends: Array<User>;
   id: Scalars['Int'];
   messages: Array<DirectMessage>;
   name: Scalars['String'];
   rank: Scalars['Int'];
+  typename: Scalars['String'];
 };
 
-export type GetChannelsQueryVariables = Exact<{
-  memberId?: InputMaybe<Scalars['Int']>;
-}>;
+export type GetChatQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetChannelsQuery = { __typename?: 'Query', channels: Array<{ __typename?: 'Channel', name: string, owner: { __typename?: 'User', name: string } }> };
-
-export type GetFriendsQueryVariables = Exact<{
-  userId?: InputMaybe<Scalars['Int']>;
-}>;
+export type GetChatQuery = { __typename?: 'Query', user: { __typename?: 'User', friends: Array<{ __typename?: 'User', typename: string, name: string, avatar: string }>, channels: Array<{ __typename?: 'Channel', typename: string, name: string }> } };
 
 
-export type GetFriendsQuery = { __typename?: 'Query', user: { __typename?: 'User', friends: Array<{ __typename?: 'User', name: string, avatar: string }> } };
-
-export type GetMyIdQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type GetMyIdQuery = { __typename?: 'Query', user: { __typename?: 'User', id: number } };
-
-
-export const GetChannelsDocument = `
-    query getChannels($memberId: Int) {
-  channels(memberId: $memberId) {
-    name
-    owner {
-      name
-    }
-  }
-}
-    `;
-export const useGetChannelsQuery = <
-      TData = GetChannelsQuery,
-      TError = unknown
-    >(
-      variables?: GetChannelsQueryVariables,
-      options?: UseQueryOptions<GetChannelsQuery, TError, TData>
-    ) =>
-    useQuery<GetChannelsQuery, TError, TData>(
-      variables === undefined ? ['getChannels'] : ['getChannels', variables],
-      fetcher<GetChannelsQuery, GetChannelsQueryVariables>(GetChannelsDocument, variables),
-      options
-    );
-export const GetFriendsDocument = `
-    query getFriends($userId: Int) {
-  user(id: $userId) {
+export const GetChatDocument = `
+    query getChat {
+  user {
     friends {
+      typename
       name
       avatar
     }
+    channels {
+      typename
+      name
+    }
   }
 }
     `;
-export const useGetFriendsQuery = <
-      TData = GetFriendsQuery,
+export const useGetChatQuery = <
+      TData = GetChatQuery,
       TError = unknown
     >(
-      variables?: GetFriendsQueryVariables,
-      options?: UseQueryOptions<GetFriendsQuery, TError, TData>
+      variables?: GetChatQueryVariables,
+      options?: UseQueryOptions<GetChatQuery, TError, TData>
     ) =>
-    useQuery<GetFriendsQuery, TError, TData>(
-      variables === undefined ? ['getFriends'] : ['getFriends', variables],
-      fetcher<GetFriendsQuery, GetFriendsQueryVariables>(GetFriendsDocument, variables),
-      options
-    );
-export const GetMyIdDocument = `
-    query getMyId {
-  user {
-    id
-  }
-}
-    `;
-export const useGetMyIdQuery = <
-      TData = GetMyIdQuery,
-      TError = unknown
-    >(
-      variables?: GetMyIdQueryVariables,
-      options?: UseQueryOptions<GetMyIdQuery, TError, TData>
-    ) =>
-    useQuery<GetMyIdQuery, TError, TData>(
-      variables === undefined ? ['getMyId'] : ['getMyId', variables],
-      fetcher<GetMyIdQuery, GetMyIdQueryVariables>(GetMyIdDocument, variables),
+    useQuery<GetChatQuery, TError, TData>(
+      variables === undefined ? ['getChat'] : ['getChat', variables],
+      fetcher<GetChatQuery, GetChatQueryVariables>(GetChatDocument, variables),
       options
     );

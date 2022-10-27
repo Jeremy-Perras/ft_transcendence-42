@@ -1,10 +1,9 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import * as Avatar from "@radix-ui/react-avatar";
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { ReactComponent as UsersIcon } from "pixelarticons/svg/users.svg";
 import { ReactComponent as GamePadIcon } from "pixelarticons/svg/gamepad.svg";
-import { useGetChannelsQuery, useGetFriendsQuery, useGetMyIdQuery } from "../../graphql/generated";
+import { useGetChatQuery } from "../../graphql/generated";
 
 const Empty = () => {
   return (
@@ -26,45 +25,6 @@ type Chat = {
     time: string | null;
   };
 };
-
-const initial: Chat[] = [
-  {
-    id: 1,
-    type: "friend",
-    name: "John Doe",
-    lastMessage: {
-      content: "Hello!",
-      time: "12:00",
-    },
-  },
-  {
-    id: 2,
-    type: "friend",
-    name: "Jane Doe",
-    lastMessage: {
-      content: "hi!",
-      time: "00:00",
-    },
-  },
-  {
-    id: 3,
-    type: "channel",
-    name: "General",
-    lastMessage: {
-      content: "test!",
-      time: "00:11",
-    },
-  },
-  {
-    id: 4,
-    type: "friend",
-    name: "Test",
-    lastMessage: {
-      content: "",
-      time: "",
-    },
-  },
-];
 
 const Chat = ({ id, type, name, lastMessage }: Chat) => {
   const navigate = useNavigate();
@@ -102,25 +62,28 @@ const Chat = ({ id, type, name, lastMessage }: Chat) => {
   );
 };
 
-const myId = () => ({data} : {data : number}) {
-  const { status, data, error, isFetching } = useGetMyIdQuery({}, {});
-  return data;
-};
-
-const MyChannels = () => {
-  const { status, data, error, isFetching } = useGetChannelsQuery({myId()}, {});
-}
-
 const Home = () => {
-  const { status, data, error, isFetching } = useGetFriendsQuery({}, {});
+  const { status, data, error, isFetching } = useGetChatQuery(
+    {},
+    {
+      select(data) {
+        const friends = data.user.friends;
+        const channels = data.user.channels;
+        const chat: (typeof friends[number] | typeof channels[number])[] = [
+          ...friends,
+          ...channels,
+        ];
+        return chat;
+      },
+    }
+  );
 
   return (
     <>
-      {data?.user.friends.map((friend) => (
-        <>
-          <div>{friend.name}</div>
-          <img src={friend.avatar} alt="" />
-        </>
+      {data?.map((chat) => (
+        <div key={chat.name}>
+          {chat.name} - {chat.typename}
+        </div>
       ))}
     </>
   );

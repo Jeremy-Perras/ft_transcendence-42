@@ -1,7 +1,12 @@
-query getChannels($memberId: Int) {
-  channels(memberId: $memberId) {
-    name
-    owner {
+query getChat {
+  user {
+    friends {
+      typename
+      name
+      avatar
+    }
+    channels {
+      typename
       name
     }
   }
