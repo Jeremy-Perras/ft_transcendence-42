@@ -8,7 +8,6 @@ import { FakeAuthGuard } from "./auth/fake.guard";
 import { APP_GUARD } from "@nestjs/core";
 import { UserModule } from "./user/user.module";
 import { ChannelModule } from "./channel/channel.module";
-import { ConversationModule } from "./conversation/conversation.module";
 
 @Module({
   imports: [
@@ -18,7 +17,6 @@ import { ConversationModule } from "./conversation/conversation.module";
     }),
     UserModule,
     ChannelModule,
-    ConversationModule,
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: join(process.cwd(), "src/schema.gql"),

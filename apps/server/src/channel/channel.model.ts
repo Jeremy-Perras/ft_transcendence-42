@@ -1,7 +1,6 @@
 import "reflect-metadata";
 import { Field, Int, ObjectType } from "@nestjs/graphql";
 import { IsNotEmpty, Min } from "class-validator";
-import { Message } from "../message/message.model";
 import { User } from "../user/user.model";
 
 @ObjectType()
@@ -29,6 +28,37 @@ export class Channel {
   @Field((type) => [User], { nullable: true })
   members?: [User];
 
-  @Field((type) => [Message], { nullable: true })
-  messages?: [Message];
+  @Field((type) => [ChannelMessage], { nullable: true })
+  messages?: [ChannelMessage];
+}
+
+@ObjectType()
+export class ChannelMessageRead {
+  @Field((type) => Int)
+  id: number;
+
+  @Field((type) => User)
+  user: User;
+
+  @Field((type) => Date)
+  readAt: Date;
+}
+
+@ObjectType()
+export class ChannelMessage {
+  @Field((type) => Int)
+  id: number;
+
+  @Field((type) => User)
+  author: User;
+
+  @Field((type) => [ChannelMessageRead])
+  readBy: [ChannelMessageRead];
+
+  @Field()
+  @IsNotEmpty()
+  content: string;
+
+  @Field((type) => Date)
+  sentAt: Date;
 }

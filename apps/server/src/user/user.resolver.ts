@@ -1,73 +1,206 @@
-import { Resolver, Query, Args, Int, registerEnumType } from "@nestjs/graphql";
+import {
+  Resolver,
+  Query,
+  Args,
+  Int,
+  ResolveField,
+  Root,
+} from "@nestjs/graphql";
 
 import { CurrentUser } from "../auth/currentUser.decorator";
 import { PrismaService } from "../prisma/prisma.service";
-import { User } from "./user.model";
-import { Channel } from "../channel/channel.model";
+import { DirectMessage, User } from "./user.model";
+
+export type userType = Omit<
+  User,
+  "friends" | "blocked" | "blocking" | "messages"
+>;
+
+type directMessageType = Omit<DirectMessage, "author" | "recipient">;
 
 @Resolver(User)
 export class UserResolver {
   constructor(private prisma: PrismaService) {}
 
-  @Query((returns) => [User], { nullable: true })
-  findUsers(@Args("name", { nullable: true }) name?: string) {
-    return this.prisma.user.findMany({
+  @Query((returns) => User)
+  async user(
+    @Args("id", { type: () => Int, nullable: true }) id: number,
+    @CurrentUser() me: User
+  ): Promise<userType> {
+    const user = await this.prisma.user.findUnique({
+      select: {
+        id: true,
+        name: true,
+        avatar: true,
+        rank: true,
+      },
+      where: { id: id ?? me.id },
+    });
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+    return {
+      id: user.id,
+      name: user.name,
+      avatar: user.avatar,
+      rank: user.rank,
+    };
+  }
+
+  @Query((returns) => [User])
+  async users(
+    @Args("name", { type: () => Int, nullable: true }) name: string
+  ): Promise<userType[]> {
+    const users = await this.prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        avatar: true,
+        rank: true,
+      },
+      where: { name: { contains: name } },
+    });
+
+    return users.map((user) => ({
+      id: user.id,
+      name: user.name,
+      avatar: user.avatar,
+      rank: user.rank,
+    }));
+  }
+
+  @ResolveField()
+  async friends(@Root() user: User): Promise<userType[] | null> {
+    const u = await this.prisma.user.findUnique({
+      select: { friends: true },
       where: {
-        name: {
-          contains: name ?? undefined,
-        },
+        id: user.id,
       },
     });
+    return u
+      ? u.friends.map((user) => ({
+          id: user.id,
+          name: user.name,
+          avatar: user.avatar,
+          rank: user.rank,
+        }))
+      : null;
   }
 
-  @Query((returns) => User)
-  whoAmI(@CurrentUser() user: User) {
-    return user;
-  }
-
-  @Query((returns) => [Channel], { nullable: true })
-  async getMyChannel(@CurrentUser() me: User) {
-    const c = await this.prisma.user.findFirst({
-      select: { channelsAsMember: { select: { channel: true } } },
+  @ResolveField()
+  async blocked(
+    @Root() user: User,
+    @CurrentUser() me: User
+  ): Promise<boolean | null> {
+    const u = await this.prisma.user.findUnique({
+      select: { blocking: true },
       where: {
         id: me.id,
       },
     });
-    return c?.channelsAsMember.map((e) => e.channel);
+    return u ? u.blocking.some((e) => e.id === user.id) : null;
   }
 
-  @Query((returns) => User, { nullable: true })
-  FindUsersById(@Args("id", { type: () => Int }) id: number) {
-    return this.prisma.user.findUnique({ where: { id: id } });
-  }
-
-  @Query((returns) => [User], { nullable: true })
-  FindUsersByRank(
-    @Args("rank", { type: () => Int, nullable: true }) rank: number
-  ) {
-    return this.prisma.user.findMany({
+  @ResolveField()
+  async blocking(
+    @Root() user: User,
+    @CurrentUser() me: User
+  ): Promise<boolean | null> {
+    const u = await this.prisma.user.findUnique({
+      select: { blockedBy: true },
       where: {
-        rank: {
-          gte: rank ?? undefined,
-        },
-      },
-      orderBy: {
-        rank: "asc",
+        id: me.id,
       },
     });
+    return u ? u.blockedBy.some((e) => e.id === user.id) : null;
   }
 
-  @Query((returns) => [User])
-  async getAllFriends(@CurrentUser() me: User) {
-    return (
-      await this.prisma.user.findFirst({
-        select: {
-          friends: true,
+  @ResolveField()
+  async messages(
+    @Root() user: User,
+    @CurrentUser() me: User
+  ): Promise<directMessageType[] | null> {
+    const u = await this.prisma.user.findUnique({
+      select: {
+        messageSent: {
+          orderBy: [
+            {
+              sentAt: "asc",
+            },
+          ],
+          where: {
+            recipientId: user.id,
+          },
         },
-        where: {
-          id: me.id,
+        messageReceived: {
+          orderBy: [
+            {
+              sentAt: "asc",
+            },
+          ],
+          where: {
+            authorId: user.id,
+          },
         },
-      })
-    )?.friends;
+      },
+      where: {
+        id: me.id,
+      },
+    });
+    return u
+      ? u.messageSent
+          .concat(u.messageReceived)
+          .sort(
+            (a, b) => a.sentAt.getMilliseconds() - b.sentAt.getMilliseconds()
+          )
+          .map((message) => ({
+            id: message.id,
+            content: message.content,
+            sentAt: message.sentAt,
+            readAt: message.readAt ?? undefined,
+          }))
+      : null;
+  }
+}
+
+@Resolver(DirectMessage)
+export class DirectMessageResolver {
+  constructor(private prisma: PrismaService) {}
+
+  @ResolveField()
+  async author(@Root() message: DirectMessage): Promise<userType | null> {
+    const m = await this.prisma.directMessage.findUnique({
+      select: { author: true },
+      where: {
+        id: message.id,
+      },
+    });
+    return m
+      ? {
+          id: m.author.id,
+          name: m.author.name,
+          avatar: m.author.avatar,
+          rank: m.author.rank,
+        }
+      : null;
+  }
+
+  @ResolveField()
+  async recipient(@Root() message: DirectMessage): Promise<userType | null> {
+    const m = await this.prisma.directMessage.findUnique({
+      select: { recipient: true },
+      where: {
+        id: message.id,
+      },
+    });
+    return m
+      ? {
+          id: m.recipient.id,
+          name: m.recipient.name,
+          avatar: m.recipient.avatar,
+          rank: m.recipient.rank,
+        }
+      : null;
   }
 }
