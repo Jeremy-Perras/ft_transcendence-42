@@ -1,0 +1,22 @@
+query getChat {
+  user {
+    friends {
+      typename
+      name
+      messages {
+        content
+        sentAt
+      }
+      id
+    }
+    channels {
+      typename
+      name
+      id
+      messages {
+        content
+        sentAt
+      }
+    }
+  }
+}

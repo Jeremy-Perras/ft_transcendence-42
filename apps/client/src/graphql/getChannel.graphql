@@ -1,0 +1,23 @@
+query getChannel($channelId: Int!) {
+  channel(id: $channelId) {
+    messages {
+      readBy {
+        user {
+          name
+        }
+        readAt
+      }
+      author {
+        name
+      }
+    }
+    owner {
+      name
+      avatar
+    }
+    name
+    id
+    private
+    passwordProtected
+  }
+}

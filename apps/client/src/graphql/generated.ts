@@ -122,23 +122,76 @@ export type User = {
   typename: Scalars['String'];
 };
 
+export type GetChannelQueryVariables = Exact<{
+  channelId: Scalars['Int'];
+}>;
+
+
+export type GetChannelQuery = { __typename?: 'Query', channel: { __typename?: 'Channel', name: string, id: number, private: boolean, passwordProtected: boolean, messages?: Array<{ __typename?: 'ChannelMessage', readBy: Array<{ __typename?: 'ChannelMessageRead', readAt: any, user: { __typename?: 'User', name: string } }>, author: { __typename?: 'User', name: string } }> | null, owner: { __typename?: 'User', name: string, avatar: string } } };
+
 export type GetChatQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetChatQuery = { __typename?: 'Query', user: { __typename?: 'User', friends: Array<{ __typename?: 'User', typename: string, name: string, avatar: string }>, channels: Array<{ __typename?: 'Channel', typename: string, name: string }> } };
+export type GetChatQuery = { __typename?: 'Query', user: { __typename?: 'User', friends: Array<{ __typename?: 'User', typename: string, name: string, id: number, messages: Array<{ __typename?: 'DirectMessage', content: string, sentAt: any }> }>, channels: Array<{ __typename?: 'Channel', typename: string, name: string, id: number, messages?: Array<{ __typename?: 'ChannelMessage', content: string, sentAt: any }> | null }> } };
 
 
+export const GetChannelDocument = `
+    query getChannel($channelId: Int!) {
+  channel(id: $channelId) {
+    messages {
+      readBy {
+        user {
+          name
+        }
+        readAt
+      }
+      author {
+        name
+      }
+    }
+    owner {
+      name
+      avatar
+    }
+    name
+    id
+    private
+    passwordProtected
+  }
+}
+    `;
+export const useGetChannelQuery = <
+      TData = GetChannelQuery,
+      TError = unknown
+    >(
+      variables: GetChannelQueryVariables,
+      options?: UseQueryOptions<GetChannelQuery, TError, TData>
+    ) =>
+    useQuery<GetChannelQuery, TError, TData>(
+      ['getChannel', variables],
+      fetcher<GetChannelQuery, GetChannelQueryVariables>(GetChannelDocument, variables),
+      options
+    );
 export const GetChatDocument = `
     query getChat {
   user {
     friends {
       typename
       name
-      avatar
+      messages {
+        content
+        sentAt
+      }
+      id
     }
     channels {
       typename
       name
+      id
+      messages {
+        content
+        sentAt
+      }
     }
   }
 }
