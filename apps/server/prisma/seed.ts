@@ -5,29 +5,24 @@ const prisma = new PrismaClient();
 
 async function main() {
   // game modes
-  const cl = await prisma.gameMode.create({
+  await prisma.gameMode.create({
     data: {
       name: "Classic",
     },
   });
-  const sp = await prisma.gameMode.create({
+  await prisma.gameMode.create({
     data: {
       name: "Speed",
     },
   });
-  const rd = await prisma.gameMode.create({
+  await prisma.gameMode.create({
     data: {
       name: "Random",
     },
   });
 
-  const modes: number[] = [];
-  modes.push(cl.id);
-  modes.push(sp.id);
-  modes.push(rd.id);
-
   // users
-  for (let i = 0; i < 10; i++) {
+  for (let i = 1; i <= 10; i++) {
     await prisma.user.create({
       data: {
         id: i,
@@ -42,7 +37,7 @@ async function main() {
   // friends
   await prisma.user.update({
     where: {
-      id: 0,
+      id: 1,
     },
     data: {
       friends: {
@@ -56,7 +51,7 @@ async function main() {
     },
     data: {
       friends: {
-        connect: [{ id: 0 }, { id: 3 }, { id: 4 }],
+        connect: [{ id: 1 }, { id: 3 }, { id: 4 }],
       },
     },
   });
@@ -94,9 +89,9 @@ async function main() {
   });
 
   // public channels
-  const pub = await prisma.channel.create({
+  await prisma.channel.create({
     data: {
-      name: faker.name.jobType(),
+      name: faker.lorem.word(),
       inviteOnly: false,
       owner: {
         connect: {
@@ -107,7 +102,7 @@ async function main() {
   });
 
   // private channels
-  const priv = await prisma.channel.create({
+  await prisma.channel.create({
     data: {
       name: faker.name.jobType(),
       inviteOnly: true,
@@ -120,7 +115,7 @@ async function main() {
   });
 
   // password protected channels
-  const passw = await prisma.channel.create({
+  await prisma.channel.create({
     data: {
       inviteOnly: false,
       name: faker.name.jobType(),
@@ -132,11 +127,6 @@ async function main() {
       },
     },
   });
-
-  const channels: number[] = [];
-  channels.push(pub.id);
-  channels.push(priv.id);
-  channels.push(passw.id);
 
   // channel admins
   await prisma.channel.update({
@@ -240,7 +230,7 @@ async function main() {
 
   // channel messages
   for (let i = 0; i < 100; i++) {
-    const p1 = Math.floor(Math.random() * 10);
+    const p1 = Math.floor(Math.random() * 10) + 1;
 
     const m = await prisma.channelMessage.create({
       data: {
@@ -251,7 +241,7 @@ async function main() {
         },
         channel: {
           connect: {
-            id: channels[Math.floor(Math.random() * 3)],
+            id: Math.floor(Math.random() * 3) + 1,
           },
         },
         content: faker.lorem.text(),
@@ -279,9 +269,9 @@ async function main() {
 
   // direct message
   for (let i = 0; i < 100; i++) {
-    const p1 = Math.floor(Math.random() * 10);
-    let p2 = Math.floor(Math.random() * 10);
-    if (p1 === p2) p2 = p1 === 9 ? 0 : p1 + 1;
+    const p1 = Math.floor(Math.random() * 10) + 1;
+    let p2 = Math.floor(Math.random() * 10) + 1;
+    if (p1 === p2) p2 = p1 === 10 ? 1 : p1 + 1;
 
     await prisma.directMessage.create({
       data: {
@@ -304,15 +294,15 @@ async function main() {
 
   // games
   for (let i = 0; i < 10; i++) {
-    const p1 = Math.floor(Math.random() * 10);
-    let p2 = Math.floor(Math.random() * 10);
-    if (p1 === p2) p2 = p1 === 9 ? 0 : p1 + 1;
+    const p1 = Math.floor(Math.random() * 10) + 1;
+    let p2 = Math.floor(Math.random() * 10) + 1;
+    if (p1 === p2) p2 = p1 === 10 ? 1 : p1 + 1;
 
     await prisma.game.create({
       data: {
         mode: {
           connect: {
-            id: modes[Math.floor(Math.random() * 3)],
+            id: Math.floor(Math.random() * 3) + 1,
           },
         },
         startedAt: faker.date.recent(),

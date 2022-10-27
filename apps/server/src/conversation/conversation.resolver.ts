@@ -2,13 +2,13 @@ import { Resolver, Query, Args } from "@nestjs/graphql";
 import { CurrentUser } from "../auth/currentUser.decorator";
 import { PrismaService } from "../prisma/prisma.service";
 import { User } from "../user/user.model";
-import { DirectConversation } from "./direct_conversation.model";
+import { Conversation } from "./conversation.model";
 
-@Resolver(DirectConversation)
-export class DirectConversationResolver {
+@Resolver(Conversation)
+export class ConversationResolver {
   constructor(private prisma: PrismaService) {}
 
-  @Query((returns) => DirectConversation, { nullable: true })
+  @Query((returns) => Conversation, { nullable: true })
   async getMessages(@CurrentUser() me: User, @Args("userId") userId: number) {
     const messages = await this.prisma.directMessage.findMany({
       include: { author: true, recipient: true },

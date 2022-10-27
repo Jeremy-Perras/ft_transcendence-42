@@ -4,7 +4,7 @@ import { User } from "../user/user.model";
 import { Message } from "../message/message.model";
 
 @ObjectType()
-export class DirectConversation {
+export class Conversation {
   @Field((type) => User)
   user: User;
 
