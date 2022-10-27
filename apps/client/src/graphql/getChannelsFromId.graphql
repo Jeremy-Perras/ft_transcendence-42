@@ -1,0 +1,11 @@
+query ChannelsFromId($memberId: Int) {
+  channels(memberId: $memberId) {
+    name
+    members {
+      name
+    }
+    admins {
+      name
+    }
+  }
+}
