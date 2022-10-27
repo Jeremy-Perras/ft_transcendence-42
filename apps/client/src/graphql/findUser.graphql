@@ -1,8 +1,0 @@
-query FindUsers($name: String) {
-  findUsers(name: $name) {
-    id
-    name
-    avatar
-    rank
-  }
-}

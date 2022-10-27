@@ -1,0 +1,8 @@
+query getChannels($memberId: Int) {
+  channels(memberId: $memberId) {
+    name
+    owner {
+      name
+    }
+  }
+}

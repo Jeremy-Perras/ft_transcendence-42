@@ -1,0 +1,8 @@
+query getFriends($userId: Int) {
+  user(id: $userId) {
+    friends {
+      name
+      avatar
+    }
+  }
+}

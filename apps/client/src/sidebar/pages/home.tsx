@@ -4,7 +4,7 @@ import * as Avatar from "@radix-ui/react-avatar";
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { ReactComponent as UsersIcon } from "pixelarticons/svg/users.svg";
 import { ReactComponent as GamePadIcon } from "pixelarticons/svg/gamepad.svg";
-import { useFindUsersQuery } from "../../graphql/generated";
+import { useGetChannelsQuery, useGetFriendsQuery, useGetMyIdQuery } from "../../graphql/generated";
 
 const Empty = () => {
   return (
@@ -102,21 +102,26 @@ const Chat = ({ id, type, name, lastMessage }: Chat) => {
   );
 };
 
+const myId = () => ({data} : {data : number}) {
+  const { status, data, error, isFetching } = useGetMyIdQuery({}, {});
+  return data;
+};
+
+const MyChannels = () => {
+  const { status, data, error, isFetching } = useGetChannelsQuery({myId()}, {});
+}
+
 const Home = () => {
-  const { status, data, error, isFetching } = useFindUsersQuery(
-    { name: "ri" },
-    { staleTime: 1 }
-  );
-  console.log(status, data, error, isFetching);
-  const [chats] = useState<Chat[]>(initial);
+  const { status, data, error, isFetching } = useGetFriendsQuery({}, {});
 
   return (
     <>
-      {chats.length === 0 ? (
-        <Empty />
-      ) : (
-        chats.map((chat) => <Chat key={chat.id} {...chat} />)
-      )}
+      {data?.user.friends.map((friend) => (
+        <>
+          <div>{friend.name}</div>
+          <img src={friend.avatar} alt="" />
+        </>
+      ))}
     </>
   );
 };
