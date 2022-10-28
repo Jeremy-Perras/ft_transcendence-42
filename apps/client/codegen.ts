@@ -1,8 +1,9 @@
 import { CodegenConfig } from "@graphql-codegen/cli";
 
 const config: CodegenConfig = {
-  schema: "../server/src/schema.gql",
+  schema: "http://localhost:3000/graphql",
   documents: "./src/graphql/*.graphql",
+  hooks: { afterAllFileWrite: ["npx prettier -w"] },
   generates: {
     "./src/graphql/generated.ts": {
       plugins: [

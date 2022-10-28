@@ -1,34 +1,52 @@
-import { useContext, useState } from "react";
+import { useContext, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import {
-  Outlet,
-  useLocation,
-  useNavigate,
-  useNavigationType,
-} from "react-router-dom";
-import { useMediaQuery } from "@react-hookz/web";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useMediaQuery, useThrottledState } from "@react-hookz/web";
 import { ReactComponent as ArrowLeftBoxIcon } from "pixelarticons/svg/arrow-left-box.svg";
 import { ReactComponent as CloseIcon } from "pixelarticons/svg/close.svg";
 import { ReactComponent as SearchIcon } from "pixelarticons/svg/search.svg";
 import { ReactComponent as BackBurgerIcon } from "pixelarticons/svg/backburger.svg";
 import { ReactComponent as MessagePlusIcon } from "pixelarticons/svg/message-plus.svg";
+import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
+import { ReactComponent as UsersIcon } from "pixelarticons/svg/users.svg";
 import { SideBarContext } from "./context";
+import { useSearchUsersChannelsQuery } from "../graphql/generated";
+import * as Avatar from "@radix-ui/react-avatar";
 
-const SearchBar = () => {
-  const [search, setSearch] = useState("");
+const SearchBar = ({
+  search,
+  setSearch,
+}: {
+  search: string;
+  setSearch: (value: string) => void;
+}) => {
+  const input = useRef<HTMLInputElement>(null);
+
+  const resetSearch = () => {
+    if (input.current) input.current.value = "";
+    setSearch("");
+  };
 
   return (
     <div className="relative grow border-r-2">
       <input
         type="text"
+        ref={input}
+        spellCheck={false}
         className="w-full py-1 px-2 text-lg focus:outline-none focus:ring-2 focus:ring-inset"
         placeholder="search"
-        value={search}
         onChange={(e) => setSearch(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.code == "Escape" && search.length > 0) {
+            e.preventDefault();
+            e.stopPropagation();
+            resetSearch();
+          }
+        }}
       />
       <div className="absolute inset-y-0 right-2 flex items-center">
         {search.length > 0 ? (
-          <button onClick={() => setSearch("")}>
+          <button onClick={resetSearch}>
             <CloseIcon className="h-6 text-slate-400" />
           </button>
         ) : (
@@ -60,7 +78,13 @@ const LeftButton = ({
   );
 };
 
-function Header() {
+function Header({
+  search,
+  setSearch,
+}: {
+  search: string;
+  setSearch: (value: string) => void;
+}) {
   const location = useLocation();
   const home = location.pathname === "/";
   const navigate = useNavigate();
@@ -68,7 +92,7 @@ function Header() {
   const isSmallScreen = useMediaQuery("(max-width: 1536px)");
 
   return (
-    <div className="flex border-b-2 border-black">
+    <div className="z-10 flex shadow-sm shadow-slate-400">
       <AnimatePresence initial={false} exitBeforeEnter>
         {home ? (
           <>
@@ -77,7 +101,7 @@ function Header() {
               Icon={MessagePlusIcon}
               key={1}
             />
-            <SearchBar key={2} />
+            <SearchBar search={search} setSearch={setSearch} key={2} />
           </>
         ) : (
           <>
@@ -104,43 +128,98 @@ function Header() {
   );
 }
 
-export const SidebarLayout = () => {
-  const { pathname } = useLocation();
-  const nav = useNavigationType();
+const Highlight = ({
+  content,
+  search,
+}: {
+  content: string;
+  search: string;
+}) => {
+  const index = content.toLowerCase().indexOf(search.toLowerCase());
+  const before = content.slice(0, index);
+  const match = content.slice(index, index + search.length);
+  const after = content.slice(index + search.length);
 
-  const variants = {
-    visible: {
-      transition: {
-        duration: nav === "PUSH" ? 0.2 : 0,
-        ease: "easeIn",
+  return (
+    <span className="ml-2">
+      <span>{before}</span>
+      <span className="bg-amber-300">{match}</span>
+      <span>{after}</span>
+    </span>
+  );
+};
+
+const SearchResult = ({
+  search,
+  setSearch,
+}: {
+  search: string;
+  setSearch: (value: string) => void;
+}) => {
+  const navigate = useNavigate();
+
+  const { data } = useSearchUsersChannelsQuery(
+    { name: search },
+    {
+      select(data) {
+        const { users, channels } = data;
+        const results: (typeof users[number] | typeof channels[number])[] = [
+          ...users,
+          ...channels,
+        ];
+        return results;
       },
-      x: 0,
-    },
-    hidden: {
-      transition: {
-        duration: 0.2,
-        ease: "easeIn",
-      },
-      x: nav === "PUSH" ? "100%" : 0,
-      zIndex: nav === "PUSH" ? 10 : 0,
-    },
-  };
+    }
+  );
+
+  return (
+    <ul className="flex flex-col divide-y divide-slate-200">
+      {data?.map((result) => (
+        <li
+          className="flex items-center p-2 even:bg-white hover:cursor-pointer hover:bg-blue-100"
+          key={`${result.id}_${result.__typename}`}
+          onClick={() => {
+            navigate(
+              `${result.__typename === "Channel" ? "channel" : "profile"}/${
+                result.id
+              }`
+            );
+            setSearch("");
+          }}
+        >
+          {result.__typename === "User" ? (
+            <Avatar.Root>
+              <Avatar.Image
+                className="h-10 w-10 object-cover "
+                src={result.avatar}
+              />
+              <Avatar.Fallback>
+                <UserIcon className="h-10 w-10" />
+              </Avatar.Fallback>
+            </Avatar.Root>
+          ) : (
+            <div className="h-10 w-10 bg-black"></div>
+          )}
+          <Highlight content={result.name} search={search} />
+        </li>
+      ))}
+    </ul>
+  );
+};
+
+export const SidebarLayout = () => {
+  const [search, setSearch] = useThrottledState("", 500);
 
   return (
     <>
-      <Header />
-      <AnimatePresence initial={false}>
-        <motion.div
-          className="h-full overflow-y-auto"
-          key={pathname}
-          variants={variants}
-          initial={{ x: "100%" }}
-          animate="visible"
-          exit="hidden"
-        >
+      <Header search={search} setSearch={setSearch} />
+      <div className="h-full overflow-y-auto">
+        {search.length === 0 ? (
           <Outlet />
-        </motion.div>
-      </AnimatePresence>
+        ) : (
+          <SearchResult search={search} setSearch={setSearch} />
+        )}
+      </div>
     </>
   );
 };

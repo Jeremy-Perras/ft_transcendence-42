@@ -38,8 +38,10 @@ const Chat = ({
   const date = lastMessageTime ? getDate(+lastMessageTime).toISOString() : "";
   return (
     <div
-      onClick={() => navigate(`/${type == "User" ? "chat" : "channel"}/${id}`)}
-      className="flex  hover:cursor-pointer"
+      onClick={() =>
+        navigate(`/${type == "friend" ? "chat" : "channel"}/${id}`)
+      }
+      className="flex hover:cursor-pointer"
     >
       <div className="flex h-20 w-20 shrink-0 justify-center bg-black text-white">
         {type == "User" ? (
@@ -48,12 +50,12 @@ const Chat = ({
               className="h-20 w-20 object-cover "
               src={`https://i.pravatar.cc/300?img=${id}`}
             />
-            <Avatar.Fallback delayMs={600}>
-              <UserIcon className="w-4/5" />
+            <Avatar.Fallback delayMs={0}>
+              <UserIcon className="h-20 w-20" />
             </Avatar.Fallback>
           </Avatar.Root>
         ) : (
-          <UsersIcon className="mt-2 w-8/12" />
+          <UsersIcon className="mt-2 h-20 w-20" />
         )}
       </div>
       <div className="flex grow flex-col border-l-2 border-b-2 px-2 hover:bg-slate-100">
@@ -76,11 +78,9 @@ const Home = () => {
   const navigate = useNavigate();
   if (isLoading) return <div>Loading ...</div>;
   if (isFetching) {
-    console.warn("Fetching");
     return <div>Fetching</div>;
   }
   if (error) {
-    console.log("Error");
     return <div>Error</div>;
   } else {
     return (
