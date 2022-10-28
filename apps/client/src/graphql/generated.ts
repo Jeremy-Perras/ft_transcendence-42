@@ -37,7 +37,7 @@ export type Scalars = {
 
 export type Channel = {
   __typename?: 'Channel';
-  admins?: Maybe<Array<User>>;
+  admins: Array<User>;
   id: Scalars['Int'];
   members?: Maybe<Array<User>>;
   messages?: Maybe<Array<ChannelMessage>>;
@@ -139,7 +139,7 @@ export type GetInfoUsersQueryVariables = Exact<{
 }>;
 
 
-export type GetInfoUsersQuery = { __typename?: 'Query', user: { __typename?: 'User', typename: string, name: string, avatar: string, rank: number, channels: Array<{ __typename?: 'Channel', typename: string, name: string, admins?: Array<{ __typename?: 'User', typename: string, name: string }> | null }>, friends: Array<{ __typename?: 'User', typename: string, name: string, rank: number }> } };
+export type GetInfoUsersQuery = { __typename?: 'Query', user: { __typename?: 'User', typename: string, name: string, avatar: string, rank: number, channels: Array<{ __typename?: 'Channel', typename: string, name: string, admins: Array<{ __typename?: 'User', typename: string, name: string }> }>, friends: Array<{ __typename?: 'User', typename: string, name: string, rank: number }> } };
 
 
 export const GetChatDocument = `

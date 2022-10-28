@@ -64,7 +64,7 @@ const Chat = ({ id, type, name, lastMessage }: Chat) => {
 
 const Home = () => {
   const { isLoading, data, error, isFetching } = useGetInfoUsersQuery();
-
+  console.log(data);
   if (isLoading) return <div>Loading ...</div>;
   if (isFetching) {
     console.warn("Fetching");
@@ -76,7 +76,7 @@ const Home = () => {
   } else {
     return (
       <>
-        <div className="justify-items-center">
+        <div className="flex flex-col items-center justify-center">
           <span>
             {data?.user.name} - Rank : {data?.user.rank}
           </span>

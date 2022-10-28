@@ -10,7 +10,7 @@ export default function Channel({ n }: { n: string }) {
       {data?.channels.map((c, index) => (
         <div key={index} className="flex h-full w-full flex-col ">
           {c.messages?.map((m, index) => (
-            <span key={index} className=" m-2  text-left">
+            <span key={index} className=" m-2 flex text-left indent-8">
               {m.content}
             </span>
           ))}

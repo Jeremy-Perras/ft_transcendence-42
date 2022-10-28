@@ -161,6 +161,22 @@ async function main() {
       },
     },
   });
+  await prisma.channel.update({
+    where: {
+      id: 3,
+    },
+    data: {
+      admins: {
+        create: {
+          user: {
+            connect: {
+              id: 3,
+            },
+          },
+        },
+      },
+    },
+  });
 
   // channel members
   await prisma.channel.update({

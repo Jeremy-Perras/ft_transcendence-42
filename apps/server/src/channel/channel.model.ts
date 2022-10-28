@@ -25,8 +25,8 @@ export class Channel {
   @Field((type) => User)
   owner: User;
 
-  @Field((type) => [User], { nullable: true })
-  admins?: [User];
+  @Field((type) => [User])
+  admins: [User];
 
   @Field((type) => [User], { nullable: true })
   members?: [User];

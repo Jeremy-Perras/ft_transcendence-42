@@ -13,7 +13,7 @@ import { User } from "../user/user.model";
 import { userType } from "../user/user.resolver";
 import { Channel, ChannelMessage, ChannelMessageRead } from "./channel.model";
 
-export type channelType = Omit<Channel, "owner">;
+export type channelType = Omit<Channel, "owner" | "admins">;
 type channelMessageType = Omit<ChannelMessage, "author" | "readBy">;
 type channelMessageReadType = Omit<ChannelMessageRead, "user">;
 
@@ -97,22 +97,20 @@ export class ChannelResolver {
   }
 
   @ResolveField()
-  async admins(@Root() channel: Channel): Promise<userType[] | null> {
+  async admins(@Root() channel: Channel): Promise<userType[]> {
     const admins = await this.prisma.channelAdmin.findMany({
       select: { user: true },
       where: {
         channelId: channel.id,
       },
     });
-    return admins
-      ? admins.map((admin) => ({
-          typename: "User",
-          id: admin.user.id,
-          name: admin.user.name,
-          avatar: admin.user.avatar,
-          rank: admin.user.rank,
-        }))
-      : null;
+    return admins.map((admin) => ({
+      typename: "User",
+      id: admin.user.id,
+      name: admin.user.name,
+      avatar: admin.user.avatar,
+      rank: admin.user.rank,
+    }));
   }
 
   @ResolveField()
