@@ -41,7 +41,6 @@ export class UserResolver {
       throw new Error("User not found");
     }
     return {
-      typename: "User",
       id: user.id,
       name: user.name,
       avatar: user.avatar,
@@ -82,7 +81,6 @@ export class UserResolver {
     });
     return u
       ? u.friends.map((user) => ({
-          typename: "User",
           id: user.id,
           name: user.name,
           avatar: user.avatar,
@@ -124,7 +122,6 @@ export class UserResolver {
     });
     return c
       ? c.map((channel) => ({
-          typename: "Channel",
           id: channel.id,
           name: channel.name,
           private: channel.inviteOnly,
@@ -200,7 +197,6 @@ export class UserResolver {
             (a, b) => a.sentAt.getMilliseconds() - b.sentAt.getMilliseconds()
           )
           .map((message) => ({
-            typename: "DirectMessage",
             id: message.id,
             content: message.content,
             sentAt: message.sentAt,
@@ -224,7 +220,6 @@ export class DirectMessageResolver {
     });
     return m
       ? {
-          typename: "User",
           id: m.author.id,
           name: m.author.name,
           avatar: m.author.avatar,
@@ -243,7 +238,6 @@ export class DirectMessageResolver {
     });
     return m
       ? {
-          typename: "User",
           id: m.recipient.id,
           name: m.recipient.name,
           avatar: m.recipient.avatar,

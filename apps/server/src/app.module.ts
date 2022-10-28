@@ -19,8 +19,11 @@ import { ChannelModule } from "./channel/channel.module";
     ChannelModule,
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
+      definitions: { emitTypenameField: true },
       autoSchemaFile: join(process.cwd(), "src/schema.gql"),
-      buildSchemaOptions: { dateScalarMode: "timestamp" },
+      buildSchemaOptions: {
+        dateScalarMode: "timestamp",
+      },
       playground: false,
       plugins: [ApolloServerPluginLandingPageLocalDefault()],
     }),

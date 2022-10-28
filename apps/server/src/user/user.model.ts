@@ -5,9 +5,6 @@ import { Channel } from "../channel/channel.model";
 
 @ObjectType()
 export class User {
-  @Field()
-  typename: "User";
-
   @Field((type) => Int)
   @Min(1)
   id: number;
@@ -41,9 +38,6 @@ export class User {
 
 @ObjectType()
 export class DirectMessage {
-  @Field()
-  typename: "DirectMessage";
-
   @Field((type) => Int)
   id: number;
 

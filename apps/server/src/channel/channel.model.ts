@@ -5,9 +5,6 @@ import { User } from "../user/user.model";
 
 @ObjectType()
 export class Channel {
-  @Field()
-  typename: "Channel";
-
   @Field((type) => Int)
   @Min(0)
   id: number;
@@ -37,9 +34,6 @@ export class Channel {
 
 @ObjectType()
 export class ChannelMessageRead {
-  @Field()
-  typename: "ChannelMessageRead";
-
   @Field((type) => Int)
   id: number;
 
@@ -52,9 +46,6 @@ export class ChannelMessageRead {
 
 @ObjectType()
 export class ChannelMessage {
-  @Field()
-  typename: "ChannelMessage";
-
   @Field((type) => Int)
   id: number;
 
