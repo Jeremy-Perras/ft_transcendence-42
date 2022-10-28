@@ -9,7 +9,7 @@ const queryClient = new QueryClient();
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
-    <div className="relative flex h-full overflow-hidden">
+    <div className="relative flex h-screen w-screen overflow-hidden">
       <QueryClientProvider client={queryClient}>
         <Main />
         <SideBar />

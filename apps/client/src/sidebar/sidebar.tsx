@@ -71,7 +71,7 @@ export default function SideBar() {
   }, [showSideBar]);
 
   return (
-    <div className="shrink-0">
+    <div className="shrink-0 font-cursive">
       {!showSideBar && isSmallScreen ? (
         <button
           onClick={() =>
@@ -106,7 +106,7 @@ export default function SideBar() {
               setShowSideBar(false);
             }
           }}
-          className="invisible absolute right-0 flex h-full w-full flex-col bg-slate-50 font-cursive shadow-2xl shadow-black sm:w-128 2xl:relative"
+          className="invisible absolute right-0 flex h-screen flex-col bg-slate-50 shadow-2xl shadow-black sm:w-128 2xl:relative"
         >
           <motion.div animate={controls}>
             <SideBarContext.Provider value={setShowSideBar}>

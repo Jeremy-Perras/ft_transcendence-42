@@ -31,7 +31,7 @@ const router = createBrowserRouter([
 
 export default function Main() {
   return (
-    <div className="w-full shrink grow bg-black">
+    <div className="shrink grow bg-black">
       {/* <div className="absolute z-10 h-full w-full backdrop-blur"></div> */}
       <RouterProvider router={router} />
     </div>

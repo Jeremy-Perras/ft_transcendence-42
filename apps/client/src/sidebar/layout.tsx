@@ -5,7 +5,6 @@ import {
   useLocation,
   useNavigate,
   useNavigationType,
-  useOutlet,
 } from "react-router-dom";
 import { useMediaQuery } from "@react-hookz/web";
 import { ReactComponent as ArrowLeftBoxIcon } from "pixelarticons/svg/arrow-left-box.svg";
@@ -69,7 +68,7 @@ function Header() {
   const isSmallScreen = useMediaQuery("(max-width: 1536px)");
 
   return (
-    <div className="flex border-b-2 border-black  font-cursive">
+    <div className="flex border-b-2 border-black">
       <AnimatePresence initial={false} exitBeforeEnter>
         {home ? (
           <>
@@ -108,7 +107,6 @@ function Header() {
 export const SidebarLayout = () => {
   const { pathname } = useLocation();
   const nav = useNavigationType();
-  const outlet = useOutlet();
 
   const variants = {
     visible: {
@@ -129,11 +127,11 @@ export const SidebarLayout = () => {
   };
 
   return (
-    <div className="h-full w-full bg-slate-50">
+    <>
       <Header />
       <AnimatePresence initial={false}>
         <motion.div
-          className="h-full w-full bg-slate-50"
+          className="h-full overflow-auto"
           key={pathname}
           variants={variants}
           initial={{ x: "100%", position: "absolute" }}
@@ -143,6 +141,6 @@ export const SidebarLayout = () => {
           <Outlet />
         </motion.div>
       </AnimatePresence>
-    </div>
+    </>
   );
 };
