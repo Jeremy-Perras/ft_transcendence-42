@@ -18,26 +18,28 @@ const Empty = () => {
 
 type Chat = {
   id: number;
-  type: "friend" | "channel";
+  type: string;
   name: string;
-  lastMessage: {
-    content: string | null;
-    time: string | null;
-  };
+  lastMessageContent: string | null;
+  lastMessageTime: string | null;
 };
 
-const Chat = ({ id, type, name, lastMessage }: Chat) => {
+const Chat = ({
+  id,
+  type,
+  name,
+  lastMessageContent,
+  lastMessageTime,
+}: Chat) => {
   const navigate = useNavigate();
 
   return (
     <div
-      onClick={() =>
-        navigate(`/${type == "friend" ? "chat" : "channel"}/${id}`)
-      }
-      className="flex hover:cursor-pointer "
+      onClick={() => navigate(`/${type == "User" ? "chat" : "channel"}/${id}`)}
+      className="flex  hover:cursor-pointer"
     >
-      <div className="flex h-20 w-20 justify-center bg-black text-white">
-        {type == "friend" ? (
+      <div className="flex h-20 w-20 shrink-0 justify-center bg-black text-white">
+        {type == "User" ? (
           <Avatar.Root>
             <Avatar.Image
               className="h-20 w-20 object-cover "
@@ -54,9 +56,11 @@ const Chat = ({ id, type, name, lastMessage }: Chat) => {
       <div className="flex grow flex-col border-l-2 border-b-2 px-2 hover:bg-slate-100">
         <div className="flex justify-between">
           <span className="font-bold">{name}</span>
-          <span className="text-xs text-slate-400">{lastMessage.time}</span>
+          <span className="text-xs text-slate-400">{`${lastMessageTime}`}</span>
         </div>
-        <span className="text-sm text-slate-400">{lastMessage.content}</span>
+        <span className="flex max-h-10 overflow-hidden text-clip text-sm text-slate-400">
+          {lastMessageContent}
+        </span>
       </div>
     </div>
   );
@@ -75,28 +79,51 @@ const Home = () => {
     return <div>Error</div>;
   } else {
     return (
-      <>
-        <div className="justify-items-center">
-          <span>
-            {data?.user.name} - Rank : {data?.user.rank}
-          </span>
-          <img src={data?.user.avatar} alt="Picture player" />
-          <span className="w-full text-left">Friends : </span>
-          {data?.user.friends.map((friend, index) => (
-            <div key={index}>
-              {friend.name} - Rank : {friend.rank}
-            </div>
-          ))}
-          <span className="w-full text-left">Channels :</span>
-          {data?.user.channels.map((chat) => (
-            <div key={chat.name}>
-              <Link to={`${"/channel/" + chat.name}`}>
-                {chat.typename === "Channel" ? chat.name : ""}
-              </Link>
-            </div>
-          ))}
-        </div>
-      </>
+      <div className="justify-items-center">
+        <span>
+          {data?.user.name} - Rank : {data?.user.rank}
+        </span>
+        <img src={data?.user.avatar} alt="Picture player" />
+        {/* <span className="w-full text-left">Friends : </span> */}
+        {data?.user.friends.map((friend, index) => (
+          <div key={index}>
+            <Chat
+              id={friend.id}
+              type="User"
+              name={friend.name}
+              lastMessageContent={
+                friend.messages
+                  ? friend.messages[friend.messages.length - 1]?.content
+                  : ""
+              }
+              lastMessageTime={
+                friend.messages
+                  ? friend.messages[friend.messages.length - 1]?.sentAt
+                  : ""
+              }
+            />
+          </div>
+        ))}
+        {data?.user.channels.map((channel, index) => (
+          <div key={index}>
+            <Chat
+              id={channel.id}
+              type="Channel"
+              name={channel.name}
+              lastMessageContent={
+                channel.messages
+                  ? channel.messages[channel.messages.length - 1]?.content
+                  : ""
+              }
+              lastMessageTime={
+                channel.messages
+                  ? channel.messages[channel.messages.length - 1]?.sentAt
+                  : ""
+              }
+            />
+          </div>
+        ))}
+      </div>
     );
   }
 };

@@ -7,15 +7,20 @@ query getInfoUsers($userId: Int) {
     channels {
       typename
       name
-      admins {
-        typename
-        name 
-      } 
+      id
+      messages {
+        content
+        sentAt
+      }
     }
     friends {
-       typename
+      typename
       name
-      rank
+      messages {
+        content
+        sentAt
+      }
+      id
     }
   }
 }
