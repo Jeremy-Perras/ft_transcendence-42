@@ -32,7 +32,10 @@ const Chat = ({
   lastMessageTime,
 }: Chat) => {
   const navigate = useNavigate();
-
+  const getDate = (time: number): Date => {
+    return new Date(time);
+  };
+  const date = getDate(+lastMessageTime).toISOString();
   return (
     <div
       onClick={() => navigate(`/${type == "User" ? "chat" : "channel"}/${id}`)}
@@ -56,7 +59,9 @@ const Chat = ({
       <div className="flex grow flex-col border-l-2 border-b-2 px-2 hover:bg-slate-100">
         <div className="flex justify-between">
           <span className="font-bold">{name}</span>
-          <span className="text-xs text-slate-400">{`${lastMessageTime}`}</span>
+          <span className="text-xs text-slate-400">
+            {date.substring(0, 10)} - {date.substring(11, 16)}
+          </span>
         </div>
         <span className="flex max-h-10 overflow-hidden text-clip text-sm text-slate-400">
           {lastMessageContent}
@@ -81,12 +86,16 @@ const Home = () => {
     return (
       <div>
         <div
-          className=" flex flex-row items-center border-b-2 p-2 hover:cursor-pointer"
+          className="flex flex-row items-center  border-4 border-double  border-slate-300 bg-slate-100 p-2 hover:cursor-pointer hover:bg-slate-200"
           onClick={() => navigate(`/profile/${data?.user.id}`)}
         >
-          <img src={data?.user.avatar} alt="Picture player" />
+          <img
+            src={data?.user.avatar}
+            alt="Player avatar"
+            className="border-2 border-solid  border-slate-300"
+          />
           <div className="m-2 flex flex-col">
-            <div className="font-bold">{data?.user.name}</div>
+            <div className="text-xl font-bold">{data?.user.name}</div>
             <div>Rank : {data?.user.rank}</div>
           </div>
         </div>
