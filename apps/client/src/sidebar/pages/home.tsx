@@ -35,7 +35,7 @@ const Chat = ({
   const getDate = (time: number): Date => {
     return new Date(time);
   };
-  const date = getDate(+lastMessageTime).toISOString();
+  const date = lastMessageTime ? getDate(+lastMessageTime).toISOString() : "";
   return (
     <div
       onClick={() => navigate(`/${type == "User" ? "chat" : "channel"}/${id}`)}
@@ -86,7 +86,7 @@ const Home = () => {
     return (
       <div>
         <div
-          className="flex flex-row items-center  border-4 border-double  border-slate-300 bg-slate-100 p-2 hover:cursor-pointer hover:bg-slate-200"
+          className="flex flex-row items-center  border-4 border-double  border-slate-300 p-2 hover:cursor-pointer hover:bg-slate-100"
           onClick={() => navigate(`/profile/${data?.user.id}`)}
         >
           <img

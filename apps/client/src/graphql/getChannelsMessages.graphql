@@ -1,16 +1,32 @@
-query getChannelsMessages($name: String) {
-  channels(name: $name) {
+query getChannel($channelId: Int!) {
+  channel(id: $channelId) {
+    private
+    passwordProtected
+    name
+    owner {
+      name
+      id
+    }
     messages {
-      sentAt
-      content
+      id
+      author {
+        name
+      }
       readBy {
         user {
           name
         }
       }
-      author {
-        name
-      }
+      content
+      sentAt
+    }
+    admins {
+      name
+      id
+    }
+    members {
+      name
+      id
     }
   }
 }

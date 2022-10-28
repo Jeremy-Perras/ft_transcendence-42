@@ -127,12 +127,12 @@ export type GetChatQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type GetChatQuery = { __typename?: 'Query', user: { __typename?: 'User', friends: Array<{ __typename?: 'User', typename: string, name: string, avatar: string }>, channels: Array<{ __typename?: 'Channel', typename: string, name: string }> } };
 
-export type GetChannelsMessagesQueryVariables = Exact<{
-  name?: InputMaybe<Scalars['String']>;
+export type GetChannelQueryVariables = Exact<{
+  channelId: Scalars['Int'];
 }>;
 
 
-export type GetChannelsMessagesQuery = { __typename?: 'Query', channels: Array<{ __typename?: 'Channel', messages?: Array<{ __typename?: 'ChannelMessage', sentAt: any, content: string, readBy: Array<{ __typename?: 'ChannelMessageRead', user: { __typename?: 'User', name: string } }>, author: { __typename?: 'User', name: string } }> | null }> };
+export type GetChannelQuery = { __typename?: 'Query', channel: { __typename?: 'Channel', private: boolean, passwordProtected: boolean, name: string, owner: { __typename?: 'User', name: string, id: number }, messages?: Array<{ __typename?: 'ChannelMessage', id: number, content: string, sentAt: any, author: { __typename?: 'User', name: string }, readBy: Array<{ __typename?: 'ChannelMessageRead', user: { __typename?: 'User', name: string } }> }> | null, admins?: Array<{ __typename?: 'User', name: string, id: number }> | null, members?: Array<{ __typename?: 'User', name: string, id: number }> | null } };
 
 export type GetInfoUsersQueryVariables = Exact<{
   userId?: InputMaybe<Scalars['Int']>;
@@ -169,34 +169,50 @@ export const useGetChatQuery = <
       fetcher<GetChatQuery, GetChatQueryVariables>(GetChatDocument, variables),
       options
     );
-export const GetChannelsMessagesDocument = `
-    query getChannelsMessages($name: String) {
-  channels(name: $name) {
+export const GetChannelDocument = `
+    query getChannel($channelId: Int!) {
+  channel(id: $channelId) {
+    private
+    passwordProtected
+    name
+    owner {
+      name
+      id
+    }
     messages {
-      sentAt
-      content
+      id
+      author {
+        name
+      }
       readBy {
         user {
           name
         }
       }
-      author {
-        name
-      }
+      content
+      sentAt
+    }
+    admins {
+      name
+      id
+    }
+    members {
+      name
+      id
     }
   }
 }
     `;
-export const useGetChannelsMessagesQuery = <
-      TData = GetChannelsMessagesQuery,
+export const useGetChannelQuery = <
+      TData = GetChannelQuery,
       TError = unknown
     >(
-      variables?: GetChannelsMessagesQueryVariables,
-      options?: UseQueryOptions<GetChannelsMessagesQuery, TError, TData>
+      variables: GetChannelQueryVariables,
+      options?: UseQueryOptions<GetChannelQuery, TError, TData>
     ) =>
-    useQuery<GetChannelsMessagesQuery, TError, TData>(
-      variables === undefined ? ['getChannelsMessages'] : ['getChannelsMessages', variables],
-      fetcher<GetChannelsMessagesQuery, GetChannelsMessagesQueryVariables>(GetChannelsMessagesDocument, variables),
+    useQuery<GetChannelQuery, TError, TData>(
+      ['getChannel', variables],
+      fetcher<GetChannelQuery, GetChannelQueryVariables>(GetChannelDocument, variables),
       options
     );
 export const GetInfoUsersDocument = `
