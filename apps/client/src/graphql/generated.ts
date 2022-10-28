@@ -139,7 +139,7 @@ export type GetInfoUsersQueryVariables = Exact<{
 }>;
 
 
-export type GetInfoUsersQuery = { __typename?: 'Query', user: { __typename?: 'User', typename: string, name: string, avatar: string, rank: number, channels: Array<{ __typename?: 'Channel', typename: string, name: string, id: number, messages?: Array<{ __typename?: 'ChannelMessage', content: string, sentAt: any }> | null }>, friends: Array<{ __typename?: 'User', typename: string, name: string, id: number, messages: Array<{ __typename?: 'DirectMessage', content: string, sentAt: any }> }> } };
+export type GetInfoUsersQuery = { __typename?: 'Query', user: { __typename?: 'User', id: number, typename: string, name: string, avatar: string, rank: number, channels: Array<{ __typename?: 'Channel', typename: string, name: string, id: number, messages?: Array<{ __typename?: 'ChannelMessage', content: string, sentAt: any }> | null }>, friends: Array<{ __typename?: 'User', typename: string, name: string, id: number, messages: Array<{ __typename?: 'DirectMessage', content: string, sentAt: any }> }> } };
 
 
 export const GetChatDocument = `
@@ -202,6 +202,7 @@ export const useGetChannelsMessagesQuery = <
 export const GetInfoUsersDocument = `
     query getInfoUsers($userId: Int) {
   user(id: $userId) {
+    id
     typename
     name
     avatar

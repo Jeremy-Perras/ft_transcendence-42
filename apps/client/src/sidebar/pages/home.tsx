@@ -68,7 +68,7 @@ const Chat = ({
 
 const Home = () => {
   const { isLoading, data, error, isFetching } = useGetInfoUsersQuery();
-
+  const navigate = useNavigate();
   if (isLoading) return <div>Loading ...</div>;
   if (isFetching) {
     console.warn("Fetching");
@@ -79,12 +79,17 @@ const Home = () => {
     return <div>Error</div>;
   } else {
     return (
-      <div className="justify-items-center">
-        <span>
-          {data?.user.name} - Rank : {data?.user.rank}
-        </span>
-        <img src={data?.user.avatar} alt="Picture player" />
-        {/* <span className="w-full text-left">Friends : </span> */}
+      <div>
+        <div
+          className=" flex flex-row items-center border-b-2 p-2 hover:cursor-pointer"
+          onClick={() => navigate(`/profile/${data?.user.id}`)}
+        >
+          <img src={data?.user.avatar} alt="Picture player" />
+          <div className="m-2 flex flex-col">
+            <div className="font-bold">{data?.user.name}</div>
+            <div>Rank : {data?.user.rank}</div>
+          </div>
+        </div>
         {data?.user.friends.map((friend, index) => (
           <div key={index}>
             <Chat
