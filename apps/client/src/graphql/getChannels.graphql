@@ -1,12 +1,12 @@
 query getChat {
   user {
     friends {
-      typename
+      __typename
       name
       avatar
     }
     channels {
-      typename
+      __typename
       name
     }
   }

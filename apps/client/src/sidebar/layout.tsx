@@ -1,6 +1,6 @@
 import { useContext, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useMediaQuery, useThrottledState } from "@react-hookz/web";
 import { ReactComponent as ArrowLeftBoxIcon } from "pixelarticons/svg/arrow-left-box.svg";
 import { ReactComponent as CloseIcon } from "pixelarticons/svg/close.svg";
@@ -8,7 +8,6 @@ import { ReactComponent as SearchIcon } from "pixelarticons/svg/search.svg";
 import { ReactComponent as BackBurgerIcon } from "pixelarticons/svg/backburger.svg";
 import { ReactComponent as MessagePlusIcon } from "pixelarticons/svg/message-plus.svg";
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
-import { ReactComponent as UsersIcon } from "pixelarticons/svg/users.svg";
 import { SideBarContext } from "./context";
 import { useSearchUsersChannelsQuery } from "../graphql/generated";
 import * as Avatar from "@radix-ui/react-avatar";

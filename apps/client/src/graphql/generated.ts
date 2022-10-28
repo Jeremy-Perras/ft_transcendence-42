@@ -118,29 +118,14 @@ export type User = {
   rank: Scalars["Int"];
 };
 
-export type SearchUsersChannelsQueryVariables = Exact<{
-  name?: InputMaybe<Scalars["String"]>;
-}>;
-
-export type SearchUsersChannelsQuery = {
-  __typename?: "Query";
-  users: Array<{
-    __typename: "User";
-    name: string;
-    id: number;
-    avatar: string;
-  }>;
-  channels: Array<{ __typename: "Channel"; name: string; id: number }>;
-};
-
 export type GetChatQueryVariables = Exact<{ [key: string]: never }>;
 
 export type GetChatQuery = {
   __typename?: "Query";
   user: {
     __typename?: "User";
-    friends: Array<{ __typename?: "User"; name: string; avatar: string }>;
-    channels: Array<{ __typename?: "Channel"; name: string }>;
+    friends: Array<{ __typename: "User"; name: string; avatar: string }>;
+    channels: Array<{ __typename: "Channel"; name: string }>;
   };
 };
 
@@ -179,31 +164,13 @@ export type GetInfoUsersQueryVariables = Exact<{
 export type GetInfoUsersQuery = {
   __typename?: "Query";
   user: {
-    __typename?: "User";
-    name: string;
-    avatar: string;
-    rank: number;
-    channels: Array<{
-      __typename?: "Channel";
-      name: string;
-      admins?: Array<{ __typename?: "User"; name: string }> | null;
-    }>;
-    friends: Array<{ __typename?: "User"; name: string; rank: number }>;
-  };
-};
-
-export type GetInfoUsersQuery = {
-  __typename?: "Query";
-  user: {
-    __typename?: "User";
+    __typename: "User";
     id: number;
-    typename: string;
     name: string;
     avatar: string;
     rank: number;
     channels: Array<{
-      __typename?: "Channel";
-      typename: string;
+      __typename: "Channel";
       name: string;
       id: number;
       messages?: Array<{
@@ -213,8 +180,7 @@ export type GetInfoUsersQuery = {
       }> | null;
     }>;
     friends: Array<{
-      __typename?: "User";
-      typename: string;
+      __typename: "User";
       name: string;
       id: number;
       messages: Array<{
@@ -226,14 +192,31 @@ export type GetInfoUsersQuery = {
   };
 };
 
+export type SearchUsersChannelsQueryVariables = Exact<{
+  name?: InputMaybe<Scalars["String"]>;
+}>;
+
+export type SearchUsersChannelsQuery = {
+  __typename?: "Query";
+  users: Array<{
+    __typename: "User";
+    name: string;
+    id: number;
+    avatar: string;
+  }>;
+  channels: Array<{ __typename: "Channel"; name: string; id: number }>;
+};
+
 export const GetChatDocument = `
     query getChat {
   user {
     friends {
+      __typename
       name
       avatar
     }
     channels {
+      __typename
       name
     }
   }
@@ -298,11 +281,12 @@ export const GetInfoUsersDocument = `
     query getInfoUsers($userId: Int) {
   user(id: $userId) {
     id
-    typename
+    __typename
     name
     avatar
     rank
     channels {
+      __typename
       name
       id
       messages {
@@ -311,6 +295,7 @@ export const GetInfoUsersDocument = `
       }
     }
     friends {
+      __typename
       name
       messages {
         content
@@ -332,6 +317,39 @@ export const useGetInfoUsersQuery = <
     variables === undefined ? ["getInfoUsers"] : ["getInfoUsers", variables],
     fetcher<GetInfoUsersQuery, GetInfoUsersQueryVariables>(
       GetInfoUsersDocument,
+      variables
+    ),
+    options
+  );
+export const SearchUsersChannelsDocument = `
+    query SearchUsersChannels($name: String) {
+  users(name: $name) {
+    __typename
+    name
+    id
+    avatar
+  }
+  channels(name: $name) {
+    __typename
+    name
+    id
+    name
+  }
+}
+    `;
+export const useSearchUsersChannelsQuery = <
+  TData = SearchUsersChannelsQuery,
+  TError = unknown
+>(
+  variables?: SearchUsersChannelsQueryVariables,
+  options?: UseQueryOptions<SearchUsersChannelsQuery, TError, TData>
+) =>
+  useQuery<SearchUsersChannelsQuery, TError, TData>(
+    variables === undefined
+      ? ["SearchUsersChannels"]
+      : ["SearchUsersChannels", variables],
+    fetcher<SearchUsersChannelsQuery, SearchUsersChannelsQueryVariables>(
+      SearchUsersChannelsDocument,
       variables
     ),
     options

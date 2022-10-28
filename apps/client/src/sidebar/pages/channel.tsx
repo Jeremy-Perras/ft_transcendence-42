@@ -1,23 +1,22 @@
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useGetChannelQuery } from "../../graphql/generated";
 
 export default function Channel() {
-  const params = useParams();
+  const { channelId } = useParams();
   const getDate = (time: number): Date => {
     return new Date(time);
   };
 
+  if (!channelId) return <div>no channel id</div>;
+
   const { isLoading, isFetching, error, data } = useGetChannelQuery({
-    channelId: +params.channelId,
+    channelId: +channelId,
   });
 
-  // const { isLoading, data, error, isFetching } = useGetChannelsMessagesQuery({
-  //   name: n,
-  // });
   return (
     <div className="flex flex-col">
       <div className="mt-4 flex w-full flex-col items-center justify-center border-2 border-black p-2 text-center text-sm">
-        <div>Channel id: {params.channelId}</div>
+        <div>Channel id: {channelId}</div>
         <div>Channel: {data?.channel.name}</div>
         <div>Owner: {data?.channel.owner.name}</div>
       </div>

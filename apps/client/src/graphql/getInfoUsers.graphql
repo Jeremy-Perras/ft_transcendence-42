@@ -1,12 +1,12 @@
 query getInfoUsers($userId: Int) {
   user(id: $userId) {
     id
-    typename
+    __typename
     name
     avatar
     rank
     channels {
-      typename
+      __typename
       name
       id
       messages {
@@ -15,7 +15,7 @@ query getInfoUsers($userId: Int) {
       }
     }
     friends {
-      typename
+      __typename
       name
       messages {
         content
