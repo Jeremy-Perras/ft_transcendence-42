@@ -15,6 +15,7 @@ query getChannel($channelId: Int!) {
       readBy {
         user {
           name
+          avatar
         }
       }
       content
