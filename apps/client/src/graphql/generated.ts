@@ -118,6 +118,21 @@ export type User = {
   rank: Scalars["Int"];
 };
 
+export type SearchUsersChannelsQueryVariables = Exact<{
+  name?: InputMaybe<Scalars["String"]>;
+}>;
+
+export type SearchUsersChannelsQuery = {
+  __typename?: "Query";
+  users: Array<{
+    __typename: "User";
+    name: string;
+    id: number;
+    avatar: string;
+  }>;
+  channels: Array<{ __typename: "Channel"; name: string; id: number }>;
+};
+
 export type GetChatQueryVariables = Exact<{ [key: string]: never }>;
 
 export type GetChatQuery = {
@@ -149,7 +164,7 @@ export type GetChannelQuery = {
       author: { __typename?: "User"; name: string };
       readBy: Array<{
         __typename?: "ChannelMessageRead";
-        user: { __typename?: "User"; name: string };
+        user: { __typename?: "User"; name: string; avatar: string };
       }>;
     }> | null;
     admins?: Array<{ __typename?: "User"; name: string; id: number }> | null;
@@ -192,21 +207,39 @@ export type GetInfoUsersQuery = {
   };
 };
 
-export type SearchUsersChannelsQueryVariables = Exact<{
-  name?: InputMaybe<Scalars["String"]>;
-}>;
-
-export type SearchUsersChannelsQuery = {
-  __typename?: "Query";
-  users: Array<{
-    __typename: "User";
-    name: string;
-    id: number;
-    avatar: string;
-  }>;
-  channels: Array<{ __typename: "Channel"; name: string; id: number }>;
-};
-
+export const SearchUsersChannelsDocument = `
+    query SearchUsersChannels($name: String) {
+  users(name: $name) {
+    __typename
+    name
+    id
+    avatar
+  }
+  channels(name: $name) {
+    __typename
+    name
+    id
+    name
+  }
+}
+    `;
+export const useSearchUsersChannelsQuery = <
+  TData = SearchUsersChannelsQuery,
+  TError = unknown
+>(
+  variables?: SearchUsersChannelsQueryVariables,
+  options?: UseQueryOptions<SearchUsersChannelsQuery, TError, TData>
+) =>
+  useQuery<SearchUsersChannelsQuery, TError, TData>(
+    variables === undefined
+      ? ["SearchUsersChannels"]
+      : ["SearchUsersChannels", variables],
+    fetcher<SearchUsersChannelsQuery, SearchUsersChannelsQueryVariables>(
+      SearchUsersChannelsDocument,
+      variables
+    ),
+    options
+  );
 export const GetChatDocument = `
     query getChat {
   user {
@@ -249,6 +282,7 @@ export const GetChannelDocument = `
       readBy {
         user {
           name
+          avatar
         }
       }
       content
@@ -317,39 +351,6 @@ export const useGetInfoUsersQuery = <
     variables === undefined ? ["getInfoUsers"] : ["getInfoUsers", variables],
     fetcher<GetInfoUsersQuery, GetInfoUsersQueryVariables>(
       GetInfoUsersDocument,
-      variables
-    ),
-    options
-  );
-export const SearchUsersChannelsDocument = `
-    query SearchUsersChannels($name: String) {
-  users(name: $name) {
-    __typename
-    name
-    id
-    avatar
-  }
-  channels(name: $name) {
-    __typename
-    name
-    id
-    name
-  }
-}
-    `;
-export const useSearchUsersChannelsQuery = <
-  TData = SearchUsersChannelsQuery,
-  TError = unknown
->(
-  variables?: SearchUsersChannelsQueryVariables,
-  options?: UseQueryOptions<SearchUsersChannelsQuery, TError, TData>
-) =>
-  useQuery<SearchUsersChannelsQuery, TError, TData>(
-    variables === undefined
-      ? ["SearchUsersChannels"]
-      : ["SearchUsersChannels", variables],
-    fetcher<SearchUsersChannelsQuery, SearchUsersChannelsQueryVariables>(
-      SearchUsersChannelsDocument,
       variables
     ),
     options

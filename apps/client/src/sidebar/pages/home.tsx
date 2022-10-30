@@ -35,7 +35,6 @@ const Chat = ({
   const getDate = (time: number): Date => {
     return new Date(time);
   };
-  const date = lastMessageTime ? getDate(+lastMessageTime).toISOString() : "";
   return (
     <div
       onClick={() =>
@@ -62,7 +61,15 @@ const Chat = ({
         <div className="flex justify-between">
           <span className="font-bold">{name}</span>
           <span className="text-xs text-slate-400">
-            {date.substring(0, 10)} - {date.substring(11, 16)}
+            {lastMessageTime
+              ? getDate(+lastMessageTime)
+                  .toISOString()
+                  .substring(0, 10) +
+                " - " +
+                getDate(+lastMessageTime)
+                  .toISOString()
+                  .substring(11, 16)
+              : ""}
           </span>
         </div>
         <span className="flex max-h-10 overflow-hidden text-clip text-sm text-slate-400">
