@@ -46,16 +46,6 @@ const Chat = ({ __typename, name, avatar, id, messages }: Chat) => {
       <div className="flex h-20 w-20 shrink-0 justify-center bg-black text-white">
         {__typename == "User" ? (
           <Avatar.Root>
-            <Avatar.Image
-              className="h-20 w-20 object-cover "
-              src={`https://i.pravatar.cc/300?img=${id}`}
-            />
-            <Avatar.Fallback delayMs={0}>
-              <UserIcon className="h-20 w-20" />
-            </Avatar.Fallback>
-          </Avatar.Root>
-        ) : __typename == "Channel" ? (
-          <Avatar.Root>
             <Avatar.Image className="h-20 w-20 object-cover " src={avatar} />
             <Avatar.Fallback delayMs={0}>
               <UserIcon className="h-20 w-20" />

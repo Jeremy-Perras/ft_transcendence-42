@@ -244,6 +244,21 @@ export type GetInfoUsersQuery = {
   };
 };
 
+export type GetUserProfileQueryVariables = Exact<{
+  userId?: InputMaybe<Scalars["Int"]>;
+}>;
+
+export type GetUserProfileQuery = {
+  __typename?: "Query";
+  user: {
+    __typename?: "User";
+    id: number;
+    name: string;
+    avatar: string;
+    rank: number;
+  };
+};
+
 export const SearchUsersChannelsDocument = `
     query SearchUsersChannels($name: String) {
   users(name: $name) {
@@ -434,6 +449,33 @@ export const useGetInfoUsersQuery = <
     variables === undefined ? ["getInfoUsers"] : ["getInfoUsers", variables],
     fetcher<GetInfoUsersQuery, GetInfoUsersQueryVariables>(
       GetInfoUsersDocument,
+      variables
+    ),
+    options
+  );
+export const GetUserProfileDocument = `
+    query GetUserProfile($userId: Int) {
+  user(id: $userId) {
+    id
+    name
+    avatar
+    rank
+  }
+}
+    `;
+export const useGetUserProfileQuery = <
+  TData = GetUserProfileQuery,
+  TError = unknown
+>(
+  variables?: GetUserProfileQueryVariables,
+  options?: UseQueryOptions<GetUserProfileQuery, TError, TData>
+) =>
+  useQuery<GetUserProfileQuery, TError, TData>(
+    variables === undefined
+      ? ["GetUserProfile"]
+      : ["GetUserProfile", variables],
+    fetcher<GetUserProfileQuery, GetUserProfileQueryVariables>(
+      GetUserProfileDocument,
       variables
     ),
     options
