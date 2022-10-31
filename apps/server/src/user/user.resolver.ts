@@ -48,7 +48,7 @@ export class UserResolver {
     };
   }
 
-  @Query((returns) => [User])
+  @Query((returns) => [User], { nullable: "items" })
   async users(
     @Args("name", { nullable: true }) name: string
   ): Promise<userType[]> {
@@ -72,7 +72,7 @@ export class UserResolver {
   }
 
   @ResolveField()
-  async friends(@Root() user: User): Promise<userType[] | null> {
+  async friends(@Root() user: User): Promise<userType[]> {
     const u = await this.prisma.user.findUnique({
       select: { friends: true },
       where: {
@@ -86,11 +86,11 @@ export class UserResolver {
           avatar: user.avatar,
           rank: user.rank,
         }))
-      : null;
+      : [];
   }
 
   @ResolveField()
-  async channels(@Root() user: User): Promise<channelType[] | null> {
+  async channels(@Root() user: User): Promise<channelType[]> {
     const c = await this.prisma.channel.findMany({
       select: {
         id: true,
@@ -127,42 +127,39 @@ export class UserResolver {
           private: channel.inviteOnly,
           passwordProtected: !!channel.password,
         }))
-      : null;
+      : [];
   }
 
   @ResolveField()
-  async blocked(
-    @Root() user: User,
-    @CurrentUser() me: User
-  ): Promise<boolean | null> {
+  async blocked(@Root() user: User, @CurrentUser() me: User): Promise<boolean> {
     const u = await this.prisma.user.findUnique({
       select: { blocking: true },
       where: {
         id: me.id,
       },
     });
-    return u ? u.blocking.some((e) => e.id === user.id) : null;
+    return u ? u.blocking.some((e) => e.id === user.id) : false;
   }
 
   @ResolveField()
   async blocking(
     @Root() user: User,
     @CurrentUser() me: User
-  ): Promise<boolean | null> {
+  ): Promise<boolean> {
     const u = await this.prisma.user.findUnique({
       select: { blockedBy: true },
       where: {
         id: me.id,
       },
     });
-    return u ? u.blockedBy.some((e) => e.id === user.id) : null;
+    return u ? u.blockedBy.some((e) => e.id === user.id) : false;
   }
 
   @ResolveField()
   async messages(
     @Root() user: User,
     @CurrentUser() me: User
-  ): Promise<directMessageType[] | null> {
+  ): Promise<directMessageType[]> {
     const u = await this.prisma.user.findUnique({
       select: {
         messageSent: {
@@ -190,11 +187,11 @@ export class UserResolver {
         id: me.id,
       },
     });
-    return u
-      ? u.messageSent
-          .concat(u.messageReceived)
+    const result = u?.messageReceived.concat(u.messageSent);
+    return result
+      ? result
           .sort(
-            (a, b) => a.sentAt.getMilliseconds() - b.sentAt.getMilliseconds()
+            (a, b) => b.sentAt.getMilliseconds() - a.sentAt.getMilliseconds()
           )
           .map((message) => ({
             id: message.id,
@@ -202,7 +199,7 @@ export class UserResolver {
             sentAt: message.sentAt,
             readAt: message.readAt ?? undefined,
           }))
-      : null;
+      : [];
   }
 }
 
@@ -211,38 +208,38 @@ export class DirectMessageResolver {
   constructor(private prisma: PrismaService) {}
 
   @ResolveField()
-  async author(@Root() message: DirectMessage): Promise<userType | null> {
-    const m = await this.prisma.directMessage.findUnique({
+  async author(@Root() message: DirectMessage): Promise<userType> {
+    let m = await this.prisma.directMessage.findUnique({
       select: { author: true },
       where: {
         id: message.id,
       },
     });
-    return m
-      ? {
-          id: m.author.id,
-          name: m.author.name,
-          avatar: m.author.avatar,
-          rank: m.author.rank,
-        }
-      : null;
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    m = m!;
+    return {
+      id: m.author.id,
+      name: m.author.name,
+      avatar: m.author.avatar,
+      rank: m.author.rank,
+    };
   }
 
   @ResolveField()
-  async recipient(@Root() message: DirectMessage): Promise<userType | null> {
-    const m = await this.prisma.directMessage.findUnique({
+  async recipient(@Root() message: DirectMessage): Promise<userType> {
+    let m = await this.prisma.directMessage.findUnique({
       select: { recipient: true },
       where: {
         id: message.id,
       },
     });
-    return m
-      ? {
-          id: m.recipient.id,
-          name: m.recipient.name,
-          avatar: m.recipient.avatar,
-          rank: m.recipient.rank,
-        }
-      : null;
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    m = m!;
+    return {
+      id: m.recipient.id,
+      name: m.recipient.name,
+      avatar: m.recipient.avatar,
+      rank: m.recipient.rank,
+    };
   }
 }

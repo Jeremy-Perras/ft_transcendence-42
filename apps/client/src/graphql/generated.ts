@@ -42,10 +42,10 @@ export type Scalars = {
 
 export type Channel = {
   __typename?: "Channel";
-  admins?: Maybe<Array<User>>;
+  admins: Array<User>;
   id: Scalars["Int"];
-  members?: Maybe<Array<User>>;
-  messages?: Maybe<Array<ChannelMessage>>;
+  members: Array<User>;
+  messages: Array<ChannelMessage>;
   name: Scalars["String"];
   owner: User;
   passwordProtected: Scalars["Boolean"];
@@ -83,7 +83,7 @@ export type Query = {
   channel: Channel;
   channels: Array<Channel>;
   user: User;
-  users: Array<User>;
+  users: Array<Maybe<User>>;
 };
 
 export type QueryChannelArgs = {
@@ -129,7 +129,7 @@ export type SearchUsersChannelsQuery = {
     name: string;
     id: number;
     avatar: string;
-  }>;
+  } | null>;
   channels: Array<{ __typename: "Channel"; name: string; id: number }>;
 };
 
@@ -156,19 +156,29 @@ export type GetChannelQuery = {
     passwordProtected: boolean;
     name: string;
     owner: { __typename?: "User"; name: string; id: number };
-    messages?: Array<{
+    messages: Array<{
       __typename?: "ChannelMessage";
       id: number;
       content: string;
       sentAt: number;
-      author: { __typename?: "User"; name: string };
+      author: { __typename?: "User"; id: number; name: string; avatar: string };
       readBy: Array<{
         __typename?: "ChannelMessageRead";
-        user: { __typename?: "User"; name: string; avatar: string };
+        user: { __typename?: "User"; id: number; name: string; avatar: string };
       }>;
-    }> | null;
-    admins?: Array<{ __typename?: "User"; name: string; id: number }> | null;
-    members?: Array<{ __typename?: "User"; name: string; id: number }> | null;
+    }>;
+    admins: Array<{
+      __typename?: "User";
+      id: number;
+      name: string;
+      avatar: string;
+    }>;
+    members: Array<{
+      __typename?: "User";
+      id: number;
+      name: string;
+      avatar: string;
+    }>;
   };
 };
 
@@ -214,11 +224,11 @@ export type GetInfoUsersQuery = {
       __typename: "Channel";
       name: string;
       id: number;
-      messages?: Array<{
+      messages: Array<{
         __typename?: "ChannelMessage";
         content: string;
         sentAt: number;
-      }> | null;
+      }>;
     }>;
     friends: Array<{
       __typename: "User";
@@ -304,10 +314,13 @@ export const GetChannelDocument = `
     messages {
       id
       author {
+        id
         name
+        avatar
       }
       readBy {
         user {
+          id
           name
           avatar
         }
@@ -316,12 +329,14 @@ export const GetChannelDocument = `
       sentAt
     }
     admins {
-      name
       id
+      name
+      avatar
     }
     members {
-      name
       id
+      name
+      avatar
     }
   }
 }

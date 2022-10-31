@@ -22,14 +22,14 @@ export class Channel {
   @Field((type) => User)
   owner: User;
 
-  @Field((type) => [User], { nullable: true })
-  admins?: [User];
+  @Field((type) => [User])
+  admins: [User | undefined];
 
-  @Field((type) => [User], { nullable: true })
-  members?: [User];
+  @Field((type) => [User])
+  members?: [User | undefined];
 
-  @Field((type) => [ChannelMessage], { nullable: true })
-  messages?: [ChannelMessage];
+  @Field((type) => [ChannelMessage])
+  messages: [ChannelMessage | undefined];
 }
 
 @ObjectType()
@@ -53,7 +53,7 @@ export class ChannelMessage {
   author: User;
 
   @Field((type) => [ChannelMessageRead])
-  readBy: [ChannelMessageRead];
+  readBy: [ChannelMessageRead | undefined];
 
   @Field()
   @IsNotEmpty()

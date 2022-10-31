@@ -106,7 +106,7 @@ export default function SideBar() {
               setShowSideBar(false);
             }
           }}
-          className="invisible absolute right-0 flex h-screen flex-col bg-slate-50 shadow-2xl shadow-black sm:w-128 2xl:relative"
+          className="invisible absolute right-0 flex h-screen w-full flex-col bg-slate-50 shadow-2xl shadow-black sm:w-128 2xl:relative"
         >
           <motion.div animate={controls}>
             <SideBarContext.Provider value={setShowSideBar}>

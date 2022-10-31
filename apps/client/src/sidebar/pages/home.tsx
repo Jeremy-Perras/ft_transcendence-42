@@ -17,35 +17,34 @@ const Empty = () => {
 };
 
 type Chat = {
-  id: number;
-  type: string;
+  __typename: "User" | "Channel";
   name: string;
-  lastMessageContent: string | null;
-  lastMessageTime: number | undefined;
-  avatar: string;
+  avatar?: string | undefined;
+  id: number;
+  messages: {
+    __typename?: "DirectMessage" | "ChannelMessage" | undefined;
+    content: string;
+    sentAt: number;
+  }[];
 };
 
-const Chat = ({
-  id,
-  type,
-  name,
-  lastMessageContent,
-  lastMessageTime,
-  avatar,
-}: Chat) => {
+const Chat = ({ __typename, name, avatar, id, messages }: Chat) => {
   const navigate = useNavigate();
   const getDate = (time: number): Date => {
     return new Date(time);
   };
+
+  const lastMessage = messages[messages.length - 1];
+
   return (
     <div
       onClick={() =>
-        navigate(`/${type == "friend" ? "chat" : "channel"}/${id}`)
+        navigate(`/${__typename == "User" ? "chat" : "channel"}/${id}`)
       }
       className="flex hover:cursor-pointer"
     >
       <div className="flex h-20 w-20 shrink-0 justify-center bg-black text-white">
-        {type == "User" ? (
+        {__typename == "User" ? (
           <Avatar.Root>
             <Avatar.Image
               className="h-20 w-20 object-cover "
@@ -55,7 +54,7 @@ const Chat = ({
               <UserIcon className="h-20 w-20" />
             </Avatar.Fallback>
           </Avatar.Root>
-        ) : type == "friend" ? (
+        ) : __typename == "Channel" ? (
           <Avatar.Root>
             <Avatar.Image className="h-20 w-20 object-cover " src={avatar} />
             <Avatar.Fallback delayMs={0}>
@@ -70,19 +69,19 @@ const Chat = ({
         <div className="flex justify-between">
           <span className="font-bold">{name}</span>
           <span className="text-xs text-slate-400">
-            {lastMessageTime
-              ? getDate(+lastMessageTime)
+            {lastMessage?.sentAt
+              ? getDate(+lastMessage.sentAt)
                   .toISOString()
                   .substring(0, 10) +
                 " at " +
-                getDate(+lastMessageTime)
+                getDate(+lastMessage.sentAt)
                   .toISOString()
                   .substring(11, 16)
               : ""}
           </span>
         </div>
         <span className="flex max-h-10 overflow-hidden text-clip text-sm text-slate-400">
-          {lastMessageContent}
+          {lastMessage?.content}
         </span>
       </div>
     </div>
@@ -90,7 +89,37 @@ const Chat = ({
 };
 
 const Home = () => {
-  const { isLoading, data, error, isFetching } = useGetInfoUsersQuery();
+  const { isLoading, data, error, isFetching } = useGetInfoUsersQuery(
+    {},
+    {
+      select({ user }) {
+        const res: {
+          currentUser: {
+            id: number;
+            name: string;
+            avatar?: string;
+            rank: number;
+          };
+          chats: Chat[];
+        } = {
+          currentUser: {
+            id: user.id,
+            name: user.name,
+            avatar: user.avatar,
+            rank: user.rank,
+          },
+          chats: [...user.friends, ...user.channels].sort((a, b) => {
+            const x = a.messages[a.messages.length - 1];
+            const y = b.messages[b.messages.length - 1];
+            if (!x) return 1;
+            if (!y) return -1;
+            return y.sentAt - x.sentAt;
+          }),
+        };
+        return res;
+      },
+    }
+  );
   const navigate = useNavigate();
   if (isLoading) return <div>Loading ...</div>;
   if (isFetching) {
@@ -99,66 +128,28 @@ const Home = () => {
   if (error) {
     return <div>Error</div>;
   } else {
-    // data?.user.friends.forEach((friend) => {
-    //   friend.messages.sort((a, b) => a.sentAt - b.sentAt);
-    // }); //TODO: check if last message is ok
     return (
-      <div>
+      <>
         <div
           className="flex flex-row items-center  border-4 border-double  border-slate-300 p-2 hover:cursor-pointer hover:bg-slate-100"
-          onClick={() => navigate(`/profile/${data?.user.id}`)}
+          onClick={() => navigate(`/profile/${data?.currentUser.id}`)}
         >
           <img
-            src={data?.user.avatar}
+            src={data?.currentUser.avatar}
             alt="Player avatar"
             className="border-2 border-solid  border-slate-300"
           />
           <div className="m-2 flex flex-col">
-            <div className="text-xl font-bold">{data?.user.name}</div>
-            <div>Rank : {data?.user.rank}</div>
+            <div className="text-xl font-bold">{data?.currentUser.name}</div>
+            <div>Rank : {data?.currentUser.rank}</div>
           </div>
         </div>
-        {data?.user.friends.map((friend, index) => (
-          <div key={index}>
-            <Chat
-              id={friend.id}
-              type="friend"
-              name={friend.name}
-              avatar={friend.avatar}
-              lastMessageContent={
-                friend.messages
-                  ? friend.messages[friend.messages.length - 1]?.content
-                  : ""
-              }
-              lastMessageTime={
-                friend.messages
-                  ? friend.messages[friend.messages.length - 1]?.sentAt
-                  : undefined
-              }
-            />
-          </div>
+
+        {data?.chats.map((chat, index) => (
+          <Chat key={index} {...chat} />
         ))}
-        {data?.user.channels.map((channel, index) => (
-          <div key={index}>
-            <Chat
-              id={channel.id}
-              type="Channel"
-              avatar=""
-              name={channel.name}
-              lastMessageContent={
-                channel.messages
-                  ? channel.messages[channel.messages.length - 1]?.content
-                  : ""
-              }
-              lastMessageTime={
-                channel.messages
-                  ? channel.messages[channel.messages.length - 1]?.sentAt
-                  : undefined
-              }
-            />
-          </div>
-        ))}
-      </div>
+        {data?.chats.length === 0 ? <Empty /> : null}
+      </>
     );
   }
 };

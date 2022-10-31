@@ -23,13 +23,17 @@ const DirectConversation = () => {
   const getDate = (time: number): Date => {
     return new Date(time);
   };
-  // data?.user.messages.sort((a, b) => a.sentAt - b.sentAt);
   return (
     <div className="mb-2 mt-2 flex w-full flex-col border-t-2 border-slate-600">
-      <div className="p-2 text-center">{data?.user.name}</div>
-      <ul className="flex w-full flex-col">
+      <div className="flex p-2 text-center">
+        <img className="flex h-12 w-12 rounded-full" src={data?.user.avatar} />
+        <div className="ml-5 flex h-full self-center text-xl font-bold">
+          {data?.user.name}
+        </div>
+      </div>
+      <ul className="flex w-full flex-col overflow-auto">
         {data?.user.messages.map((message, index) => (
-          <li key={index} className="mx-2 mb-5 flex flex-col">
+          <li key={index} className=" mx-2 mb-5 flex flex-col ">
             <div className="mb-2 flex justify-center text-center text-xs text-slate-300">
               {getDate(+message.sentAt)
                 .toISOString()
@@ -77,24 +81,5 @@ const DirectConversation = () => {
 };
 
 export default function Chat() {
-  return (
-    <div>
-      <h1 className="text-lg">chat</h1>
-      <ul>
-        <li>
-          <Link to="/">list</Link>
-        </li>
-        <li>
-          <Link to="/channel/test">channel</Link>
-        </li>
-        <li>
-          <Link to="/chat/test">chat</Link>
-        </li>
-        <li>
-          <Link to="/profile/user">profile</Link>
-        </li>
-      </ul>
-      <DirectConversation />
-    </div>
-  );
+  return <DirectConversation />;
 }

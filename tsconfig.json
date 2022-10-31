@@ -4,6 +4,7 @@
     "target": "ES2022",
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
+    "noUncheckedIndexedAccess": true,
     "strict": true,
     "strictNullChecks": true,
     "removeComments": true,
