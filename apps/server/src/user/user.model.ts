@@ -21,7 +21,7 @@ export class User {
   rank: number;
 
   @Field((type) => [User])
-  friends: [User];
+  friends: [User | undefined];
 
   @Field((type) => Boolean)
   blocked: boolean;
@@ -30,10 +30,10 @@ export class User {
   blocking: boolean;
 
   @Field((type) => [Channel])
-  channels: [Channel];
+  channels: [Channel | undefined];
 
   @Field((type) => [DirectMessage])
-  messages: [DirectMessage];
+  messages: [DirectMessage | undefined];
 }
 
 @ObjectType()

@@ -13,7 +13,7 @@ import { User } from "../user/user.model";
 import { userType } from "../user/user.resolver";
 import { Channel, ChannelMessage, ChannelMessageRead } from "./channel.model";
 
-export type channelType = Omit<Channel, "owner">;
+export type channelType = Omit<Channel, "owner" | "messages" | "admins">;
 type channelMessageType = Omit<ChannelMessage, "author" | "readBy">;
 type channelMessageReadType = Omit<ChannelMessageRead, "user">;
 
@@ -51,7 +51,7 @@ export class ChannelResolver {
     @Args("ownerId", { type: () => Int, nullable: true }) ownerId?: number,
     @Args("adminId", { type: () => Int, nullable: true }) adminId?: number,
     @Args("memberId", { type: () => Int, nullable: true }) memberId?: number
-  ): Promise<channelType[] | null> {
+  ): Promise<channelType[]> {
     const where: Prisma.ChannelWhereInput = {
       name: {
         contains: name,
@@ -75,26 +75,26 @@ export class ChannelResolver {
   }
 
   @ResolveField()
-  async owner(@Root() channel: Channel): Promise<userType | null> {
-    const owner = await this.prisma.channel
+  async owner(@Root() channel: Channel): Promise<userType> {
+    let owner = await this.prisma.channel
       .findUnique({
         where: {
           id: channel.id,
         },
       })
       .owner();
-    return owner
-      ? {
-          id: owner.id,
-          name: owner.name,
-          avatar: owner.avatar,
-          rank: owner.rank,
-        }
-      : null;
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    owner = owner!;
+    return {
+      id: owner.id,
+      name: owner.name,
+      avatar: owner.avatar,
+      rank: owner.rank,
+    };
   }
 
   @ResolveField()
-  async admins(@Root() channel: Channel): Promise<userType[] | null> {
+  async admins(@Root() channel: Channel): Promise<userType[]> {
     const admins = await this.prisma.channelAdmin.findMany({
       select: { user: true },
       where: {
@@ -108,11 +108,11 @@ export class ChannelResolver {
           avatar: admin.user.avatar,
           rank: admin.user.rank,
         }))
-      : null;
+      : [];
   }
 
   @ResolveField()
-  async members(@Root() channel: Channel): Promise<userType[] | null> {
+  async members(@Root() channel: Channel): Promise<userType[]> {
     const members = await this.prisma.channelMember.findMany({
       select: { user: true },
       where: {
@@ -126,14 +126,14 @@ export class ChannelResolver {
           avatar: member.user.avatar,
           rank: member.user.rank,
         }))
-      : null;
+      : [];
   }
 
   @ResolveField()
   async messages(
     @Root() channel: Channel,
     @CurrentUser() me: User
-  ): Promise<channelMessageType[] | null> {
+  ): Promise<channelMessageType[]> {
     const c = await this.prisma.channel.findFirst({
       select: {
         channelMessages: {
@@ -174,7 +174,7 @@ export class ChannelResolver {
           content: message.content,
           sentAt: message.sentAt,
         }))
-      : null;
+      : [];
   }
 }
 
@@ -183,29 +183,27 @@ export class ChannelMessageResolver {
   constructor(private prisma: PrismaService) {}
 
   @ResolveField()
-  async author(
-    @Root() channelMessage: ChannelMessage
-  ): Promise<userType | null> {
-    const message = await this.prisma.channelMessage.findUnique({
+  async author(@Root() channelMessage: ChannelMessage): Promise<userType> {
+    let message = await this.prisma.channelMessage.findUnique({
       select: { author: true },
       where: {
         id: channelMessage.id,
       },
     });
-    return message
-      ? {
-          id: message.author.id,
-          name: message.author.name,
-          rank: message.author.rank,
-          avatar: message.author.avatar,
-        }
-      : null;
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    message = message!;
+    return {
+      id: message.author.id,
+      name: message.author.name,
+      rank: message.author.rank,
+      avatar: message.author.avatar,
+    };
   }
 
   @ResolveField()
   async readBy(
     @Root() channelMessage: ChannelMessage
-  ): Promise<channelMessageReadType[] | null> {
+  ): Promise<channelMessageReadType[]> {
     const reads = await this.prisma.channelMessageReads.findMany({
       select: {
         id: true,
@@ -221,7 +219,7 @@ export class ChannelMessageResolver {
           id: r.id,
           readAt: r.readAt,
         }))
-      : null;
+      : [];
   }
 }
 
@@ -232,8 +230,8 @@ export class ChannelMessageReadResolver {
   @ResolveField()
   async user(
     @Root() channelMessageread: ChannelMessageRead
-  ): Promise<userType | null> {
-    const message = await this.prisma.channelMessageReads.findUnique({
+  ): Promise<userType> {
+    let message = await this.prisma.channelMessageReads.findUnique({
       select: {
         user: true,
       },
@@ -241,13 +239,13 @@ export class ChannelMessageReadResolver {
         id: channelMessageread.id,
       },
     });
-    return message
-      ? {
-          id: message.user.id,
-          avatar: message.user.avatar,
-          name: message.user.name,
-          rank: message.user.rank,
-        }
-      : null;
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    message = message!;
+    return {
+      id: message.user.id,
+      avatar: message.user.avatar,
+      name: message.user.name,
+      rank: message.user.rank,
+    };
   }
 }

@@ -10,10 +10,13 @@ query getChannel($channelId: Int!) {
     messages {
       id
       author {
+        id
         name
+        avatar
       }
       readBy {
         user {
+          id
           name
           avatar
         }
@@ -22,12 +25,14 @@ query getChannel($channelId: Int!) {
       sentAt
     }
     admins {
-      name
       id
+      name
+      avatar
     }
     members {
-      name
       id
+      name
+      avatar
     }
   }
 }
