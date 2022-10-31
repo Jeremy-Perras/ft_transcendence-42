@@ -37,7 +37,7 @@ export type Scalars = {
   Boolean: boolean;
   Int: number;
   Float: number;
-  Timestamp: any;
+  Timestamp: number;
 };
 
 export type Channel = {
@@ -160,7 +160,7 @@ export type GetChannelQuery = {
       __typename?: "ChannelMessage";
       id: number;
       content: string;
-      sentAt: any;
+      sentAt: number;
       author: { __typename?: "User"; name: string };
       readBy: Array<{
         __typename?: "ChannelMessageRead";
@@ -180,11 +180,13 @@ export type DirectMessagesQuery = {
   __typename?: "Query";
   user: {
     __typename?: "User";
+    name: string;
+    avatar: string;
     messages: Array<{
       __typename?: "DirectMessage";
       content: string;
-      sentAt: any;
-      readAt?: any | null;
+      sentAt: number;
+      readAt?: number | null;
       recipient: {
         __typename?: "User";
         id: number;
@@ -215,7 +217,7 @@ export type GetInfoUsersQuery = {
       messages?: Array<{
         __typename?: "ChannelMessage";
         content: string;
-        sentAt: any;
+        sentAt: number;
       }> | null;
     }>;
     friends: Array<{
@@ -226,7 +228,7 @@ export type GetInfoUsersQuery = {
       messages: Array<{
         __typename?: "DirectMessage";
         content: string;
-        sentAt: any;
+        sentAt: number;
       }>;
     }>;
   };
@@ -339,6 +341,8 @@ export const useGetChannelQuery = <TData = GetChannelQuery, TError = unknown>(
 export const DirectMessagesDocument = `
     query DirectMessages($userId: Int) {
   user(id: $userId) {
+    name
+    avatar
     messages {
       recipient {
         id

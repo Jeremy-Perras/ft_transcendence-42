@@ -1,5 +1,7 @@
 query DirectMessages($userId: Int) {
   user(id: $userId) {
+    name
+    avatar
     messages {
       recipient {
         id

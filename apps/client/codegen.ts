@@ -12,6 +12,9 @@ const config: CodegenConfig = {
         "typescript-react-query",
       ],
       config: {
+        scalars: {
+          Timestamp: "number",
+        },
         fetcher: {
           endpoint: "http://localhost:3000/graphql",
           fetchParams: {
