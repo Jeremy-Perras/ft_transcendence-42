@@ -16,7 +16,7 @@ module.exports = {
         },
       },
       fontFamily: {
-        cursive: ["Silkscreen"],
+        cursive: ["w95fa"],
       },
     },
   },

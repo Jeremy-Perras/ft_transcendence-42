@@ -21,7 +21,7 @@ type Chat = {
   type: string;
   name: string;
   lastMessageContent: string | null;
-  lastMessageTime: string | null;
+  lastMessageTime: number | undefined;
   avatar: string;
 };
 
@@ -74,7 +74,7 @@ const Chat = ({
               ? getDate(+lastMessageTime)
                   .toISOString()
                   .substring(0, 10) +
-                " - " +
+                " at " +
                 getDate(+lastMessageTime)
                   .toISOString()
                   .substring(11, 16)
@@ -99,6 +99,9 @@ const Home = () => {
   if (error) {
     return <div>Error</div>;
   } else {
+    // data?.user.friends.forEach((friend) => {
+    //   friend.messages.sort((a, b) => a.sentAt - b.sentAt);
+    // }); //TODO: check if last message is ok
     return (
       <div>
         <div
@@ -130,7 +133,7 @@ const Home = () => {
               lastMessageTime={
                 friend.messages
                   ? friend.messages[friend.messages.length - 1]?.sentAt
-                  : ""
+                  : undefined
               }
             />
           </div>
@@ -150,7 +153,7 @@ const Home = () => {
               lastMessageTime={
                 channel.messages
                   ? channel.messages[channel.messages.length - 1]?.sentAt
-                  : ""
+                  : undefined
               }
             />
           </div>
