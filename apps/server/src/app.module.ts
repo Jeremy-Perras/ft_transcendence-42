@@ -8,6 +8,7 @@ import { FakeAuthGuard } from "./auth/fake.guard";
 import { APP_GUARD } from "@nestjs/core";
 import { UserModule } from "./user/user.module";
 import { ChannelModule } from "./channel/channel.module";
+import { GameModule } from "./game/game.module";
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { ChannelModule } from "./channel/channel.module";
       exclude: ["/graphql"],
     }),
     UserModule,
+    GameModule,
     ChannelModule,
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,

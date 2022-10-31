@@ -4,6 +4,7 @@ import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { ReactComponent as UsersIcon } from "pixelarticons/svg/users.svg";
 import { ReactComponent as GamePadIcon } from "pixelarticons/svg/gamepad.svg";
 import { useGetInfoUsersQuery } from "../../graphql/generated";
+import Chating from "./chating";
 
 export function getDate(time: number) {
   const date = new Date(time);

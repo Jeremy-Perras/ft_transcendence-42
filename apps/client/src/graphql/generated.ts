@@ -78,10 +78,23 @@ export type DirectMessage = {
   sentAt: Scalars["Timestamp"];
 };
 
+export type Game = {
+  __typename?: "Game";
+  finishedAt?: Maybe<Scalars["Timestamp"]>;
+  gamemode: Scalars["String"];
+  id: Scalars["Int"];
+  player1: User;
+  player1score: Scalars["Int"];
+  player2: User;
+  player2score: Scalars["Int"];
+  startAt: Scalars["Timestamp"];
+};
+
 export type Query = {
   __typename?: "Query";
   channel: Channel;
   channels: Array<Channel>;
+  game: Game;
   user: User;
   users: Array<Maybe<User>>;
 };
@@ -133,17 +146,6 @@ export type SearchUsersChannelsQuery = {
   channels: Array<{ __typename: "Channel"; name: string; id: number }>;
 };
 
-export type GetChatQueryVariables = Exact<{ [key: string]: never }>;
-
-export type GetChatQuery = {
-  __typename?: "Query";
-  user: {
-    __typename?: "User";
-    friends: Array<{ __typename: "User"; name: string; avatar: string }>;
-    channels: Array<{ __typename: "Channel"; name: string }>;
-  };
-};
-
 export type GetChannelQueryVariables = Exact<{
   channelId: Scalars["Int"];
 }>;
@@ -179,6 +181,17 @@ export type GetChannelQuery = {
       name: string;
       avatar: string;
     }>;
+  };
+};
+
+export type GetChatQueryVariables = Exact<{ [key: string]: never }>;
+
+export type GetChatQuery = {
+  __typename?: "Query";
+  user: {
+    __typename?: "User";
+    friends: Array<{ __typename: "User"; name: string; avatar: string }>;
+    channels: Array<{ __typename: "Channel"; name: string }>;
   };
 };
 
@@ -292,30 +305,6 @@ export const useSearchUsersChannelsQuery = <
     ),
     options
   );
-export const GetChatDocument = `
-    query getChat {
-  user {
-    friends {
-      __typename
-      name
-      avatar
-    }
-    channels {
-      __typename
-      name
-    }
-  }
-}
-    `;
-export const useGetChatQuery = <TData = GetChatQuery, TError = unknown>(
-  variables?: GetChatQueryVariables,
-  options?: UseQueryOptions<GetChatQuery, TError, TData>
-) =>
-  useQuery<GetChatQuery, TError, TData>(
-    variables === undefined ? ["getChat"] : ["getChat", variables],
-    fetcher<GetChatQuery, GetChatQueryVariables>(GetChatDocument, variables),
-    options
-  );
 export const GetChannelDocument = `
     query getChannel($channelId: Int!) {
   channel(id: $channelId) {
@@ -366,6 +355,30 @@ export const useGetChannelQuery = <TData = GetChannelQuery, TError = unknown>(
       GetChannelDocument,
       variables
     ),
+    options
+  );
+export const GetChatDocument = `
+    query getChat {
+  user {
+    friends {
+      __typename
+      name
+      avatar
+    }
+    channels {
+      __typename
+      name
+    }
+  }
+}
+    `;
+export const useGetChatQuery = <TData = GetChatQuery, TError = unknown>(
+  variables?: GetChatQueryVariables,
+  options?: UseQueryOptions<GetChatQuery, TError, TData>
+) =>
+  useQuery<GetChatQuery, TError, TData>(
+    variables === undefined ? ["getChat"] : ["getChat", variables],
+    fetcher<GetChatQuery, GetChatQueryVariables>(GetChatDocument, variables),
     options
   );
 export const DirectMessagesDocument = `

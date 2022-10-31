@@ -1,4 +1,4 @@
-import { useContext, useRef } from "react";
+import { useContext, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useMediaQuery, useThrottledState } from "@react-hookz/web";
@@ -11,6 +11,7 @@ import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { SideBarContext } from "./context";
 import { useSearchUsersChannelsQuery } from "../graphql/generated";
 import * as Avatar from "@radix-ui/react-avatar";
+import Chating from "./pages/chating";
 
 const SearchBar = ({
   search,
@@ -78,9 +79,13 @@ const LeftButton = ({
 };
 
 function Header({
+  setTest,
+  test,
   search,
   setSearch,
 }: {
+  test: boolean;
+  setTest: React.Dispatch<React.SetStateAction<boolean>>;
   search: string;
   setSearch: (value: string) => void;
 }) {
@@ -183,6 +188,7 @@ const SearchResult = ({
                 result.id
               }`
             );
+
             setSearch("");
           }}
         >
@@ -208,16 +214,24 @@ const SearchResult = ({
 
 export const SidebarLayout = () => {
   const [search, setSearch] = useThrottledState("", 500);
-
+  const [test, setTest] = useState(false);
   return (
     <>
-      <Header search={search} setSearch={setSearch} />
+      <Header
+        test={test}
+        setTest={setTest}
+        search={search}
+        setSearch={setSearch}
+      />
       <div className="h-full overflow-y-auto">
         {search.length === 0 ? (
           <Outlet />
         ) : (
           <SearchResult search={search} setSearch={setSearch} />
         )}
+      </div>
+      <div className={`${test ? "visible" : "visible"}`}>
+        <Chating />
       </div>
     </>
   );
