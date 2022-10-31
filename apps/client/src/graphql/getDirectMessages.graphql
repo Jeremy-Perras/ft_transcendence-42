@@ -1,0 +1,19 @@
+query DirectMessages($userId: Int) {
+  user(id: $userId) {
+    messages {
+      recipient {
+        id
+        name
+        avatar
+      }
+      author {
+        id
+        name
+        avatar
+      }
+      content
+      sentAt
+      readAt
+    }
+  }
+}
