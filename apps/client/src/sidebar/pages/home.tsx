@@ -22,6 +22,7 @@ type Chat = {
   name: string;
   lastMessageContent: string | null;
   lastMessageTime: string | null;
+  avatar: string;
 };
 
 const Chat = ({
@@ -30,6 +31,7 @@ const Chat = ({
   name,
   lastMessageContent,
   lastMessageTime,
+  avatar,
 }: Chat) => {
   const navigate = useNavigate();
   const getDate = (time: number): Date => {
@@ -49,6 +51,13 @@ const Chat = ({
               className="h-20 w-20 object-cover "
               src={`https://i.pravatar.cc/300?img=${id}`}
             />
+            <Avatar.Fallback delayMs={0}>
+              <UserIcon className="h-20 w-20" />
+            </Avatar.Fallback>
+          </Avatar.Root>
+        ) : type == "friend" ? (
+          <Avatar.Root>
+            <Avatar.Image className="h-20 w-20 object-cover " src={avatar} />
             <Avatar.Fallback delayMs={0}>
               <UserIcon className="h-20 w-20" />
             </Avatar.Fallback>
@@ -110,8 +119,9 @@ const Home = () => {
           <div key={index}>
             <Chat
               id={friend.id}
-              type="User"
+              type="friend"
               name={friend.name}
+              avatar={friend.avatar}
               lastMessageContent={
                 friend.messages
                   ? friend.messages[friend.messages.length - 1]?.content
@@ -130,6 +140,7 @@ const Home = () => {
             <Chat
               id={channel.id}
               type="Channel"
+              avatar=""
               name={channel.name}
               lastMessageContent={
                 channel.messages

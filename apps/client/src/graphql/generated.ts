@@ -172,6 +172,30 @@ export type GetChannelQuery = {
   };
 };
 
+export type DirectMessagesQueryVariables = Exact<{
+  userId?: InputMaybe<Scalars["Int"]>;
+}>;
+
+export type DirectMessagesQuery = {
+  __typename?: "Query";
+  user: {
+    __typename?: "User";
+    messages: Array<{
+      __typename?: "DirectMessage";
+      content: string;
+      sentAt: any;
+      readAt?: any | null;
+      recipient: {
+        __typename?: "User";
+        id: number;
+        name: string;
+        avatar: string;
+      };
+      author: { __typename?: "User"; id: number; name: string; avatar: string };
+    }>;
+  };
+};
+
 export type GetInfoUsersQueryVariables = Exact<{
   userId?: InputMaybe<Scalars["Int"]>;
 }>;
@@ -197,6 +221,7 @@ export type GetInfoUsersQuery = {
     friends: Array<{
       __typename: "User";
       name: string;
+      avatar: string;
       id: number;
       messages: Array<{
         __typename?: "DirectMessage";
@@ -311,6 +336,44 @@ export const useGetChannelQuery = <TData = GetChannelQuery, TError = unknown>(
     ),
     options
   );
+export const DirectMessagesDocument = `
+    query DirectMessages($userId: Int) {
+  user(id: $userId) {
+    messages {
+      recipient {
+        id
+        name
+        avatar
+      }
+      author {
+        id
+        name
+        avatar
+      }
+      content
+      sentAt
+      readAt
+    }
+  }
+}
+    `;
+export const useDirectMessagesQuery = <
+  TData = DirectMessagesQuery,
+  TError = unknown
+>(
+  variables?: DirectMessagesQueryVariables,
+  options?: UseQueryOptions<DirectMessagesQuery, TError, TData>
+) =>
+  useQuery<DirectMessagesQuery, TError, TData>(
+    variables === undefined
+      ? ["DirectMessages"]
+      : ["DirectMessages", variables],
+    fetcher<DirectMessagesQuery, DirectMessagesQueryVariables>(
+      DirectMessagesDocument,
+      variables
+    ),
+    options
+  );
 export const GetInfoUsersDocument = `
     query getInfoUsers($userId: Int) {
   user(id: $userId) {
@@ -331,6 +394,7 @@ export const GetInfoUsersDocument = `
     friends {
       __typename
       name
+      avatar
       messages {
         content
         sentAt

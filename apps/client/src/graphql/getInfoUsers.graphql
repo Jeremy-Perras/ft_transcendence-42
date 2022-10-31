@@ -17,6 +17,7 @@ query getInfoUsers($userId: Int) {
     friends {
       __typename
       name
+      avatar
       messages {
         content
         sentAt
