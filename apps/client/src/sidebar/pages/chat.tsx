@@ -1,73 +1,68 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useDirectMessagesQuery } from "../../graphql/generated";
 
+export const DisplayDate = () => {
+  return <></>;
+};
+type User = {
+  __typename?: "User" | undefined;
+  id: number;
+  name: string;
+  avatar: string;
+};
+
 const DirectMessage = ({
-  message,
   userId,
+  content,
+  sentAt,
+  readAt,
+  author,
 }: {
-  message: {
-    __typename?: "DirectMessage" | undefined;
-    content: string;
-    sentAt: number;
-    readAt?: number | null | undefined;
-    recipient: {
-      __typename?: "User" | undefined;
-      id: number;
-      name: string;
-      avatar: string;
-    };
-    author: {
-      __typename?: "User" | undefined;
-      id: number;
-      name: string;
-      avatar: string;
-    };
-  };
   userId: number;
+  content: string;
+  sentAt: number;
+  readAt?: number | null | undefined;
+  author: User;
 }) => {
   const getDate = (time: number): Date => {
     return new Date(time);
   };
   return (
-    <li className=" mx-2 mb-5 flex flex-col ">
-      <div className="mb-2 flex justify-center text-center text-xs text-slate-300">
-        {getDate(+message.sentAt)
+    <li className="mx-2 mb-5 flex flex-col ">
+      <div className="mb-2 text-center text-xs text-slate-300">
+        {getDate(+sentAt)
           .toISOString()
           .substring(0, 10) +
           " at " +
-          getDate(+message.sentAt)
+          getDate(+sentAt)
             .toISOString()
             .substring(11, 16)}
       </div>
-      <div
-        className={`${
-          message.author.id === userId ? "justify-start" : "justify-end"
-        } flex flex-row`}
-      >
+      <div className="flex">
         <img
           className={`${
-            message.author.id === userId ? "order-first" : "order-last"
-          } m-1 mb-px h-6 w-6 basis-1 self-end rounded-full`}
-          src={message.author.avatar}
+            author.id === userId ? "order-first " : "order-last "
+          } m-1 mb-px flex h-6 w-6 basis-1 self-end rounded-full`}
+          src={author.avatar}
         />
         <div>
           <div
             className={`px-4 py-2 tracking-wide ${
-              message.author.id === userId
+              author.id === userId
                 ? "rounded-md bg-slate-300"
                 : "rounded-md bg-slate-200"
             }`}
           >
-            {message.content}
+            {content}
           </div>
         </div>
       </div>
       <div
         className={`${
-          message.author.id === userId ? "justify-end" : "justify-start"
+          author.id === userId ? "justify-end" : "justify-start"
         } flex text-xs text-slate-300`}
       >
-        {message.readAt != undefined ? "Seen" : ""}
+        {readAt != undefined ? "Seen" : ""}
       </div>
     </li>
   );
@@ -78,9 +73,28 @@ const DirectConversation = () => {
   if (typeof params.userId === "undefined") return <div></div>;
   const userId = +params.userId;
   const navigate = useNavigate();
-  const { isLoading, data, error, isFetching } = useDirectMessagesQuery({
-    userId: userId,
-  });
+  const { isLoading, data, error, isFetching } = useDirectMessagesQuery(
+    { userId: userId },
+    {
+      select({ user }) {
+        const res: {
+          messages: {
+            content: string;
+            sentAt: number;
+            readAt?: number | null | undefined;
+            author: User;
+          }[];
+          name: string;
+          avatar: string;
+        } = {
+          messages: user.messages,
+          name: user.name,
+          avatar: user.avatar,
+        };
+        return res;
+      },
+    }
+  );
 
   if (isLoading) return <div>Loading ...</div>;
 
@@ -98,14 +112,14 @@ const DirectConversation = () => {
         className="flex p-2 text-center hover:cursor-pointer hover:bg-slate-100"
         onClick={() => navigate(`/profile/${userId}`)}
       >
-        <img className="flex h-12 w-12 rounded-full" src={data?.user.avatar} />
+        <img className="flex h-12 w-12 rounded-full" src={data?.avatar} />
         <div className="ml-5 flex h-full self-center text-xl font-bold">
-          {data?.user.name}
+          {data?.name}
         </div>
       </div>
       <ul className="flex w-full flex-col overflow-auto">
-        {data?.user.messages.map((message, index) => (
-          <DirectMessage key={index} message={message} userId={userId} />
+        {data?.messages.map((message, index) => (
+          <DirectMessage key={index} userId={userId} {...message} />
         ))}
       </ul>
     </div>

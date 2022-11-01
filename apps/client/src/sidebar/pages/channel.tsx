@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useGetChannelQuery } from "../../graphql/generated";
@@ -110,7 +109,7 @@ const ChannelMessage = ({
           </div>
         </div>
       </div>
-      <div className="flex flex-row ">
+      <div className="flex">
         <ReadBy
           users={message.readBy.map((Users) => {
             return Users.user;
