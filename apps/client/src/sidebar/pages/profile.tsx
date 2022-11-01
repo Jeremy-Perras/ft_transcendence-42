@@ -1,5 +1,7 @@
-import { Link, useParams } from "react-router-dom";
+/* eslint-disable prettier/prettier */
+import { useParams } from "react-router-dom";
 import { useGetUserProfileQuery } from "../../graphql/generated";
+import { Error, Loading, Fetching } from "./home";
 
 const DisplayUserProfile = () => {
   const params = useParams();
@@ -8,14 +10,14 @@ const DisplayUserProfile = () => {
   const { isLoading, data, error, isFetching } = useGetUserProfileQuery({
     userId: userId,
   });
-  if (isLoading) return <div>Loading ...</div>;
+  if (isLoading) return <Loading />;
 
   if (isFetching) {
-    return <div>Fetching</div>;
+    return <Fetching />;
   }
 
   if (error) {
-    return <div>Error</div>;
+    return <Error />;
   }
   return (
     <div className="text-md mb-2 mt-2 flex w-full flex-col border-t-2 border-slate-600">

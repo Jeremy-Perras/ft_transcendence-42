@@ -1,6 +1,7 @@
+/* eslint-disable prettier/prettier */
 import { useNavigate, useParams } from "react-router-dom";
 import { useDirectMessagesQuery } from "../../graphql/generated";
-import { getDate } from "./home";
+import { getDate, Error, Loading, Fetching } from "./home";
 
 export type User = {
   __typename?: "User" | undefined;
@@ -87,14 +88,14 @@ const DirectConversation = () => {
     }
   );
 
-  if (isLoading) return <div>Loading ...</div>;
+  if (isLoading) return <Loading />;
 
   if (isFetching) {
-    return <div>Fetching</div>;
+    return <Fetching />;
   }
 
   if (error) {
-    return <div>Error</div>;
+    return <Error />;
   }
 
   return (

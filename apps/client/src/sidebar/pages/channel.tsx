@@ -1,8 +1,9 @@
+/* eslint-disable prettier/prettier */
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useGetChannelQuery } from "../../graphql/generated";
 import { User } from "./chat";
-import { getDate } from "./home";
+import { getDate, Error, Loading, Fetching } from "./home";
 
 const ReadBy = ({ users }: { users: User[] }) => {
   const navigate = useNavigate();
@@ -119,13 +120,13 @@ export default function Channel() {
     }
   );
   if (isLoading) {
-    return <div>Loading ...</div>;
+    return <Loading />;
   }
   if (isFetching) {
-    return <div>Fetching</div>;
+    return <Fetching />;
   }
   if (error) {
-    return <div>Error</div>;
+    return <Error />;
   } else {
     return (
       <div className="flex flex-col">
