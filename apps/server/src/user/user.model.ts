@@ -25,7 +25,7 @@ export class User {
   friends: [User | undefined];
 
   @Field((type) => [Game])
-  games: [Game];
+  games: [Game | undefined];
 
   @Field((type) => Boolean)
   blocked: boolean;

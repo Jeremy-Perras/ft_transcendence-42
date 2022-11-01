@@ -47,9 +47,14 @@ export class GameResolver {
 
   @Query((returns) => [Game])
   async games(
-    @Args("id", { type: () => Int, nullable: true }) id: number | null,
-    @Args("finished", { type: () => Boolean, nullable: true })
-    finished: boolean | null
+    @Args("id", { type: () => Int, nullable: true, defaultValue: null })
+    id?: number | null,
+    @Args("finished", {
+      type: () => Boolean,
+      nullable: true,
+      defaultValue: null,
+    })
+    finished?: boolean | null
   ): Promise<gameType[]> {
     const conditions: Prisma.Enumerable<Prisma.GameWhereInput> = [];
     if (finished !== null) {

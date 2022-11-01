@@ -26,7 +26,7 @@ export class Channel {
   admins: [User | undefined];
 
   @Field((type) => [User])
-  members?: [User | undefined];
+  members: [User | undefined];
 
   @Field((type) => [ChannelMessage])
   messages: [ChannelMessage | undefined];

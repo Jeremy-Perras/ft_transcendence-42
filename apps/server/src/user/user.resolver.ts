@@ -26,8 +26,9 @@ export class UserResolver {
 
   @Query((returns) => User)
   async user(
-    @Args("id", { type: () => Int, nullable: true }) id: number,
-    @CurrentUser() me: User
+    @CurrentUser() me: User,
+    @Args("id", { type: () => Int, nullable: true, defaultValue: null })
+    id?: number | null
   ): Promise<userType> {
     const user = await this.prisma.user.findUnique({
       select: {
@@ -36,12 +37,13 @@ export class UserResolver {
         avatar: true,
         rank: true,
       },
-      where: { id: id ?? me.id },
+      where: { id: id !== null ? id : me.id },
     });
 
     if (!user) {
       throw new Error("User not found");
     }
+
     return {
       id: user.id,
       name: user.name,
@@ -52,7 +54,12 @@ export class UserResolver {
 
   @Query((returns) => [User], { nullable: "items" })
   async users(
-    @Args("name", { nullable: true }) name: string
+    @Args("name", {
+      type: () => String,
+      nullable: true,
+      defaultValue: undefined,
+    })
+    name?: string | null
   ): Promise<userType[]> {
     const users = await this.prisma.user.findMany({
       select: {
@@ -61,7 +68,7 @@ export class UserResolver {
         avatar: true,
         rank: true,
       },
-      where: { name: { contains: name } },
+      where: { name: { contains: name !== null ? name : undefined } },
     });
 
     return users.map((user) => ({
@@ -91,6 +98,7 @@ export class UserResolver {
       : [];
   }
 
+  @ResolveField()
   async games(
     @Root() user: User,
     @Args("finished", {
@@ -98,7 +106,7 @@ export class UserResolver {
       nullable: true,
       defaultValue: null,
     })
-    finished: boolean | null
+    finished?: boolean | null
   ): Promise<gameType[]> {
     const conditions: Prisma.Enumerable<Prisma.GameWhereInput> = [
       {

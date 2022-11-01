@@ -13,7 +13,10 @@ import { User } from "../user/user.model";
 import { userType } from "../user/user.resolver";
 import { Channel, ChannelMessage, ChannelMessageRead } from "./channel.model";
 
-export type channelType = Omit<Channel, "owner" | "messages" | "admins">;
+export type channelType = Omit<
+  Channel,
+  "owner" | "messages" | "admins" | "members"
+>;
 type channelMessageType = Omit<ChannelMessage, "author" | "readBy">;
 type channelMessageReadType = Omit<ChannelMessageRead, "user">;
 
@@ -47,21 +50,45 @@ export class ChannelResolver {
 
   @Query((returns) => [Channel])
   async channels(
-    @Args("name", { nullable: true }) name?: string,
-    @Args("ownerId", { type: () => Int, nullable: true }) ownerId?: number,
-    @Args("adminId", { type: () => Int, nullable: true }) adminId?: number,
-    @Args("memberId", { type: () => Int, nullable: true }) memberId?: number
+    @Args("name", {
+      type: () => String,
+      nullable: true,
+      defaultValue: undefined,
+    })
+    name?: string | null,
+    @Args("ownerId", {
+      type: () => Int,
+      nullable: true,
+      defaultValue: undefined,
+    })
+    ownerId?: number | null,
+    @Args("adminId", {
+      type: () => Int,
+      nullable: true,
+      defaultValue: undefined,
+    })
+    adminId?: number | null,
+    @Args("memberId", {
+      type: () => Int,
+      nullable: true,
+      defaultValue: undefined,
+    })
+    memberId?: number | null
   ): Promise<channelType[]> {
     const where: Prisma.ChannelWhereInput = {
       name: {
-        contains: name,
+        contains: name !== null ? name : undefined,
       },
-      ownerId: ownerId,
+      ownerId: ownerId !== null ? ownerId : undefined,
     };
-    if (typeof adminId !== "undefined")
-      where.admins = { some: { userId: adminId } };
-    if (typeof memberId !== "undefined")
-      where.members = { some: { userId: memberId } };
+    if (adminId !== null && typeof adminId !== "undefined")
+      where.admins = {
+        some: { userId: adminId },
+      };
+    if (memberId !== null && typeof memberId !== "undefined")
+      where.members = {
+        some: { userId: memberId },
+      };
     const channels = await this.prisma.channel.findMany({
       select: { id: true, name: true, inviteOnly: true, password: true },
       where,
