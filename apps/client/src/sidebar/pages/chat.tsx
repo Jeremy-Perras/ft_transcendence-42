@@ -1,10 +1,11 @@
+/* eslint-disable prettier/prettier */
 import { useNavigate, useParams } from "react-router-dom";
 import { useDirectMessagesQuery } from "../../graphql/generated";
 
 export const DisplayDate = () => {
   return <></>;
 };
-type User = {
+export type User = {
   __typename?: "User" | undefined;
   id: number;
   name: string;

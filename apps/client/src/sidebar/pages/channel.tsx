@@ -1,17 +1,9 @@
+/* eslint-disable prettier/prettier */
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useGetChannelQuery } from "../../graphql/generated";
-
-const ReadBy = ({
-  users,
-}: {
-  users: {
-    __typename?: "User" | undefined;
-    id: number;
-    name: string;
-    avatar: string;
-  }[];
-}) => {
+import { User } from "./chat";
+const ReadBy = ({ users }: { users: User[] }) => {
   const navigate = useNavigate();
 
   return (
@@ -47,31 +39,29 @@ const ReadBy = ({
     </div>
   );
 };
+type ChannelMessage = {
+  author: User;
+  readBy: {
+    __typename?: "ChannelMessageRead" | undefined;
+    user: User;
+  }[];
+  content: string;
+  sentAt: number;
+};
 
 const ChannelMessage = ({
-  message,
+  author,
+  readBy,
+  content,
+  sentAt,
 }: {
-  message: {
-    __typename?: "ChannelMessage" | undefined;
-    id: number;
-
-    author: {
-      __typename?: "User" | undefined;
-      id: number;
-      name: string;
-      avatar: string;
-    };
-    readBy: {
-      __typename?: "ChannelMessageRead" | undefined;
-      user: {
-        id: number;
-        name: string;
-        avatar: string;
-      };
-    }[];
-    content: string;
-    sentAt: number;
-  };
+  author: User;
+  readBy: {
+    __typename?: "ChannelMessageRead" | undefined;
+    user: User;
+  }[];
+  content: string;
+  sentAt: number;
 }) => {
   const navigate = useNavigate();
   const getDate = (time: number): Date => {
@@ -80,12 +70,12 @@ const ChannelMessage = ({
   return (
     <>
       <div className="mt-6 text-center text-xs text-slate-300">
-        {message.sentAt
-          ? getDate(+message.sentAt)
+        {sentAt
+          ? getDate(+sentAt)
               .toISOString()
               .substring(0, 10) +
             " - " +
-            getDate(+message.sentAt)
+            getDate(+sentAt)
               .toISOString()
               .substring(11, 16)
           : ""}
@@ -95,23 +85,23 @@ const ChannelMessage = ({
           <div className="flex self-end">
             <img
               className="h-6 w-6 rounded-full transition-all hover:h-7 hover:w-7"
-              src={message.author.avatar}
-              onClick={() => navigate(`/profile/${message.author.id}`)}
+              src={author.avatar}
+              onClick={() => navigate(`/profile/${author.id}`)}
             />
           </div>
         </div>
         <div className="flex flex-col">
           <div className="text-left text-xs tracking-wide text-slate-400">
-            <span>{message.author.name} </span>
+            <span>{author.name} </span>
           </div>
           <div className="rounded-md bg-slate-200 px-4 py-2 text-left tracking-wide">
-            {message.content}
+            {content}
           </div>
         </div>
       </div>
       <div className="flex">
         <ReadBy
-          users={message.readBy.map((Users) => {
+          users={readBy.map((Users) => {
             return Users.user;
           })}
         />
@@ -125,9 +115,25 @@ export default function Channel() {
 
   if (!channelId) return <div>no channel id</div>;
 
-  const { isLoading, isFetching, error, data } = useGetChannelQuery({
-    channelId: +channelId,
-  });
+  const { isLoading, isFetching, error, data } = useGetChannelQuery(
+    {
+      channelId: +channelId,
+    },
+    {
+      select({ channel }) {
+        const res: {
+          name: string;
+          messages: ChannelMessage[];
+          owner: { id: number; name: string };
+        } = {
+          name: channel.name,
+          messages: channel.messages,
+          owner: { id: channel.owner.id, name: channel.owner.name },
+        };
+        return res;
+      },
+    }
+  );
   if (isLoading) {
     return <div>Loading ...</div>;
   }
@@ -140,12 +146,12 @@ export default function Channel() {
     return (
       <div className="flex flex-col">
         <div className="mt-4 flex w-full flex-col items-center justify-center border-2 border-black p-2 text-center text-sm">
-          <div>Channel: {data?.channel.name}</div>
-          <div>Owner: {data?.channel.owner.name}</div>
+          <div>Channel: {data?.name}</div>
+          <div>Owner: {data?.owner.name}</div>
         </div>
         <div className="flex h-full w-full flex-col pr-2 pl-px">
-          {data?.channel.messages?.map((m, index) => (
-            <ChannelMessage key={index} message={m} />
+          {data?.messages?.map((message, index) => (
+            <ChannelMessage key={index} {...message} />
           ))}
         </div>
       </div>
