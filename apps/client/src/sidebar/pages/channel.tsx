@@ -1,8 +1,9 @@
-/* eslint-disable prettier/prettier */
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useGetChannelQuery } from "../../graphql/generated";
 import { User } from "./chat";
+import { getDate } from "./home";
+
 const ReadBy = ({ users }: { users: User[] }) => {
   const navigate = useNavigate();
 
@@ -11,7 +12,7 @@ const ReadBy = ({ users }: { users: User[] }) => {
       <div className="mb-px mr-1 w-full text-end text-xs text-slate-300 ">
         Seen by
       </div>
-      {users.map((user, index) => {
+      {users.map(({ id, name, avatar }, index) => {
         const [showName, setShowName] = useState(false);
         return (
           <div
@@ -21,17 +22,17 @@ const ReadBy = ({ users }: { users: User[] }) => {
             <img
               className="m-px h-4 w-4 self-center rounded-full transition-all hover:h-5 hover:w-5"
               key={index}
-              src={user.avatar}
-              onClick={() => navigate(`/profile/${user.id}`)}
+              src={avatar}
+              onClick={() => navigate(`/profile/${id}`)}
               onMouseOver={() => setShowName(true)}
               onMouseOut={() => setShowName(false)}
             ></img>
             <div
               className={`${
                 showName ? "opacity-100" : "opacity-0 "
-              }  absolute top-5 right-0 my-1 w-24 grow text-ellipsis text-right text-xs text-slate-300 transition-all duration-100`}
+              } absolute top-5 right-0 my-1 w-24 grow text-ellipsis text-right text-xs text-slate-300 transition-all duration-100`}
             >
-              {user.name}
+              {name}
             </div>
           </div>
         );
@@ -39,6 +40,7 @@ const ReadBy = ({ users }: { users: User[] }) => {
     </div>
   );
 };
+
 type ChannelMessage = {
   author: User;
   readBy: {
@@ -54,31 +56,13 @@ const ChannelMessage = ({
   readBy,
   content,
   sentAt,
-}: {
-  author: User;
-  readBy: {
-    __typename?: "ChannelMessageRead" | undefined;
-    user: User;
-  }[];
-  content: string;
-  sentAt: number;
-}) => {
+}: ChannelMessage) => {
   const navigate = useNavigate();
-  const getDate = (time: number): Date => {
-    return new Date(time);
-  };
+
   return (
     <>
       <div className="mt-6 text-center text-xs text-slate-300">
-        {sentAt
-          ? getDate(+sentAt)
-              .toISOString()
-              .substring(0, 10) +
-            " - " +
-            getDate(+sentAt)
-              .toISOString()
-              .substring(11, 16)
-          : ""}
+        {getDate(+sentAt)}
       </div>
       <div className="flex w-full">
         <div className="flex w-9 shrink-0 justify-center">

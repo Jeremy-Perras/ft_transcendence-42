@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import { useNavigate } from "react-router-dom";
 import * as Avatar from "@radix-ui/react-avatar";
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
@@ -6,6 +5,14 @@ import { ReactComponent as UsersIcon } from "pixelarticons/svg/users.svg";
 import { ReactComponent as GamePadIcon } from "pixelarticons/svg/gamepad.svg";
 import { useGetInfoUsersQuery } from "../../graphql/generated";
 
+export function getDate(time: number) {
+  const date = new Date(time);
+  return (
+    date.toISOString().substring(0, 10) +
+    " at " +
+    date.toISOString().substring(11, 16)
+  );
+}
 const Empty = () => {
   return (
     <div className="flex h-full select-none flex-col items-center justify-center text-slate-200">
@@ -31,9 +38,6 @@ type Chat = {
 
 const Chat = ({ __typename, name, avatar, id, messages }: Chat) => {
   const navigate = useNavigate();
-  const getDate = (time: number): Date => {
-    return new Date(time);
-  };
 
   const lastMessage = messages[messages.length - 1];
 
@@ -60,15 +64,7 @@ const Chat = ({ __typename, name, avatar, id, messages }: Chat) => {
         <div className="flex justify-between">
           <span className="font-bold">{name}</span>
           <span className="text-xs text-slate-400">
-            {lastMessage?.sentAt
-              ? getDate(+lastMessage.sentAt)
-                  .toISOString()
-                  .substring(0, 10) +
-                " at " +
-                getDate(+lastMessage.sentAt)
-                  .toISOString()
-                  .substring(11, 16)
-              : ""}
+            {lastMessage?.sentAt ? getDate(+lastMessage.sentAt) : ""}
           </span>
         </div>
         <span className="flex max-h-10 overflow-hidden text-clip text-sm text-slate-400">
