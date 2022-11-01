@@ -1,15 +1,20 @@
-/* eslint-disable prettier/prettier */
 import { useNavigate, useParams } from "react-router-dom";
 import { useDirectMessagesQuery } from "../../graphql/generated";
+import { getDate } from "./home";
 
-export const DisplayDate = () => {
-  return <></>;
-};
 export type User = {
   __typename?: "User" | undefined;
   id: number;
   name: string;
   avatar: string;
+};
+
+type DirectMessage = {
+  userId: number;
+  content: string;
+  sentAt: number;
+  readAt?: number | null | undefined;
+  author: User;
 };
 
 const DirectMessage = ({
@@ -18,26 +23,11 @@ const DirectMessage = ({
   sentAt,
   readAt,
   author,
-}: {
-  userId: number;
-  content: string;
-  sentAt: number;
-  readAt?: number | null | undefined;
-  author: User;
-}) => {
-  const getDate = (time: number): Date => {
-    return new Date(time);
-  };
+}: DirectMessage) => {
   return (
     <li className="mx-2 mb-5 flex flex-col ">
       <div className="mb-2 text-center text-xs text-slate-300">
-        {getDate(+sentAt)
-          .toISOString()
-          .substring(0, 10) +
-          " at " +
-          getDate(+sentAt)
-            .toISOString()
-            .substring(11, 16)}
+        {getDate(+sentAt)}
       </div>
       <div className="flex">
         <img
