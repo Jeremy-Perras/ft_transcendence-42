@@ -230,9 +230,7 @@ export const SidebarLayout = () => {
           <SearchResult search={search} setSearch={setSearch} />
         )}
       </div>
-      <div className={`${test ? "visible" : "visible"}`}>
-        <Chating />
-      </div>
+      <div className={`${test ? "visible" : "visible"}`}></div>
     </>
   );
 };

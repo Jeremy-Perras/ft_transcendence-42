@@ -1,5 +1,11 @@
+import { Content } from "@radix-ui/react-dialog";
+import { useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useDirectMessagesQuery } from "../../graphql/generated";
+import {
+  useDirectMessagesQuery,
+  useSendDirectMessageMutation,
+} from "../../graphql/generated";
 import { getDate } from "./home";
 
 export type User = {
@@ -60,10 +66,12 @@ const DirectMessage = ({
 };
 
 const DirectConversation = () => {
+  const queryClient = useQueryClient();
   const params = useParams();
   if (typeof params.userId === "undefined") return <div></div>;
   const userId = +params.userId;
   const navigate = useNavigate();
+  const [content, setContent] = useState("");
   const { isLoading, data, error, isFetching } = useDirectMessagesQuery(
     { userId: userId },
     {
@@ -86,7 +94,11 @@ const DirectConversation = () => {
       },
     }
   );
-
+  const messageMutation = useSendDirectMessageMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries(["DirectMessages", { userId: userId }]);
+    },
+  });
   if (isLoading) return <div>Loading ...</div>;
 
   if (isFetching) {
@@ -96,7 +108,7 @@ const DirectConversation = () => {
   if (error) {
     return <div>Error</div>;
   }
-
+  console.log(content);
   return (
     <div className="mb-2 mt-2 flex w-full flex-col border-t-2 border-slate-600">
       <div
@@ -113,6 +125,24 @@ const DirectConversation = () => {
           <DirectMessage key={index} userId={userId} {...message} />
         ))}
       </ul>
+      <textarea
+        rows={1}
+        className=" w-full rounded-xl bg-gray-300 py-5 px-3"
+        onChange={(e) => setContent(e.target.value)}
+        placeholder="type your message here..."
+        onKeyDown={(e) => {
+          if (e.code == "Enter" && !e.getModifierState("Shift")) {
+            messageMutation.mutate({
+              message: content,
+              recipientId: userId,
+            });
+
+            e.currentTarget.value = "";
+            e.preventDefault();
+            setContent("");
+          }
+        }}
+      />
     </div>
   );
 };

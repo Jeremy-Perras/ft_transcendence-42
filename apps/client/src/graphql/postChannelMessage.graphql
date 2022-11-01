@@ -1,0 +1,18 @@
+mutation sendChannelMessage($message: String!, $recipientId: Int!) {
+  sendChanelMessage(message: $message, recipientId: $recipientId) {
+    id
+    author {
+      name
+      id
+    }
+    readBy {
+      id
+      user {
+        name
+        id
+      }
+    }
+    content
+    sentAt
+  }
+}

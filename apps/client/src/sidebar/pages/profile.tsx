@@ -1,14 +1,6 @@
 import { Link, useParams } from "react-router-dom";
 import { useGetUserProfileQuery } from "../../graphql/generated";
 
-const getInfoUser = () => {
-  const { isLoading, data, error, isFetching } = useGetInfoUsersQuery();
-  return data;
-};
-const getGameHitsory = () => {
-  const { isLoading, data, error, isFetching } = useGameHistoryQuery();
-  return data;
-};
 const DisplayUserProfile = () => {
   const params = useParams();
   if (typeof params.userId === "undefined") return <div></div>;

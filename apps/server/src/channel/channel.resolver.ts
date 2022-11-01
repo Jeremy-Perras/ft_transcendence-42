@@ -1,6 +1,7 @@
 import {
   Args,
   Int,
+  Mutation,
   Query,
   ResolveField,
   Resolver,
@@ -273,6 +274,27 @@ export class ChannelMessageReadResolver {
       avatar: message.user.avatar,
       name: message.user.name,
       rank: message.user.rank,
+    };
+  }
+
+  @Mutation((returns) => ChannelMessage)
+  async sendChanelMessage(
+    @Args("message", { type: () => String }) message: string,
+    @Args("recipientId", { type: () => Int }) recipientId: number,
+    @CurrentUser() me: User
+  ): Promise<channelMessageType> {
+    const m = await this.prisma.channelMessage.create({
+      data: {
+        content: message,
+        sentAt: new Date(),
+        authorId: me.id,
+        channelId: recipientId,
+      },
+    });
+    return {
+      id: m.id,
+      content: m.content,
+      sentAt: m.sentAt,
     };
   }
 }

@@ -1,3 +1,4 @@
+import { Post } from "@nestjs/common";
 import {
   Resolver,
   Query,
@@ -5,6 +6,9 @@ import {
   Int,
   ResolveField,
   Root,
+  Mutation,
+  registerEnumType,
+  createUnionType,
 } from "@nestjs/graphql";
 import { Prisma } from "@prisma/client";
 import { CurrentUser } from "../auth/currentUser.decorator";
@@ -302,6 +306,30 @@ export class DirectMessageResolver {
       name: m.recipient.name,
       avatar: m.recipient.avatar,
       rank: m.recipient.rank,
+    };
+  }
+
+  @Mutation((returns) => DirectMessage)
+  async sendDirectMessage(
+    @Args("message", { type: () => String }) message: string,
+    @Args("recipientId", { type: () => Int }) recipientId: number,
+    @CurrentUser() me: User
+  ): Promise<directMessageType> {
+    if (recipientId === me.id)
+      throw new Error("You cannot send messages to yourself");
+
+    const m = await this.prisma.directMessage.create({
+      data: {
+        content: message,
+        sentAt: new Date(),
+        authorId: me.id,
+        recipientId: recipientId,
+      },
+    });
+    return {
+      id: m.id,
+      content: m.content,
+      sentAt: m.sentAt,
     };
   }
 }

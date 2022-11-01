@@ -1,4 +1,9 @@
-import { useQuery, UseQueryOptions } from "@tanstack/react-query";
+import {
+  useQuery,
+  useMutation,
+  UseQueryOptions,
+  UseMutationOptions,
+} from "@tanstack/react-query";
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = {
@@ -90,12 +95,28 @@ export type Game = {
   startAt: Scalars["Timestamp"];
 };
 
+export type Mutation = {
+  __typename?: "Mutation";
+  sendChanelMessage: ChannelMessage;
+  sendDirectMessage: DirectMessage;
+};
+
+export type MutationSendChanelMessageArgs = {
+  message: Scalars["String"];
+  recipientId: Scalars["Int"];
+};
+
+export type MutationSendDirectMessageArgs = {
+  message: Scalars["String"];
+  recipientId: Scalars["Int"];
+};
+
 export type Query = {
   __typename?: "Query";
   channel: Channel;
   channels: Array<Channel>;
-  game: Array<Game>;
-  gameinprog: Array<Game>;
+  game: Game;
+  games: Array<Game>;
   user: User;
   users: Array<Maybe<User>>;
 };
@@ -109,6 +130,15 @@ export type QueryChannelsArgs = {
   memberId?: InputMaybe<Scalars["Int"]>;
   name?: InputMaybe<Scalars["String"]>;
   ownerId?: InputMaybe<Scalars["Int"]>;
+};
+
+export type QueryGameArgs = {
+  id: Scalars["Int"];
+};
+
+export type QueryGamesArgs = {
+  finished?: InputMaybe<Scalars["Boolean"]>;
+  id?: InputMaybe<Scalars["Int"]>;
 };
 
 export type QueryUserArgs = {
@@ -126,10 +156,15 @@ export type User = {
   blocking: Scalars["Boolean"];
   channels: Array<Channel>;
   friends: Array<User>;
+  games: Array<Game>;
   id: Scalars["Int"];
   messages: Array<DirectMessage>;
   name: Scalars["String"];
   rank: Scalars["Int"];
+};
+
+export type UserGamesArgs = {
+  finished?: InputMaybe<Scalars["Boolean"]>;
 };
 
 export type SearchUsersChannelsQueryVariables = Exact<{
@@ -222,40 +257,6 @@ export type DirectMessagesQuery = {
   };
 };
 
-export type GameHistoryQueryVariables = Exact<{ [key: string]: never }>;
-
-export type GameHistoryQuery = {
-  __typename?: "Query";
-  game: Array<{
-    __typename?: "Game";
-    id: number;
-    gamemode: string;
-    startAt: any;
-    finishedAt?: any | null;
-    player1score: number;
-    player2score: number;
-    player1: { __typename?: "User"; id: number; name: string; avatar: string };
-    player2: { __typename?: "User"; id: number; name: string; avatar: string };
-  }>;
-};
-
-export type GameinprogQueryVariables = Exact<{ [key: string]: never }>;
-
-export type GameinprogQuery = {
-  __typename?: "Query";
-  gameinprog: Array<{
-    __typename?: "Game";
-    id: number;
-    gamemode: string;
-    startAt: any;
-    finishedAt?: any | null;
-    player1score: number;
-    player2score: number;
-    player1: { __typename?: "User"; name: string; id: number; avatar: string };
-    player2: { __typename?: "User"; id: number; name: string; avatar: string };
-  }>;
-};
-
 export type GetInfoUsersQueryVariables = Exact<{
   userId?: InputMaybe<Scalars["Int"]>;
 }>;
@@ -305,6 +306,37 @@ export type GetUserProfileQuery = {
     avatar: string;
     rank: number;
   };
+};
+
+export type SendChannelMessageMutationVariables = Exact<{
+  message: Scalars["String"];
+  recipientId: Scalars["Int"];
+}>;
+
+export type SendChannelMessageMutation = {
+  __typename?: "Mutation";
+  sendChanelMessage: {
+    __typename?: "ChannelMessage";
+    id: number;
+    content: string;
+    sentAt: number;
+    author: { __typename?: "User"; name: string; id: number };
+    readBy: Array<{
+      __typename?: "ChannelMessageRead";
+      id: number;
+      user: { __typename?: "User"; name: string; id: number };
+    }>;
+  };
+};
+
+export type SendDirectMessageMutationVariables = Exact<{
+  message: Scalars["String"];
+  recipientId: Scalars["Int"];
+}>;
+
+export type SendDirectMessageMutation = {
+  __typename?: "Mutation";
+  sendDirectMessage: { __typename?: "DirectMessage"; id: number };
 };
 
 export const SearchUsersChannelsDocument = `
@@ -456,74 +488,6 @@ export const useDirectMessagesQuery = <
     ),
     options
   );
-export const GameHistoryDocument = `
-    query GameHistory {
-  game {
-    id
-    gamemode
-    startAt
-    finishedAt
-    player1 {
-      id
-      name
-      avatar
-    }
-    player1score
-    player2score
-    player2 {
-      id
-      name
-      avatar
-    }
-  }
-}
-    `;
-export const useGameHistoryQuery = <TData = GameHistoryQuery, TError = unknown>(
-  variables?: GameHistoryQueryVariables,
-  options?: UseQueryOptions<GameHistoryQuery, TError, TData>
-) =>
-  useQuery<GameHistoryQuery, TError, TData>(
-    variables === undefined ? ["GameHistory"] : ["GameHistory", variables],
-    fetcher<GameHistoryQuery, GameHistoryQueryVariables>(
-      GameHistoryDocument,
-      variables
-    ),
-    options
-  );
-export const GameinprogDocument = `
-    query Gameinprog {
-  gameinprog {
-    id
-    gamemode
-    startAt
-    finishedAt
-    player1 {
-      name
-      id
-      avatar
-    }
-    player2 {
-      id
-      name
-      avatar
-    }
-    player1score
-    player2score
-  }
-}
-    `;
-export const useGameinprogQuery = <TData = GameinprogQuery, TError = unknown>(
-  variables?: GameinprogQueryVariables,
-  options?: UseQueryOptions<GameinprogQuery, TError, TData>
-) =>
-  useQuery<GameinprogQuery, TError, TData>(
-    variables === undefined ? ["Gameinprog"] : ["Gameinprog", variables],
-    fetcher<GameinprogQuery, GameinprogQueryVariables>(
-      GameinprogDocument,
-      variables
-    ),
-    options
-  );
 export const GetInfoUsersDocument = `
     query getInfoUsers($userId: Int) {
   user(id: $userId) {
@@ -594,5 +558,82 @@ export const useGetUserProfileQuery = <
       GetUserProfileDocument,
       variables
     ),
+    options
+  );
+export const SendChannelMessageDocument = `
+    mutation sendChannelMessage($message: String!, $recipientId: Int!) {
+  sendChanelMessage(message: $message, recipientId: $recipientId) {
+    id
+    author {
+      name
+      id
+    }
+    readBy {
+      id
+      user {
+        name
+        id
+      }
+    }
+    content
+    sentAt
+  }
+}
+    `;
+export const useSendChannelMessageMutation = <
+  TError = unknown,
+  TContext = unknown
+>(
+  options?: UseMutationOptions<
+    SendChannelMessageMutation,
+    TError,
+    SendChannelMessageMutationVariables,
+    TContext
+  >
+) =>
+  useMutation<
+    SendChannelMessageMutation,
+    TError,
+    SendChannelMessageMutationVariables,
+    TContext
+  >(
+    ["sendChannelMessage"],
+    (variables?: SendChannelMessageMutationVariables) =>
+      fetcher<SendChannelMessageMutation, SendChannelMessageMutationVariables>(
+        SendChannelMessageDocument,
+        variables
+      )(),
+    options
+  );
+export const SendDirectMessageDocument = `
+    mutation SendDirectMessage($message: String!, $recipientId: Int!) {
+  sendDirectMessage(message: $message, recipientId: $recipientId) {
+    id
+  }
+}
+    `;
+export const useSendDirectMessageMutation = <
+  TError = unknown,
+  TContext = unknown
+>(
+  options?: UseMutationOptions<
+    SendDirectMessageMutation,
+    TError,
+    SendDirectMessageMutationVariables,
+    TContext
+  >
+) =>
+  useMutation<
+    SendDirectMessageMutation,
+    TError,
+    SendDirectMessageMutationVariables,
+    TContext
+  >(
+    ["SendDirectMessage"],
+    (variables?: SendDirectMessageMutationVariables) =>
+      fetcher<SendDirectMessageMutation, SendDirectMessageMutationVariables>(
+        SendDirectMessageDocument,
+        variables
+      )(),
     options
   );
