@@ -6,14 +6,16 @@ import {
   ResolveField,
   Root,
 } from "@nestjs/graphql";
+import { Prisma } from "@prisma/client";
 import { CurrentUser } from "../auth/currentUser.decorator";
 import { channelType } from "../channel/channel.resolver";
+import { gameType } from "../game/game.resolver";
 import { PrismaService } from "../prisma/prisma.service";
 import { DirectMessage, User } from "./user.model";
 
 export type userType = Omit<
   User,
-  "friends" | "blocked" | "blocking" | "messages" | "channels"
+  "friends" | "blocked" | "blocking" | "messages" | "channels" | "games"
 >;
 
 type directMessageType = Omit<DirectMessage, "author" | "recipient">;
@@ -87,6 +89,58 @@ export class UserResolver {
           rank: user.rank,
         }))
       : [];
+  }
+
+  async games(
+    @Root() user: User,
+    @Args("finished", {
+      type: () => Boolean,
+      nullable: true,
+      defaultValue: null,
+    })
+    finished: boolean | null
+  ): Promise<gameType[]> {
+    const conditions: Prisma.Enumerable<Prisma.GameWhereInput> = [
+      {
+        OR: [
+          {
+            player1Id: user.id,
+          },
+          {
+            player2Id: user.id,
+          },
+        ],
+      },
+    ];
+
+    if (finished !== null) {
+      conditions.push(
+        finished ? { NOT: { finishedAt: null } } : { finishedAt: null }
+      );
+    }
+
+    const games = await this.prisma.game.findMany({
+      select: {
+        id: true,
+        startedAt: true,
+        finishedAt: true,
+        mode: true,
+        player1Score: true,
+        player2Score: true,
+      },
+      where: {
+        AND: conditions,
+      },
+    });
+    console.log(games);
+    return games.map((game) => ({
+      id: game.id,
+      gamemode: game.mode.name,
+      startAt: game.startedAt,
+      finishedAt: game.finishedAt ?? undefined,
+      player1score: game.player1Score,
+      player2score: game.player2Score,
+    }));
   }
 
   @ResolveField()

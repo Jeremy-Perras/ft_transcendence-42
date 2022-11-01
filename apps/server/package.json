@@ -8,7 +8,7 @@
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "nest build",
-    "dev": "nest start --watch",
+    "dev": "NODE_ENV=development nest start --watch",
     "prisma:watch": "prisma generate --watch",
     "prisma:generate": "prisma generate",
     "prisma:seed": "rimraf prisma/dev.db && npm run prisma:push && prisma db seed",

@@ -2,6 +2,7 @@ import "reflect-metadata";
 import { Field, Int, ObjectType } from "@nestjs/graphql";
 import { IsNotEmpty, Min } from "class-validator";
 import { Channel } from "../channel/channel.model";
+import { Game } from "../game/game.model";
 
 @ObjectType()
 export class User {
@@ -22,6 +23,9 @@ export class User {
 
   @Field((type) => [User])
   friends: [User | undefined];
+
+  @Field((type) => [Game])
+  games: [Game];
 
   @Field((type) => Boolean)
   blocked: boolean;
