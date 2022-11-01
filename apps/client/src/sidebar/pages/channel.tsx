@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useGetChannelQuery } from "../../graphql/generated";
@@ -16,7 +17,7 @@ const ReadBy = ({
 
   return (
     <div className="ml-24 flex h-6 w-full items-end justify-start">
-      <div className="mb-px mr-1 flex w-full justify-end text-end text-xs text-slate-300 ">
+      <div className="mb-px mr-1 w-full text-end text-xs text-slate-300 ">
         Seen by
       </div>
       {users.map((user, index) => {
@@ -78,8 +79,8 @@ const ChannelMessage = ({
     return new Date(time);
   };
   return (
-    <div className="">
-      <div className="mt-6 flex justify-center text-center text-xs text-slate-300">
+    <>
+      <div className="mt-6 text-center text-xs text-slate-300">
         {message.sentAt
           ? getDate(+message.sentAt)
               .toISOString()
@@ -90,11 +91,11 @@ const ChannelMessage = ({
               .substring(11, 16)
           : ""}
       </div>
-      <div className="flex w-full flex-row">
+      <div className="flex w-full">
         <div className="flex w-9 shrink-0 justify-center">
-          <div className="flex justify-center self-end">
+          <div className="flex self-end">
             <img
-              className="flex h-6 w-6 basis-1 self-center rounded-full transition-all hover:h-7 hover:w-7"
+              className="h-6 w-6 rounded-full transition-all hover:h-7 hover:w-7"
               src={message.author.avatar}
               onClick={() => navigate(`/profile/${message.author.id}`)}
             />
@@ -110,15 +111,13 @@ const ChannelMessage = ({
         </div>
       </div>
       <div className="flex flex-row ">
-        {
-          <ReadBy
-            users={message.readBy.map((Users) => {
-              return Users.user;
-            })}
-          />
-        }
+        <ReadBy
+          users={message.readBy.map((Users) => {
+            return Users.user;
+          })}
+        />
       </div>
-    </div>
+    </>
   );
 };
 
