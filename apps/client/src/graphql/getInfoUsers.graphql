@@ -1,4 +1,4 @@
-query getInfoUsers($userId: Int) {
+query getInfoUsers($userId: Int,$finished: Boolean) {
   user(id: $userId) {
     id
     __typename
@@ -13,6 +13,24 @@ query getInfoUsers($userId: Int) {
         content
         sentAt
       }
+    }
+   games(finished: $finished) {
+      id
+      gamemode
+      startAt
+      finishedAt
+      player1 {
+      avatar
+        id
+        name
+      }
+      player2 {
+        id
+        avatar
+        name
+      }
+      player1score
+      player2score
     }
     friends {
       __typename

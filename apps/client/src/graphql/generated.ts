@@ -94,8 +94,8 @@ export type Query = {
   __typename?: "Query";
   channel: Channel;
   channels: Array<Channel>;
-  game: Array<Game>;
-  gameinprog: Array<Game>;
+  game: Game;
+  games: Array<Game>;
   user: User;
   users: Array<Maybe<User>>;
 };
@@ -109,6 +109,15 @@ export type QueryChannelsArgs = {
   memberId?: InputMaybe<Scalars["Int"]>;
   name?: InputMaybe<Scalars["String"]>;
   ownerId?: InputMaybe<Scalars["Int"]>;
+};
+
+export type QueryGameArgs = {
+  id: Scalars["Int"];
+};
+
+export type QueryGamesArgs = {
+  finished?: InputMaybe<Scalars["Boolean"]>;
+  id?: InputMaybe<Scalars["Int"]>;
 };
 
 export type QueryUserArgs = {
@@ -126,10 +135,15 @@ export type User = {
   blocking: Scalars["Boolean"];
   channels: Array<Channel>;
   friends: Array<User>;
+  games: Array<Game>;
   id: Scalars["Int"];
   messages: Array<DirectMessage>;
   name: Scalars["String"];
   rank: Scalars["Int"];
+};
+
+export type UserGamesArgs = {
+  finished?: InputMaybe<Scalars["Boolean"]>;
 };
 
 export type SearchUsersChannelsQueryVariables = Exact<{
@@ -222,42 +236,9 @@ export type DirectMessagesQuery = {
   };
 };
 
-export type GameHistoryQueryVariables = Exact<{ [key: string]: never }>;
-
-export type GameHistoryQuery = {
-  __typename?: "Query";
-  game: Array<{
-    __typename?: "Game";
-    id: number;
-    gamemode: string;
-    startAt: any;
-    finishedAt?: any | null;
-    player1score: number;
-    player2score: number;
-    player1: { __typename?: "User"; id: number; name: string; avatar: string };
-    player2: { __typename?: "User"; id: number; name: string; avatar: string };
-  }>;
-};
-
-export type GameinprogQueryVariables = Exact<{ [key: string]: never }>;
-
-export type GameinprogQuery = {
-  __typename?: "Query";
-  gameinprog: Array<{
-    __typename?: "Game";
-    id: number;
-    gamemode: string;
-    startAt: any;
-    finishedAt?: any | null;
-    player1score: number;
-    player2score: number;
-    player1: { __typename?: "User"; name: string; id: number; avatar: string };
-    player2: { __typename?: "User"; id: number; name: string; avatar: string };
-  }>;
-};
-
 export type GetInfoUsersQueryVariables = Exact<{
   userId?: InputMaybe<Scalars["Int"]>;
+  finished?: InputMaybe<Scalars["Boolean"]>;
 }>;
 
 export type GetInfoUsersQuery = {
@@ -277,6 +258,27 @@ export type GetInfoUsersQuery = {
         content: string;
         sentAt: number;
       }>;
+    }>;
+    games: Array<{
+      __typename?: "Game";
+      id: number;
+      gamemode: string;
+      startAt: number;
+      finishedAt?: number | null;
+      player1score: number;
+      player2score: number;
+      player1: {
+        __typename?: "User";
+        avatar: string;
+        id: number;
+        name: string;
+      };
+      player2: {
+        __typename?: "User";
+        id: number;
+        avatar: string;
+        name: string;
+      };
     }>;
     friends: Array<{
       __typename: "User";
@@ -456,76 +458,8 @@ export const useDirectMessagesQuery = <
     ),
     options
   );
-export const GameHistoryDocument = `
-    query GameHistory {
-  game {
-    id
-    gamemode
-    startAt
-    finishedAt
-    player1 {
-      id
-      name
-      avatar
-    }
-    player1score
-    player2score
-    player2 {
-      id
-      name
-      avatar
-    }
-  }
-}
-    `;
-export const useGameHistoryQuery = <TData = GameHistoryQuery, TError = unknown>(
-  variables?: GameHistoryQueryVariables,
-  options?: UseQueryOptions<GameHistoryQuery, TError, TData>
-) =>
-  useQuery<GameHistoryQuery, TError, TData>(
-    variables === undefined ? ["GameHistory"] : ["GameHistory", variables],
-    fetcher<GameHistoryQuery, GameHistoryQueryVariables>(
-      GameHistoryDocument,
-      variables
-    ),
-    options
-  );
-export const GameinprogDocument = `
-    query Gameinprog {
-  gameinprog {
-    id
-    gamemode
-    startAt
-    finishedAt
-    player1 {
-      name
-      id
-      avatar
-    }
-    player2 {
-      id
-      name
-      avatar
-    }
-    player1score
-    player2score
-  }
-}
-    `;
-export const useGameinprogQuery = <TData = GameinprogQuery, TError = unknown>(
-  variables?: GameinprogQueryVariables,
-  options?: UseQueryOptions<GameinprogQuery, TError, TData>
-) =>
-  useQuery<GameinprogQuery, TError, TData>(
-    variables === undefined ? ["Gameinprog"] : ["Gameinprog", variables],
-    fetcher<GameinprogQuery, GameinprogQueryVariables>(
-      GameinprogDocument,
-      variables
-    ),
-    options
-  );
 export const GetInfoUsersDocument = `
-    query getInfoUsers($userId: Int) {
+    query getInfoUsers($userId: Int, $finished: Boolean) {
   user(id: $userId) {
     id
     __typename
@@ -540,6 +474,24 @@ export const GetInfoUsersDocument = `
         content
         sentAt
       }
+    }
+    games(finished: $finished) {
+      id
+      gamemode
+      startAt
+      finishedAt
+      player1 {
+        avatar
+        id
+        name
+      }
+      player2 {
+        id
+        avatar
+        name
+      }
+      player1score
+      player2score
     }
     friends {
       __typename
