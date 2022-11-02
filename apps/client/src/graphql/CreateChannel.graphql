@@ -1,0 +1,6 @@
+mutation createChanel($inviteOnly: Boolean!, $password: String!, $name: String!) {
+  createChanel(inviteOnly: $inviteOnly, password: $password, name: $name) {
+    id
+    name
+  }
+}

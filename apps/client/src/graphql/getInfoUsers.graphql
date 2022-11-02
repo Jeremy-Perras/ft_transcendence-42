@@ -3,6 +3,8 @@ query getInfoUsers($userId: Int) {
     id
     __typename
     name
+    blocked
+    blocking
     avatar
     rank
     channels {

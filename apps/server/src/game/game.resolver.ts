@@ -1,18 +1,19 @@
 import {
   Args,
   Int,
+  Mutation,
   Query,
   ResolveField,
   Resolver,
   Root,
 } from "@nestjs/graphql";
-import { Prisma } from "@prisma/client";
+import { GameMode, Prisma, User } from "@prisma/client";
+import { CurrentUser } from "../auth/currentUser.decorator";
 import { PrismaService } from "../prisma/prisma.service";
 import { userType } from "../user/user.resolver";
 import { Game } from "./game.model";
 
 export type gameType = Omit<Game, "player1" | "player2">;
-
 @Resolver(Game)
 export class GameResolver {
   constructor(private prisma: PrismaService) {}
@@ -38,7 +39,7 @@ export class GameResolver {
     return {
       id: game.id,
       gamemode: game.mode.name,
-      startAt: game.startedAt,
+      startAt: game.startedAt ?? undefined,
       finishedAt: game.finishedAt ?? undefined,
       player1score: game.player1Score,
       player2score: game.player2Score,
@@ -92,7 +93,7 @@ export class GameResolver {
     return games.map((game) => ({
       id: game.id,
       gamemode: game.mode.name,
-      startAt: game.startedAt,
+      startAt: game.startedAt ?? undefined,
       finishedAt: game.finishedAt ?? undefined,
       player1score: game.player1Score,
       player2score: game.player2Score,
@@ -127,11 +128,42 @@ export class GameResolver {
     });
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     u = u!;
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    u.player2 = u.player2!;
     return {
       id: u.player2.id,
       name: u.player2.name,
       avatar: u.player2.avatar,
       rank: u.player2.rank,
+    };
+  }
+
+  @Mutation((returns) => Game)
+  async CreateGame(
+    @Args("mode", { type: () => Int }) mode: number,
+    @Args("player2Id", { type: () => Int, nullable: true }) player2Id: number,
+    @CurrentUser() me: User
+  ): Promise<gameType> {
+    const m = await this.prisma.game.create({
+      data: {
+        player1Score: 0,
+        player2Score: 0,
+        player1Id: me.id,
+        gameModeId: mode,
+      },
+    });
+    return {
+      id: m.id,
+      player1score: m.player1Score,
+      player2score: m.player1Score,
+      gamemode:
+        m.gameModeId === 1
+          ? "Classic"
+          : m.gameModeId === 2
+          ? "Speed"
+          : m.gameModeId === 3
+          ? "Random"
+          : "",
     };
   }
 }

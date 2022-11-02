@@ -204,6 +204,28 @@ export class ChannelResolver {
         }))
       : [];
   }
+  @Mutation((returns) => Channel)
+  async createChanel(
+    @Args("inviteOnly", { type: () => Boolean }) inviteOnly: boolean,
+    @Args("password", { type: () => String }) password: string,
+    @Args("name", { type: () => String }) name: string,
+    @CurrentUser() me: User
+  ): Promise<channelType> {
+    const m = await this.prisma.channel.create({
+      data: {
+        inviteOnly: inviteOnly,
+        name: name,
+        password: password,
+        ownerId: me.id,
+      },
+    });
+    return {
+      passwordProtected: password ? true : false,
+      private: m.inviteOnly,
+      name: m.name,
+      id: m.id,
+    };
+  }
 }
 
 @Resolver(ChannelMessage)
@@ -249,6 +271,26 @@ export class ChannelMessageResolver {
         }))
       : [];
   }
+  @Mutation((returns) => ChannelMessage)
+  async sendChanelMessage(
+    @Args("message", { type: () => String }) message: string,
+    @Args("recipientId", { type: () => Int }) recipientId: number,
+    @CurrentUser() me: User
+  ): Promise<channelMessageType> {
+    const m = await this.prisma.channelMessage.create({
+      data: {
+        content: message,
+        sentAt: new Date(),
+        authorId: me.id,
+        channelId: recipientId,
+      },
+    });
+    return {
+      id: m.id,
+      content: m.content,
+      sentAt: m.sentAt,
+    };
+  }
 }
 
 @Resolver(ChannelMessageRead)
@@ -274,27 +316,6 @@ export class ChannelMessageReadResolver {
       avatar: message.user.avatar,
       name: message.user.name,
       rank: message.user.rank,
-    };
-  }
-
-  @Mutation((returns) => ChannelMessage)
-  async sendChanelMessage(
-    @Args("message", { type: () => String }) message: string,
-    @Args("recipientId", { type: () => Int }) recipientId: number,
-    @CurrentUser() me: User
-  ): Promise<channelMessageType> {
-    const m = await this.prisma.channelMessage.create({
-      data: {
-        content: message,
-        sentAt: new Date(),
-        authorId: me.id,
-        channelId: recipientId,
-      },
-    });
-    return {
-      id: m.id,
-      content: m.content,
-      sentAt: m.sentAt,
     };
   }
 }

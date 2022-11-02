@@ -1,8 +1,8 @@
 import {
-  useQuery,
   useMutation,
-  UseQueryOptions,
+  useQuery,
   UseMutationOptions,
+  UseQueryOptions,
 } from "@tanstack/react-query";
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
@@ -92,13 +92,26 @@ export type Game = {
   player1score: Scalars["Int"];
   player2: User;
   player2score: Scalars["Int"];
-  startAt: Scalars["Timestamp"];
+  startAt?: Maybe<Scalars["Timestamp"]>;
 };
 
 export type Mutation = {
   __typename?: "Mutation";
+  CreateGame: Game;
+  createChanel: Channel;
   sendChanelMessage: ChannelMessage;
   sendDirectMessage: DirectMessage;
+};
+
+export type MutationCreateGameArgs = {
+  mode: Scalars["Int"];
+  player2Id?: InputMaybe<Scalars["Int"]>;
+};
+
+export type MutationCreateChanelArgs = {
+  inviteOnly: Scalars["Boolean"];
+  name: Scalars["String"];
+  password: Scalars["String"];
 };
 
 export type MutationSendChanelMessageArgs = {
@@ -165,6 +178,48 @@ export type User = {
 
 export type UserGamesArgs = {
   finished?: InputMaybe<Scalars["Boolean"]>;
+};
+
+export type CreateChanelMutationVariables = Exact<{
+  inviteOnly: Scalars["Boolean"];
+  password: Scalars["String"];
+  name: Scalars["String"];
+}>;
+
+export type CreateChanelMutation = {
+  __typename?: "Mutation";
+  createChanel: { __typename?: "Channel"; id: number; name: string };
+};
+
+export type SendChannelMessageMutationVariables = Exact<{
+  message: Scalars["String"];
+  recipientId: Scalars["Int"];
+}>;
+
+export type SendChannelMessageMutation = {
+  __typename?: "Mutation";
+  sendChanelMessage: {
+    __typename?: "ChannelMessage";
+    id: number;
+    content: string;
+    sentAt: number;
+    author: { __typename?: "User"; name: string; id: number };
+    readBy: Array<{
+      __typename?: "ChannelMessageRead";
+      id: number;
+      user: { __typename?: "User"; name: string; id: number };
+    }>;
+  };
+};
+
+export type SendDirectMessageMutationVariables = Exact<{
+  message: Scalars["String"];
+  recipientId: Scalars["Int"];
+}>;
+
+export type SendDirectMessageMutation = {
+  __typename?: "Mutation";
+  sendDirectMessage: { __typename?: "DirectMessage"; id: number };
 };
 
 export type SearchUsersChannelsQueryVariables = Exact<{
@@ -267,6 +322,8 @@ export type GetInfoUsersQuery = {
     __typename: "User";
     id: number;
     name: string;
+    blocked: boolean;
+    blocking: boolean;
     avatar: string;
     rank: number;
     channels: Array<{
@@ -308,37 +365,113 @@ export type GetUserProfileQuery = {
   };
 };
 
-export type SendChannelMessageMutationVariables = Exact<{
-  message: Scalars["String"];
-  recipientId: Scalars["Int"];
-}>;
-
-export type SendChannelMessageMutation = {
-  __typename?: "Mutation";
-  sendChanelMessage: {
-    __typename?: "ChannelMessage";
-    id: number;
-    content: string;
-    sentAt: number;
-    author: { __typename?: "User"; name: string; id: number };
-    readBy: Array<{
-      __typename?: "ChannelMessageRead";
-      id: number;
-      user: { __typename?: "User"; name: string; id: number };
-    }>;
-  };
-};
-
-export type SendDirectMessageMutationVariables = Exact<{
-  message: Scalars["String"];
-  recipientId: Scalars["Int"];
-}>;
-
-export type SendDirectMessageMutation = {
-  __typename?: "Mutation";
-  sendDirectMessage: { __typename?: "DirectMessage"; id: number };
-};
-
+export const CreateChanelDocument = `
+    mutation createChanel($inviteOnly: Boolean!, $password: String!, $name: String!) {
+  createChanel(inviteOnly: $inviteOnly, password: $password, name: $name) {
+    id
+    name
+  }
+}
+    `;
+export const useCreateChanelMutation = <TError = unknown, TContext = unknown>(
+  options?: UseMutationOptions<
+    CreateChanelMutation,
+    TError,
+    CreateChanelMutationVariables,
+    TContext
+  >
+) =>
+  useMutation<
+    CreateChanelMutation,
+    TError,
+    CreateChanelMutationVariables,
+    TContext
+  >(
+    ["createChanel"],
+    (variables?: CreateChanelMutationVariables) =>
+      fetcher<CreateChanelMutation, CreateChanelMutationVariables>(
+        CreateChanelDocument,
+        variables
+      )(),
+    options
+  );
+export const SendChannelMessageDocument = `
+    mutation sendChannelMessage($message: String!, $recipientId: Int!) {
+  sendChanelMessage(message: $message, recipientId: $recipientId) {
+    id
+    author {
+      name
+      id
+    }
+    readBy {
+      id
+      user {
+        name
+        id
+      }
+    }
+    content
+    sentAt
+  }
+}
+    `;
+export const useSendChannelMessageMutation = <
+  TError = unknown,
+  TContext = unknown
+>(
+  options?: UseMutationOptions<
+    SendChannelMessageMutation,
+    TError,
+    SendChannelMessageMutationVariables,
+    TContext
+  >
+) =>
+  useMutation<
+    SendChannelMessageMutation,
+    TError,
+    SendChannelMessageMutationVariables,
+    TContext
+  >(
+    ["sendChannelMessage"],
+    (variables?: SendChannelMessageMutationVariables) =>
+      fetcher<SendChannelMessageMutation, SendChannelMessageMutationVariables>(
+        SendChannelMessageDocument,
+        variables
+      )(),
+    options
+  );
+export const SendDirectMessageDocument = `
+    mutation SendDirectMessage($message: String!, $recipientId: Int!) {
+  sendDirectMessage(message: $message, recipientId: $recipientId) {
+    id
+  }
+}
+    `;
+export const useSendDirectMessageMutation = <
+  TError = unknown,
+  TContext = unknown
+>(
+  options?: UseMutationOptions<
+    SendDirectMessageMutation,
+    TError,
+    SendDirectMessageMutationVariables,
+    TContext
+  >
+) =>
+  useMutation<
+    SendDirectMessageMutation,
+    TError,
+    SendDirectMessageMutationVariables,
+    TContext
+  >(
+    ["SendDirectMessage"],
+    (variables?: SendDirectMessageMutationVariables) =>
+      fetcher<SendDirectMessageMutation, SendDirectMessageMutationVariables>(
+        SendDirectMessageDocument,
+        variables
+      )(),
+    options
+  );
 export const SearchUsersChannelsDocument = `
     query SearchUsersChannels($name: String) {
   users(name: $name) {
@@ -494,6 +627,8 @@ export const GetInfoUsersDocument = `
     id
     __typename
     name
+    blocked
+    blocking
     avatar
     rank
     channels {
@@ -558,82 +693,5 @@ export const useGetUserProfileQuery = <
       GetUserProfileDocument,
       variables
     ),
-    options
-  );
-export const SendChannelMessageDocument = `
-    mutation sendChannelMessage($message: String!, $recipientId: Int!) {
-  sendChanelMessage(message: $message, recipientId: $recipientId) {
-    id
-    author {
-      name
-      id
-    }
-    readBy {
-      id
-      user {
-        name
-        id
-      }
-    }
-    content
-    sentAt
-  }
-}
-    `;
-export const useSendChannelMessageMutation = <
-  TError = unknown,
-  TContext = unknown
->(
-  options?: UseMutationOptions<
-    SendChannelMessageMutation,
-    TError,
-    SendChannelMessageMutationVariables,
-    TContext
-  >
-) =>
-  useMutation<
-    SendChannelMessageMutation,
-    TError,
-    SendChannelMessageMutationVariables,
-    TContext
-  >(
-    ["sendChannelMessage"],
-    (variables?: SendChannelMessageMutationVariables) =>
-      fetcher<SendChannelMessageMutation, SendChannelMessageMutationVariables>(
-        SendChannelMessageDocument,
-        variables
-      )(),
-    options
-  );
-export const SendDirectMessageDocument = `
-    mutation SendDirectMessage($message: String!, $recipientId: Int!) {
-  sendDirectMessage(message: $message, recipientId: $recipientId) {
-    id
-  }
-}
-    `;
-export const useSendDirectMessageMutation = <
-  TError = unknown,
-  TContext = unknown
->(
-  options?: UseMutationOptions<
-    SendDirectMessageMutation,
-    TError,
-    SendDirectMessageMutationVariables,
-    TContext
-  >
-) =>
-  useMutation<
-    SendDirectMessageMutation,
-    TError,
-    SendDirectMessageMutationVariables,
-    TContext
-  >(
-    ["SendDirectMessage"],
-    (variables?: SendDirectMessageMutationVariables) =>
-      fetcher<SendDirectMessageMutation, SendDirectMessageMutationVariables>(
-        SendDirectMessageDocument,
-        variables
-      )(),
     options
   );

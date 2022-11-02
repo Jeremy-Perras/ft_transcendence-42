@@ -3,8 +3,13 @@ import * as Avatar from "@radix-ui/react-avatar";
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { ReactComponent as UsersIcon } from "pixelarticons/svg/users.svg";
 import { ReactComponent as GamePadIcon } from "pixelarticons/svg/gamepad.svg";
-import { useGetInfoUsersQuery } from "../../graphql/generated";
-import Chating from "./chating";
+import {
+  useCreateChanelMutation,
+  useGetInfoUsersQuery,
+} from "../../graphql/generated";
+import { useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 
 export function getDate(time: number) {
   const date = new Date(time);
@@ -77,6 +82,9 @@ const Chat = ({ __typename, name, avatar, id, messages }: Chat) => {
 };
 
 const Home = () => {
+  const queryClient = useQueryClient();
+  const [form, setForm] = useState(false);
+  const { register, handleSubmit, watch } = useForm();
   const { isLoading, data, error, isFetching } = useGetInfoUsersQuery(
     {},
     {
@@ -109,6 +117,12 @@ const Home = () => {
     }
   );
   const navigate = useNavigate();
+  const createChannelMutation = useCreateChanelMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries(["getInfoUsers"]);
+    },
+  });
+
   if (isLoading) return <div>Loading ...</div>;
   if (isFetching) {
     return <div>Fetching</div>;
@@ -137,6 +151,37 @@ const Home = () => {
           <Chat key={index} {...chat} />
         ))}
         {data?.chats.length === 0 ? <Empty /> : null}
+        <button
+          onClick={() => setForm(!form)}
+          className="h-10 w-10 bg-black  "
+        />
+        <form
+          onSubmit={handleSubmit(() =>
+            createChannelMutation.mutate({
+              inviteOnly: watch("inviteOnly"),
+              name: watch("Name"),
+              password: watch("Password") ? watch("Password") : "",
+            })
+          )}
+        >
+          <div>
+            <label htmlFor="inviteOnly"> Private ? </label>
+            <input {...register("inviteOnly")} type="checkbox" />
+          </div>
+          <div>
+            <label htmlFor="name"> Name </label>
+            <input
+              {...register("Name", { required: true, maxLength: 20 })}
+              defaultValue="Name"
+            />
+          </div>
+          <div>
+            <label htmlFor="Password"> Password </label>
+            <input {...register("Password")} defaultValue="" />
+          </div>
+
+          <input type="submit" />
+        </form>
       </>
     );
   }

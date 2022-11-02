@@ -13,8 +13,8 @@ export class Game {
   @IsNotEmpty()
   gamemode: string;
 
-  @Field((type) => Date)
-  startAt: Date;
+  @Field((type) => Date, { nullable: true })
+  startAt?: Date;
 
   @Field((type) => Date, { nullable: true })
   finishedAt?: Date;

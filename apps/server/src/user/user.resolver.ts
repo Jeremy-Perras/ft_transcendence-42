@@ -148,7 +148,7 @@ export class UserResolver {
     return games.map((game) => ({
       id: game.id,
       gamemode: game.mode.name,
-      startAt: game.startedAt,
+      startAt: game.startedAt ?? undefined,
       finishedAt: game.finishedAt ?? undefined,
       player1score: game.player1Score,
       player2score: game.player2Score,
@@ -267,8 +267,132 @@ export class UserResolver {
           }))
       : [];
   }
-}
+  @Query((returns) => User)
+  async blockingUser(
+    @CurrentUser() me: User,
+    @Args("id", { type: () => Int }) id: number
+  ): Promise<userType> {
+    const m = await this.prisma.user.update({
+      select: {
+        avatar: true,
+        id: true,
+        name: true,
+        rank: true,
+        blockedBy: true,
+      },
+      where: {
+        id: me.id,
+      },
+      data: {
+        blocking: {
+          connect: {
+            id: id,
+          },
+        },
+      },
+    });
+    this.blockedBy(me.id, id);
+    return { avatar: m.avatar, id: m.id, name: m.name, rank: m.rank };
+  }
 
+  @Query((returns) => User)
+  async blockedBy(
+    @Args("id", { type: () => Int }) id: number,
+    @Args("myId", { type: () => Int }) myId: number
+  ): Promise<userType> {
+    const m = await this.prisma.user.update({
+      select: {
+        avatar: true,
+        id: true,
+        name: true,
+        rank: true,
+        blockedBy: true,
+      },
+      where: {
+        id: myId,
+      },
+      data: {
+        blockedBy: {
+          connect: {
+            id: id,
+          },
+        },
+      },
+    });
+    return { avatar: m.avatar, id: m.id, name: m.name, rank: m.rank };
+  }
+
+  @Query((returns) => User)
+  async userName(
+    @CurrentUser() me: User,
+    @Args("name", { type: () => String }) name: string
+  ): Promise<userType> {
+    const m = await this.prisma.user.update({
+      select: {
+        avatar: true,
+        id: true,
+        name: true,
+        rank: true,
+        blockedBy: true,
+      },
+      where: {
+        id: me.id,
+      },
+      data: {
+        name: name,
+      },
+    });
+
+    return { avatar: m.avatar, id: m.id, name: m.name, rank: m.rank };
+  }
+
+  @Query((returns) => User)
+  async userAvatar(
+    @CurrentUser() me: User,
+    @Args("avatar", { type: () => String }) avatar: string
+  ): Promise<userType> {
+    const m = await this.prisma.user.update({
+      select: {
+        avatar: true,
+        id: true,
+        name: true,
+        rank: true,
+        blockedBy: true,
+      },
+      where: {
+        id: me.id,
+      },
+      data: {
+        avatar: avatar,
+      },
+    });
+
+    return { avatar: m.avatar, id: m.id, name: m.name, rank: m.rank };
+  }
+
+  @Query((returns) => User)
+  async updateFriend(
+    @CurrentUser() me: User,
+    @Args("id", { type: () => Int }) id: number
+  ): Promise<userType> {
+    const m = await this.prisma.user.update({
+      select: {
+        avatar: true,
+        id: true,
+        name: true,
+        rank: true,
+        blockedBy: true,
+      },
+      where: {
+        id: me.id,
+      },
+      data: {
+        friends: { connect: { id: id } },
+      },
+    });
+    return { avatar: m.avatar, id: m.id, name: m.name, rank: m.rank };
+  }
+}
 @Resolver(DirectMessage)
 export class DirectMessageResolver {
   constructor(private prisma: PrismaService) {}

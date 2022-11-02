@@ -50,13 +50,13 @@ model Game {
   mode       GameMode @relation(fields: [gameModeId], references: [id])
   gameModeId Int
 
-  startedAt  DateTime
+  startedAt  DateTime?
   finishedAt DateTime?
 
-  player1   User @relation("GamePlayer1", fields: [player1Id], references: [id])
+  player1   User  @relation("GamePlayer1", fields: [player1Id], references: [id])
   player1Id Int
-  player2   User @relation("GamePlayer2", fields: [player2Id], references: [id])
-  player2Id Int
+  player2   User? @relation("GamePlayer2", fields: [player2Id], references: [id])
+  player2Id Int?
 
   player1Score Int
   player2Score Int

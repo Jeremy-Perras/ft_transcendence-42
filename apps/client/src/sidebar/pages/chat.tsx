@@ -1,9 +1,10 @@
-import { Content } from "@radix-ui/react-dialog";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   useDirectMessagesQuery,
+  useGetInfoUsersQuery,
+  useGetUserProfileQuery,
   useSendDirectMessageMutation,
 } from "../../graphql/generated";
 import { getDate } from "./home";
@@ -65,6 +66,27 @@ const DirectMessage = ({
   );
 };
 
+const GetInfo = (Id: number) => {
+  const { isLoading, data, error, isFetching } = useGetInfoUsersQuery(
+    {
+      userId: Id,
+    },
+    {
+      select({ user }) {
+        const res: {
+          blocked: boolean;
+          blocking: boolean;
+        } = {
+          blocked: user.blocked,
+          blocking: user.blocking,
+        };
+        return res;
+      },
+    }
+  );
+  return data;
+};
+
 const DirectConversation = () => {
   const queryClient = useQueryClient();
   const params = useParams();
@@ -72,6 +94,7 @@ const DirectConversation = () => {
   const userId = +params.userId;
   const navigate = useNavigate();
   const [content, setContent] = useState("");
+  const infoSpeak = GetInfo(userId);
   const { isLoading, data, error, isFetching } = useDirectMessagesQuery(
     { userId: userId },
     {
@@ -108,7 +131,7 @@ const DirectConversation = () => {
   if (error) {
     return <div>Error</div>;
   }
-  console.log(content);
+
   return (
     <div className="mb-2 mt-2 flex w-full flex-col border-t-2 border-slate-600">
       <div
@@ -129,17 +152,28 @@ const DirectConversation = () => {
         rows={1}
         className=" w-full rounded-xl bg-gray-300 py-5 px-3"
         onChange={(e) => setContent(e.target.value)}
-        placeholder="type your message here..."
+        placeholder={`${
+          infoSpeak?.blocking == true
+            ? "You are blocked"
+            : "type your message here ..."
+        }`}
         onKeyDown={(e) => {
-          if (e.code == "Enter" && !e.getModifierState("Shift")) {
-            messageMutation.mutate({
-              message: content,
-              recipientId: userId,
-            });
-
-            e.currentTarget.value = "";
-            e.preventDefault();
-            setContent("");
+          if (infoSpeak?.blocking == false) {
+            if (e.code == "Enter" && !e.getModifierState("Shift")) {
+              messageMutation.mutate({
+                message: content,
+                recipientId: userId,
+              });
+              e.currentTarget.value = "";
+              e.preventDefault();
+              setContent("");
+            }
+          } else {
+            if (e.code == "Enter" && !e.getModifierState("Shift")) {
+              e.currentTarget.value = "";
+              e.preventDefault();
+              setContent("");
+            }
           }
         }}
       />
