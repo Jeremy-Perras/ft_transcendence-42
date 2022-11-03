@@ -157,7 +157,7 @@ const Home = () => {
   const navigate = useNavigate();
   const createChannelMutation = useCreateChanelMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries(["getInfoUsers"]);
+      queryClient.invalidateQueries(["GetInfoUsers", {}]);
     },
   });
 
