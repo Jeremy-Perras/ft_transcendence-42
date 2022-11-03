@@ -156,8 +156,10 @@ export type Query = {
   games: Array<Game>;
   joinGame: Game;
   updateAdmins: Channel;
+  updateBanned: Channel;
   updateFriend: User;
   updateFriendBy: User;
+  updateMuted: Channel;
   updatePassword: Channel;
   user: User;
   userAvatar: User;
@@ -203,6 +205,14 @@ export type QueryUpdateAdminsArgs = {
   userId: Scalars["Int"];
 };
 
+export type QueryUpdateBannedArgs = {
+  channelId: Scalars["Int"];
+  date?: InputMaybe<Scalars["String"]>;
+  id: Scalars["Int"];
+  idchannel: Scalars["Int"];
+  userId: Scalars["Int"];
+};
+
 export type QueryUpdateFriendArgs = {
   id: Scalars["Int"];
 };
@@ -210,6 +220,14 @@ export type QueryUpdateFriendArgs = {
 export type QueryUpdateFriendByArgs = {
   id: Scalars["Int"];
   meId: Scalars["Int"];
+};
+
+export type QueryUpdateMutedArgs = {
+  channelId: Scalars["Int"];
+  date?: InputMaybe<Scalars["String"]>;
+  id: Scalars["Int"];
+  idchannel: Scalars["Int"];
+  userId: Scalars["Int"];
 };
 
 export type QueryUpdatePasswordArgs = {
@@ -277,52 +295,6 @@ export type CreateChanelMutation = {
   createChanel: { __typename?: "Channel"; id: number; name: string };
 };
 
-export type SendChannelMessageMutationVariables = Exact<{
-  message: Scalars["String"];
-  recipientId: Scalars["Int"];
-}>;
-
-export type SendChannelMessageMutation = {
-  __typename?: "Mutation";
-  sendChanelMessage: {
-    __typename?: "ChannelMessage";
-    id: number;
-    content: string;
-    sentAt: number;
-    author: { __typename?: "User"; name: string; id: number };
-    readBy: Array<{
-      __typename?: "ChannelMessageRead";
-      id: number;
-      user: { __typename?: "User"; name: string; id: number };
-    }>;
-  };
-};
-
-export type SendDirectMessageMutationVariables = Exact<{
-  message: Scalars["String"];
-  recipientId: Scalars["Int"];
-}>;
-
-export type SendDirectMessageMutation = {
-  __typename?: "Mutation";
-  sendDirectMessage: { __typename?: "DirectMessage"; id: number };
-};
-
-export type SearchUsersChannelsQueryVariables = Exact<{
-  name?: InputMaybe<Scalars["String"]>;
-}>;
-
-export type SearchUsersChannelsQuery = {
-  __typename?: "Query";
-  users: Array<{
-    __typename: "User";
-    name: string;
-    id: number;
-    avatar: string;
-  } | null>;
-  channels: Array<{ __typename: "Channel"; name: string; id: number }>;
-};
-
 export type GetChannelQueryVariables = Exact<{
   channelId: Scalars["Int"];
 }>;
@@ -361,9 +333,9 @@ export type GetChannelQuery = {
   };
 };
 
-export type GetChatQueryVariables = Exact<{ [key: string]: never }>;
+export type GetChannelsQueryVariables = Exact<{ [key: string]: never }>;
 
-export type GetChatQuery = {
+export type GetChannelsQuery = {
   __typename?: "Query";
   user: {
     __typename?: "User";
@@ -372,11 +344,11 @@ export type GetChatQuery = {
   };
 };
 
-export type DirectMessagesQueryVariables = Exact<{
+export type GetDirectMessagesQueryVariables = Exact<{
   userId?: InputMaybe<Scalars["Int"]>;
 }>;
 
-export type DirectMessagesQuery = {
+export type GetDirectMessagesQuery = {
   __typename?: "Query";
   user: {
     __typename?: "User";
@@ -451,8 +423,54 @@ export type GetUserProfileQuery = {
   };
 };
 
+export type SearchUsersChannelsQueryVariables = Exact<{
+  name?: InputMaybe<Scalars["String"]>;
+}>;
+
+export type SearchUsersChannelsQuery = {
+  __typename?: "Query";
+  users: Array<{
+    __typename: "User";
+    name: string;
+    id: number;
+    avatar: string;
+  } | null>;
+  channels: Array<{ __typename: "Channel"; name: string; id: number }>;
+};
+
+export type SendChannelMessageMutationVariables = Exact<{
+  message: Scalars["String"];
+  recipientId: Scalars["Int"];
+}>;
+
+export type SendChannelMessageMutation = {
+  __typename?: "Mutation";
+  sendChanelMessage: {
+    __typename?: "ChannelMessage";
+    id: number;
+    content: string;
+    sentAt: number;
+    author: { __typename?: "User"; name: string; id: number };
+    readBy: Array<{
+      __typename?: "ChannelMessageRead";
+      id: number;
+      user: { __typename?: "User"; name: string; id: number };
+    }>;
+  };
+};
+
+export type SendDirectMessageMutationVariables = Exact<{
+  message: Scalars["String"];
+  recipientId: Scalars["Int"];
+}>;
+
+export type SendDirectMessageMutation = {
+  __typename?: "Mutation";
+  sendDirectMessage: { __typename?: "DirectMessage"; id: number };
+};
+
 export const CreateChanelDocument = `
-    mutation createChanel($inviteOnly: Boolean!, $password: String!, $name: String!) {
+    mutation CreateChanel($inviteOnly: Boolean!, $password: String!, $name: String!) {
   createChanel(inviteOnly: $inviteOnly, password: $password, name: $name) {
     id
     name
@@ -473,12 +491,238 @@ export const useCreateChanelMutation = <TError = unknown, TContext = unknown>(
     CreateChanelMutationVariables,
     TContext
   >(
-    ["createChanel"],
+    ["CreateChanel"],
     (variables?: CreateChanelMutationVariables) =>
       fetcher<CreateChanelMutation, CreateChanelMutationVariables>(
         CreateChanelDocument,
         variables
       )(),
+    options
+  );
+export const GetChannelDocument = `
+    query GetChannel($channelId: Int!) {
+  channel(id: $channelId) {
+    private
+    passwordProtected
+    name
+    owner {
+      name
+      id
+    }
+    messages {
+      id
+      author {
+        id
+        name
+        avatar
+      }
+      readBy {
+        user {
+          id
+          name
+          avatar
+        }
+      }
+      content
+      sentAt
+    }
+    admins {
+      id
+      name
+      avatar
+    }
+    members {
+      id
+      name
+      avatar
+    }
+  }
+}
+    `;
+export const useGetChannelQuery = <TData = GetChannelQuery, TError = unknown>(
+  variables: GetChannelQueryVariables,
+  options?: UseQueryOptions<GetChannelQuery, TError, TData>
+) =>
+  useQuery<GetChannelQuery, TError, TData>(
+    ["GetChannel", variables],
+    fetcher<GetChannelQuery, GetChannelQueryVariables>(
+      GetChannelDocument,
+      variables
+    ),
+    options
+  );
+export const GetChannelsDocument = `
+    query GetChannels {
+  user {
+    friends {
+      __typename
+      name
+      avatar
+    }
+    channels {
+      __typename
+      name
+    }
+  }
+}
+    `;
+export const useGetChannelsQuery = <TData = GetChannelsQuery, TError = unknown>(
+  variables?: GetChannelsQueryVariables,
+  options?: UseQueryOptions<GetChannelsQuery, TError, TData>
+) =>
+  useQuery<GetChannelsQuery, TError, TData>(
+    variables === undefined ? ["GetChannels"] : ["GetChannels", variables],
+    fetcher<GetChannelsQuery, GetChannelsQueryVariables>(
+      GetChannelsDocument,
+      variables
+    ),
+    options
+  );
+export const GetDirectMessagesDocument = `
+    query GetDirectMessages($userId: Int) {
+  user(id: $userId) {
+    name
+    avatar
+    messages {
+      recipient {
+        id
+        name
+        avatar
+      }
+      author {
+        id
+        name
+        avatar
+      }
+      content
+      sentAt
+      readAt
+    }
+  }
+}
+    `;
+export const useGetDirectMessagesQuery = <
+  TData = GetDirectMessagesQuery,
+  TError = unknown
+>(
+  variables?: GetDirectMessagesQueryVariables,
+  options?: UseQueryOptions<GetDirectMessagesQuery, TError, TData>
+) =>
+  useQuery<GetDirectMessagesQuery, TError, TData>(
+    variables === undefined
+      ? ["GetDirectMessages"]
+      : ["GetDirectMessages", variables],
+    fetcher<GetDirectMessagesQuery, GetDirectMessagesQueryVariables>(
+      GetDirectMessagesDocument,
+      variables
+    ),
+    options
+  );
+export const GetInfoUsersDocument = `
+    query GetInfoUsers($userId: Int) {
+  user(id: $userId) {
+    id
+    __typename
+    name
+    blocked
+    blocking
+    avatar
+    rank
+    channels {
+      __typename
+      name
+      id
+      messages {
+        content
+        sentAt
+      }
+    }
+    friends {
+      __typename
+      name
+      avatar
+      messages {
+        content
+        sentAt
+      }
+      id
+    }
+  }
+}
+    `;
+export const useGetInfoUsersQuery = <
+  TData = GetInfoUsersQuery,
+  TError = unknown
+>(
+  variables?: GetInfoUsersQueryVariables,
+  options?: UseQueryOptions<GetInfoUsersQuery, TError, TData>
+) =>
+  useQuery<GetInfoUsersQuery, TError, TData>(
+    variables === undefined ? ["GetInfoUsers"] : ["GetInfoUsers", variables],
+    fetcher<GetInfoUsersQuery, GetInfoUsersQueryVariables>(
+      GetInfoUsersDocument,
+      variables
+    ),
+    options
+  );
+export const GetUserProfileDocument = `
+    query GetUserProfile($userId: Int) {
+  user(id: $userId) {
+    id
+    name
+    avatar
+    rank
+  }
+}
+    `;
+export const useGetUserProfileQuery = <
+  TData = GetUserProfileQuery,
+  TError = unknown
+>(
+  variables?: GetUserProfileQueryVariables,
+  options?: UseQueryOptions<GetUserProfileQuery, TError, TData>
+) =>
+  useQuery<GetUserProfileQuery, TError, TData>(
+    variables === undefined
+      ? ["GetUserProfile"]
+      : ["GetUserProfile", variables],
+    fetcher<GetUserProfileQuery, GetUserProfileQueryVariables>(
+      GetUserProfileDocument,
+      variables
+    ),
+    options
+  );
+export const SearchUsersChannelsDocument = `
+    query SearchUsersChannels($name: String) {
+  users(name: $name) {
+    __typename
+    name
+    id
+    avatar
+  }
+  channels(name: $name) {
+    __typename
+    name
+    id
+    name
+  }
+}
+    `;
+export const useSearchUsersChannelsQuery = <
+  TData = SearchUsersChannelsQuery,
+  TError = unknown
+>(
+  variables?: SearchUsersChannelsQueryVariables,
+  options?: UseQueryOptions<SearchUsersChannelsQuery, TError, TData>
+) =>
+  useQuery<SearchUsersChannelsQuery, TError, TData>(
+    variables === undefined
+      ? ["SearchUsersChannels"]
+      : ["SearchUsersChannels", variables],
+    fetcher<SearchUsersChannelsQuery, SearchUsersChannelsQueryVariables>(
+      SearchUsersChannelsDocument,
+      variables
+    ),
     options
   );
 export const SendChannelMessageDocument = `
@@ -556,228 +800,5 @@ export const useSendDirectMessageMutation = <
         SendDirectMessageDocument,
         variables
       )(),
-    options
-  );
-export const SearchUsersChannelsDocument = `
-    query SearchUsersChannels($name: String) {
-  users(name: $name) {
-    __typename
-    name
-    id
-    avatar
-  }
-  channels(name: $name) {
-    __typename
-    name
-    id
-    name
-  }
-}
-    `;
-export const useSearchUsersChannelsQuery = <
-  TData = SearchUsersChannelsQuery,
-  TError = unknown
->(
-  variables?: SearchUsersChannelsQueryVariables,
-  options?: UseQueryOptions<SearchUsersChannelsQuery, TError, TData>
-) =>
-  useQuery<SearchUsersChannelsQuery, TError, TData>(
-    variables === undefined
-      ? ["SearchUsersChannels"]
-      : ["SearchUsersChannels", variables],
-    fetcher<SearchUsersChannelsQuery, SearchUsersChannelsQueryVariables>(
-      SearchUsersChannelsDocument,
-      variables
-    ),
-    options
-  );
-export const GetChannelDocument = `
-    query getChannel($channelId: Int!) {
-  channel(id: $channelId) {
-    private
-    passwordProtected
-    name
-    owner {
-      name
-      id
-    }
-    messages {
-      id
-      author {
-        id
-        name
-        avatar
-      }
-      readBy {
-        user {
-          id
-          name
-          avatar
-        }
-      }
-      content
-      sentAt
-    }
-    admins {
-      id
-      name
-      avatar
-    }
-    members {
-      id
-      name
-      avatar
-    }
-  }
-}
-    `;
-export const useGetChannelQuery = <TData = GetChannelQuery, TError = unknown>(
-  variables: GetChannelQueryVariables,
-  options?: UseQueryOptions<GetChannelQuery, TError, TData>
-) =>
-  useQuery<GetChannelQuery, TError, TData>(
-    ["getChannel", variables],
-    fetcher<GetChannelQuery, GetChannelQueryVariables>(
-      GetChannelDocument,
-      variables
-    ),
-    options
-  );
-export const GetChatDocument = `
-    query getChat {
-  user {
-    friends {
-      __typename
-      name
-      avatar
-    }
-    channels {
-      __typename
-      name
-    }
-  }
-}
-    `;
-export const useGetChatQuery = <TData = GetChatQuery, TError = unknown>(
-  variables?: GetChatQueryVariables,
-  options?: UseQueryOptions<GetChatQuery, TError, TData>
-) =>
-  useQuery<GetChatQuery, TError, TData>(
-    variables === undefined ? ["getChat"] : ["getChat", variables],
-    fetcher<GetChatQuery, GetChatQueryVariables>(GetChatDocument, variables),
-    options
-  );
-export const DirectMessagesDocument = `
-    query DirectMessages($userId: Int) {
-  user(id: $userId) {
-    name
-    avatar
-    messages {
-      recipient {
-        id
-        name
-        avatar
-      }
-      author {
-        id
-        name
-        avatar
-      }
-      content
-      sentAt
-      readAt
-    }
-  }
-}
-    `;
-export const useDirectMessagesQuery = <
-  TData = DirectMessagesQuery,
-  TError = unknown
->(
-  variables?: DirectMessagesQueryVariables,
-  options?: UseQueryOptions<DirectMessagesQuery, TError, TData>
-) =>
-  useQuery<DirectMessagesQuery, TError, TData>(
-    variables === undefined
-      ? ["DirectMessages"]
-      : ["DirectMessages", variables],
-    fetcher<DirectMessagesQuery, DirectMessagesQueryVariables>(
-      DirectMessagesDocument,
-      variables
-    ),
-    options
-  );
-export const GetInfoUsersDocument = `
-    query getInfoUsers($userId: Int) {
-  user(id: $userId) {
-    id
-    __typename
-    name
-    blocked
-    blocking
-    avatar
-    rank
-    channels {
-      __typename
-      name
-      id
-      messages {
-        content
-        sentAt
-      }
-    }
-    friends {
-      __typename
-      name
-      avatar
-      messages {
-        content
-        sentAt
-      }
-      id
-    }
-  }
-}
-    `;
-export const useGetInfoUsersQuery = <
-  TData = GetInfoUsersQuery,
-  TError = unknown
->(
-  variables?: GetInfoUsersQueryVariables,
-  options?: UseQueryOptions<GetInfoUsersQuery, TError, TData>
-) =>
-  useQuery<GetInfoUsersQuery, TError, TData>(
-    variables === undefined ? ["getInfoUsers"] : ["getInfoUsers", variables],
-    fetcher<GetInfoUsersQuery, GetInfoUsersQueryVariables>(
-      GetInfoUsersDocument,
-      variables
-    ),
-    options
-  );
-export const GetUserProfileDocument = `
-    query GetUserProfile($userId: Int) {
-  user(id: $userId) {
-    id
-    name
-    avatar
-    rank
-  }
-}
-    `;
-export const useGetUserProfileQuery = <
-  TData = GetUserProfileQuery,
-  TError = unknown
->(
-  variables?: GetUserProfileQueryVariables,
-  options?: UseQueryOptions<GetUserProfileQuery, TError, TData>
-) =>
-  useQuery<GetUserProfileQuery, TError, TData>(
-    variables === undefined
-      ? ["GetUserProfile"]
-      : ["GetUserProfile", variables],
-    fetcher<GetUserProfileQuery, GetUserProfileQueryVariables>(
-      GetUserProfileDocument,
-      variables
-    ),
     options
   );

@@ -1,4 +1,4 @@
-query getChat {
+query GetChannels {
   user {
     friends {
       __typename
