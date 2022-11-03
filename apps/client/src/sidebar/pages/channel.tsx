@@ -123,7 +123,7 @@ export default function Channel() {
   );
   const messageMutation = useSendChannelMessageMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries(["getChannel", { channelId: +channelId }]);
+      queryClient.invalidateQueries(["GetChannel", { channelId: +channelId }]);
     },
   });
 
