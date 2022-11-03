@@ -121,7 +121,7 @@ const DirectConversation = () => {
   );
   const messageMutation = useSendDirectMessageMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries(["DirectMessages", { userId: userId }]);
+      queryClient.invalidateQueries(["GetDirectMessages", { userId: userId }]);
     },
   });
   if (isLoading) return <Loading />;

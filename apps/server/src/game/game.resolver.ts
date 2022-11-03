@@ -55,13 +55,22 @@ export class GameResolver {
       nullable: true,
       defaultValue: null,
     })
-    finished?: boolean | null
+    finished?: boolean | null,
+    @Args("started", {
+      type: () => Boolean,
+      nullable: true,
+      defaultValue: null,
+    })
+    started?: boolean | null
   ): Promise<gameType[]> {
     const conditions: Prisma.Enumerable<Prisma.GameWhereInput> = [];
     if (finished !== null) {
       conditions.push(
         finished ? { NOT: { finishedAt: null } } : { finishedAt: null }
       );
+    }
+    if (started === false) {
+      conditions.push({ startedAt: null });
     }
     if (id !== null) {
       conditions.push({

@@ -309,6 +309,24 @@ export type CreateChanelMutation = {
 };
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+export type SearchUsersChannelsQueryVariables = Exact<{
+  name?: InputMaybe<Scalars["String"]>;
+}>;
+
+export type SearchUsersChannelsQuery = {
+  __typename?: "Query";
+  users: Array<{
+    __typename: "User";
+    name: string;
+    id: number;
+    avatar: string;
+  } | null>;
+  channels: Array<{ __typename: "Channel"; name: string; id: number }>;
+};
+
+>>>>>>> Update games Query
 export type SendChannelMessageMutationVariables = Exact<{
   message: Scalars["String"];
   recipientId: Scalars["Int"];
@@ -340,6 +358,7 @@ export type SendDirectMessageMutation = {
   sendDirectMessage: { __typename?: "DirectMessage"; id: number };
 };
 
+<<<<<<< HEAD
 export type GetChannelHeaderQueryVariables = Exact<{
   channelId: Scalars["Int"];
 }>;
@@ -428,6 +447,8 @@ export type SearchUsersChannelsQuery = {
 
 =======
 >>>>>>> Update name grapql file
+=======
+>>>>>>> Update games Query
 export type GetChannelQueryVariables = Exact<{
   channelId: Scalars["Int"];
 }>;
@@ -558,6 +579,7 @@ export type GetUserProfileQuery = {
   };
 };
 
+<<<<<<< HEAD
 export type SearchUsersChannelsQueryVariables = Exact<{
   name?: InputMaybe<Scalars["String"]>;
 }>;
@@ -605,6 +627,8 @@ export type SendDirectMessageMutation = {
 };
 
 >>>>>>> Update name grapql file
+=======
+>>>>>>> Update games Query
 export const CreateChanelDocument = `
     mutation CreateChanel($inviteOnly: Boolean!, $password: String!, $name: String!) {
   createChanel(inviteOnly: $inviteOnly, password: $password, name: $name) {
@@ -636,6 +660,42 @@ export const useCreateChanelMutation = <TError = unknown, TContext = unknown>(
     options
   );
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+export const SearchUsersChannelsDocument = `
+    query SearchUsersChannels($name: String) {
+  users(name: $name) {
+    __typename
+    name
+    id
+    avatar
+  }
+  channels(name: $name) {
+    __typename
+    name
+    id
+    name
+  }
+}
+    `;
+export const useSearchUsersChannelsQuery = <
+  TData = SearchUsersChannelsQuery,
+  TError = unknown
+>(
+  variables?: SearchUsersChannelsQueryVariables,
+  options?: UseQueryOptions<SearchUsersChannelsQuery, TError, TData>
+) =>
+  useQuery<SearchUsersChannelsQuery, TError, TData>(
+    variables === undefined
+      ? ["SearchUsersChannels"]
+      : ["SearchUsersChannels", variables],
+    fetcher<SearchUsersChannelsQuery, SearchUsersChannelsQueryVariables>(
+      SearchUsersChannelsDocument,
+      variables
+    ),
+    options
+  );
+>>>>>>> Update games Query
 export const SendChannelMessageDocument = `
     mutation sendChannelMessage($message: String!, $recipientId: Int!) {
   sendChanelMessage(message: $message, recipientId: $recipientId) {
@@ -713,6 +773,7 @@ export const useSendDirectMessageMutation = <
       )(),
     options
   );
+<<<<<<< HEAD
 export const GetChannelHeaderDocument = `
     query GetChannelHeader($channelId: Int!) {
   channel(id: $channelId) {
@@ -856,6 +917,8 @@ export const useSearchUsersChannelsQuery = <
   );
 =======
 >>>>>>> Update name grapql file
+=======
+>>>>>>> Update games Query
 export const GetChannelDocument = `
     query GetChannel($channelId: Int!) {
   channel(id: $channelId) {
@@ -1051,6 +1114,7 @@ export const useGetUserProfileQuery = <
     ),
     options
   );
+<<<<<<< HEAD
 export const SearchUsersChannelsDocument = `
     query SearchUsersChannels($name: String) {
   users(name: $name) {
@@ -1162,3 +1226,5 @@ export const useSendDirectMessageMutation = <
     options
   );
 >>>>>>> Update name grapql file
+=======
+>>>>>>> Update games Query
