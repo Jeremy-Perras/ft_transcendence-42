@@ -159,8 +159,10 @@ export type Query = {
 =======
   joinGame: Game;
   updateAdmins: Channel;
+  updateBanned: Channel;
   updateFriend: User;
   updateFriendBy: User;
+  updateMuted: Channel;
   updatePassword: Channel;
 >>>>>>>  New auery and mutations
   user: User;
@@ -209,7 +211,18 @@ export type QueryUpdateAdminsArgs = {
   userId: Scalars["Int"];
 };
 
+<<<<<<< HEAD
 >>>>>>>  New auery and mutations
+=======
+export type QueryUpdateBannedArgs = {
+  channelId: Scalars["Int"];
+  date?: InputMaybe<Scalars["String"]>;
+  id: Scalars["Int"];
+  idchannel: Scalars["Int"];
+  userId: Scalars["Int"];
+};
+
+>>>>>>> Update name grapql file
 export type QueryUpdateFriendArgs = {
   id: Scalars["Int"];
 };
@@ -219,6 +232,14 @@ export type QueryUpdateFriendArgs = {
 export type QueryUpdateFriendByArgs = {
   id: Scalars["Int"];
   meId: Scalars["Int"];
+};
+
+export type QueryUpdateMutedArgs = {
+  channelId: Scalars["Int"];
+  date?: InputMaybe<Scalars["String"]>;
+  id: Scalars["Int"];
+  idchannel: Scalars["Int"];
+  userId: Scalars["Int"];
 };
 
 export type QueryUpdatePasswordArgs = {
@@ -287,6 +308,7 @@ export type CreateChanelMutation = {
   createChanel: { __typename?: "Channel"; id: number; name: string };
 };
 
+<<<<<<< HEAD
 export type SendChannelMessageMutationVariables = Exact<{
   message: Scalars["String"];
   recipientId: Scalars["Int"];
@@ -404,6 +426,8 @@ export type SearchUsersChannelsQuery = {
   channels: Array<{ __typename: "Channel"; name: string; id: number }>;
 };
 
+=======
+>>>>>>> Update name grapql file
 export type GetChannelQueryVariables = Exact<{
   channelId: Scalars["Int"];
 }>;
@@ -442,9 +466,9 @@ export type GetChannelQuery = {
   };
 };
 
-export type GetChatQueryVariables = Exact<{ [key: string]: never }>;
+export type GetChannelsQueryVariables = Exact<{ [key: string]: never }>;
 
-export type GetChatQuery = {
+export type GetChannelsQuery = {
   __typename?: "Query";
   user: {
     __typename?: "User";
@@ -453,11 +477,11 @@ export type GetChatQuery = {
   };
 };
 
-export type DirectMessagesQueryVariables = Exact<{
+export type GetDirectMessagesQueryVariables = Exact<{
   userId?: InputMaybe<Scalars["Int"]>;
 }>;
 
-export type DirectMessagesQuery = {
+export type GetDirectMessagesQuery = {
   __typename?: "Query";
   user: {
     __typename?: "User";
@@ -517,8 +541,72 @@ export type GetInfoUsersQuery = {
   };
 };
 
+<<<<<<< HEAD
+=======
+export type GetUserProfileQueryVariables = Exact<{
+  userId?: InputMaybe<Scalars["Int"]>;
+}>;
+
+export type GetUserProfileQuery = {
+  __typename?: "Query";
+  user: {
+    __typename?: "User";
+    id: number;
+    name: string;
+    avatar: string;
+    rank: number;
+  };
+};
+
+export type SearchUsersChannelsQueryVariables = Exact<{
+  name?: InputMaybe<Scalars["String"]>;
+}>;
+
+export type SearchUsersChannelsQuery = {
+  __typename?: "Query";
+  users: Array<{
+    __typename: "User";
+    name: string;
+    id: number;
+    avatar: string;
+  } | null>;
+  channels: Array<{ __typename: "Channel"; name: string; id: number }>;
+};
+
+export type SendChannelMessageMutationVariables = Exact<{
+  message: Scalars["String"];
+  recipientId: Scalars["Int"];
+}>;
+
+export type SendChannelMessageMutation = {
+  __typename?: "Mutation";
+  sendChanelMessage: {
+    __typename?: "ChannelMessage";
+    id: number;
+    content: string;
+    sentAt: number;
+    author: { __typename?: "User"; name: string; id: number };
+    readBy: Array<{
+      __typename?: "ChannelMessageRead";
+      id: number;
+      user: { __typename?: "User"; name: string; id: number };
+    }>;
+  };
+};
+
+export type SendDirectMessageMutationVariables = Exact<{
+  message: Scalars["String"];
+  recipientId: Scalars["Int"];
+}>;
+
+export type SendDirectMessageMutation = {
+  __typename?: "Mutation";
+  sendDirectMessage: { __typename?: "DirectMessage"; id: number };
+};
+
+>>>>>>> Update name grapql file
 export const CreateChanelDocument = `
-    mutation createChanel($inviteOnly: Boolean!, $password: String!, $name: String!) {
+    mutation CreateChanel($inviteOnly: Boolean!, $password: String!, $name: String!) {
   createChanel(inviteOnly: $inviteOnly, password: $password, name: $name) {
     id
     name
@@ -539,7 +627,7 @@ export const useCreateChanelMutation = <TError = unknown, TContext = unknown>(
     CreateChanelMutationVariables,
     TContext
   >(
-    ["createChanel"],
+    ["CreateChanel"],
     (variables?: CreateChanelMutationVariables) =>
       fetcher<CreateChanelMutation, CreateChanelMutationVariables>(
         CreateChanelDocument,
@@ -547,6 +635,7 @@ export const useCreateChanelMutation = <TError = unknown, TContext = unknown>(
       )(),
     options
   );
+<<<<<<< HEAD
 export const SendChannelMessageDocument = `
     mutation sendChannelMessage($message: String!, $recipientId: Int!) {
   sendChanelMessage(message: $message, recipientId: $recipientId) {
@@ -765,8 +854,10 @@ export const useSearchUsersChannelsQuery = <
     ),
     options
   );
+=======
+>>>>>>> Update name grapql file
 export const GetChannelDocument = `
-    query getChannel($channelId: Int!) {
+    query GetChannel($channelId: Int!) {
   channel(id: $channelId) {
     private
     passwordProtected
@@ -810,15 +901,15 @@ export const useGetChannelQuery = <TData = GetChannelQuery, TError = unknown>(
   options?: UseQueryOptions<GetChannelQuery, TError, TData>
 ) =>
   useQuery<GetChannelQuery, TError, TData>(
-    ["getChannel", variables],
+    ["GetChannel", variables],
     fetcher<GetChannelQuery, GetChannelQueryVariables>(
       GetChannelDocument,
       variables
     ),
     options
   );
-export const GetChatDocument = `
-    query getChat {
+export const GetChannelsDocument = `
+    query GetChannels {
   user {
     friends {
       __typename
@@ -832,17 +923,20 @@ export const GetChatDocument = `
   }
 }
     `;
-export const useGetChatQuery = <TData = GetChatQuery, TError = unknown>(
-  variables?: GetChatQueryVariables,
-  options?: UseQueryOptions<GetChatQuery, TError, TData>
+export const useGetChannelsQuery = <TData = GetChannelsQuery, TError = unknown>(
+  variables?: GetChannelsQueryVariables,
+  options?: UseQueryOptions<GetChannelsQuery, TError, TData>
 ) =>
-  useQuery<GetChatQuery, TError, TData>(
-    variables === undefined ? ["getChat"] : ["getChat", variables],
-    fetcher<GetChatQuery, GetChatQueryVariables>(GetChatDocument, variables),
+  useQuery<GetChannelsQuery, TError, TData>(
+    variables === undefined ? ["GetChannels"] : ["GetChannels", variables],
+    fetcher<GetChannelsQuery, GetChannelsQueryVariables>(
+      GetChannelsDocument,
+      variables
+    ),
     options
   );
-export const DirectMessagesDocument = `
-    query DirectMessages($userId: Int) {
+export const GetDirectMessagesDocument = `
+    query GetDirectMessages($userId: Int) {
   user(id: $userId) {
     name
     avatar
@@ -864,25 +958,25 @@ export const DirectMessagesDocument = `
   }
 }
     `;
-export const useDirectMessagesQuery = <
-  TData = DirectMessagesQuery,
+export const useGetDirectMessagesQuery = <
+  TData = GetDirectMessagesQuery,
   TError = unknown
 >(
-  variables?: DirectMessagesQueryVariables,
-  options?: UseQueryOptions<DirectMessagesQuery, TError, TData>
+  variables?: GetDirectMessagesQueryVariables,
+  options?: UseQueryOptions<GetDirectMessagesQuery, TError, TData>
 ) =>
-  useQuery<DirectMessagesQuery, TError, TData>(
+  useQuery<GetDirectMessagesQuery, TError, TData>(
     variables === undefined
-      ? ["DirectMessages"]
-      : ["DirectMessages", variables],
-    fetcher<DirectMessagesQuery, DirectMessagesQueryVariables>(
-      DirectMessagesDocument,
+      ? ["GetDirectMessages"]
+      : ["GetDirectMessages", variables],
+    fetcher<GetDirectMessagesQuery, GetDirectMessagesQueryVariables>(
+      GetDirectMessagesDocument,
       variables
     ),
     options
   );
 export const GetInfoUsersDocument = `
-    query getInfoUsers($userId: Int) {
+    query GetInfoUsers($userId: Int) {
   user(id: $userId) {
     id
     __typename
@@ -921,10 +1015,150 @@ export const useGetInfoUsersQuery = <
   options?: UseQueryOptions<GetInfoUsersQuery, TError, TData>
 ) =>
   useQuery<GetInfoUsersQuery, TError, TData>(
-    variables === undefined ? ["getInfoUsers"] : ["getInfoUsers", variables],
+    variables === undefined ? ["GetInfoUsers"] : ["GetInfoUsers", variables],
     fetcher<GetInfoUsersQuery, GetInfoUsersQueryVariables>(
       GetInfoUsersDocument,
       variables
     ),
     options
   );
+<<<<<<< HEAD
+=======
+export const GetUserProfileDocument = `
+    query GetUserProfile($userId: Int) {
+  user(id: $userId) {
+    id
+    name
+    avatar
+    rank
+  }
+}
+    `;
+export const useGetUserProfileQuery = <
+  TData = GetUserProfileQuery,
+  TError = unknown
+>(
+  variables?: GetUserProfileQueryVariables,
+  options?: UseQueryOptions<GetUserProfileQuery, TError, TData>
+) =>
+  useQuery<GetUserProfileQuery, TError, TData>(
+    variables === undefined
+      ? ["GetUserProfile"]
+      : ["GetUserProfile", variables],
+    fetcher<GetUserProfileQuery, GetUserProfileQueryVariables>(
+      GetUserProfileDocument,
+      variables
+    ),
+    options
+  );
+export const SearchUsersChannelsDocument = `
+    query SearchUsersChannels($name: String) {
+  users(name: $name) {
+    __typename
+    name
+    id
+    avatar
+  }
+  channels(name: $name) {
+    __typename
+    name
+    id
+    name
+  }
+}
+    `;
+export const useSearchUsersChannelsQuery = <
+  TData = SearchUsersChannelsQuery,
+  TError = unknown
+>(
+  variables?: SearchUsersChannelsQueryVariables,
+  options?: UseQueryOptions<SearchUsersChannelsQuery, TError, TData>
+) =>
+  useQuery<SearchUsersChannelsQuery, TError, TData>(
+    variables === undefined
+      ? ["SearchUsersChannels"]
+      : ["SearchUsersChannels", variables],
+    fetcher<SearchUsersChannelsQuery, SearchUsersChannelsQueryVariables>(
+      SearchUsersChannelsDocument,
+      variables
+    ),
+    options
+  );
+export const SendChannelMessageDocument = `
+    mutation sendChannelMessage($message: String!, $recipientId: Int!) {
+  sendChanelMessage(message: $message, recipientId: $recipientId) {
+    id
+    author {
+      name
+      id
+    }
+    readBy {
+      id
+      user {
+        name
+        id
+      }
+    }
+    content
+    sentAt
+  }
+}
+    `;
+export const useSendChannelMessageMutation = <
+  TError = unknown,
+  TContext = unknown
+>(
+  options?: UseMutationOptions<
+    SendChannelMessageMutation,
+    TError,
+    SendChannelMessageMutationVariables,
+    TContext
+  >
+) =>
+  useMutation<
+    SendChannelMessageMutation,
+    TError,
+    SendChannelMessageMutationVariables,
+    TContext
+  >(
+    ["sendChannelMessage"],
+    (variables?: SendChannelMessageMutationVariables) =>
+      fetcher<SendChannelMessageMutation, SendChannelMessageMutationVariables>(
+        SendChannelMessageDocument,
+        variables
+      )(),
+    options
+  );
+export const SendDirectMessageDocument = `
+    mutation SendDirectMessage($message: String!, $recipientId: Int!) {
+  sendDirectMessage(message: $message, recipientId: $recipientId) {
+    id
+  }
+}
+    `;
+export const useSendDirectMessageMutation = <
+  TError = unknown,
+  TContext = unknown
+>(
+  options?: UseMutationOptions<
+    SendDirectMessageMutation,
+    TError,
+    SendDirectMessageMutationVariables,
+    TContext
+  >
+) =>
+  useMutation<
+    SendDirectMessageMutation,
+    TError,
+    SendDirectMessageMutationVariables,
+    TContext
+  >(
+    ["SendDirectMessage"],
+    (variables?: SendDirectMessageMutationVariables) =>
+      fetcher<SendDirectMessageMutation, SendDirectMessageMutationVariables>(
+        SendDirectMessageDocument,
+        variables
+      )(),
+    options
+  );
+>>>>>>> Update name grapql file

@@ -2,7 +2,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
-  useDirectMessagesQuery,
   useGetInfoUsersQuery,
   useSendDirectMessageMutation,
 } from "../../graphql/generated";
@@ -178,4 +177,21 @@ const DirectConversation = () => {
 
 export default function Chat() {
   return <DirectConversation />;
+}
+function useDirectMessagesQuery(
+  arg0: { userId: number },
+  arg1: {
+    select({ user }: { user: any }): {
+      messages: {
+        content: string;
+        sentAt: number;
+        readAt?: number | null | undefined;
+        author: User;
+      }[];
+      name: string;
+      avatar: string;
+    };
+  }
+): { isLoading: any; data: any; error: any; isFetching: any } {
+  throw new Error("Function not implemented.");
 }

@@ -1,4 +1,4 @@
-query getChannel($channelId: Int!) {
+query GetChannel($channelId: Int!) {
   channel(id: $channelId) {
     private
     passwordProtected
