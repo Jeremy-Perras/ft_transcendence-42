@@ -1,8 +1,12 @@
+/* eslint-disable prettier/prettier */
 import { useNavigate } from "react-router-dom";
 import * as Avatar from "@radix-ui/react-avatar";
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { ReactComponent as UsersIcon } from "pixelarticons/svg/users.svg";
 import { ReactComponent as GamePadIcon } from "pixelarticons/svg/gamepad.svg";
+import { ReactComponent as LoaderIcon } from "pixelarticons/svg/loader.svg";
+import { ReactComponent as AlertIcon } from "pixelarticons/svg/alert.svg";
+
 import {
   useCreateChanelMutation,
   useGetInfoUsersQuery,
@@ -25,6 +29,40 @@ const Empty = () => {
       <GamePadIcon className="-mt-2 w-96" />
       <span className="-mt-10 px-20 text-center text-2xl">
         Add your friends to play with them!
+      </span>
+    </div>
+  );
+};
+
+//TODO : animate loader image
+export const Loading = () => {
+  return (
+    <div className="flex h-full select-none flex-col items-center justify-center text-slate-200">
+      <LoaderIcon className="-mt-10 w-32" />
+      <span className="mt-5 px-20 text-center text-4xl tracking-wide">
+        Loading...
+      </span>
+    </div>
+  );
+};
+
+export const Fetching = () => {
+  return (
+    <div className="flex h-full select-none flex-col items-center justify-center text-slate-200">
+      <LoaderIcon className="-mt-10 w-32" />
+      <span className="mt-5 px-20 text-center text-4xl tracking-wide">
+        Fetching...
+      </span>
+    </div>
+  );
+};
+
+export const Error = () => {
+  return (
+    <div className="flex h-full select-none flex-col items-center justify-center text-slate-200">
+      <AlertIcon className="-mt-10 w-72" />
+      <span className="mt-10 px-20 text-center text-4xl tracking-wide">
+        Error while loading data
       </span>
     </div>
   );
@@ -123,12 +161,12 @@ const Home = () => {
     },
   });
 
-  if (isLoading) return <div>Loading ...</div>;
+  if (isLoading) return <Loading />;
   if (isFetching) {
-    return <div>Fetching</div>;
+    return <Fetching />;
   }
   if (error) {
-    return <div>Error</div>;
+    return <Error />;
   } else {
     return (
       <>

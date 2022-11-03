@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -7,7 +8,7 @@ import {
   useGetUserProfileQuery,
   useSendDirectMessageMutation,
 } from "../../graphql/generated";
-import { getDate } from "./home";
+import { getDate, Fetching, Loading, Error } from "./home";
 
 export type User = {
   __typename?: "User" | undefined;
@@ -109,7 +110,7 @@ const DirectConversation = () => {
           name: string;
           avatar: string;
         } = {
-          messages: user.messages,
+          messages: user.messages.sort((a, b) => a.sentAt - b.sentAt),
           name: user.name,
           avatar: user.avatar,
         };
@@ -122,14 +123,14 @@ const DirectConversation = () => {
       queryClient.invalidateQueries(["DirectMessages", { userId: userId }]);
     },
   });
-  if (isLoading) return <div>Loading ...</div>;
+  if (isLoading) return <Loading />;
 
   if (isFetching) {
-    return <div>Fetching</div>;
+    return <Fetching />;
   }
 
   if (error) {
-    return <div>Error</div>;
+    return <Error />;
   }
 
   return (

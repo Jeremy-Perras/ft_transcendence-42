@@ -1,12 +1,9 @@
-import { useQueryClient } from "@tanstack/react-query";
+/* eslint-disable prettier/prettier */
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import {
-  useGetChannelQuery,
-  useSendChannelMessageMutation,
-} from "../../graphql/generated";
+import { useGetChannelQuery } from "../../graphql/generated";
 import { User } from "./chat";
-import { getDate } from "./home";
+import { getDate, Error, Loading, Fetching } from "./home";
 
 const ReadBy = ({ users }: { users: User[] }) => {
   const navigate = useNavigate();
@@ -100,12 +97,13 @@ const ChannelMessage = ({
 
 export default function Channel() {
   const { channelId } = useParams();
-  const [contents, setContents] = useState("");
-  const queryClient = useQueryClient();
 
   if (!channelId) return <div>no channel id</div>;
+
   const { isLoading, isFetching, error, data } = useGetChannelQuery(
-    { channelId: +channelId },
+    {
+      channelId: +channelId,
+    },
     {
       select({ channel }) {
         const res: {
@@ -121,20 +119,14 @@ export default function Channel() {
       },
     }
   );
-  const messageMutation = useSendChannelMessageMutation({
-    onSuccess: () => {
-      queryClient.invalidateQueries(["getChannel", { channelId: +channelId }]);
-    },
-  });
-
   if (isLoading) {
-    return <div>Loading ...</div>;
+    return <Loading />;
   }
   if (isFetching) {
-    return <div>Fetching</div>;
+    return <Fetching />;
   }
   if (error) {
-    return <div>Error</div>;
+    return <Error />;
   } else {
     return (
       <div className="flex flex-col">
@@ -147,24 +139,6 @@ export default function Channel() {
             <ChannelMessage key={index} {...message} />
           ))}
         </div>
-        <textarea
-          rows={1}
-          className=" w-full rounded-xl bg-gray-300 py-5 px-3"
-          onChange={(e) => setContents(e.target.value)}
-          placeholder="type your message here..."
-          onKeyDown={(e) => {
-            if (e.code == "Enter" && !e.getModifierState("Shift")) {
-              messageMutation.mutate({
-                message: contents,
-                recipientId: +channelId,
-              });
-
-              e.currentTarget.value = "";
-              e.preventDefault();
-              setContents("");
-            }
-          }}
-        />
       </div>
     );
   }
