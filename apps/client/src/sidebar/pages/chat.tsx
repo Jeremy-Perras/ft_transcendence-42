@@ -134,17 +134,8 @@ const DirectConversation = () => {
   }
 
   return (
-    <div className="mb-2 mt-2  w-full  border-t-2 border-slate-600">
-      <div
-        className="absolute flex h-16 w-full border-b-2 bg-slate-100 p-2 text-center hover:cursor-pointer hover:bg-slate-200"
-        onClick={() => navigate(`/profile/${userId}`)}
-      >
-        <img className="flex h-12 w-12 rounded-full" src={data?.avatar} />
-        <div className="ml-5 flex self-center text-xl font-bold">
-          {data?.name}
-        </div>
-      </div>
-      <ul className="absolute top-28 bottom-16 flex h-auto w-full flex-col overflow-auto">
+    <div className="mb-2 mt-2 flex w-full shrink-0 flex-col  ">
+      <ul className="top-28 bottom-16 flex h-full w-full shrink flex-col overflow-auto">
         {data?.messages.map((message, index) => (
           <DirectMessage key={index} userId={userId} {...message} />
         ))}

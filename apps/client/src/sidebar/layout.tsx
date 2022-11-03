@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { useContext, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
@@ -12,6 +13,7 @@ import { SideBarContext } from "./context";
 import { useSearchUsersChannelsQuery } from "../graphql/generated";
 import * as Avatar from "@radix-ui/react-avatar";
 import Chating from "./pages/chating";
+import { useGetUserProfileQuery } from "../graphql/generated";
 
 const SearchBar = ({
   search,
@@ -118,7 +120,18 @@ function Header({
               key={4}
               className="relative grow border-r-2 text-center text-lg"
             >
-              {location.pathname}
+              {location.pathname.substring(0, 6) === "/chat/" ? (
+                <UserHeader
+                  userId={
+                    +location.pathname.substring(
+                      7,
+                      location.pathname.length - 1
+                    )
+                  }
+                />
+              ) : (
+                <div>{location.pathname}</div>
+              )}
             </div>
           </>
         )}
@@ -128,6 +141,37 @@ function Header({
           <BackBurgerIcon className="h-9 rotate-180 transition-colors duration-200 hover:text-slate-500" />
         </button>
       ) : null}
+    </div>
+  );
+}
+function UserHeader({ userId }: { userId: number }) {
+  const { isLoading, data, error, isFetching } = useGetUserProfileQuery(
+    { userId: userId },
+    {
+      select({ user }) {
+        const res: {
+          id: number;
+          name: string;
+          avatar: string;
+          rank: number;
+        } = {
+          id: user.id,
+          name: user.name,
+          avatar: user.avatar,
+          rank: user.rank,
+        };
+        return res;
+      },
+    }
+  );
+  const navigate = useNavigate();
+  return (
+    <div
+      className="flex h-9 w-full shrink-0 items-center justify-center p-2 text-center hover:cursor-pointer hover:bg-slate-100"
+      onClick={() => navigate(`/profile/${userId}`)}
+    >
+      <img className="mb-px h-8 w-8 rounded-full" src={data?.avatar} />
+      <div className="ml-2 mb-px h-full text-base font-bold">{data?.name}</div>
     </div>
   );
 }
