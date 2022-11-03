@@ -10,16 +10,17 @@ import {
 import { Prisma } from "@prisma/client";
 import { CurrentUser } from "../auth/currentUser.decorator";
 import { PrismaService } from "../prisma/prisma.service";
-import { User } from "../user/user.model";
+import { Restricted, RestrictedMember, User } from "../user/user.model";
 import { userType } from "../user/user.resolver";
 import { Channel, ChannelMessage, ChannelMessageRead } from "./channel.model";
 
 export type channelType = Omit<
   Channel,
-  "owner" | "messages" | "admins" | "members"
+  "owner" | "messages" | "admins" | "members" | "banned" | "muted"
 >;
 type channelMessageType = Omit<ChannelMessage, "author" | "readBy">;
 type channelMessageReadType = Omit<ChannelMessageRead, "user">;
+type restrictedMemberType = userType & Restricted;
 
 @Resolver(Channel)
 export class ChannelResolver {
@@ -158,6 +159,44 @@ export class ChannelResolver {
   }
 
   @ResolveField()
+  async muted(@Root() channel: Channel): Promise<restrictedMemberType[]> {
+    const members = await this.prisma.mutedMember.findMany({
+      select: { user: true, endAt: true },
+      where: {
+        channelId: channel.id,
+      },
+    });
+    return members
+      ? members.map((member) => ({
+          id: member.user.id,
+          name: member.user.name,
+          avatar: member.user.avatar,
+          rank: member.user.rank,
+          endAt: member.endAt,
+        }))
+      : [];
+  }
+
+  @ResolveField()
+  async banned(@Root() channel: Channel): Promise<restrictedMemberType[]> {
+    const members = await this.prisma.bannedMember.findMany({
+      select: { user: true, endAt: true },
+      where: {
+        channelId: channel.id,
+      },
+    });
+    return members
+      ? members.map((member) => ({
+          id: member.user.id,
+          name: member.user.name,
+          avatar: member.user.avatar,
+          rank: member.user.rank,
+          endAt: member.endAt,
+        }))
+      : [];
+  }
+
+  @ResolveField()
   async messages(
     @Root() channel: Channel,
     @CurrentUser() me: User
@@ -204,6 +243,7 @@ export class ChannelResolver {
         }))
       : [];
   }
+
   @Mutation((returns) => Channel)
   async createChanel(
     @Args("inviteOnly", { type: () => Boolean }) inviteOnly: boolean,
@@ -217,6 +257,7 @@ export class ChannelResolver {
         name: name,
         password: password,
         ownerId: me.id,
+        admins: { create: { userId: me.id } },
       },
     });
     return {
@@ -224,6 +265,146 @@ export class ChannelResolver {
       private: m.inviteOnly,
       name: m.name,
       id: m.id,
+    };
+  }
+
+  @Mutation((returns) => RestrictedMember)
+  async createMuted(
+    @Args("id", { type: () => Int }) id: number,
+    @Args("channelId", { type: () => Int }) channelId: number,
+    @Args("date", { type: () => String, nullable: true })
+    date: string | Date | null | undefined
+  ): Promise<restrictedMemberType> {
+    const m = await this.prisma.bannedMember.create({
+      select: {
+        user: true,
+        endAt: true,
+      },
+      data: { endAt: date, channelId: channelId, userId: id },
+    });
+    return {
+      avatar: m.user.avatar,
+      id: m.user.id,
+      name: m.user.name,
+      rank: m.user.rank,
+      endAt: m.endAt,
+    };
+  }
+
+  @Mutation((returns) => RestrictedMember)
+  async createBanned(
+    @Args("id", { type: () => Int }) id: number,
+    @Args("channelId", { type: () => Int }) channelId: number,
+    @Args("date", { type: () => String, nullable: true })
+    date: string | Date | null | undefined
+  ): Promise<restrictedMemberType> {
+    const m = await this.prisma.bannedMember.create({
+      select: {
+        user: true,
+        endAt: true,
+      },
+      data: { endAt: date, channelId: channelId, userId: id },
+    });
+    return {
+      avatar: m.user.avatar,
+      id: m.user.id,
+      name: m.user.name,
+      rank: m.user.rank,
+      endAt: m.endAt,
+    };
+  }
+
+  @Query((returns) => Channel)
+  async updatePassword(
+    @Args("password", { type: () => String, nullable: true }) password: string,
+    @Args("idchannel", { type: () => Int }) idchannel: number
+  ): Promise<channelType> {
+    const m = await this.prisma.channel.update({
+      select: { password: true, id: true, name: true, inviteOnly: true },
+      where: { id: idchannel },
+      data: { password: password },
+    });
+
+    return {
+      id: m.id,
+      name: m.name,
+      passwordProtected: m.password ? true : false,
+      private: m.inviteOnly,
+    };
+  }
+
+  @Query((returns) => Channel)
+  async updateMuted(
+    @Args("id", { type: () => Int }) id: number,
+    @Args("channelId", { type: () => Int }) channelId: number,
+    @Args("userId", { type: () => Int }) userId: number,
+    @Args("idchannel", { type: () => Int }) idchannel: number,
+    @Args("date", { type: () => String, nullable: true })
+    date: string | Date | null | undefined
+  ): Promise<channelType> {
+    const m = await this.prisma.mutedMember.update({
+      select: { channel: true },
+      where: { channelId_userId: { channelId: channelId, userId: userId } },
+      data: { endAt: date },
+    });
+    return {
+      id: m.channel.id,
+      name: m.channel.name,
+      passwordProtected: m.channel.password ? true : false,
+      private: m.channel.inviteOnly,
+    };
+  }
+
+  @Query((returns) => Channel)
+  async updateBanned(
+    @Args("id", { type: () => Int }) id: number,
+    @Args("channelId", { type: () => Int }) channelId: number,
+    @Args("userId", { type: () => Int }) userId: number,
+    @Args("idchannel", { type: () => Int }) idchannel: number,
+    @Args("date", { type: () => String, nullable: true })
+    date: string | Date | null | undefined
+  ): Promise<channelType> {
+    const m = await this.prisma.mutedMember.update({
+      select: { channel: true },
+      where: { channelId_userId: { channelId: channelId, userId: userId } },
+      data: { endAt: date },
+    });
+    return {
+      id: m.channel.id,
+      name: m.channel.name,
+      passwordProtected: m.channel.password ? true : false,
+      private: m.channel.inviteOnly,
+    };
+  }
+
+  @Query((returns) => Channel)
+  async updateAdmins(
+    @Args("id", { type: () => Int }) id: number,
+    @Args("userId", { type: () => Int }) user: number
+  ): Promise<channelType> {
+    const m = await this.prisma.channel.update({
+      select: {
+        id: true,
+        admins: true,
+        name: true,
+        password: true,
+        inviteOnly: true,
+      },
+      where: { id: id },
+      data: {
+        admins: {
+          create: {
+            userId: user,
+          },
+        },
+      },
+    });
+
+    return {
+      id: m.id,
+      name: m.name,
+      passwordProtected: m.password ? true : false,
+      private: m.inviteOnly,
     };
   }
 }
@@ -254,7 +435,7 @@ export class ChannelMessageResolver {
   async readBy(
     @Root() channelMessage: ChannelMessage
   ): Promise<channelMessageReadType[]> {
-    const reads = await this.prisma.channelMessageReads.findMany({
+    const reads = await this.prisma.channelMessageRead.findMany({
       select: {
         id: true,
         readAt: true,
@@ -301,7 +482,7 @@ export class ChannelMessageReadResolver {
   async user(
     @Root() channelMessageread: ChannelMessageRead
   ): Promise<userType> {
-    let message = await this.prisma.channelMessageReads.findUnique({
+    let message = await this.prisma.channelMessageRead.findUnique({
       select: {
         user: true,
       },
@@ -317,5 +498,20 @@ export class ChannelMessageReadResolver {
       name: message.user.name,
       rank: message.user.rank,
     };
+  }
+
+  @Mutation((returns) => ChannelMessageRead)
+  async createChannelMessageRead(
+    @Args("userId", { type: () => Int }) userId: number,
+    @Args("messageId", { type: () => Int }) messageId: number
+  ): Promise<channelMessageReadType> {
+    const m = await this.prisma.channelMessageRead.create({
+      data: {
+        channelMessageId: messageId,
+        userId: userId,
+        readAt: new Date(),
+      },
+    });
+    return { id: m.id, readAt: m.readAt };
   }
 }

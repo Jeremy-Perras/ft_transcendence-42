@@ -48,9 +48,11 @@ export type Scalars = {
 export type Channel = {
   __typename?: "Channel";
   admins: Array<User>;
+  banned: Array<RestrictedMember>;
   id: Scalars["Int"];
   members: Array<User>;
   messages: Array<ChannelMessage>;
+  muted: Array<RestrictedMember>;
   name: Scalars["String"];
   owner: User;
   passwordProtected: Scalars["Boolean"];
@@ -98,7 +100,10 @@ export type Game = {
 export type Mutation = {
   __typename?: "Mutation";
   CreateGame: Game;
+  createBanned: RestrictedMember;
   createChanel: Channel;
+  createChannelMessageRead: ChannelMessageRead;
+  createMuted: RestrictedMember;
   sendChanelMessage: ChannelMessage;
   sendDirectMessage: DirectMessage;
 };
@@ -108,10 +113,27 @@ export type MutationCreateGameArgs = {
   player2Id?: InputMaybe<Scalars["Int"]>;
 };
 
+export type MutationCreateBannedArgs = {
+  channelId: Scalars["Int"];
+  date?: InputMaybe<Scalars["String"]>;
+  id: Scalars["Int"];
+};
+
 export type MutationCreateChanelArgs = {
   inviteOnly: Scalars["Boolean"];
   name: Scalars["String"];
   password: Scalars["String"];
+};
+
+export type MutationCreateChannelMessageReadArgs = {
+  messageId: Scalars["Int"];
+  userId: Scalars["Int"];
+};
+
+export type MutationCreateMutedArgs = {
+  channelId: Scalars["Int"];
+  date?: InputMaybe<Scalars["String"]>;
+  id: Scalars["Int"];
 };
 
 export type MutationSendChanelMessageArgs = {
@@ -132,7 +154,15 @@ export type Query = {
   channels: Array<Channel>;
   game: Game;
   games: Array<Game>;
+<<<<<<< HEAD
   updateFriend: User;
+=======
+  joinGame: Game;
+  updateAdmins: Channel;
+  updateFriend: User;
+  updateFriendBy: User;
+  updatePassword: Channel;
+>>>>>>>  New auery and mutations
   user: User;
   userAvatar: User;
   userName: User;
@@ -168,10 +198,35 @@ export type QueryGamesArgs = {
   id?: InputMaybe<Scalars["Int"]>;
 };
 
+<<<<<<< HEAD
+=======
+export type QueryJoinGameArgs = {
+  id: Scalars["Int"];
+};
+
+export type QueryUpdateAdminsArgs = {
+  id: Scalars["Int"];
+  userId: Scalars["Int"];
+};
+
+>>>>>>>  New auery and mutations
 export type QueryUpdateFriendArgs = {
   id: Scalars["Int"];
 };
 
+<<<<<<< HEAD
+=======
+export type QueryUpdateFriendByArgs = {
+  id: Scalars["Int"];
+  meId: Scalars["Int"];
+};
+
+export type QueryUpdatePasswordArgs = {
+  idchannel: Scalars["Int"];
+  password?: InputMaybe<Scalars["String"]>;
+};
+
+>>>>>>>  New auery and mutations
 export type QueryUserArgs = {
   id?: InputMaybe<Scalars["Int"]>;
 };
@@ -186,6 +241,21 @@ export type QueryUserNameArgs = {
 
 export type QueryUsersArgs = {
   name?: InputMaybe<Scalars["String"]>;
+};
+
+export type RestrictedMember = {
+  __typename?: "RestrictedMember";
+  avatar: Scalars["String"];
+  blocked: Scalars["Boolean"];
+  blocking: Scalars["Boolean"];
+  channels: Array<Channel>;
+  endAt?: Maybe<Scalars["Timestamp"]>;
+  friends: Array<User>;
+  games: Array<Game>;
+  id: Scalars["Int"];
+  messages: Array<DirectMessage>;
+  name: Scalars["String"];
+  rank: Scalars["Int"];
 };
 
 export type User = {

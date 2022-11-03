@@ -227,6 +227,33 @@ async function main() {
       },
     },
   });
+  //muted channel members
+  await prisma.mutedMember.create({
+    data: { channelId: 1, userId: 1, endAt: new Date() },
+  });
+  await prisma.mutedMember.create({
+    data: { channelId: 1, userId: 5, endAt: new Date() },
+  });
+  await prisma.mutedMember.create({
+    data: { channelId: 2, userId: 6, endAt: new Date() },
+  });
+  await prisma.mutedMember.create({
+    data: { channelId: 2, userId: 8, endAt: new Date() },
+  });
+
+  //banned channel members
+  await prisma.bannedMember.create({
+    data: { channelId: 1, userId: 3 },
+  });
+  await prisma.bannedMember.create({
+    data: { channelId: 1, userId: 4 },
+  });
+  await prisma.bannedMember.create({
+    data: { channelId: 1, userId: 5 },
+  });
+  await prisma.bannedMember.create({
+    data: { channelId: 2, userId: 6 },
+  });
 
   // channel messages
   for (let i = 0; i < 100; i++) {

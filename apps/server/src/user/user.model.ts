@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { Field, Int, ObjectType } from "@nestjs/graphql";
+import { Field, Int, IntersectionType, ObjectType } from "@nestjs/graphql";
 import { IsNotEmpty, Min } from "class-validator";
 import { Channel } from "../channel/channel.model";
 import { Game } from "../game/game.model";
@@ -7,18 +7,15 @@ import { Game } from "../game/game.model";
 @ObjectType()
 export class User {
   @Field((type) => Int)
-  @Min(1)
   id: number;
 
   @Field()
-  @IsNotEmpty()
   name: string;
 
   @Field((type) => String)
   avatar: string;
 
   @Field((type) => Int)
-  @Min(1)
   rank: number;
 
   @Field((type) => [User])
@@ -61,3 +58,11 @@ export class DirectMessage {
   @Field((type) => Date, { nullable: true })
   readAt?: Date;
 }
+
+@ObjectType()
+export class Restricted {
+  @Field((type) => Date, { nullable: true })
+  endAt: Date | null;
+}
+@ObjectType()
+export class RestrictedMember extends IntersectionType(Restricted, User) {}

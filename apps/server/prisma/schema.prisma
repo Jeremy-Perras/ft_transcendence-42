@@ -27,13 +27,15 @@ model User {
   channelsAsMember ChannelMember[]
 
   channelMessages     ChannelMessage[]
-  channelMessageReads ChannelMessageReads[]
+  channelMessageReads ChannelMessageRead[]
 
   messageSent     DirectMessage[] @relation("MessageSent")
   messageReceived DirectMessage[] @relation("MessageReceived")
 
-  gamesAsPlayer1 Game[] @relation("GamePlayer1")
-  gamesAsPlayer2 Game[] @relation("GamePlayer2")
+  gamesAsPlayer1 Game[]         @relation("GamePlayer1")
+  gamesAsPlayer2 Game[]         @relation("GamePlayer2")
+  BannedMember   BannedMember[]
+  MutedMember    MutedMember[]
 }
 
 model GameMode {
@@ -98,9 +100,36 @@ model Channel {
   admins ChannelAdmin[]
 
   members ChannelMember[]
+
+  banned BannedMember[]
+  muted  MutedMember[]
 }
 
-model ChannelMessageReads {
+model MutedMember {
+  channel   Channel @relation(fields: [channelId], references: [id])
+  channelId Int
+
+  user   User @relation(fields: [userId], references: [id])
+  userId Int
+
+  endAt DateTime?
+
+  @@id([channelId, userId])
+}
+
+model BannedMember {
+  channel   Channel @relation(fields: [channelId], references: [id])
+  channelId Int
+
+  user   User @relation(fields: [userId], references: [id])
+  userId Int
+
+  endAt DateTime?
+
+  @@id([channelId, userId])
+}
+
+model ChannelMessageRead {
   id Int @id @default(autoincrement())
 
   channelMessage   ChannelMessage @relation(fields: [channelMessageId], references: [id])
@@ -123,7 +152,7 @@ model ChannelMessage {
 
   content String
   sentAt  DateTime
-  readBy  ChannelMessageReads[]
+  readBy  ChannelMessageRead[]
 }
 
 model DirectMessage {
