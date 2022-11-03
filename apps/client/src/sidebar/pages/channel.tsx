@@ -119,6 +119,12 @@ export default function Channel() {
       },
     }
   );
+  const messageMutation = useSendChannelMessageMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries(["GetChannel", { channelId: +channelId }]);
+    },
+  });
+
   if (isLoading) {
     return <Loading />;
   }
