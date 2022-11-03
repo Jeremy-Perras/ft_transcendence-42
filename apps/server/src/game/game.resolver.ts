@@ -166,4 +166,42 @@ export class GameResolver {
           : "",
     };
   }
+
+  @Query((returns) => Game)
+  async joinGame(
+    @CurrentUser() me: User,
+    @Args("id", { type: () => Int })
+    id: number
+  ): Promise<gameType> {
+    const m = await this.prisma.game.update({
+      select: {
+        player2: true,
+        startedAt: true,
+        player2Id: true,
+        id: true,
+        player1Score: true,
+        player2Score: true,
+        gameModeId: true,
+      },
+      where: {
+        id: id,
+      },
+      data: { startedAt: new Date(), player2Id: me.id },
+    });
+
+    return {
+      gamemode:
+        m.gameModeId === 1
+          ? "Classic"
+          : m.gameModeId === 2
+          ? "Speed"
+          : m.gameModeId === 3
+          ? "Random"
+          : "",
+      id,
+      player1score: m.player1Score,
+      player2score: m.player2Score,
+      startAt: m.startedAt ?? undefined,
+    };
+  }
 }

@@ -390,9 +390,34 @@ export class UserResolver {
         friends: { connect: { id: id } },
       },
     });
+    this.updateFriendBy(me.id, id);
+    return { avatar: m.avatar, id: m.id, name: m.name, rank: m.rank };
+  }
+  @Query((returns) => User)
+  async updateFriendBy(
+    @Args("meId", { type: () => Int }) meId: number,
+    @Args("id", { type: () => Int }) id: number
+  ): Promise<userType> {
+    const m = await this.prisma.user.update({
+      select: {
+        avatar: true,
+        id: true,
+        name: true,
+        rank: true,
+        blockedBy: true,
+      },
+      where: {
+        id: id,
+      },
+      data: {
+        friendedBy: { connect: { id: meId } },
+      },
+    });
+
     return { avatar: m.avatar, id: m.id, name: m.name, rank: m.rank };
   }
 }
+
 @Resolver(DirectMessage)
 export class DirectMessageResolver {
   constructor(private prisma: PrismaService) {}

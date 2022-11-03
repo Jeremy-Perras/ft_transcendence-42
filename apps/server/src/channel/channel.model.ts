@@ -1,7 +1,13 @@
 import "reflect-metadata";
-import { Field, Int, ObjectType } from "@nestjs/graphql";
+import {
+  Field,
+  InputType,
+  Int,
+  IntersectionType,
+  ObjectType,
+} from "@nestjs/graphql";
 import { IsNotEmpty, Min } from "class-validator";
-import { User } from "../user/user.model";
+import { RestrictedMember, User } from "../user/user.model";
 
 @ObjectType()
 export class Channel {
@@ -30,6 +36,12 @@ export class Channel {
 
   @Field((type) => [ChannelMessage])
   messages: [ChannelMessage | undefined];
+
+  @Field((type) => [RestrictedMember])
+  banned: [RestrictedMember | undefined];
+
+  @Field((type) => [RestrictedMember])
+  muted: [RestrictedMember | undefined];
 }
 
 @ObjectType()
