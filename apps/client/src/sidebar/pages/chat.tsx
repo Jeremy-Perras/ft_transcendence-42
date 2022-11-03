@@ -2,6 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
+  useGetDirectMessagesQuery,
   useGetInfoUsersQuery,
   useSendDirectMessageMutation,
 } from "../../graphql/generated";
@@ -96,7 +97,7 @@ const DirectConversation = () => {
   const userId = +params.userId;
   const [content, setContent] = useState("");
   const infoSpeak = GetInfo(userId);
-  const { isLoading, data, error, isFetching } = useDirectMessagesQuery(
+  const { isLoading, data, error, isFetching } = useGetDirectMessagesQuery(
     { userId: userId },
     {
       select({ user }) {
