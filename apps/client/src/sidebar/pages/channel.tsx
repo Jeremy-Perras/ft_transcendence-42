@@ -134,10 +134,17 @@ export default function Channel() {
           <div>Channel: {data?.name}</div>
           <div>Owner: {data?.owner.name}</div>
         </div>
-        <div className="flex h-full w-full flex-col pr-2 pl-px">
+        <div className="absolute top-28 bottom-16 flex h-auto w-full flex-col overflow-auto pr-2 pl-px">
           {data?.messages?.map((message, index) => (
             <ChannelMessage key={index} {...message} />
           ))}
+        </div>
+        <div className="absolute bottom-0 h-16 w-full border-t-2 bg-slate-50 p-2">
+          <textarea
+            rows={1}
+            className="h-10 w-11/12 overflow-visible rounded-lg px-3 pt-2"
+            placeholder="Type your message here..."
+          />
         </div>
       </div>
     );
