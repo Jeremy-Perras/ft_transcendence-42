@@ -134,50 +134,52 @@ const DirectConversation = () => {
   }
 
   return (
-    <div className="mb-2 mt-2 flex w-full flex-col border-t-2 border-slate-600">
+    <div className="mb-2 mt-2  w-full  border-t-2 border-slate-600">
       <div
-        className="flex p-2 text-center hover:cursor-pointer hover:bg-slate-100"
+        className="absolute flex h-16 w-full border-b-2 bg-slate-100 p-2 text-center hover:cursor-pointer hover:bg-slate-200"
         onClick={() => navigate(`/profile/${userId}`)}
       >
         <img className="flex h-12 w-12 rounded-full" src={data?.avatar} />
-        <div className="ml-5 flex h-full self-center text-xl font-bold">
+        <div className="ml-5 flex self-center text-xl font-bold">
           {data?.name}
         </div>
       </div>
-      <ul className="flex w-full flex-col overflow-auto">
+      <ul className="absolute top-28 bottom-16 flex h-auto w-full flex-col overflow-auto">
         {data?.messages.map((message, index) => (
           <DirectMessage key={index} userId={userId} {...message} />
         ))}
       </ul>
-      <textarea
-        rows={1}
-        className=" w-full rounded-xl bg-gray-300 py-5 px-3"
-        onChange={(e) => setContent(e.target.value)}
-        placeholder={`${
-          infoSpeak?.blocking == true
-            ? "You are blocked"
-            : "type your message here ..."
-        }`}
-        onKeyDown={(e) => {
-          if (infoSpeak?.blocking == false) {
-            if (e.code == "Enter" && !e.getModifierState("Shift")) {
-              messageMutation.mutate({
-                message: content,
-                recipientId: userId,
-              });
-              e.currentTarget.value = "";
-              e.preventDefault();
-              setContent("");
+      <div className="absolute bottom-0 h-16 w-full border-t-2 bg-slate-50 p-2">
+        <textarea
+          rows={1}
+          className="h-10 w-11/12 overflow-visible rounded-lg px-3 pt-2"
+          onChange={(e) => setContent(e.target.value)}
+          placeholder={`${
+            infoSpeak?.blocking == true
+              ? "You are blocked"
+              : "Type your message here ..."
+          }`}
+          onKeyDown={(e) => {
+            if (infoSpeak?.blocking == false) {
+              if (e.code == "Enter" && !e.getModifierState("Shift")) {
+                messageMutation.mutate({
+                  message: content,
+                  recipientId: userId,
+                });
+                e.currentTarget.value = "";
+                e.preventDefault();
+                setContent("");
+              }
+            } else {
+              if (e.code == "Enter" && !e.getModifierState("Shift")) {
+                e.currentTarget.value = "";
+                e.preventDefault();
+                setContent("");
+              }
             }
-          } else {
-            if (e.code == "Enter" && !e.getModifierState("Shift")) {
-              e.currentTarget.value = "";
-              e.preventDefault();
-              setContent("");
-            }
-          }
-        }}
-      />
+          }}
+        />
+      </div>
     </div>
   );
 };
