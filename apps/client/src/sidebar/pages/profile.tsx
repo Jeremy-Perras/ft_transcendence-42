@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import { Link, useParams } from "react-router-dom";
 import { useGetUserProfileHeaderQuery } from "../../graphql/generated";
 

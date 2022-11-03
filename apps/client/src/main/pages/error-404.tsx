@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import { Link } from "react-router-dom";
 import { ReactComponent as AlertIcon } from "pixelarticons/svg/alert.svg";
 

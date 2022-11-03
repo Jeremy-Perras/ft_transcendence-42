@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";

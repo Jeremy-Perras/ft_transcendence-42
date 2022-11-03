@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import { useContext, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
@@ -180,7 +179,7 @@ function UserHeader({ userId }: { userId: number }) {
   const navigate = useNavigate();
   return (
     <div
-      className="flex h-9 w-full shrink-0 items-center justify-center p-2 text-center hover:cursor-pointer hover:bg-slate-100"
+      className="flex h-9 w-full items-center justify-center p-2 hover:cursor-pointer hover:bg-slate-100"
       onClick={() => navigate(`/profile/${userId}`)}
     >
       <img className="mb-px h-8 w-8 rounded-full" src={data?.avatar} />
@@ -218,7 +217,7 @@ function ChannelHeader({ channelId }: { channelId: number }) {
       <div className="justify-start">
         {data?.private ? "Priv" : data?.password ? "Pw" : "Public"}
       </div>
-      <div className="flex flex-grow justify-center font-bold ">
+      <div className="flex-grow justify-center font-bold">
         Channel: {data?.name}{" "}
       </div>
       <div className="justify-end">Owner: {data?.owner.name}</div>

@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import { useNavigate } from "react-router-dom";
 import * as Avatar from "@radix-ui/react-avatar";
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";

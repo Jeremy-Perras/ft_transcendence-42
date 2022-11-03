@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useGetChannelQuery } from "../../graphql/generated";
@@ -99,7 +98,7 @@ const ChannelMessage = ({
 export default function Channel() {
   const { channelId } = useParams();
 
-  if (!channelId) return <div>no channel id</div>;
+  if (!channelId) return <div>No channel id</div>;
 
   const { isLoading, isFetching, error, data } = useGetChannelQuery(
     {
