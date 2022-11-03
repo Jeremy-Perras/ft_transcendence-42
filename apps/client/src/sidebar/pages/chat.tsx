@@ -5,7 +5,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import {
   useDirectMessagesQuery,
   useGetInfoUsersQuery,
-  useGetUserProfileQuery,
   useSendDirectMessageMutation,
 } from "../../graphql/generated";
 import { getDate, Fetching, Loading, Error } from "./home";
@@ -37,10 +36,14 @@ const DirectMessage = ({
       <div className="mb-2 text-center text-xs text-slate-300">
         {getDate(+sentAt)}
       </div>
-      <div className="flex">
+      <div
+        className={`${
+          author.id === userId ? "justify-start" : "justify-end"
+        } flex`}
+      >
         <img
           className={`${
-            author.id === userId ? "order-first " : "order-last "
+            author.id === userId ? "order-first" : "order-last"
           } m-1 mb-px flex h-6 w-6 basis-1 self-end rounded-full`}
           src={author.avatar}
         />
@@ -93,7 +96,6 @@ const DirectConversation = () => {
   const params = useParams();
   if (typeof params.userId === "undefined") return <div></div>;
   const userId = +params.userId;
-  const navigate = useNavigate();
   const [content, setContent] = useState("");
   const infoSpeak = GetInfo(userId);
   const { isLoading, data, error, isFetching } = useDirectMessagesQuery(
@@ -134,8 +136,8 @@ const DirectConversation = () => {
   }
 
   return (
-    <div className="mb-2 mt-2 flex w-full shrink-0 flex-col  ">
-      <ul className="top-28 bottom-16 flex h-full w-full shrink flex-col overflow-auto">
+    <div>
+      <ul className="mt-4 mb-16 flex h-fit w-full flex-col pr-2 pl-px">
         {data?.messages.map((message, index) => (
           <DirectMessage key={index} userId={userId} {...message} />
         ))}

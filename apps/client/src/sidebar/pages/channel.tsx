@@ -95,6 +95,7 @@ const ChannelMessage = ({
   );
 };
 
+//TODO : fix scrollbar behind text area
 export default function Channel() {
   const { channelId } = useParams();
 
@@ -129,12 +130,8 @@ export default function Channel() {
     return <Error />;
   } else {
     return (
-      <div className="flex flex-col">
-        <div className="mt-4 flex w-full flex-col items-center justify-center border-2 border-black p-2 text-center text-sm">
-          <div>Channel: {data?.name}</div>
-          <div>Owner: {data?.owner.name}</div>
-        </div>
-        <div className="absolute top-28 bottom-16 flex h-auto w-full flex-col overflow-auto pr-2 pl-px">
+      <div>
+        <div className="mt-px mb-16 flex w-full flex-col pr-2 pl-px">
           {data?.messages?.map((message, index) => (
             <ChannelMessage key={index} {...message} />
           ))}

@@ -13,7 +13,10 @@ import { SideBarContext } from "./context";
 import { useSearchUsersChannelsQuery } from "../graphql/generated";
 import * as Avatar from "@radix-ui/react-avatar";
 import Chating from "./pages/chating";
-import { useGetUserProfileQuery } from "../graphql/generated";
+import {
+  useGetUserProfileHeaderQuery,
+  useGetChannelHeaderQuery,
+} from "../graphql/generated";
 
 const SearchBar = ({
   search,
@@ -129,6 +132,15 @@ function Header({
                     )
                   }
                 />
+              ) : location.pathname.substring(0, 9) === "/channel/" ? (
+                <ChannelHeader
+                  channelId={
+                    +location.pathname.substring(
+                      10,
+                      location.pathname.length - 1
+                    )
+                  }
+                />
               ) : (
                 <div>{location.pathname}</div>
               )}
@@ -144,8 +156,9 @@ function Header({
     </div>
   );
 }
+
 function UserHeader({ userId }: { userId: number }) {
-  const { isLoading, data, error, isFetching } = useGetUserProfileQuery(
+  const { isLoading, data, error, isFetching } = useGetUserProfileHeaderQuery(
     { userId: userId },
     {
       select({ user }) {
@@ -172,6 +185,43 @@ function UserHeader({ userId }: { userId: number }) {
     >
       <img className="mb-px h-8 w-8 rounded-full" src={data?.avatar} />
       <div className="ml-2 mb-px h-full text-base font-bold">{data?.name}</div>
+    </div>
+  );
+}
+
+// TODO : replace type pw / public/ priv with icon - add avatar - add link?
+function ChannelHeader({ channelId }: { channelId: number }) {
+  const { isLoading, data, error, isFetching } = useGetChannelHeaderQuery(
+    { channelId: channelId },
+    {
+      select({ channel }) {
+        const res: {
+          id: number;
+          name: string;
+          owner: { id: number; name: string; avatar: string };
+          password: boolean;
+          private: boolean;
+        } = {
+          id: channel.id,
+          name: channel.name,
+          owner: channel.owner,
+          password: channel.passwordProtected,
+          private: channel.private,
+        };
+        return res;
+      },
+    }
+  );
+
+  return (
+    <div className="flex w-full p-2 text-sm">
+      <div className="justify-start">
+        {data?.private ? "Priv" : data?.password ? "Pw" : "Public"}
+      </div>
+      <div className="flex flex-grow justify-center font-bold ">
+        Channel: {data?.name}{" "}
+      </div>
+      <div className="justify-end">Owner: {data?.owner.name}</div>
     </div>
   );
 }

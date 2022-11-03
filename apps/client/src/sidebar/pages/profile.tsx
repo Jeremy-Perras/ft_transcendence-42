@@ -1,11 +1,12 @@
+/* eslint-disable prettier/prettier */
 import { Link, useParams } from "react-router-dom";
-import { useGetUserProfileQuery } from "../../graphql/generated";
+import { useGetUserProfileHeaderQuery } from "../../graphql/generated";
 
 const DisplayUserProfile = () => {
   const params = useParams();
   if (typeof params.userId === "undefined") return <div></div>;
   const userId = +params.userId;
-  const { isLoading, data, error, isFetching } = useGetUserProfileQuery({
+  const { isLoading, data, error, isFetching } = useGetUserProfileHeaderQuery({
     userId: userId,
   });
   if (isLoading) return <div>Loading ...</div>;

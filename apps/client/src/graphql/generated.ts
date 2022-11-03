@@ -126,12 +126,26 @@ export type MutationSendDirectMessageArgs = {
 
 export type Query = {
   __typename?: "Query";
+  blockedBy: User;
+  blockingUser: User;
   channel: Channel;
   channels: Array<Channel>;
   game: Game;
   games: Array<Game>;
+  updateFriend: User;
   user: User;
+  userAvatar: User;
+  userName: User;
   users: Array<Maybe<User>>;
+};
+
+export type QueryBlockedByArgs = {
+  id: Scalars["Int"];
+  myId: Scalars["Int"];
+};
+
+export type QueryBlockingUserArgs = {
+  id: Scalars["Int"];
 };
 
 export type QueryChannelArgs = {
@@ -154,8 +168,20 @@ export type QueryGamesArgs = {
   id?: InputMaybe<Scalars["Int"]>;
 };
 
+export type QueryUpdateFriendArgs = {
+  id: Scalars["Int"];
+};
+
 export type QueryUserArgs = {
   id?: InputMaybe<Scalars["Int"]>;
+};
+
+export type QueryUserAvatarArgs = {
+  avatar: Scalars["String"];
+};
+
+export type QueryUserNameArgs = {
+  name: Scalars["String"];
 };
 
 export type QueryUsersArgs = {
@@ -275,6 +301,22 @@ export type GetChannelQuery = {
   };
 };
 
+export type GetChannelHeaderQueryVariables = Exact<{
+  channelId: Scalars["Int"];
+}>;
+
+export type GetChannelHeaderQuery = {
+  __typename?: "Query";
+  channel: {
+    __typename?: "Channel";
+    id: number;
+    name: string;
+    private: boolean;
+    passwordProtected: boolean;
+    owner: { __typename?: "User"; name: string; id: number; avatar: string };
+  };
+};
+
 export type GetChatQueryVariables = Exact<{ [key: string]: never }>;
 
 export type GetChatQuery = {
@@ -350,11 +392,11 @@ export type GetInfoUsersQuery = {
   };
 };
 
-export type GetUserProfileQueryVariables = Exact<{
+export type GetUserProfileHeaderQueryVariables = Exact<{
   userId?: InputMaybe<Scalars["Int"]>;
 }>;
 
-export type GetUserProfileQuery = {
+export type GetUserProfileHeaderQuery = {
   __typename?: "Query";
   user: {
     __typename?: "User";
@@ -557,6 +599,36 @@ export const useGetChannelQuery = <TData = GetChannelQuery, TError = unknown>(
     ),
     options
   );
+export const GetChannelHeaderDocument = `
+    query GetChannelHeader($channelId: Int!) {
+  channel(id: $channelId) {
+    id
+    name
+    owner {
+      name
+      id
+      avatar
+    }
+    private
+    passwordProtected
+  }
+}
+    `;
+export const useGetChannelHeaderQuery = <
+  TData = GetChannelHeaderQuery,
+  TError = unknown
+>(
+  variables: GetChannelHeaderQueryVariables,
+  options?: UseQueryOptions<GetChannelHeaderQuery, TError, TData>
+) =>
+  useQuery<GetChannelHeaderQuery, TError, TData>(
+    ["GetChannelHeader", variables],
+    fetcher<GetChannelHeaderQuery, GetChannelHeaderQueryVariables>(
+      GetChannelHeaderDocument,
+      variables
+    ),
+    options
+  );
 export const GetChatDocument = `
     query getChat {
   user {
@@ -668,8 +740,8 @@ export const useGetInfoUsersQuery = <
     ),
     options
   );
-export const GetUserProfileDocument = `
-    query GetUserProfile($userId: Int) {
+export const GetUserProfileHeaderDocument = `
+    query GetUserProfileHeader($userId: Int) {
   user(id: $userId) {
     id
     name
@@ -678,19 +750,19 @@ export const GetUserProfileDocument = `
   }
 }
     `;
-export const useGetUserProfileQuery = <
-  TData = GetUserProfileQuery,
+export const useGetUserProfileHeaderQuery = <
+  TData = GetUserProfileHeaderQuery,
   TError = unknown
 >(
-  variables?: GetUserProfileQueryVariables,
-  options?: UseQueryOptions<GetUserProfileQuery, TError, TData>
+  variables?: GetUserProfileHeaderQueryVariables,
+  options?: UseQueryOptions<GetUserProfileHeaderQuery, TError, TData>
 ) =>
-  useQuery<GetUserProfileQuery, TError, TData>(
+  useQuery<GetUserProfileHeaderQuery, TError, TData>(
     variables === undefined
-      ? ["GetUserProfile"]
-      : ["GetUserProfile", variables],
-    fetcher<GetUserProfileQuery, GetUserProfileQueryVariables>(
-      GetUserProfileDocument,
+      ? ["GetUserProfileHeader"]
+      : ["GetUserProfileHeader", variables],
+    fetcher<GetUserProfileHeaderQuery, GetUserProfileHeaderQueryVariables>(
+      GetUserProfileHeaderDocument,
       variables
     ),
     options
