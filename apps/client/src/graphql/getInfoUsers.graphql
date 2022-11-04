@@ -12,6 +12,7 @@ query GetInfoUsers($userId: Int) {
       name
       id
       messages {
+        id
         content
         sentAt
       }

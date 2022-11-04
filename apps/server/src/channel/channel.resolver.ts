@@ -267,6 +267,22 @@ export class ChannelResolver {
       id: m.id,
     };
   }
+  @Mutation((returns) => Channel)
+  async deleteChanel(
+    @Args("channelId", { type: () => Int }) channelId: number
+  ): Promise<channelType> {
+    const m = await this.prisma.channel.delete({
+      where: { id: 3 },
+      select: { inviteOnly: true, name: true, id: true, password: true },
+    });
+    console.log(m);
+    return {
+      passwordProtected: m.password ? true : false,
+      private: m.inviteOnly,
+      name: m.name,
+      id: m.id,
+    };
+  }
 
   @Mutation((returns) => RestrictedMember)
   async createMuted(
@@ -275,7 +291,7 @@ export class ChannelResolver {
     @Args("date", { type: () => String, nullable: true })
     date: string | Date | null | undefined
   ): Promise<restrictedMemberType> {
-    const m = await this.prisma.bannedMember.create({
+    const m = await this.prisma.mutedMember.create({
       select: {
         user: true,
         endAt: true,
@@ -335,10 +351,8 @@ export class ChannelResolver {
 
   @Query((returns) => Channel)
   async updateMuted(
-    @Args("id", { type: () => Int }) id: number,
     @Args("channelId", { type: () => Int }) channelId: number,
     @Args("userId", { type: () => Int }) userId: number,
-    @Args("idchannel", { type: () => Int }) idchannel: number,
     @Args("date", { type: () => String, nullable: true })
     date: string | Date | null | undefined
   ): Promise<channelType> {
@@ -357,18 +371,17 @@ export class ChannelResolver {
 
   @Query((returns) => Channel)
   async updateBanned(
-    @Args("id", { type: () => Int }) id: number,
     @Args("channelId", { type: () => Int }) channelId: number,
     @Args("userId", { type: () => Int }) userId: number,
-    @Args("idchannel", { type: () => Int }) idchannel: number,
     @Args("date", { type: () => String, nullable: true })
     date: string | Date | null | undefined
   ): Promise<channelType> {
-    const m = await this.prisma.mutedMember.update({
+    const m = await this.prisma.bannedMember.update({
       select: { channel: true },
       where: { channelId_userId: { channelId: channelId, userId: userId } },
       data: { endAt: date },
     });
+    console.log(m);
     return {
       id: m.channel.id,
       name: m.channel.name,

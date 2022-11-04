@@ -69,8 +69,10 @@ export class GameResolver {
         finished ? { NOT: { finishedAt: null } } : { finishedAt: null }
       );
     }
-    if (started === false) {
-      conditions.push({ startedAt: null });
+    if (started !== null) {
+      conditions.push(
+        started ? { NOT: { startedAt: null } } : { startedAt: null }
+      );
     }
     if (id !== null) {
       conditions.push({
@@ -98,7 +100,7 @@ export class GameResolver {
         AND: conditions,
       },
     });
-
+    console.log(games);
     return games.map((game) => ({
       id: game.id,
       gamemode: game.mode.name,
@@ -128,27 +130,28 @@ export class GameResolver {
   }
 
   @ResolveField()
-  async player2(@Root() game: Game): Promise<userType> {
+  async player2(@Root() game: Game): Promise<userType | null> {
     let u = await this.prisma.game.findUnique({
       select: { player2: true },
       where: {
         id: game.id,
       },
     });
+    console.log(u);
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     u = u!;
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    u.player2 = u.player2!;
-    return {
-      id: u.player2.id,
-      name: u.player2.name,
-      avatar: u.player2.avatar,
-      rank: u.player2.rank,
-    };
+    return u.player2
+      ? {
+          id: u.player2.id,
+          name: u.player2.name,
+          avatar: u.player2.avatar,
+          rank: u.player2.rank,
+        }
+      : null;
   }
 
   @Mutation((returns) => Game)
-  async CreateGame(
+  async createGame(
     @Args("mode", { type: () => Int }) mode: number,
     @Args("player2Id", { type: () => Int, nullable: true }) player2Id: number,
     @CurrentUser() me: User
@@ -159,6 +162,7 @@ export class GameResolver {
         player2Score: 0,
         player1Id: me.id,
         gameModeId: mode,
+        player2Id: player2Id ? player2Id : undefined,
       },
     });
     return {
