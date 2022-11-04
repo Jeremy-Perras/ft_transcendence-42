@@ -1,0 +1,7 @@
+//TODO need see for changing Date input : "2022-11-03T19:39:16.899Z"
+query UpdateDateBanned($channelId: Int!, $userId: Int!, $date: String) {
+  updateBanned(channelId: $channelId, userId: $userId, date: $date) {
+    id
+    name
+  }
+}

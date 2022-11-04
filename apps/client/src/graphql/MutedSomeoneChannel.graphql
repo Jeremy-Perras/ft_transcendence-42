@@ -1,0 +1,9 @@
+mutation MutedSomeoneChannel($createMutedId: Int!, $channelId: Int!, $date: String) {
+  createMuted(id: $createMutedId, channelId: $channelId, date: $date) {
+    endAt
+    id
+    name
+    avatar
+    rank
+  }
+}

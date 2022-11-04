@@ -22,8 +22,8 @@ export class Game {
   @Field((type) => User)
   player1: User;
 
-  @Field((type) => User)
-  player2: User;
+  @Field((type) => User, { nullable: true })
+  player2?: User;
 
   @Field((type) => Int)
   player1score: number;
