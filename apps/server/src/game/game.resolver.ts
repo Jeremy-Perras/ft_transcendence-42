@@ -50,6 +50,8 @@ export class GameResolver {
   async games(
     @Args("id", { type: () => Int, nullable: true, defaultValue: null })
     id?: number | null,
+    @Args("gameMode", { type: () => Int, nullable: true, defaultValue: null })
+    gameMode?: number | null,
     @Args("finished", {
       type: () => Boolean,
       nullable: true,
@@ -73,6 +75,9 @@ export class GameResolver {
       conditions.push(
         started ? { NOT: { startedAt: null } } : { startedAt: null }
       );
+    }
+    if (gameMode !== null) {
+      conditions.push({ gameModeId: gameMode });
     }
     if (id !== null) {
       conditions.push({
@@ -181,7 +186,7 @@ export class GameResolver {
   }
 
   @Query((returns) => Game)
-  async joinGame(
+  async updateGame(
     @CurrentUser() me: User,
     @Args("id", { type: () => Int })
     id: number

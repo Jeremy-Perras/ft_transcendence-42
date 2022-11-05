@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useGetChannelQuery } from "../../graphql/generated";
+import {
+  useInfoChannelQuery,
+  useSendChannelMessageMutation,
+} from "../../graphql/generated";
 import { User } from "./chat";
 import { getDate, Error, Loading, Fetching } from "./home";
 
@@ -98,12 +101,9 @@ const ChannelMessage = ({
 export default function Channel() {
   const { channelId } = useParams();
 
-  if (!channelId) return <div>No channel id</div>;
-
-  const { isLoading, isFetching, error, data } = useGetChannelQuery(
-    {
-      channelId: +channelId,
-    },
+  if (!channelId) return <div>no channel id</div>;
+  const { isLoading, isFetching, error, data } = useInfoChannelQuery(
+    { channelId: +channelId },
     {
       select({ channel }) {
         const res: {

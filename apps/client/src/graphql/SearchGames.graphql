@@ -1,5 +1,5 @@
-query SearchGames($gamesId: Int, $started: Boolean, $finished: Boolean) {
-  games(id: $gamesId, started: $started, finished: $finished) {
+query SearchGames($gamesId: Int, $started: Boolean, $finished: Boolean,$gameMode: Int) {
+  games(id: $gamesId, started: $started, finished: $finished, gameMode: $gameMode) {
     id
     player1 {
       id
@@ -10,7 +10,6 @@ query SearchGames($gamesId: Int, $started: Boolean, $finished: Boolean) {
     gamemode
     startAt
     finishedAt
-    
     player1score
     player2score
     player2 {

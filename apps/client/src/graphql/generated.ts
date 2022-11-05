@@ -162,13 +162,17 @@ export type Query = {
   game: Game;
   games: Array<Game>;
 <<<<<<< HEAD
+<<<<<<< HEAD
   updateFriend: User;
 =======
   joinGame: Game;
+=======
+>>>>>>> Function GqmeHandler
   updateAdmins: Channel;
   updateBanned: Channel;
   updateFriend: User;
   updateFriendBy: User;
+  updateGame: Game;
   updateMuted: Channel;
   updatePassword: Channel;
 >>>>>>>  New auery and mutations
@@ -212,16 +216,20 @@ export type QueryGameArgs = {
 
 export type QueryGamesArgs = {
   finished?: InputMaybe<Scalars["Boolean"]>;
+  gameMode?: InputMaybe<Scalars["Int"]>;
   id?: InputMaybe<Scalars["Int"]>;
   started?: InputMaybe<Scalars["Boolean"]>;
 };
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 export type QueryJoinGameArgs = {
   id: Scalars["Int"];
 };
 
+=======
+>>>>>>> Function GqmeHandler
 export type QueryUpdateAdminsArgs = {
   id: Scalars["Int"];
   userId: Scalars["Int"];
@@ -246,6 +254,10 @@ export type QueryUpdateFriendArgs = {
 export type QueryUpdateFriendByArgs = {
   id: Scalars["Int"];
   meId: Scalars["Int"];
+};
+
+export type QueryUpdateGameArgs = {
+  id: Scalars["Int"];
 };
 
 export type QueryUpdateMutedArgs = {
@@ -569,12 +581,16 @@ export type DeleteDirectMessageContentQuery = {
   };
 };
 
+<<<<<<< HEAD
 >>>>>>> Nez Querry and Mutation
 export type GetChannelQueryVariables = Exact<{
+=======
+export type InfoChannelQueryVariables = Exact<{
+>>>>>>> Function GqmeHandler
   channelId: Scalars["Int"];
 }>;
 
-export type GetChannelQuery = {
+export type InfoChannelQuery = {
   __typename?: "Query";
   channel: {
     __typename?: "Channel";
@@ -732,6 +748,7 @@ export type SearchGamesQueryVariables = Exact<{
   gamesId?: InputMaybe<Scalars["Int"]>;
   started?: InputMaybe<Scalars["Boolean"]>;
   finished?: InputMaybe<Scalars["Boolean"]>;
+  gameMode?: InputMaybe<Scalars["Int"]>;
 }>;
 
 export type SearchGamesQuery = {
@@ -825,15 +842,46 @@ export type UpdateDateBannedQuery = {
   updateBanned: { __typename?: "Channel"; id: number; name: string };
 };
 
-export type UpdateMutedQueryVariables = Exact<{
+export type UpdateDateMutedQueryVariables = Exact<{
   channelId: Scalars["Int"];
   userId: Scalars["Int"];
   date?: InputMaybe<Scalars["String"]>;
 }>;
 
-export type UpdateMutedQuery = {
+export type UpdateDateMutedQuery = {
   __typename?: "Query";
   updateMuted: { __typename?: "Channel"; id: number; name: string };
+};
+
+export type UpdateGameJoiningPlayerQueryVariables = Exact<{
+  updateGameId: Scalars["Int"];
+}>;
+
+export type UpdateGameJoiningPlayerQuery = {
+  __typename?: "Query";
+  updateGame: {
+    __typename?: "Game";
+    id: number;
+    gamemode: string;
+    startAt?: number | null;
+    finishedAt?: number | null;
+    player2score: number;
+    player1score: number;
+    player2?: {
+      __typename?: "User";
+      id: number;
+      name: string;
+      avatar: string;
+      rank: number;
+    } | null;
+    player1: {
+      __typename?: "User";
+      id: number;
+      name: string;
+      avatar: string;
+      rank: number;
+    };
+  };
 };
 
 export type WaitingRoomGameQueryVariables = Exact<{
@@ -1106,8 +1154,8 @@ export const useDeleteDirectMessageContentQuery = <
     >(DeleteDirectMessageContentDocument, variables),
     options
   );
-export const GetChannelDocument = `
-    query GetChannel($channelId: Int!) {
+export const InfoChannelDocument = `
+    query InfoChannel($channelId: Int!) {
   channel(id: $channelId) {
     private
     passwordProtected
@@ -1146,14 +1194,14 @@ export const GetChannelDocument = `
   }
 }
     `;
-export const useGetChannelQuery = <TData = GetChannelQuery, TError = unknown>(
-  variables: GetChannelQueryVariables,
-  options?: UseQueryOptions<GetChannelQuery, TError, TData>
+export const useInfoChannelQuery = <TData = InfoChannelQuery, TError = unknown>(
+  variables: InfoChannelQueryVariables,
+  options?: UseQueryOptions<InfoChannelQuery, TError, TData>
 ) =>
-  useQuery<GetChannelQuery, TError, TData>(
-    ["GetChannel", variables],
-    fetcher<GetChannelQuery, GetChannelQueryVariables>(
-      GetChannelDocument,
+  useQuery<InfoChannelQuery, TError, TData>(
+    ["InfoChannel", variables],
+    fetcher<InfoChannelQuery, InfoChannelQueryVariables>(
+      InfoChannelDocument,
       variables
     ),
     options
@@ -1337,8 +1385,8 @@ export const useMutedSomeoneChannelMutation = <
     options
   );
 export const SearchGamesDocument = `
-    query SearchGames($gamesId: Int, $started: Boolean, $finished: Boolean) {
-  games(id: $gamesId, started: $started, finished: $finished) {
+    query SearchGames($gamesId: Int, $started: Boolean, $finished: Boolean, $gameMode: Int) {
+  games(id: $gamesId, started: $started, finished: $finished, gameMode: $gameMode) {
     id
     player1 {
       id
@@ -1747,24 +1795,66 @@ export const useGetChannelsQuery = <TData = GetChannelsQuery, TError = unknown>(
     ),
     options
   );
-export const UpdateMutedDocument = `
-    query UpdateMuted($channelId: Int!, $userId: Int!, $date: String) {
+export const UpdateDateMutedDocument = `
+    query UpdateDateMuted($channelId: Int!, $userId: Int!, $date: String) {
   updateMuted(channelId: $channelId, userId: $userId, date: $date) {
     id
     name
   }
 }
     `;
-export const useUpdateMutedQuery = <TData = UpdateMutedQuery, TError = unknown>(
-  variables: UpdateMutedQueryVariables,
-  options?: UseQueryOptions<UpdateMutedQuery, TError, TData>
+export const useUpdateDateMutedQuery = <
+  TData = UpdateDateMutedQuery,
+  TError = unknown
+>(
+  variables: UpdateDateMutedQueryVariables,
+  options?: UseQueryOptions<UpdateDateMutedQuery, TError, TData>
 ) =>
-  useQuery<UpdateMutedQuery, TError, TData>(
-    ["UpdateMuted", variables],
-    fetcher<UpdateMutedQuery, UpdateMutedQueryVariables>(
-      UpdateMutedDocument,
+  useQuery<UpdateDateMutedQuery, TError, TData>(
+    ["UpdateDateMuted", variables],
+    fetcher<UpdateDateMutedQuery, UpdateDateMutedQueryVariables>(
+      UpdateDateMutedDocument,
       variables
     ),
+    options
+  );
+export const UpdateGameJoiningPlayerDocument = `
+    query UpdateGameJoiningPlayer($updateGameId: Int!) {
+  updateGame(id: $updateGameId) {
+    id
+    gamemode
+    startAt
+    finishedAt
+    player2 {
+      id
+      name
+      avatar
+      rank
+    }
+    player1 {
+      id
+      name
+      avatar
+      rank
+    }
+    player2score
+    player1score
+  }
+}
+    `;
+export const useUpdateGameJoiningPlayerQuery = <
+  TData = UpdateGameJoiningPlayerQuery,
+  TError = unknown
+>(
+  variables: UpdateGameJoiningPlayerQueryVariables,
+  options?: UseQueryOptions<UpdateGameJoiningPlayerQuery, TError, TData>
+) =>
+  useQuery<UpdateGameJoiningPlayerQuery, TError, TData>(
+    ["UpdateGameJoiningPlayer", variables],
+    fetcher<
+      UpdateGameJoiningPlayerQuery,
+      UpdateGameJoiningPlayerQueryVariables
+    >(UpdateGameJoiningPlayerDocument, variables),
     options
   );
 export const WaitingRoomGameDocument = `

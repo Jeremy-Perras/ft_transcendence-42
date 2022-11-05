@@ -1,0 +1,22 @@
+query UpdateGameJoiningPlayer($updateGameId: Int!) {
+  updateGame(id: $updateGameId) {
+    id
+    gamemode
+    startAt
+    finishedAt
+    player2 {
+      id
+      name
+      avatar
+      rank
+    }
+    player1 {
+      id
+      name
+      avatar
+      rank
+    }
+    player2score
+    player1score
+  }
+}

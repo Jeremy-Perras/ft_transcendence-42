@@ -7,7 +7,7 @@ export default function Home() {
       style={{ backgroundImage: "url(pong.webp)" }}
     >
       <Link
-        to="/game/test"
+        to="/gamehomepage"
         className="animate-pulse select-none font-cursive text-5xl font-bold tracking-widest text-stone-700 hover:animate-none"
       >
         Click To Play
