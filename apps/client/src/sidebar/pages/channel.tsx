@@ -2,7 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
-  useGetChannelQuery,
+  useInfoChannelQuery,
   useSendChannelMessageMutation,
 } from "../../graphql/generated";
 import { User } from "./chat";
@@ -104,7 +104,7 @@ export default function Channel() {
   const queryClient = useQueryClient();
 
   if (!channelId) return <div>no channel id</div>;
-  const { isLoading, isFetching, error, data } = useGetChannelQuery(
+  const { isLoading, isFetching, error, data } = useInfoChannelQuery(
     { channelId: +channelId },
     {
       select({ channel }) {

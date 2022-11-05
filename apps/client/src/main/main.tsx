@@ -1,9 +1,10 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Error404 from "./pages/error-404";
-import Game from "./pages/game";
 import Home from "./pages/home";
 import LogoLayout from "./logo.layout";
 import Waiting from "./pages/waiting";
+import GameHomePage from "./pages/gamehomepage";
+import Game from "./pages/game";
 
 const router = createBrowserRouter([
   {
@@ -12,12 +13,16 @@ const router = createBrowserRouter([
     errorElement: <Error404 />,
   },
   {
-    path: "/game/:gameId",
+    path: "/gamehomepage",
     element: (
       <LogoLayout>
-        <Game />
+        <GameHomePage />
       </LogoLayout>
     ),
+  },
+  {
+    path: "/game/:gameId",
+    element: <Game />,
   },
   {
     path: "/waiting",
