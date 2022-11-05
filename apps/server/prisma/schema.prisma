@@ -65,20 +65,20 @@ model Game {
 }
 
 model ChannelAdmin {
-  channel   Channel @relation(fields: [channelId], references: [id])
+  channel   Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
   channelId Int
 
-  user   User @relation(fields: [userId], references: [id])
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId Int
 
   @@id([channelId, userId])
 }
 
 model ChannelMember {
-  channel   Channel @relation(fields: [channelId], references: [id])
+  channel   Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
   channelId Int
 
-  user   User @relation(fields: [userId], references: [id])
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId Int
 
   @@id([channelId, userId])
@@ -94,7 +94,7 @@ model Channel {
 
   channelMessages ChannelMessage[]
 
-  owner   User @relation(fields: [ownerId], references: [id])
+  owner   User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   ownerId Int
 
   admins ChannelAdmin[]
@@ -106,10 +106,10 @@ model Channel {
 }
 
 model MutedMember {
-  channel   Channel @relation(fields: [channelId], references: [id])
+  channel   Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
   channelId Int
 
-  user   User @relation(fields: [userId], references: [id])
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId Int
 
   endAt DateTime?
@@ -118,10 +118,10 @@ model MutedMember {
 }
 
 model BannedMember {
-  channel   Channel @relation(fields: [channelId], references: [id])
+  channel   Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
   channelId Int
 
-  user   User @relation(fields: [userId], references: [id])
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId Int
 
   endAt DateTime?
@@ -132,10 +132,10 @@ model BannedMember {
 model ChannelMessageRead {
   id Int @id @default(autoincrement())
 
-  channelMessage   ChannelMessage @relation(fields: [channelMessageId], references: [id])
+  channelMessage   ChannelMessage @relation(fields: [channelMessageId], references: [id], onDelete: Cascade)
   channelMessageId Int
 
-  user   User @relation(fields: [userId], references: [id])
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId Int
 
   readAt DateTime
@@ -144,10 +144,10 @@ model ChannelMessageRead {
 model ChannelMessage {
   id Int @id @default(autoincrement())
 
-  author   User @relation(fields: [authorId], references: [id])
+  author   User @relation(fields: [authorId], references: [id], onDelete: Cascade)
   authorId Int
 
-  channel   Channel @relation(fields: [channelId], references: [id])
+  channel   Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
   channelId Int
 
   content String

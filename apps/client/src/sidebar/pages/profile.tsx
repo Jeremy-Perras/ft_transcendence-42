@@ -1,11 +1,11 @@
-import { Link, useParams } from "react-router-dom";
-import { useGetUserProfileQuery } from "../../graphql/generated";
+import { useParams } from "react-router-dom";
+import { useInfoUserProfileQuery } from "../../graphql/generated";
 
 const DisplayUserProfile = () => {
   const params = useParams();
   if (typeof params.userId === "undefined") return <div></div>;
   const userId = +params.userId;
-  const { isLoading, data, error, isFetching } = useGetUserProfileQuery({
+  const { isLoading, data, error, isFetching } = useInfoUserProfileQuery({
     userId: userId,
   });
   if (isLoading) return <div>Loading ...</div>;

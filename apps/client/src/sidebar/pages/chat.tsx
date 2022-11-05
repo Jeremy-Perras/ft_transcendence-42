@@ -2,8 +2,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
-  useGetDirectMessagesQuery,
-  useGetInfoUsersQuery,
+  useInfoDirectMessagesQuery,
+  useInfoUsersQuery,
   useSendDirectMessageMutation,
 } from "../../graphql/generated";
 import { getDate } from "./home";
@@ -66,7 +66,7 @@ const DirectMessage = ({
 };
 
 const GetInfo = (Id: number) => {
-  const { isLoading, data, error, isFetching } = useGetInfoUsersQuery(
+  const { isLoading, data, error, isFetching } = useInfoUsersQuery(
     {
       userId: Id,
     },
@@ -94,7 +94,7 @@ const DirectConversation = () => {
   const navigate = useNavigate();
   const [content, setContent] = useState("");
   const infoSpeak = GetInfo(userId);
-  const { isLoading, data, error, isFetching } = useGetDirectMessagesQuery(
+  const { isLoading, data, error, isFetching } = useInfoDirectMessagesQuery(
     { userId: userId },
     {
       select({ user }) {
@@ -118,7 +118,7 @@ const DirectConversation = () => {
   );
   const messageMutation = useSendDirectMessageMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries(["GetDirectMessages", { userId: userId }]);
+      queryClient.invalidateQueries(["InfoDirectMessages", { userId: userId }]);
     },
   });
   if (isLoading) return <div>Loading ...</div>;
@@ -182,21 +182,4 @@ const DirectConversation = () => {
 
 export default function Chat() {
   return <DirectConversation />;
-}
-function useDirectMessagesQuery(
-  arg0: { userId: number },
-  arg1: {
-    select({ user }: { user: any }): {
-      messages: {
-        content: string;
-        sentAt: number;
-        readAt?: number | null | undefined;
-        author: User;
-      }[];
-      name: string;
-      avatar: string;
-    };
-  }
-): { isLoading: any; data: any; error: any; isFetching: any } {
-  throw new Error("Function not implemented.");
 }

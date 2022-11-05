@@ -481,4 +481,20 @@ export class DirectMessageResolver {
       sentAt: m.sentAt,
     };
   }
+
+  @Query((returns) => DirectMessage)
+  async deleteDirectMessageContent(
+    @Args("messageId", { type: () => Int }) messageId: number
+  ): Promise<directMessageType> {
+    const m = await this.prisma.directMessage.update({
+      select: { id: true, content: true, sentAt: true },
+      where: { id: messageId },
+      data: { content: " message supprimé " },
+    });
+    return {
+      id: m.id,
+      content: m.content,
+      sentAt: m.sentAt,
+    };
+  }
 }

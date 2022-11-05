@@ -243,6 +243,7 @@ export class ChannelResolver {
         }))
       : [];
   }
+  // Mutation
 
   @Mutation((returns) => Channel)
   async createChanel(
@@ -262,22 +263,6 @@ export class ChannelResolver {
     });
     return {
       passwordProtected: password ? true : false,
-      private: m.inviteOnly,
-      name: m.name,
-      id: m.id,
-    };
-  }
-  @Mutation((returns) => Channel)
-  async deleteChanel(
-    @Args("channelId", { type: () => Int }) channelId: number
-  ): Promise<channelType> {
-    const m = await this.prisma.channel.delete({
-      where: { id: 3 },
-      select: { inviteOnly: true, name: true, id: true, password: true },
-    });
-    console.log(m);
-    return {
-      passwordProtected: m.password ? true : false,
       private: m.inviteOnly,
       name: m.name,
       id: m.id,
@@ -330,6 +315,24 @@ export class ChannelResolver {
     };
   }
 
+  @Mutation((returns) => Channel)
+  async deleteChannel(
+    @Args("channelId", { type: () => Int }) channelId: number
+  ): Promise<channelType> {
+    const m = await this.prisma.channel.delete({
+      select: { id: true, name: true, password: true, inviteOnly: true },
+      where: { id: channelId },
+    });
+    return {
+      id: m.id,
+      name: m.name,
+      passwordProtected: m.password ? true : false,
+      private: m.inviteOnly,
+    };
+  }
+
+  // UPDATE
+
   @Query((returns) => Channel)
   async updatePassword(
     @Args("password", { type: () => String, nullable: true }) password: string,
@@ -349,6 +352,7 @@ export class ChannelResolver {
     };
   }
 
+  //TODO need see for changing Date input : "2022-11-03T19:39:16.899Z"
   @Query((returns) => Channel)
   async updateMuted(
     @Args("channelId", { type: () => Int }) channelId: number,
@@ -369,6 +373,7 @@ export class ChannelResolver {
     };
   }
 
+  //TODO need see for changing Date input : "2022-11-03T19:39:16.899Z"
   @Query((returns) => Channel)
   async updateBanned(
     @Args("channelId", { type: () => Int }) channelId: number,
@@ -465,6 +470,7 @@ export class ChannelMessageResolver {
         }))
       : [];
   }
+
   @Mutation((returns) => ChannelMessage)
   async sendChanelMessage(
     @Args("message", { type: () => String }) message: string,
@@ -478,6 +484,22 @@ export class ChannelMessageResolver {
         authorId: me.id,
         channelId: recipientId,
       },
+    });
+    return {
+      id: m.id,
+      content: m.content,
+      sentAt: m.sentAt,
+    };
+  }
+
+  @Query((returns) => ChannelMessage)
+  async deleteChannelMessageContent(
+    @Args("messageId", { type: () => Int }) messageId: number
+  ): Promise<channelMessageType> {
+    const m = await this.prisma.channelMessage.update({
+      select: { id: true, content: true, sentAt: true },
+      where: { id: messageId },
+      data: { content: " message supprimé " },
     });
     return {
       id: m.id,

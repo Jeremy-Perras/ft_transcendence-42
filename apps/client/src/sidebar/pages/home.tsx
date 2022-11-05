@@ -5,7 +5,7 @@ import { ReactComponent as UsersIcon } from "pixelarticons/svg/users.svg";
 import { ReactComponent as GamePadIcon } from "pixelarticons/svg/gamepad.svg";
 import {
   useCreateChanelMutation,
-  useGetInfoUsersQuery,
+  useInfoUsersQuery,
 } from "../../graphql/generated";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -85,7 +85,7 @@ const Home = () => {
   const queryClient = useQueryClient();
   const [form, setForm] = useState(false);
   const { register, handleSubmit, watch } = useForm();
-  const { isLoading, data, error, isFetching } = useGetInfoUsersQuery(
+  const { isLoading, data, error, isFetching } = useInfoUsersQuery(
     {},
     {
       select({ user }) {
@@ -119,7 +119,7 @@ const Home = () => {
   const navigate = useNavigate();
   const createChannelMutation = useCreateChanelMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries(["GetInfoUsers", {}]);
+      queryClient.invalidateQueries(["InfoUsers", {}]);
     },
   });
 

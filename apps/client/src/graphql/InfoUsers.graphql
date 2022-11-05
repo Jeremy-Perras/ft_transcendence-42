@@ -1,4 +1,4 @@
-query GetInfoUsers($userId: Int) {
+query InfoUsers($userId: Int) {
   user(id: $userId) {
     id
     __typename
