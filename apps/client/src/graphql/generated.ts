@@ -248,6 +248,77 @@ export type SendDirectMessageMutation = {
   sendDirectMessage: { __typename?: "DirectMessage"; id: number };
 };
 
+export type GetChannelHeaderQueryVariables = Exact<{
+  channelId: Scalars["Int"];
+}>;
+
+export type GetChannelHeaderQuery = {
+  __typename?: "Query";
+  channel: {
+    __typename?: "Channel";
+    id: number;
+    name: string;
+    private: boolean;
+    passwordProtected: boolean;
+    owner: { __typename?: "User"; name: string; id: number; avatar: string };
+  };
+};
+
+export type GetUserProfileQueryVariables = Exact<{
+  userId?: InputMaybe<Scalars["Int"]>;
+}>;
+
+export type GetUserProfileQuery = {
+  __typename?: "Query";
+  user: {
+    __typename?: "User";
+    id: number;
+    name: string;
+    avatar: string;
+    rank: number;
+    blocked: boolean;
+    games: Array<{
+      __typename?: "Game";
+      player1score: number;
+      player2score: number;
+      gamemode: string;
+      id: number;
+      startAt?: number | null;
+      finishedAt?: number | null;
+      player1: {
+        __typename?: "User";
+        rank: number;
+        avatar: string;
+        name: string;
+        id: number;
+      };
+      player2: {
+        __typename?: "User";
+        id: number;
+        name: string;
+        avatar: string;
+        rank: number;
+      };
+    }>;
+    friends: Array<{ __typename?: "User"; id: number }>;
+  };
+};
+
+export type GetUserProfileHeaderQueryVariables = Exact<{
+  userId?: InputMaybe<Scalars["Int"]>;
+}>;
+
+export type GetUserProfileHeaderQuery = {
+  __typename?: "Query";
+  user: {
+    __typename?: "User";
+    id: number;
+    name: string;
+    avatar: string;
+    rank: number;
+  };
+};
+
 export type SearchUsersChannelsQueryVariables = Exact<{
   name?: InputMaybe<Scalars["String"]>;
 }>;
@@ -298,22 +369,6 @@ export type GetChannelQuery = {
       name: string;
       avatar: string;
     }>;
-  };
-};
-
-export type GetChannelHeaderQueryVariables = Exact<{
-  channelId: Scalars["Int"];
-}>;
-
-export type GetChannelHeaderQuery = {
-  __typename?: "Query";
-  channel: {
-    __typename?: "Channel";
-    id: number;
-    name: string;
-    private: boolean;
-    passwordProtected: boolean;
-    owner: { __typename?: "User"; name: string; id: number; avatar: string };
   };
 };
 
@@ -389,21 +444,6 @@ export type GetInfoUsersQuery = {
         sentAt: number;
       }>;
     }>;
-  };
-};
-
-export type GetUserProfileHeaderQueryVariables = Exact<{
-  userId?: InputMaybe<Scalars["Int"]>;
-}>;
-
-export type GetUserProfileHeaderQuery = {
-  __typename?: "Query";
-  user: {
-    __typename?: "User";
-    id: number;
-    name: string;
-    avatar: string;
-    rank: number;
   };
 };
 
@@ -514,6 +554,114 @@ export const useSendDirectMessageMutation = <
       )(),
     options
   );
+export const GetChannelHeaderDocument = `
+    query GetChannelHeader($channelId: Int!) {
+  channel(id: $channelId) {
+    id
+    name
+    owner {
+      name
+      id
+      avatar
+    }
+    private
+    passwordProtected
+  }
+}
+    `;
+export const useGetChannelHeaderQuery = <
+  TData = GetChannelHeaderQuery,
+  TError = unknown
+>(
+  variables: GetChannelHeaderQueryVariables,
+  options?: UseQueryOptions<GetChannelHeaderQuery, TError, TData>
+) =>
+  useQuery<GetChannelHeaderQuery, TError, TData>(
+    ["GetChannelHeader", variables],
+    fetcher<GetChannelHeaderQuery, GetChannelHeaderQueryVariables>(
+      GetChannelHeaderDocument,
+      variables
+    ),
+    options
+  );
+export const GetUserProfileDocument = `
+    query GetUserProfile($userId: Int) {
+  user(id: $userId) {
+    id
+    name
+    avatar
+    rank
+    games {
+      player1 {
+        rank
+        avatar
+        name
+        id
+      }
+      player2 {
+        id
+        name
+        avatar
+        rank
+      }
+      player1score
+      player2score
+      gamemode
+      id
+      startAt
+      finishedAt
+    }
+    blocked
+    friends {
+      id
+    }
+  }
+}
+    `;
+export const useGetUserProfileQuery = <
+  TData = GetUserProfileQuery,
+  TError = unknown
+>(
+  variables?: GetUserProfileQueryVariables,
+  options?: UseQueryOptions<GetUserProfileQuery, TError, TData>
+) =>
+  useQuery<GetUserProfileQuery, TError, TData>(
+    variables === undefined
+      ? ["GetUserProfile"]
+      : ["GetUserProfile", variables],
+    fetcher<GetUserProfileQuery, GetUserProfileQueryVariables>(
+      GetUserProfileDocument,
+      variables
+    ),
+    options
+  );
+export const GetUserProfileHeaderDocument = `
+    query GetUserProfileHeader($userId: Int) {
+  user(id: $userId) {
+    id
+    name
+    avatar
+    rank
+  }
+}
+    `;
+export const useGetUserProfileHeaderQuery = <
+  TData = GetUserProfileHeaderQuery,
+  TError = unknown
+>(
+  variables?: GetUserProfileHeaderQueryVariables,
+  options?: UseQueryOptions<GetUserProfileHeaderQuery, TError, TData>
+) =>
+  useQuery<GetUserProfileHeaderQuery, TError, TData>(
+    variables === undefined
+      ? ["GetUserProfileHeader"]
+      : ["GetUserProfileHeader", variables],
+    fetcher<GetUserProfileHeaderQuery, GetUserProfileHeaderQueryVariables>(
+      GetUserProfileHeaderDocument,
+      variables
+    ),
+    options
+  );
 export const SearchUsersChannelsDocument = `
     query SearchUsersChannels($name: String) {
   users(name: $name) {
@@ -595,36 +743,6 @@ export const useGetChannelQuery = <TData = GetChannelQuery, TError = unknown>(
     ["getChannel", variables],
     fetcher<GetChannelQuery, GetChannelQueryVariables>(
       GetChannelDocument,
-      variables
-    ),
-    options
-  );
-export const GetChannelHeaderDocument = `
-    query GetChannelHeader($channelId: Int!) {
-  channel(id: $channelId) {
-    id
-    name
-    owner {
-      name
-      id
-      avatar
-    }
-    private
-    passwordProtected
-  }
-}
-    `;
-export const useGetChannelHeaderQuery = <
-  TData = GetChannelHeaderQuery,
-  TError = unknown
->(
-  variables: GetChannelHeaderQueryVariables,
-  options?: UseQueryOptions<GetChannelHeaderQuery, TError, TData>
-) =>
-  useQuery<GetChannelHeaderQuery, TError, TData>(
-    ["GetChannelHeader", variables],
-    fetcher<GetChannelHeaderQuery, GetChannelHeaderQueryVariables>(
-      GetChannelHeaderDocument,
       variables
     ),
     options
@@ -736,33 +854,6 @@ export const useGetInfoUsersQuery = <
     variables === undefined ? ["getInfoUsers"] : ["getInfoUsers", variables],
     fetcher<GetInfoUsersQuery, GetInfoUsersQueryVariables>(
       GetInfoUsersDocument,
-      variables
-    ),
-    options
-  );
-export const GetUserProfileHeaderDocument = `
-    query GetUserProfileHeader($userId: Int) {
-  user(id: $userId) {
-    id
-    name
-    avatar
-    rank
-  }
-}
-    `;
-export const useGetUserProfileHeaderQuery = <
-  TData = GetUserProfileHeaderQuery,
-  TError = unknown
->(
-  variables?: GetUserProfileHeaderQueryVariables,
-  options?: UseQueryOptions<GetUserProfileHeaderQuery, TError, TData>
-) =>
-  useQuery<GetUserProfileHeaderQuery, TError, TData>(
-    variables === undefined
-      ? ["GetUserProfileHeader"]
-      : ["GetUserProfileHeader", variables],
-    fetcher<GetUserProfileHeaderQuery, GetUserProfileHeaderQueryVariables>(
-      GetUserProfileHeaderDocument,
       variables
     ),
     options
