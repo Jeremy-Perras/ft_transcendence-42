@@ -1,4 +1,4 @@
-query GetDirectMessages($userId: Int) {
+query InfoDirectMessages($userId: Int) {
   user(id: $userId) {
     name
     avatar

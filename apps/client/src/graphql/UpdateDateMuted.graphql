@@ -1,5 +1,4 @@
 
-//TODO need see for changing Date input : "2022-11-03T19:39:16.899Z"
 query UpdateMuted($channelId: Int!, $userId: Int!, $date: String) {
   updateMuted(channelId: $channelId, userId: $userId, date: $date) {
     id

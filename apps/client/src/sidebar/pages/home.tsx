@@ -9,7 +9,7 @@ import { ReactComponent as AlertIcon } from "pixelarticons/svg/alert.svg";
 
 import {
   useCreateChanelMutation,
-  useGetInfoUsersQuery,
+  useInfoUsersQuery,
 } from "../../graphql/generated";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -123,7 +123,7 @@ const Home = () => {
   const queryClient = useQueryClient();
   const [form, setForm] = useState(false);
   const { register, handleSubmit, watch } = useForm();
-  const { isLoading, data, error, isFetching } = useGetInfoUsersQuery(
+  const { isLoading, data, error, isFetching } = useInfoUsersQuery(
     {},
     {
       select({ user }) {
@@ -157,7 +157,7 @@ const Home = () => {
   const navigate = useNavigate();
   const createChannelMutation = useCreateChanelMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries(["GetInfoUsers", {}]);
+      queryClient.invalidateQueries(["InfoUsers", {}]);
     },
   });
 

@@ -1,4 +1,8 @@
+<<<<<<< HEAD:apps/client/src/graphql/getUserProfileHeader.graphql
 query GetUserProfileHeader($userId: Int) {
+=======
+query InfoUserProfile($userId: Int) {
+>>>>>>> Querries ended:apps/client/src/graphql/InfoUserProfile.graphql
   user(id: $userId) {
     id
     name

@@ -1,5 +1,5 @@
 mutation CreateGame($mode: Int!, $player2Id: Int) {
-  CreateGame(mode: $mode, player2Id: $player2Id) {
+  createGame(mode: $mode, player2Id: $player2Id) {
     id
     gamemode
     startAt

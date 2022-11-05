@@ -99,18 +99,14 @@ export type Game = {
 
 export type Mutation = {
   __typename?: "Mutation";
-  CreateGame: Game;
   createBanned: RestrictedMember;
   createChanel: Channel;
   createChannelMessageRead: ChannelMessageRead;
+  createGame: Game;
   createMuted: RestrictedMember;
+  deleteChannel: Channel;
   sendChanelMessage: ChannelMessage;
   sendDirectMessage: DirectMessage;
-};
-
-export type MutationCreateGameArgs = {
-  mode: Scalars["Int"];
-  player2Id?: InputMaybe<Scalars["Int"]>;
 };
 
 export type MutationCreateBannedArgs = {
@@ -130,10 +126,19 @@ export type MutationCreateChannelMessageReadArgs = {
   userId: Scalars["Int"];
 };
 
+export type MutationCreateGameArgs = {
+  mode: Scalars["Int"];
+  player2Id?: InputMaybe<Scalars["Int"]>;
+};
+
 export type MutationCreateMutedArgs = {
   channelId: Scalars["Int"];
   date?: InputMaybe<Scalars["String"]>;
   id: Scalars["Int"];
+};
+
+export type MutationDeleteChannelArgs = {
+  channelId: Scalars["Int"];
 };
 
 export type MutationSendChanelMessageArgs = {
@@ -152,6 +157,8 @@ export type Query = {
   blockingUser: User;
   channel: Channel;
   channels: Array<Channel>;
+  deleteChannelMessageContent: ChannelMessage;
+  deleteDirectMessageContent: DirectMessage;
   game: Game;
   games: Array<Game>;
 <<<<<<< HEAD
@@ -189,6 +196,14 @@ export type QueryChannelsArgs = {
   memberId?: InputMaybe<Scalars["Int"]>;
   name?: InputMaybe<Scalars["String"]>;
   ownerId?: InputMaybe<Scalars["Int"]>;
+};
+
+export type QueryDeleteChannelMessageContentArgs = {
+  messageId: Scalars["Int"];
+};
+
+export type QueryDeleteDirectMessageContentArgs = {
+  messageId: Scalars["Int"];
 };
 
 export type QueryGameArgs = {
@@ -236,8 +251,6 @@ export type QueryUpdateFriendByArgs = {
 export type QueryUpdateMutedArgs = {
   channelId: Scalars["Int"];
   date?: InputMaybe<Scalars["String"]>;
-  id: Scalars["Int"];
-  idchannel: Scalars["Int"];
   userId: Scalars["Int"];
 };
 
@@ -337,7 +350,7 @@ export type CreateGameMutationVariables = Exact<{
 
 export type CreateGameMutation = {
   __typename?: "Mutation";
-  CreateGame: {
+  createGame: {
     __typename?: "Game";
     id: number;
     gamemode: string;
@@ -383,64 +396,28 @@ export type CreateReadAtMessageByIdMutation = {
   };
 };
 
-export type MutedSomeoneChannelMutationVariables = Exact<{
-  createMutedId: Scalars["Int"];
+export type DeleteChannelMutationVariables = Exact<{
   channelId: Scalars["Int"];
-  date?: InputMaybe<Scalars["String"]>;
 }>;
 
-export type MutedSomeoneChannelMutation = {
+export type DeleteChannelMutation = {
   __typename?: "Mutation";
-  createMuted: {
-    __typename?: "RestrictedMember";
-    endAt?: number | null;
-    id: number;
-    name: string;
-    avatar: string;
-    rank: number;
-  };
+  deleteChannel: { __typename?: "Channel"; id: number; name: string };
 };
 
-export type SearchGamesQueryVariables = Exact<{
-  gamesId?: InputMaybe<Scalars["Int"]>;
-  started?: InputMaybe<Scalars["Boolean"]>;
-  finished?: InputMaybe<Scalars["Boolean"]>;
-}>;
-
-export type SearchGamesQuery = {
-  __typename?: "Query";
-  games: Array<{
-    __typename?: "Game";
-    id: number;
-    gamemode: string;
-    startAt?: number | null;
-    finishedAt?: number | null;
-    player1score: number;
-    player2score: number;
-    player1: {
-      __typename?: "User";
-      id: number;
-      name: string;
-      avatar: string;
-      rank: number;
-    };
-    player2?: {
-      __typename?: "User";
-      id: number;
-      name: string;
-      avatar: string;
-      rank: number;
-    } | null;
-  }>;
-};
-
+<<<<<<< HEAD
 >>>>>>> Nez Querry and Mutation
 export type SearchUsersChannelsQueryVariables = Exact<{
   name?: InputMaybe<Scalars["String"]>;
+=======
+export type DeleteChannelMessageContentQueryVariables = Exact<{
+  messageId: Scalars["Int"];
+>>>>>>> Querries ended
 }>;
 
-export type SearchUsersChannelsQuery = {
+export type DeleteChannelMessageContentQuery = {
   __typename?: "Query";
+<<<<<<< HEAD
   users: Array<{
     __typename: "User";
     name: string;
@@ -459,19 +436,17 @@ export type SendChannelMessageMutationVariables = Exact<{
 export type SendChannelMessageMutation = {
   __typename?: "Mutation";
   sendChanelMessage: {
+=======
+  deleteChannelMessageContent: {
+>>>>>>> Querries ended
     __typename?: "ChannelMessage";
     id: number;
     content: string;
     sentAt: number;
-    author: { __typename?: "User"; name: string; id: number };
-    readBy: Array<{
-      __typename?: "ChannelMessageRead";
-      id: number;
-      user: { __typename?: "User"; name: string; id: number };
-    }>;
   };
 };
 
+<<<<<<< HEAD
 export type SendDirectMessageMutationVariables = Exact<{
   message: Scalars["String"];
   recipientId: Scalars["Int"];
@@ -579,26 +554,19 @@ export type WaitingRoomGameQueryVariables = Exact<{
   gamesId?: InputMaybe<Scalars["Int"]>;
   started?: InputMaybe<Scalars["Boolean"]>;
   finished?: InputMaybe<Scalars["Boolean"]>;
+=======
+export type DeleteDirectMessageContentQueryVariables = Exact<{
+  messageId: Scalars["Int"];
+>>>>>>> Querries ended
 }>;
 
-export type WaitingRoomGameQuery = {
+export type DeleteDirectMessageContentQuery = {
   __typename?: "Query";
-  games: Array<{
-    __typename?: "Game";
+  deleteDirectMessageContent: {
+    __typename?: "DirectMessage";
     id: number;
-    gamemode: string;
-    startAt?: number | null;
-    finishedAt?: number | null;
-    player1score: number;
-    player2score: number;
-    player1: {
-      __typename?: "User";
-      id: number;
-      name: string;
-      avatar: string;
-      rank: number;
-    };
-  }>;
+    content: string;
+  };
 };
 
 >>>>>>> Nez Querry and Mutation
@@ -640,9 +608,9 @@ export type GetChannelQuery = {
   };
 };
 
-export type GetChannelsQueryVariables = Exact<{ [key: string]: never }>;
+export type InfoChannelsQueryVariables = Exact<{ [key: string]: never }>;
 
-export type GetChannelsQuery = {
+export type InfoChannelsQuery = {
   __typename?: "Query";
   user: {
     __typename?: "User";
@@ -651,11 +619,11 @@ export type GetChannelsQuery = {
   };
 };
 
-export type GetDirectMessagesQueryVariables = Exact<{
+export type InfoDirectMessagesQueryVariables = Exact<{
   userId?: InputMaybe<Scalars["Int"]>;
 }>;
 
-export type GetDirectMessagesQuery = {
+export type InfoDirectMessagesQuery = {
   __typename?: "Query";
   user: {
     __typename?: "User";
@@ -677,11 +645,26 @@ export type GetDirectMessagesQuery = {
   };
 };
 
-export type GetInfoUsersQueryVariables = Exact<{
+export type InfoUserProfileQueryVariables = Exact<{
   userId?: InputMaybe<Scalars["Int"]>;
 }>;
 
-export type GetInfoUsersQuery = {
+export type InfoUserProfileQuery = {
+  __typename?: "Query";
+  user: {
+    __typename?: "User";
+    id: number;
+    name: string;
+    avatar: string;
+    rank: number;
+  };
+};
+
+export type InfoUsersQueryVariables = Exact<{
+  userId?: InputMaybe<Scalars["Int"]>;
+}>;
+
+export type InfoUsersQuery = {
   __typename?: "Query";
   user: {
     __typename: "User";
@@ -717,15 +700,23 @@ export type GetInfoUsersQuery = {
 };
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 export type GetUserProfileQueryVariables = Exact<{
   userId?: InputMaybe<Scalars["Int"]>;
+=======
+export type MutedSomeoneChannelMutationVariables = Exact<{
+  createMutedId: Scalars["Int"];
+  channelId: Scalars["Int"];
+  date?: InputMaybe<Scalars["String"]>;
+>>>>>>> Querries ended
 }>;
 
-export type GetUserProfileQuery = {
-  __typename?: "Query";
-  user: {
-    __typename?: "User";
+export type MutedSomeoneChannelMutation = {
+  __typename?: "Mutation";
+  createMuted: {
+    __typename?: "RestrictedMember";
+    endAt?: number | null;
     id: number;
     name: string;
     avatar: string;
@@ -735,6 +726,42 @@ export type GetUserProfileQuery = {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+export type SearchGamesQueryVariables = Exact<{
+  gamesId?: InputMaybe<Scalars["Int"]>;
+  started?: InputMaybe<Scalars["Boolean"]>;
+  finished?: InputMaybe<Scalars["Boolean"]>;
+}>;
+
+export type SearchGamesQuery = {
+  __typename?: "Query";
+  games: Array<{
+    __typename?: "Game";
+    id: number;
+    gamemode: string;
+    startAt?: number | null;
+    finishedAt?: number | null;
+    player1score: number;
+    player2score: number;
+    player1: {
+      __typename?: "User";
+      id: number;
+      name: string;
+      avatar: string;
+      rank: number;
+    };
+    player2?: {
+      __typename?: "User";
+      id: number;
+      name: string;
+      avatar: string;
+      rank: number;
+    } | null;
+  }>;
+};
+
+>>>>>>> Querries ended
 export type SearchUsersChannelsQueryVariables = Exact<{
   name?: InputMaybe<Scalars["String"]>;
 }>;
@@ -781,10 +808,61 @@ export type SendDirectMessageMutation = {
   sendDirectMessage: { __typename?: "DirectMessage"; id: number };
 };
 
+<<<<<<< HEAD
 >>>>>>> Update name grapql file
 =======
 >>>>>>> Update games Query
 =======
+=======
+export type UpdateDateBannedQueryVariables = Exact<{
+  channelId: Scalars["Int"];
+  userId: Scalars["Int"];
+  date?: InputMaybe<Scalars["String"]>;
+}>;
+
+export type UpdateDateBannedQuery = {
+  __typename?: "Query";
+  updateBanned: { __typename?: "Channel"; id: number; name: string };
+};
+
+export type UpdateMutedQueryVariables = Exact<{
+  channelId: Scalars["Int"];
+  userId: Scalars["Int"];
+  date?: InputMaybe<Scalars["String"]>;
+}>;
+
+export type UpdateMutedQuery = {
+  __typename?: "Query";
+  updateMuted: { __typename?: "Channel"; id: number; name: string };
+};
+
+export type WaitingRoomGameQueryVariables = Exact<{
+  gamesId?: InputMaybe<Scalars["Int"]>;
+  started?: InputMaybe<Scalars["Boolean"]>;
+  finished?: InputMaybe<Scalars["Boolean"]>;
+}>;
+
+export type WaitingRoomGameQuery = {
+  __typename?: "Query";
+  games: Array<{
+    __typename?: "Game";
+    id: number;
+    gamemode: string;
+    startAt?: number | null;
+    finishedAt?: number | null;
+    player1score: number;
+    player2score: number;
+    player1: {
+      __typename?: "User";
+      id: number;
+      name: string;
+      avatar: string;
+      rank: number;
+    };
+  }>;
+};
+
+>>>>>>> Querries ended
 export const BannedSomeoneChannelDocument = `
     mutation BannedSomeoneChannel($createMutedId: Int!, $channelId: Int!, $date: String) {
   createMuted(id: $createMutedId, channelId: $channelId, date: $date) {
@@ -821,7 +899,10 @@ export const useBannedSomeoneChannelMutation = <
       >(BannedSomeoneChannelDocument, variables)(),
     options
   );
+<<<<<<< HEAD
 >>>>>>> Nez Querry and Mutation
+=======
+>>>>>>> Querries ended
 export const CreateChanelDocument = `
     mutation CreateChanel($inviteOnly: Boolean!, $password: String!, $name: String!) {
   createChanel(inviteOnly: $inviteOnly, password: $password, name: $name) {
@@ -855,11 +936,17 @@ export const useCreateChanelMutation = <TError = unknown, TContext = unknown>(
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 =======
 export const CreateGameDocument = `
     mutation CreateGame($mode: Int!, $player2Id: Int) {
   CreateGame(mode: $mode, player2Id: $player2Id) {
+=======
+export const CreateGameDocument = `
+    mutation CreateGame($mode: Int!, $player2Id: Int) {
+  createGame(mode: $mode, player2Id: $player2Id) {
+>>>>>>> Querries ended
     id
     gamemode
     startAt
@@ -940,6 +1027,277 @@ export const useCreateReadAtMessageByIdMutation = <
         CreateReadAtMessageByIdMutation,
         CreateReadAtMessageByIdMutationVariables
       >(CreateReadAtMessageByIdDocument, variables)(),
+    options
+  );
+export const DeleteChannelDocument = `
+    mutation DeleteChannel($channelId: Int!) {
+  deleteChannel(channelId: $channelId) {
+    id
+    name
+  }
+}
+    `;
+export const useDeleteChannelMutation = <TError = unknown, TContext = unknown>(
+  options?: UseMutationOptions<
+    DeleteChannelMutation,
+    TError,
+    DeleteChannelMutationVariables,
+    TContext
+  >
+) =>
+  useMutation<
+    DeleteChannelMutation,
+    TError,
+    DeleteChannelMutationVariables,
+    TContext
+  >(
+    ["DeleteChannel"],
+    (variables?: DeleteChannelMutationVariables) =>
+      fetcher<DeleteChannelMutation, DeleteChannelMutationVariables>(
+        DeleteChannelDocument,
+        variables
+      )(),
+    options
+  );
+export const DeleteChannelMessageContentDocument = `
+    query deleteChannelMessageContent($messageId: Int!) {
+  deleteChannelMessageContent(messageId: $messageId) {
+    id
+    content
+    sentAt
+  }
+}
+    `;
+export const useDeleteChannelMessageContentQuery = <
+  TData = DeleteChannelMessageContentQuery,
+  TError = unknown
+>(
+  variables: DeleteChannelMessageContentQueryVariables,
+  options?: UseQueryOptions<DeleteChannelMessageContentQuery, TError, TData>
+) =>
+  useQuery<DeleteChannelMessageContentQuery, TError, TData>(
+    ["deleteChannelMessageContent", variables],
+    fetcher<
+      DeleteChannelMessageContentQuery,
+      DeleteChannelMessageContentQueryVariables
+    >(DeleteChannelMessageContentDocument, variables),
+    options
+  );
+export const DeleteDirectMessageContentDocument = `
+    query deleteDirectMessageContent($messageId: Int!) {
+  deleteDirectMessageContent(messageId: $messageId) {
+    id
+    content
+  }
+}
+    `;
+export const useDeleteDirectMessageContentQuery = <
+  TData = DeleteDirectMessageContentQuery,
+  TError = unknown
+>(
+  variables: DeleteDirectMessageContentQueryVariables,
+  options?: UseQueryOptions<DeleteDirectMessageContentQuery, TError, TData>
+) =>
+  useQuery<DeleteDirectMessageContentQuery, TError, TData>(
+    ["deleteDirectMessageContent", variables],
+    fetcher<
+      DeleteDirectMessageContentQuery,
+      DeleteDirectMessageContentQueryVariables
+    >(DeleteDirectMessageContentDocument, variables),
+    options
+  );
+export const GetChannelDocument = `
+    query GetChannel($channelId: Int!) {
+  channel(id: $channelId) {
+    private
+    passwordProtected
+    name
+    owner {
+      name
+      id
+    }
+    messages {
+      id
+      author {
+        id
+        name
+        avatar
+      }
+      readBy {
+        user {
+          id
+          name
+          avatar
+        }
+      }
+      content
+      sentAt
+    }
+    admins {
+      id
+      name
+      avatar
+    }
+    members {
+      id
+      name
+      avatar
+    }
+  }
+}
+    `;
+export const useGetChannelQuery = <TData = GetChannelQuery, TError = unknown>(
+  variables: GetChannelQueryVariables,
+  options?: UseQueryOptions<GetChannelQuery, TError, TData>
+) =>
+  useQuery<GetChannelQuery, TError, TData>(
+    ["GetChannel", variables],
+    fetcher<GetChannelQuery, GetChannelQueryVariables>(
+      GetChannelDocument,
+      variables
+    ),
+    options
+  );
+export const InfoChannelsDocument = `
+    query InfoChannels {
+  user {
+    friends {
+      __typename
+      name
+      avatar
+    }
+    channels {
+      __typename
+      name
+    }
+  }
+}
+    `;
+export const useInfoChannelsQuery = <
+  TData = InfoChannelsQuery,
+  TError = unknown
+>(
+  variables?: InfoChannelsQueryVariables,
+  options?: UseQueryOptions<InfoChannelsQuery, TError, TData>
+) =>
+  useQuery<InfoChannelsQuery, TError, TData>(
+    variables === undefined ? ["InfoChannels"] : ["InfoChannels", variables],
+    fetcher<InfoChannelsQuery, InfoChannelsQueryVariables>(
+      InfoChannelsDocument,
+      variables
+    ),
+    options
+  );
+export const InfoDirectMessagesDocument = `
+    query InfoDirectMessages($userId: Int) {
+  user(id: $userId) {
+    name
+    avatar
+    messages {
+      recipient {
+        id
+        name
+        avatar
+      }
+      author {
+        id
+        name
+        avatar
+      }
+      content
+      sentAt
+      readAt
+    }
+  }
+}
+    `;
+export const useInfoDirectMessagesQuery = <
+  TData = InfoDirectMessagesQuery,
+  TError = unknown
+>(
+  variables?: InfoDirectMessagesQueryVariables,
+  options?: UseQueryOptions<InfoDirectMessagesQuery, TError, TData>
+) =>
+  useQuery<InfoDirectMessagesQuery, TError, TData>(
+    variables === undefined
+      ? ["InfoDirectMessages"]
+      : ["InfoDirectMessages", variables],
+    fetcher<InfoDirectMessagesQuery, InfoDirectMessagesQueryVariables>(
+      InfoDirectMessagesDocument,
+      variables
+    ),
+    options
+  );
+export const InfoUserProfileDocument = `
+    query InfoUserProfile($userId: Int) {
+  user(id: $userId) {
+    id
+    name
+    avatar
+    rank
+  }
+}
+    `;
+export const useInfoUserProfileQuery = <
+  TData = InfoUserProfileQuery,
+  TError = unknown
+>(
+  variables?: InfoUserProfileQueryVariables,
+  options?: UseQueryOptions<InfoUserProfileQuery, TError, TData>
+) =>
+  useQuery<InfoUserProfileQuery, TError, TData>(
+    variables === undefined
+      ? ["InfoUserProfile"]
+      : ["InfoUserProfile", variables],
+    fetcher<InfoUserProfileQuery, InfoUserProfileQueryVariables>(
+      InfoUserProfileDocument,
+      variables
+    ),
+    options
+  );
+export const InfoUsersDocument = `
+    query InfoUsers($userId: Int) {
+  user(id: $userId) {
+    id
+    __typename
+    name
+    blocked
+    blocking
+    avatar
+    rank
+    channels {
+      __typename
+      name
+      id
+      messages {
+        id
+        content
+        sentAt
+      }
+    }
+    friends {
+      __typename
+      name
+      avatar
+      messages {
+        content
+        sentAt
+      }
+      id
+    }
+  }
+}
+    `;
+export const useInfoUsersQuery = <TData = InfoUsersQuery, TError = unknown>(
+  variables?: InfoUsersQueryVariables,
+  options?: UseQueryOptions<InfoUsersQuery, TError, TData>
+) =>
+  useQuery<InfoUsersQuery, TError, TData>(
+    variables === undefined ? ["InfoUsers"] : ["InfoUsers", variables],
+    fetcher<InfoUsersQuery, InfoUsersQueryVariables>(
+      InfoUsersDocument,
+      variables
+    ),
     options
   );
 export const MutedSomeoneChannelDocument = `
@@ -1128,6 +1486,7 @@ export const useSendDirectMessageMutation = <
   );
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 export const GetChannelHeaderDocument = `
     query GetChannelHeader($channelId: Int!) {
   channel(id: $channelId) {
@@ -1269,25 +1628,21 @@ export const useSearchUsersChannelsQuery = <
 export const WaitingRoomGameDocument = `
     query WaitingRoomGame($gamesId: Int, $started: Boolean, $finished: Boolean) {
   games(id: $gamesId, started: $started, finished: $finished) {
+=======
+export const UpdateDateBannedDocument = `
+    query UpdateDateBanned($channelId: Int!, $userId: Int!, $date: String) {
+  updateBanned(channelId: $channelId, userId: $userId, date: $date) {
+>>>>>>> Querries ended
     id
-    player1 {
-      id
-      name
-      avatar
-      rank
-    }
-    gamemode
-    startAt
-    finishedAt
-    player1score
-    player2score
+    name
   }
 }
     `;
-export const useWaitingRoomGameQuery = <
-  TData = WaitingRoomGameQuery,
+export const useUpdateDateBannedQuery = <
+  TData = UpdateDateBannedQuery,
   TError = unknown
 >(
+<<<<<<< HEAD
   variables?: WaitingRoomGameQueryVariables,
   options?: UseQueryOptions<WaitingRoomGameQuery, TError, TData>
 ) =>
@@ -1379,88 +1734,58 @@ export const GetChannelsDocument = `
 export const useGetChannelsQuery = <TData = GetChannelsQuery, TError = unknown>(
   variables?: GetChannelsQueryVariables,
   options?: UseQueryOptions<GetChannelsQuery, TError, TData>
+=======
+  variables: UpdateDateBannedQueryVariables,
+  options?: UseQueryOptions<UpdateDateBannedQuery, TError, TData>
+>>>>>>> Querries ended
 ) =>
-  useQuery<GetChannelsQuery, TError, TData>(
-    variables === undefined ? ["GetChannels"] : ["GetChannels", variables],
-    fetcher<GetChannelsQuery, GetChannelsQueryVariables>(
-      GetChannelsDocument,
+  useQuery<UpdateDateBannedQuery, TError, TData>(
+    ["UpdateDateBanned", variables],
+    fetcher<UpdateDateBannedQuery, UpdateDateBannedQueryVariables>(
+      UpdateDateBannedDocument,
       variables
     ),
     options
   );
-export const GetDirectMessagesDocument = `
-    query GetDirectMessages($userId: Int) {
-  user(id: $userId) {
+export const UpdateMutedDocument = `
+    query UpdateMuted($channelId: Int!, $userId: Int!, $date: String) {
+  updateMuted(channelId: $channelId, userId: $userId, date: $date) {
+    id
     name
-    avatar
-    messages {
-      recipient {
-        id
-        name
-        avatar
-      }
-      author {
-        id
-        name
-        avatar
-      }
-      content
-      sentAt
-      readAt
-    }
   }
 }
     `;
-export const useGetDirectMessagesQuery = <
-  TData = GetDirectMessagesQuery,
-  TError = unknown
->(
-  variables?: GetDirectMessagesQueryVariables,
-  options?: UseQueryOptions<GetDirectMessagesQuery, TError, TData>
+export const useUpdateMutedQuery = <TData = UpdateMutedQuery, TError = unknown>(
+  variables: UpdateMutedQueryVariables,
+  options?: UseQueryOptions<UpdateMutedQuery, TError, TData>
 ) =>
-  useQuery<GetDirectMessagesQuery, TError, TData>(
-    variables === undefined
-      ? ["GetDirectMessages"]
-      : ["GetDirectMessages", variables],
-    fetcher<GetDirectMessagesQuery, GetDirectMessagesQueryVariables>(
-      GetDirectMessagesDocument,
+  useQuery<UpdateMutedQuery, TError, TData>(
+    ["UpdateMuted", variables],
+    fetcher<UpdateMutedQuery, UpdateMutedQueryVariables>(
+      UpdateMutedDocument,
       variables
     ),
     options
   );
-export const GetInfoUsersDocument = `
-    query GetInfoUsers($userId: Int) {
-  user(id: $userId) {
+export const WaitingRoomGameDocument = `
+    query WaitingRoomGame($gamesId: Int, $started: Boolean, $finished: Boolean) {
+  games(id: $gamesId, started: $started, finished: $finished) {
     id
-    __typename
-    name
-    blocked
-    blocking
-    avatar
-    rank
-    channels {
-      __typename
-      name
+    player1 {
       id
-      messages {
-        id
-        content
-        sentAt
-      }
-    }
-    friends {
-      __typename
       name
       avatar
-      messages {
-        content
-        sentAt
-      }
-      id
+      rank
     }
+    gamemode
+    startAt
+    finishedAt
+    player1score
+    player2score
   }
 }
     `;
+<<<<<<< HEAD
 export const useGetInfoUsersQuery = <
   TData = GetInfoUsersQuery,
   TError = unknown
@@ -1490,17 +1815,21 @@ export const GetUserProfileDocument = `
     `;
 export const useGetUserProfileQuery = <
   TData = GetUserProfileQuery,
+=======
+export const useWaitingRoomGameQuery = <
+  TData = WaitingRoomGameQuery,
+>>>>>>> Querries ended
   TError = unknown
 >(
-  variables?: GetUserProfileQueryVariables,
-  options?: UseQueryOptions<GetUserProfileQuery, TError, TData>
+  variables?: WaitingRoomGameQueryVariables,
+  options?: UseQueryOptions<WaitingRoomGameQuery, TError, TData>
 ) =>
-  useQuery<GetUserProfileQuery, TError, TData>(
+  useQuery<WaitingRoomGameQuery, TError, TData>(
     variables === undefined
-      ? ["GetUserProfile"]
-      : ["GetUserProfile", variables],
-    fetcher<GetUserProfileQuery, GetUserProfileQueryVariables>(
-      GetUserProfileDocument,
+      ? ["WaitingRoomGame"]
+      : ["WaitingRoomGame", variables],
+    fetcher<WaitingRoomGameQuery, WaitingRoomGameQueryVariables>(
+      WaitingRoomGameDocument,
       variables
     ),
     options
