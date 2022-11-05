@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import { useNavigate } from "react-router-dom";
 import * as Avatar from "@radix-ui/react-avatar";
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
@@ -176,7 +177,7 @@ const Home = () => {
           <img
             src={data?.currentUser.avatar}
             alt="Player avatar"
-            className="border-2 border-solid  border-slate-300"
+            className="h-24 rounded-full border-2 border-solid  border-slate-300"
           />
           <div className="m-2 flex flex-col">
             <div className="text-xl font-bold">{data?.currentUser.name}</div>

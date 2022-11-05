@@ -19,10 +19,10 @@ const DisplayUserProfile = () => {
     return <div>Error</div>;
   }
   return (
-    <div className="flex w-full flex-col ">
+    <div className="mt-4 flex w-full flex-col ">
       <div className="flex h-24 justify-center">
         <img
-          className="m-2 mr-4 h-20 w-20 justify-center rounded-full object-cover"
+          className=" mr-4  h-20 w-20 justify-center rounded-full object-cover"
           src={data?.user.avatar}
         />
         <div className="flex h-full flex-col justify-center font-bold">
@@ -51,38 +51,26 @@ const DisplayUserProfile = () => {
           return (
             <div
               className={`${
-                victory ? "bg-green-200" : "bg-red-400"
+                victory ? "bg-green-300" : "bg-red-400 "
               } mt-px flex h-12 items-center px-2`}
             >
               <img
                 className="h-10 w-10 rounded-full object-cover "
                 src={game.player1.avatar}
               />
-              <div
-                className={`${
-                  game.player1score > game.player2score ? "font-bold" : ""
-                } mx-2 w-28 text-clip text-left`}
-              >
+              <div className="ml-2 w-28 text-clip text-left">
                 {game.player1.name}
               </div>
               <div className="text-lg font-bold">VS</div>
-              <div
-                className={`${
-                  game.player2score > game.player1score ? "font-bold" : ""
-                } mx-2 flex w-28 justify-end text-clip`}
-              >
+              <div className=" mr-2 flex w-28 justify-end text-clip">
                 {game.player2.name}
               </div>
               <img
-                className="h-10 rounded-full object-cover"
+                className="h-10 w-10 rounded-full object-cover"
                 src={game.player2.avatar}
               />
-              <div className="mx-2 w-20 border-x-2 border-white text-center">
-                {victory ? (
-                  <div className="font-bold">VICTORY</div>
-                ) : (
-                  <div className="">DEFEAT</div>
-                )}
+              <div className=" mx-2 w-20 border-x-2 border-white text-center font-bold">
+                {victory ? <div>VICTORY</div> : <div>DEFEAT</div>}
 
                 <div>
                   {game.player1score} - {game.player2score}
