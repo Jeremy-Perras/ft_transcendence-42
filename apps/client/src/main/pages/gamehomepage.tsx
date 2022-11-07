@@ -53,7 +53,7 @@ const GameMode = ({ imgs, name, alt, textEffects, animate }: GameModeType) => {
     console.log(data);
 
     const getId = data?.games.map((game) =>
-      game.gamemode === "Classi" ? game.id : undefined
+      game.gamemode === "Classi" ? game.id : 
     );
     console.log(getId);
     // if (getId?.length) {
