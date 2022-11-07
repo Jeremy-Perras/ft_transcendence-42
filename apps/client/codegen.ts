@@ -15,6 +15,8 @@ const config: CodegenConfig = {
         scalars: {
           Timestamp: "number",
         },
+        exposeQueryKeys: true,
+        exposeFetcher: true,
         fetcher: {
           endpoint: "http://localhost:3000/graphql",
           fetchParams: {

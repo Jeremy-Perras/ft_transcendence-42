@@ -9,7 +9,16 @@ import * as Dialog from "@radix-ui/react-dialog";
 import Home from "./pages/home";
 import Channel from "./pages/channel";
 import Chat from "./pages/chat";
-import Profile from "./pages/profile";
+import Profile, { loader } from "./pages/profile";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 10,
+    },
+  },
+});
 
 const router = createMemoryRouter([
   {
@@ -34,6 +43,7 @@ const router = createMemoryRouter([
       {
         path: "/profile/:userId",
         element: <Profile />,
+        loader: loader(queryClient),
       },
     ],
   },
@@ -71,50 +81,52 @@ export default function SideBar() {
   }, [showSideBar]);
 
   return (
-    <div className="shrink-0 font-cursive">
-      {!showSideBar && isSmallScreen ? (
-        <button
-          onClick={() =>
-            setTimeout(() => {
-              setShowSideBar(true);
-            }, 1)
-          }
-          className="absolute top-1 right-2 z-10"
-        >
-          <BackBurgerIcon className="w-8 text-slate-50 sm:w-9" />
-          {newMessage ? (
-            <span className="absolute top-0 right-0 flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping bg-red-400 opacity-75"></span>
-              <span className="relative inline-flex h-2 w-2 bg-red-500"></span>
-            </span>
-          ) : null}
-        </button>
-      ) : null}
-      <Dialog.Root open={showSideBar} modal={false}>
-        <Dialog.Content
-          forceMount
-          asChild
-          onEscapeKeyDown={(e) => {
-            e.preventDefault();
-            if (isSmallScreen) {
-              setShowSideBar(false);
+    <QueryClientProvider client={queryClient}>
+      <div className="shrink-0 font-cursive">
+        {!showSideBar && isSmallScreen ? (
+          <button
+            onClick={() =>
+              setTimeout(() => {
+                setShowSideBar(true);
+              }, 1)
             }
-          }}
-          onInteractOutside={(e) => {
-            e.preventDefault();
-            if (isSmallScreen) {
-              setShowSideBar(false);
-            }
-          }}
-          className="invisible absolute right-0 flex h-screen w-full flex-col bg-slate-50 shadow-2xl shadow-black sm:w-128 2xl:relative"
-        >
-          <motion.div animate={controls}>
-            <SideBarContext.Provider value={setShowSideBar}>
-              <RouterProvider router={router} />
-            </SideBarContext.Provider>
-          </motion.div>
-        </Dialog.Content>
-      </Dialog.Root>
-    </div>
+            className="absolute top-1 right-2 z-10"
+          >
+            <BackBurgerIcon className="w-8 text-slate-50 sm:w-9" />
+            {newMessage ? (
+              <span className="absolute top-0 right-0 flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping bg-red-400 opacity-75"></span>
+                <span className="relative inline-flex h-2 w-2 bg-red-500"></span>
+              </span>
+            ) : null}
+          </button>
+        ) : null}
+        <Dialog.Root open={showSideBar} modal={false}>
+          <Dialog.Content
+            forceMount
+            asChild
+            onEscapeKeyDown={(e) => {
+              e.preventDefault();
+              if (isSmallScreen) {
+                setShowSideBar(false);
+              }
+            }}
+            onInteractOutside={(e) => {
+              e.preventDefault();
+              if (isSmallScreen) {
+                setShowSideBar(false);
+              }
+            }}
+            className="invisible absolute right-0 flex h-screen w-full flex-col bg-slate-50 shadow-2xl shadow-black sm:w-128 2xl:relative"
+          >
+            <motion.div animate={controls}>
+              <SideBarContext.Provider value={setShowSideBar}>
+                <RouterProvider router={router} />
+              </SideBarContext.Provider>
+            </motion.div>
+          </Dialog.Content>
+        </Dialog.Root>
+      </div>
+    </QueryClientProvider>
   );
 }

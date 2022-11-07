@@ -315,6 +315,21 @@ export type BannedSomeoneChannelMutation = {
   };
 };
 
+export type BlockSomeoneQueryVariables = Exact<{
+  blockingUserId: Scalars["Int"];
+}>;
+
+export type BlockSomeoneQuery = {
+  __typename?: "Query";
+  blockingUser: {
+    __typename?: "User";
+    id: number;
+    name: string;
+    avatar: string;
+    rank: number;
+  };
+};
+
 export type GetChannelHeaderQueryVariables = Exact<{
   channelId: Scalars["Int"];
 }>;
@@ -828,6 +843,48 @@ export const useBannedSomeoneChannelMutation = <
       >(BannedSomeoneChannelDocument, variables)(),
     options
   );
+useBannedSomeoneChannelMutation.fetcher = (
+  variables: BannedSomeoneChannelMutationVariables
+) =>
+  fetcher<BannedSomeoneChannelMutation, BannedSomeoneChannelMutationVariables>(
+    BannedSomeoneChannelDocument,
+    variables
+  );
+export const BlockSomeoneDocument = `
+    query BlockSomeone($blockingUserId: Int!) {
+  blockingUser(id: $blockingUserId) {
+    id
+    name
+    avatar
+    rank
+  }
+}
+    `;
+export const useBlockSomeoneQuery = <
+  TData = BlockSomeoneQuery,
+  TError = unknown
+>(
+  variables: BlockSomeoneQueryVariables,
+  options?: UseQueryOptions<BlockSomeoneQuery, TError, TData>
+) =>
+  useQuery<BlockSomeoneQuery, TError, TData>(
+    ["BlockSomeone", variables],
+    fetcher<BlockSomeoneQuery, BlockSomeoneQueryVariables>(
+      BlockSomeoneDocument,
+      variables
+    ),
+    options
+  );
+
+useBlockSomeoneQuery.getKey = (variables: BlockSomeoneQueryVariables) => [
+  "BlockSomeone",
+  variables,
+];
+useBlockSomeoneQuery.fetcher = (variables: BlockSomeoneQueryVariables) =>
+  fetcher<BlockSomeoneQuery, BlockSomeoneQueryVariables>(
+    BlockSomeoneDocument,
+    variables
+  );
 export const GetChannelHeaderDocument = `
     query GetChannelHeader($channelId: Int!) {
   channel(id: $channelId) {
@@ -858,6 +915,17 @@ export const useGetChannelHeaderQuery = <
     ),
     options
   );
+
+useGetChannelHeaderQuery.getKey = (
+  variables: GetChannelHeaderQueryVariables
+) => ["GetChannelHeader", variables];
+useGetChannelHeaderQuery.fetcher = (
+  variables: GetChannelHeaderQueryVariables
+) =>
+  fetcher<GetChannelHeaderQuery, GetChannelHeaderQueryVariables>(
+    GetChannelHeaderDocument,
+    variables
+  );
 export const CreateChanelDocument = `
     mutation CreateChanel($inviteOnly: Boolean!, $password: String!, $name: String!) {
   createChanel(inviteOnly: $inviteOnly, password: $password, name: $name) {
@@ -887,6 +955,11 @@ export const useCreateChanelMutation = <TError = unknown, TContext = unknown>(
         variables
       )(),
     options
+  );
+useCreateChanelMutation.fetcher = (variables: CreateChanelMutationVariables) =>
+  fetcher<CreateChanelMutation, CreateChanelMutationVariables>(
+    CreateChanelDocument,
+    variables
   );
 export const CreateGameDocument = `
     mutation CreateGame($mode: Int!, $player2Id: Int) {
@@ -934,6 +1007,11 @@ export const useCreateGameMutation = <TError = unknown, TContext = unknown>(
       )(),
     options
   );
+useCreateGameMutation.fetcher = (variables: CreateGameMutationVariables) =>
+  fetcher<CreateGameMutation, CreateGameMutationVariables>(
+    CreateGameDocument,
+    variables
+  );
 export const CreateReadAtMessageByIdDocument = `
     mutation CreateReadAtMessageById($userId: Int!, $messageId: Int!) {
   createChannelMessageRead(userId: $userId, messageId: $messageId) {
@@ -973,6 +1051,13 @@ export const useCreateReadAtMessageByIdMutation = <
       >(CreateReadAtMessageByIdDocument, variables)(),
     options
   );
+useCreateReadAtMessageByIdMutation.fetcher = (
+  variables: CreateReadAtMessageByIdMutationVariables
+) =>
+  fetcher<
+    CreateReadAtMessageByIdMutation,
+    CreateReadAtMessageByIdMutationVariables
+  >(CreateReadAtMessageByIdDocument, variables);
 export const DeleteChannelDocument = `
     mutation DeleteChannel($channelId: Int!) {
   deleteChannel(channelId: $channelId) {
@@ -1003,6 +1088,13 @@ export const useDeleteChannelMutation = <TError = unknown, TContext = unknown>(
       )(),
     options
   );
+useDeleteChannelMutation.fetcher = (
+  variables: DeleteChannelMutationVariables
+) =>
+  fetcher<DeleteChannelMutation, DeleteChannelMutationVariables>(
+    DeleteChannelDocument,
+    variables
+  );
 export const DeleteChannelMessageContentDocument = `
     query deleteChannelMessageContent($messageId: Int!) {
   deleteChannelMessageContent(messageId: $messageId) {
@@ -1027,6 +1119,17 @@ export const useDeleteChannelMessageContentQuery = <
     >(DeleteChannelMessageContentDocument, variables),
     options
   );
+
+useDeleteChannelMessageContentQuery.getKey = (
+  variables: DeleteChannelMessageContentQueryVariables
+) => ["deleteChannelMessageContent", variables];
+useDeleteChannelMessageContentQuery.fetcher = (
+  variables: DeleteChannelMessageContentQueryVariables
+) =>
+  fetcher<
+    DeleteChannelMessageContentQuery,
+    DeleteChannelMessageContentQueryVariables
+  >(DeleteChannelMessageContentDocument, variables);
 export const DeleteDirectMessageContentDocument = `
     query deleteDirectMessageContent($messageId: Int!) {
   deleteDirectMessageContent(messageId: $messageId) {
@@ -1050,6 +1153,17 @@ export const useDeleteDirectMessageContentQuery = <
     >(DeleteDirectMessageContentDocument, variables),
     options
   );
+
+useDeleteDirectMessageContentQuery.getKey = (
+  variables: DeleteDirectMessageContentQueryVariables
+) => ["deleteDirectMessageContent", variables];
+useDeleteDirectMessageContentQuery.fetcher = (
+  variables: DeleteDirectMessageContentQueryVariables
+) =>
+  fetcher<
+    DeleteDirectMessageContentQuery,
+    DeleteDirectMessageContentQueryVariables
+  >(DeleteDirectMessageContentDocument, variables);
 export const InfoChannelDocument = `
     query InfoChannel($channelId: Int!) {
   channel(id: $channelId) {
@@ -1102,6 +1216,16 @@ export const useInfoChannelQuery = <TData = InfoChannelQuery, TError = unknown>(
     ),
     options
   );
+
+useInfoChannelQuery.getKey = (variables: InfoChannelQueryVariables) => [
+  "InfoChannel",
+  variables,
+];
+useInfoChannelQuery.fetcher = (variables: InfoChannelQueryVariables) =>
+  fetcher<InfoChannelQuery, InfoChannelQueryVariables>(
+    InfoChannelDocument,
+    variables
+  );
 export const InfoChannelsDocument = `
     query InfoChannels {
   user {
@@ -1131,6 +1255,14 @@ export const useInfoChannelsQuery = <
       variables
     ),
     options
+  );
+
+useInfoChannelsQuery.getKey = (variables?: InfoChannelsQueryVariables) =>
+  variables === undefined ? ["InfoChannels"] : ["InfoChannels", variables];
+useInfoChannelsQuery.fetcher = (variables?: InfoChannelsQueryVariables) =>
+  fetcher<InfoChannelsQuery, InfoChannelsQueryVariables>(
+    InfoChannelsDocument,
+    variables
   );
 export const InfoDirectMessagesDocument = `
     query InfoDirectMessages($userId: Int) {
@@ -1172,6 +1304,20 @@ export const useInfoDirectMessagesQuery = <
     ),
     options
   );
+
+useInfoDirectMessagesQuery.getKey = (
+  variables?: InfoDirectMessagesQueryVariables
+) =>
+  variables === undefined
+    ? ["InfoDirectMessages"]
+    : ["InfoDirectMessages", variables];
+useInfoDirectMessagesQuery.fetcher = (
+  variables?: InfoDirectMessagesQueryVariables
+) =>
+  fetcher<InfoDirectMessagesQuery, InfoDirectMessagesQueryVariables>(
+    InfoDirectMessagesDocument,
+    variables
+  );
 export const InfoUserProfileDocument = `
     query InfoUserProfile($userId: Int) {
   user(id: $userId) {
@@ -1198,6 +1344,16 @@ export const useInfoUserProfileQuery = <
       variables
     ),
     options
+  );
+
+useInfoUserProfileQuery.getKey = (variables?: InfoUserProfileQueryVariables) =>
+  variables === undefined
+    ? ["InfoUserProfile"]
+    : ["InfoUserProfile", variables];
+useInfoUserProfileQuery.fetcher = (variables?: InfoUserProfileQueryVariables) =>
+  fetcher<InfoUserProfileQuery, InfoUserProfileQueryVariables>(
+    InfoUserProfileDocument,
+    variables
   );
 export const InfoUsersDocument = `
     query InfoUsers($userId: Int) {
@@ -1244,6 +1400,14 @@ export const useInfoUsersQuery = <TData = InfoUsersQuery, TError = unknown>(
     ),
     options
   );
+
+useInfoUsersQuery.getKey = (variables?: InfoUsersQueryVariables) =>
+  variables === undefined ? ["InfoUsers"] : ["InfoUsers", variables];
+useInfoUsersQuery.fetcher = (variables?: InfoUsersQueryVariables) =>
+  fetcher<InfoUsersQuery, InfoUsersQueryVariables>(
+    InfoUsersDocument,
+    variables
+  );
 export const MutedSomeoneChannelDocument = `
     mutation MutedSomeoneChannel($createMutedId: Int!, $channelId: Int!, $date: String) {
   createMuted(id: $createMutedId, channelId: $channelId, date: $date) {
@@ -1279,6 +1443,13 @@ export const useMutedSomeoneChannelMutation = <
         MutedSomeoneChannelMutationVariables
       >(MutedSomeoneChannelDocument, variables)(),
     options
+  );
+useMutedSomeoneChannelMutation.fetcher = (
+  variables: MutedSomeoneChannelMutationVariables
+) =>
+  fetcher<MutedSomeoneChannelMutation, MutedSomeoneChannelMutationVariables>(
+    MutedSomeoneChannelDocument,
+    variables
   );
 export const SearchGamesDocument = `
     query SearchGames($gamesId: Int, $started: Boolean, $finished: Boolean, $gameMode: Int) {
@@ -1316,6 +1487,14 @@ export const useSearchGamesQuery = <TData = SearchGamesQuery, TError = unknown>(
     ),
     options
   );
+
+useSearchGamesQuery.getKey = (variables?: SearchGamesQueryVariables) =>
+  variables === undefined ? ["SearchGames"] : ["SearchGames", variables];
+useSearchGamesQuery.fetcher = (variables?: SearchGamesQueryVariables) =>
+  fetcher<SearchGamesQuery, SearchGamesQueryVariables>(
+    SearchGamesDocument,
+    variables
+  );
 export const SearchUsersChannelsDocument = `
     query SearchUsersChannels($name: String) {
   users(name: $name) {
@@ -1348,6 +1527,20 @@ export const useSearchUsersChannelsQuery = <
       variables
     ),
     options
+  );
+
+useSearchUsersChannelsQuery.getKey = (
+  variables?: SearchUsersChannelsQueryVariables
+) =>
+  variables === undefined
+    ? ["SearchUsersChannels"]
+    : ["SearchUsersChannels", variables];
+useSearchUsersChannelsQuery.fetcher = (
+  variables?: SearchUsersChannelsQueryVariables
+) =>
+  fetcher<SearchUsersChannelsQuery, SearchUsersChannelsQueryVariables>(
+    SearchUsersChannelsDocument,
+    variables
   );
 export const SendChannelMessageDocument = `
     mutation sendChannelMessage($message: String!, $recipientId: Int!) {
@@ -1394,6 +1587,13 @@ export const useSendChannelMessageMutation = <
       )(),
     options
   );
+useSendChannelMessageMutation.fetcher = (
+  variables: SendChannelMessageMutationVariables
+) =>
+  fetcher<SendChannelMessageMutation, SendChannelMessageMutationVariables>(
+    SendChannelMessageDocument,
+    variables
+  );
 export const SendDirectMessageDocument = `
     mutation SendDirectMessage($message: String!, $recipientId: Int!) {
   sendDirectMessage(message: $message, recipientId: $recipientId) {
@@ -1426,6 +1626,13 @@ export const useSendDirectMessageMutation = <
       )(),
     options
   );
+useSendDirectMessageMutation.fetcher = (
+  variables: SendDirectMessageMutationVariables
+) =>
+  fetcher<SendDirectMessageMutation, SendDirectMessageMutationVariables>(
+    SendDirectMessageDocument,
+    variables
+  );
 export const UpdateDateBannedDocument = `
     query UpdateDateBanned($channelId: Int!, $userId: Int!, $date: String) {
   updateBanned(channelId: $channelId, userId: $userId, date: $date) {
@@ -1449,6 +1656,17 @@ export const useUpdateDateBannedQuery = <
     ),
     options
   );
+
+useUpdateDateBannedQuery.getKey = (
+  variables: UpdateDateBannedQueryVariables
+) => ["UpdateDateBanned", variables];
+useUpdateDateBannedQuery.fetcher = (
+  variables: UpdateDateBannedQueryVariables
+) =>
+  fetcher<UpdateDateBannedQuery, UpdateDateBannedQueryVariables>(
+    UpdateDateBannedDocument,
+    variables
+  );
 export const UpdateDateMutedDocument = `
     query UpdateDateMuted($channelId: Int!, $userId: Int!, $date: String) {
   updateMuted(channelId: $channelId, userId: $userId, date: $date) {
@@ -1471,6 +1689,16 @@ export const useUpdateDateMutedQuery = <
       variables
     ),
     options
+  );
+
+useUpdateDateMutedQuery.getKey = (variables: UpdateDateMutedQueryVariables) => [
+  "UpdateDateMuted",
+  variables,
+];
+useUpdateDateMutedQuery.fetcher = (variables: UpdateDateMutedQueryVariables) =>
+  fetcher<UpdateDateMutedQuery, UpdateDateMutedQueryVariables>(
+    UpdateDateMutedDocument,
+    variables
   );
 export const UpdateGameJoiningPlayerDocument = `
     query UpdateGameJoiningPlayer($updateGameId: Int!) {
@@ -1510,6 +1738,17 @@ export const useUpdateGameJoiningPlayerQuery = <
       UpdateGameJoiningPlayerQueryVariables
     >(UpdateGameJoiningPlayerDocument, variables),
     options
+  );
+
+useUpdateGameJoiningPlayerQuery.getKey = (
+  variables: UpdateGameJoiningPlayerQueryVariables
+) => ["UpdateGameJoiningPlayer", variables];
+useUpdateGameJoiningPlayerQuery.fetcher = (
+  variables: UpdateGameJoiningPlayerQueryVariables
+) =>
+  fetcher<UpdateGameJoiningPlayerQuery, UpdateGameJoiningPlayerQueryVariables>(
+    UpdateGameJoiningPlayerDocument,
+    variables
   );
 export const UserProfileDocument = `
     query UserProfile($userId: Int) {
@@ -1557,6 +1796,14 @@ export const useUserProfileQuery = <TData = UserProfileQuery, TError = unknown>(
     ),
     options
   );
+
+useUserProfileQuery.getKey = (variables?: UserProfileQueryVariables) =>
+  variables === undefined ? ["UserProfile"] : ["UserProfile", variables];
+useUserProfileQuery.fetcher = (variables?: UserProfileQueryVariables) =>
+  fetcher<UserProfileQuery, UserProfileQueryVariables>(
+    UserProfileDocument,
+    variables
+  );
 export const UserProfileHeaderDocument = `
     query UserProfileHeader($userId: Int) {
   user(id: $userId) {
@@ -1583,6 +1830,20 @@ export const useUserProfileHeaderQuery = <
       variables
     ),
     options
+  );
+
+useUserProfileHeaderQuery.getKey = (
+  variables?: UserProfileHeaderQueryVariables
+) =>
+  variables === undefined
+    ? ["UserProfileHeader"]
+    : ["UserProfileHeader", variables];
+useUserProfileHeaderQuery.fetcher = (
+  variables?: UserProfileHeaderQueryVariables
+) =>
+  fetcher<UserProfileHeaderQuery, UserProfileHeaderQueryVariables>(
+    UserProfileHeaderDocument,
+    variables
   );
 export const WaitingRoomGameDocument = `
     query WaitingRoomGame($gamesId: Int, $started: Boolean, $finished: Boolean) {
@@ -1618,4 +1879,14 @@ export const useWaitingRoomGameQuery = <
       variables
     ),
     options
+  );
+
+useWaitingRoomGameQuery.getKey = (variables?: WaitingRoomGameQueryVariables) =>
+  variables === undefined
+    ? ["WaitingRoomGame"]
+    : ["WaitingRoomGame", variables];
+useWaitingRoomGameQuery.fetcher = (variables?: WaitingRoomGameQueryVariables) =>
+  fetcher<WaitingRoomGameQuery, WaitingRoomGameQueryVariables>(
+    WaitingRoomGameDocument,
+    variables
   );

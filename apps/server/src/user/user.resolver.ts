@@ -267,7 +267,7 @@ export class UserResolver {
           }))
       : [];
   }
-  @Query((returns) => User)
+  @Mutation((returns) => User)
   async blockingUser(
     @CurrentUser() me: User,
     @Args("id", { type: () => Int }) id: number
@@ -295,7 +295,7 @@ export class UserResolver {
     return { avatar: m.avatar, id: m.id, name: m.name, rank: m.rank };
   }
 
-  @Query((returns) => User)
+  @Mutation((returns) => User)
   async blockedBy(
     @Args("id", { type: () => Int }) id: number,
     @Args("myId", { type: () => Int }) myId: number
@@ -322,7 +322,7 @@ export class UserResolver {
     return { avatar: m.avatar, id: m.id, name: m.name, rank: m.rank };
   }
 
-  @Query((returns) => User)
+  @Mutation((returns) => User)
   async userName(
     @CurrentUser() me: User,
     @Args("name", { type: () => String }) name: string
@@ -346,7 +346,7 @@ export class UserResolver {
     return { avatar: m.avatar, id: m.id, name: m.name, rank: m.rank };
   }
 
-  @Query((returns) => User)
+  @Mutation((returns) => User)
   async userAvatar(
     @CurrentUser() me: User,
     @Args("avatar", { type: () => String }) avatar: string
@@ -370,7 +370,7 @@ export class UserResolver {
     return { avatar: m.avatar, id: m.id, name: m.name, rank: m.rank };
   }
 
-  @Query((returns) => User)
+  @Mutation((returns) => User)
   async updateFriend(
     @CurrentUser() me: User,
     @Args("id", { type: () => Int }) id: number
@@ -393,7 +393,8 @@ export class UserResolver {
     this.updateFriendBy(me.id, id);
     return { avatar: m.avatar, id: m.id, name: m.name, rank: m.rank };
   }
-  @Query((returns) => User)
+
+  @Mutation((returns) => User)
   async updateFriendBy(
     @Args("meId", { type: () => Int }) meId: number,
     @Args("id", { type: () => Int }) id: number
@@ -482,7 +483,7 @@ export class DirectMessageResolver {
     };
   }
 
-  @Query((returns) => DirectMessage)
+  @Mutation((returns) => DirectMessage)
   async deleteDirectMessageContent(
     @Args("messageId", { type: () => Int }) messageId: number
   ): Promise<directMessageType> {
