@@ -148,7 +148,7 @@ function importAnimation(mode: string) {
       .map((m) => m))();
 }
 
-export default function GameHomePage() {
+export default function ModeSelection() {
   const gameModes: GameModeType[] = [
     {
       imgs: importAnimation("classic"),
