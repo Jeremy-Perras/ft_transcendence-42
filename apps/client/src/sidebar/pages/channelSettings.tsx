@@ -21,8 +21,10 @@ export default function ChannelSettings() {
     return <div>Error</div>;
   }
   return (
-    <div className="flex flex-col">
-      <UsersIcon className="h-20 w-20 self-center" />
+    <div className="flex w-full flex-col ">
+      <div className="mt-4 flex h-24 w-24 justify-center self-center rounded-full  bg-black text-white">
+        <UsersIcon className="mt-1 h-20 w-20 self-center" />
+      </div>
       <div className="mt-2 w-full text-center text-2xl font-bold">
         {data?.channel.name}
       </div>

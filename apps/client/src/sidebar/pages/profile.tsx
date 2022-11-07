@@ -29,22 +29,20 @@ import {
 //   },
 // });
 
-const query = (): UseQueryOptions<
-  UserProfileQuery,
-  unknown,
-  UserProfileQuery
-> => {
+const query = (
+  userId: number
+): UseQueryOptions<UserProfileQuery, unknown, UserProfileQuery> => {
   return {
-    queryKey: useUserProfileQuery.getKey(),
-    queryFn: useUserProfileQuery.fetcher(),
-    staleTime: 1,
+    queryKey: useUserProfileQuery.getKey({ userId }),
+    queryFn: useUserProfileQuery.fetcher({ userId }),
   };
 };
 
 export const loader =
   (queryClient: QueryClient) =>
-  ({ params: any }) => {
-    return queryClient.fetchQuery(query());
+  ({ params }: { params: { userId: string } }) => {
+    const userId = +params.userId;
+    return queryClient.fetchQuery(query(userId));
   };
 
 //TODO : object destructuring
@@ -55,13 +53,13 @@ const DisplayUserProfile = () => {
   const userId = +params.userId;
   const blockMutation = useBlockSomeoneMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries(["UserProfile", {}]);
+      queryClient.invalidateQueries(useUserProfileQuery.getKey({ userId }));
     },
   });
   const initialData = useLoaderData() as Awaited<
     ReturnType<ReturnType<typeof loader>>
   >;
-  const { data } = useQuery({ ...query(), initialData });
+  const { data } = useQuery({ ...query(userId), initialData });
 
   return (
     <div className="mt-4 flex w-full flex-col ">
