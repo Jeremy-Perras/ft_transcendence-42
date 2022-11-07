@@ -82,9 +82,7 @@ type Chat = {
 
 const Chat = ({ __typename, name, avatar, id, messages }: Chat) => {
   const navigate = useNavigate();
-
   const lastMessage = messages[messages.length - 1];
-
   return (
     <div
       onClick={() =>
@@ -125,7 +123,6 @@ const Chat = ({ __typename, name, avatar, id, messages }: Chat) => {
 const Home = () => {
   const queryClient = useQueryClient();
   const [form, setForm] = useState(false);
-  const { register, handleSubmit, watch } = useForm();
   const { isLoading, data, error, isFetching } = useInfoUsersQuery(
     {},
     {
