@@ -10,6 +10,7 @@ import Home from "./pages/home";
 import CreateChannel from "./pages/createChannel";
 import Channel from "./pages/channel";
 import Chat from "./pages/chat";
+import CurrentUserProfile from "./pages/currentUserProfile";
 import Profile, { loader } from "./pages/profile";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
@@ -45,6 +46,10 @@ const router = createMemoryRouter([
         path: "/profile/:userId",
         element: <Profile />,
         loader: loader(queryClient),
+      },
+      {
+        path: "/profile/me",
+        element: <CurrentUserProfile />,
       },
     ],
   },
