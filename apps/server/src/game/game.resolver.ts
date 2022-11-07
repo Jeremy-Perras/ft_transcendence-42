@@ -185,7 +185,7 @@ export class GameResolver {
     };
   }
 
-  @Query((returns) => Game)
+  @Mutation((returns) => Game)
   async updateGame(
     @CurrentUser() me: User,
     @Args("id", { type: () => Int })

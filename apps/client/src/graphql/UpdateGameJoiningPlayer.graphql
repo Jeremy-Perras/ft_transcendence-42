@@ -1,4 +1,4 @@
-query UpdateGameJoiningPlayer($updateGameId: Int!) {
+mutation UpdateGameJoiningPlayer($updateGameId: Int!) {
   updateGame(id: $updateGameId) {
     id
     gamemode

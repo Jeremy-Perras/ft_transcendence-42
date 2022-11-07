@@ -1,0 +1,8 @@
+mutation BlockSomeone($blockingUserId: Int!) {
+  blockingUser(id: $blockingUserId) {
+    id
+    name
+    avatar
+    rank
+  }
+}

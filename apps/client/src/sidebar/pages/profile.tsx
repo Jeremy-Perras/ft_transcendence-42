@@ -1,22 +1,52 @@
-import { useParams } from "react-router-dom";
-import { useUserProfileQuery } from "../../graphql/generated";
+import { QueryClient, useQuery, UseQueryOptions } from "@tanstack/react-query";
+import { useLoaderData, useParams } from "react-router-dom";
+import { useUserProfileQuery, UserProfileQuery } from "../../graphql/generated";
+
+// const useProfileDetailQuery = (id: number) => ({
+//   queryKey: [id],
+//   queryFn: async () => {
+//     const { data } = useUserProfileQuery({
+//       userId: id,
+//     });
+
+//     if (!data) {
+//       throw new Response("", {
+//         status: 404,
+//         statusText: "Not Found",
+//       });
+//     }
+//     console.log(data);
+//     return data;
+//   },
+// });
+
+const query = (): UseQueryOptions<
+  UserProfileQuery,
+  unknown,
+  UserProfileQuery
+> => {
+  return {
+    queryKey: useUserProfileQuery.getKey(),
+    queryFn: useUserProfileQuery.fetcher(),
+    staleTime: 1,
+  };
+};
+
+export const loader =
+  (queryClient: QueryClient) =>
+  ({ params: any }) => {
+    return queryClient.fetchQuery(query());
+  };
 
 const DisplayUserProfile = () => {
   const params = useParams();
   if (typeof params.userId === "undefined") return <div></div>;
   const userId = +params.userId;
-  const { isLoading, data, error, isFetching } = useUserProfileQuery({
-    userId: userId,
-  });
-  if (isLoading) return <div>Loading ...</div>;
+  const initialData = useLoaderData() as Awaited<
+    ReturnType<ReturnType<typeof loader>>
+  >;
+  const { data } = useQuery({ ...query(), initialData });
 
-  if (isFetching) {
-    return <div>Fetching</div>;
-  }
-
-  if (error) {
-    return <div>Error</div>;
-  }
   return (
     <div className="mt-4 flex w-full flex-col ">
       <div className="flex h-24 justify-center">
@@ -41,7 +71,7 @@ const DisplayUserProfile = () => {
         <div className="mt-8 pb-2 text-center text-xl font-bold">
           MATCH HISTORY
         </div>
-        {data?.user.games.map((game) => {
+        {data?.user.games.map((game, index) => {
           const victory =
             (game.player1.id === data?.user.id &&
               game.player1score > game.player2score) ||
@@ -49,6 +79,7 @@ const DisplayUserProfile = () => {
               game.player2score > game.player1score);
           return (
             <div
+              key={index}
               className={`${
                 victory ? "bg-green-300" : "bg-red-400 "
               } mt-px flex h-12 items-center px-2`}

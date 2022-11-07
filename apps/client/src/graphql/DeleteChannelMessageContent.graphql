@@ -1,4 +1,4 @@
-query deleteChannelMessageContent($messageId: Int!) {
+mutation deleteChannelMessageContent($messageId: Int!) {
   deleteChannelMessageContent(messageId: $messageId) {
     id
     content

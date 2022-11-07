@@ -333,7 +333,7 @@ export class ChannelResolver {
 
   // UPDATE
 
-  @Query((returns) => Channel)
+  @Mutation((returns) => Channel)
   async updatePassword(
     @Args("password", { type: () => String, nullable: true }) password: string,
     @Args("idchannel", { type: () => Int }) idchannel: number
@@ -353,7 +353,7 @@ export class ChannelResolver {
   }
 
   //TODO need see for changing Date input : "2022-11-03T19:39:16.899Z"
-  @Query((returns) => Channel)
+  @Mutation((returns) => Channel)
   async updateMuted(
     @Args("channelId", { type: () => Int }) channelId: number,
     @Args("userId", { type: () => Int }) userId: number,
@@ -374,7 +374,7 @@ export class ChannelResolver {
   }
 
   //TODO need see for changing Date input : "2022-11-03T19:39:16.899Z"
-  @Query((returns) => Channel)
+  @Mutation((returns) => Channel)
   async updateBanned(
     @Args("channelId", { type: () => Int }) channelId: number,
     @Args("userId", { type: () => Int }) userId: number,
@@ -395,7 +395,7 @@ export class ChannelResolver {
     };
   }
 
-  @Query((returns) => Channel)
+  @Mutation((returns) => Channel)
   async updateAdmins(
     @Args("id", { type: () => Int }) id: number,
     @Args("userId", { type: () => Int }) user: number
@@ -492,7 +492,7 @@ export class ChannelMessageResolver {
     };
   }
 
-  @Query((returns) => ChannelMessage)
+  @Mutation((returns) => ChannelMessage)
   async deleteChannelMessageContent(
     @Args("messageId", { type: () => Int }) messageId: number
   ): Promise<channelMessageType> {
