@@ -11,23 +11,6 @@ import { useEffect, useState } from "react";
 import ArrowImage from "../../assets/game_modes/arrow.svg";
 import { useWaitingRoomGameQuery } from "../../graphql/generated";
 import { getInfoUserId, UpdateGameJoiningPlayer } from "../queries";
-//TODO handle this function
-// const GameHandler = ({ gamemode }: { gamemode: number }) => {
-//   const { isLoading, data, error, isFetching } = useWaitingRoomGameQuery({
-//     started: false,
-//     gamesId: gamemode,
-//   });
-//   // console.log(data);
-//   const Iduser = getInfoUserId();
-//   const navigate = useNavigate();
-//   const getId = data?.games.map((game) => game.id);
-//   console.log(getId);
-//   if (getId?.length) {
-//     if (getId[0]) UpdateGameJoiningPlayer(getId[0]);
-//     navigate(`/game/${getId[0]}`);
-//   }
-//   return <></>;
-// };
 
 let intervalId = -1;
 const GameMode = ({ imgs, name, alt, textEffects, animate }: GameModeType) => {
@@ -53,7 +36,6 @@ const GameMode = ({ imgs, name, alt, textEffects, animate }: GameModeType) => {
 
   return (
     <Link to="/waiting">
-      <GameHandler gamemode={1} />
       <motion.div
         className="flex flex-col items-center"
         initial={{ scale: 0, opacity: 0.5 }}
