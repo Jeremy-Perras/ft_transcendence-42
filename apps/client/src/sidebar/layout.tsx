@@ -13,7 +13,7 @@ import { useSearchUsersChannelsQuery } from "../graphql/generated";
 import * as Avatar from "@radix-ui/react-avatar";
 import Chating from "./pages/chating";
 import {
-  useGetUserProfileHeaderQuery,
+  useUserProfileHeaderQuery,
   useGetChannelHeaderQuery,
 } from "../graphql/generated";
 
@@ -158,7 +158,7 @@ function Header({
 }
 
 function UserHeader({ userId }: { userId: number }) {
-  const { isLoading, data, error, isFetching } = useGetUserProfileHeaderQuery(
+  const { isLoading, data, error, isFetching } = useUserProfileHeaderQuery(
     { userId: userId },
     {
       select({ user }) {

@@ -161,13 +161,6 @@ export type Query = {
   deleteDirectMessageContent: DirectMessage;
   game: Game;
   games: Array<Game>;
-<<<<<<< HEAD
-<<<<<<< HEAD
-  updateFriend: User;
-=======
-  joinGame: Game;
-=======
->>>>>>> Function GqmeHandler
   updateAdmins: Channel;
   updateBanned: Channel;
   updateFriend: User;
@@ -175,7 +168,6 @@ export type Query = {
   updateGame: Game;
   updateMuted: Channel;
   updatePassword: Channel;
->>>>>>>  New auery and mutations
   user: User;
   userAvatar: User;
   userName: User;
@@ -221,36 +213,21 @@ export type QueryGamesArgs = {
   started?: InputMaybe<Scalars["Boolean"]>;
 };
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-export type QueryJoinGameArgs = {
-  id: Scalars["Int"];
-};
-
-=======
->>>>>>> Function GqmeHandler
 export type QueryUpdateAdminsArgs = {
   id: Scalars["Int"];
   userId: Scalars["Int"];
 };
 
-<<<<<<< HEAD
->>>>>>>  New auery and mutations
-=======
 export type QueryUpdateBannedArgs = {
   channelId: Scalars["Int"];
   date?: InputMaybe<Scalars["String"]>;
   userId: Scalars["Int"];
 };
 
->>>>>>> Update name grapql file
 export type QueryUpdateFriendArgs = {
   id: Scalars["Int"];
 };
 
-<<<<<<< HEAD
-=======
 export type QueryUpdateFriendByArgs = {
   id: Scalars["Int"];
   meId: Scalars["Int"];
@@ -271,7 +248,6 @@ export type QueryUpdatePasswordArgs = {
   password?: InputMaybe<Scalars["String"]>;
 };
 
->>>>>>>  New auery and mutations
 export type QueryUserArgs = {
   id?: InputMaybe<Scalars["Int"]>;
 };
@@ -339,6 +315,22 @@ export type BannedSomeoneChannelMutation = {
   };
 };
 
+export type GetChannelHeaderQueryVariables = Exact<{
+  channelId: Scalars["Int"];
+}>;
+
+export type GetChannelHeaderQuery = {
+  __typename?: "Query";
+  channel: {
+    __typename?: "Channel";
+    id: number;
+    name: string;
+    private: boolean;
+    passwordProtected: boolean;
+    owner: { __typename?: "User"; name: string; id: number; avatar: string };
+  };
+};
+
 export type CreateChanelMutationVariables = Exact<{
   inviteOnly: Scalars["Boolean"];
   password: Scalars["String"];
@@ -350,11 +342,6 @@ export type CreateChanelMutation = {
   createChanel: { __typename?: "Channel"; id: number; name: string };
 };
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
 export type CreateGameMutationVariables = Exact<{
   mode: Scalars["Int"];
   player2Id?: InputMaybe<Scalars["Int"]>;
@@ -417,40 +404,13 @@ export type DeleteChannelMutation = {
   deleteChannel: { __typename?: "Channel"; id: number; name: string };
 };
 
-<<<<<<< HEAD
->>>>>>> Nez Querry and Mutation
-export type SearchUsersChannelsQueryVariables = Exact<{
-  name?: InputMaybe<Scalars["String"]>;
-=======
 export type DeleteChannelMessageContentQueryVariables = Exact<{
   messageId: Scalars["Int"];
->>>>>>> Querries ended
 }>;
 
 export type DeleteChannelMessageContentQuery = {
   __typename?: "Query";
-<<<<<<< HEAD
-  users: Array<{
-    __typename: "User";
-    name: string;
-    id: number;
-    avatar: string;
-  } | null>;
-  channels: Array<{ __typename: "Channel"; name: string; id: number }>;
-};
-
->>>>>>> Update games Query
-export type SendChannelMessageMutationVariables = Exact<{
-  message: Scalars["String"];
-  recipientId: Scalars["Int"];
-}>;
-
-export type SendChannelMessageMutation = {
-  __typename?: "Mutation";
-  sendChanelMessage: {
-=======
   deleteChannelMessageContent: {
->>>>>>> Querries ended
     __typename?: "ChannelMessage";
     id: number;
     content: string;
@@ -458,32 +418,16 @@ export type SendChannelMessageMutation = {
   };
 };
 
-<<<<<<< HEAD
-export type SendDirectMessageMutationVariables = Exact<{
-  message: Scalars["String"];
-  recipientId: Scalars["Int"];
+export type DeleteDirectMessageContentQueryVariables = Exact<{
+  messageId: Scalars["Int"];
 }>;
 
-export type SendDirectMessageMutation = {
-  __typename?: "Mutation";
-  sendDirectMessage: { __typename?: "DirectMessage"; id: number };
-};
-
-<<<<<<< HEAD
-<<<<<<< HEAD
-export type GetChannelHeaderQueryVariables = Exact<{
-  channelId: Scalars["Int"];
-}>;
-
-export type GetChannelHeaderQuery = {
+export type DeleteDirectMessageContentQuery = {
   __typename?: "Query";
-  channel: {
-    __typename?: "Channel";
+  deleteDirectMessageContent: {
+    __typename?: "DirectMessage";
     id: number;
-    name: string;
-    private: boolean;
-    passwordProtected: boolean;
-    owner: { __typename?: "User"; name: string; id: number; avatar: string };
+    content: string;
   };
 };
 
@@ -515,78 +459,19 @@ export type GetUserProfileQuery = {
         name: string;
         id: number;
       };
-      player2: {
+      player2?: {
         __typename?: "User";
         id: number;
         name: string;
         avatar: string;
         rank: number;
-      };
+      } | null;
     }>;
     friends: Array<{ __typename?: "User"; id: number }>;
   };
 };
 
-export type GetUserProfileHeaderQueryVariables = Exact<{
-  userId?: InputMaybe<Scalars["Int"]>;
-}>;
-
-export type GetUserProfileHeaderQuery = {
-  __typename?: "Query";
-  user: {
-    __typename?: "User";
-    id: number;
-    name: string;
-    avatar: string;
-    rank: number;
-  };
-};
-
-export type SearchUsersChannelsQueryVariables = Exact<{
-  name?: InputMaybe<Scalars["String"]>;
-}>;
-
-export type SearchUsersChannelsQuery = {
-  __typename?: "Query";
-  users: Array<{
-    __typename: "User";
-    name: string;
-    id: number;
-    avatar: string;
-  } | null>;
-  channels: Array<{ __typename: "Channel"; name: string; id: number }>;
-};
-
-=======
->>>>>>> Update name grapql file
-=======
->>>>>>> Update games Query
-=======
-export type WaitingRoomGameQueryVariables = Exact<{
-  gamesId?: InputMaybe<Scalars["Int"]>;
-  started?: InputMaybe<Scalars["Boolean"]>;
-  finished?: InputMaybe<Scalars["Boolean"]>;
-=======
-export type DeleteDirectMessageContentQueryVariables = Exact<{
-  messageId: Scalars["Int"];
->>>>>>> Querries ended
-}>;
-
-export type DeleteDirectMessageContentQuery = {
-  __typename?: "Query";
-  deleteDirectMessageContent: {
-    __typename?: "DirectMessage";
-    id: number;
-    content: string;
-  };
-};
-
-<<<<<<< HEAD
->>>>>>> Nez Querry and Mutation
-export type GetChannelQueryVariables = Exact<{
-=======
 export type InfoChannelQueryVariables = Exact<{
->>>>>>> Function GqmeHandler
   channelId: Scalars["Int"];
 }>;
 
@@ -715,17 +600,10 @@ export type InfoUsersQuery = {
   };
 };
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-export type GetUserProfileQueryVariables = Exact<{
-  userId?: InputMaybe<Scalars["Int"]>;
-=======
 export type MutedSomeoneChannelMutationVariables = Exact<{
   createMutedId: Scalars["Int"];
   channelId: Scalars["Int"];
   date?: InputMaybe<Scalars["String"]>;
->>>>>>> Querries ended
 }>;
 
 export type MutedSomeoneChannelMutation = {
@@ -740,10 +618,6 @@ export type MutedSomeoneChannelMutation = {
   };
 };
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
 export type SearchGamesQueryVariables = Exact<{
   gamesId?: InputMaybe<Scalars["Int"]>;
   started?: InputMaybe<Scalars["Boolean"]>;
@@ -778,7 +652,6 @@ export type SearchGamesQuery = {
   }>;
 };
 
->>>>>>> Querries ended
 export type SearchUsersChannelsQueryVariables = Exact<{
   name?: InputMaybe<Scalars["String"]>;
 }>;
@@ -825,12 +698,6 @@ export type SendDirectMessageMutation = {
   sendDirectMessage: { __typename?: "DirectMessage"; id: number };
 };
 
-<<<<<<< HEAD
->>>>>>> Update name grapql file
-=======
->>>>>>> Update games Query
-=======
-=======
 export type UpdateDateBannedQueryVariables = Exact<{
   channelId: Scalars["Int"];
   userId: Scalars["Int"];
@@ -884,6 +751,21 @@ export type UpdateGameJoiningPlayerQuery = {
   };
 };
 
+export type UserProfileHeaderQueryVariables = Exact<{
+  userId?: InputMaybe<Scalars["Int"]>;
+}>;
+
+export type UserProfileHeaderQuery = {
+  __typename?: "Query";
+  user: {
+    __typename?: "User";
+    id: number;
+    name: string;
+    avatar: string;
+    rank: number;
+  };
+};
+
 export type WaitingRoomGameQueryVariables = Exact<{
   gamesId?: InputMaybe<Scalars["Int"]>;
   started?: InputMaybe<Scalars["Boolean"]>;
@@ -910,7 +792,6 @@ export type WaitingRoomGameQuery = {
   }>;
 };
 
->>>>>>> Querries ended
 export const BannedSomeoneChannelDocument = `
     mutation BannedSomeoneChannel($createMutedId: Int!, $channelId: Int!, $date: String) {
   createMuted(id: $createMutedId, channelId: $channelId, date: $date) {
@@ -947,10 +828,36 @@ export const useBannedSomeoneChannelMutation = <
       >(BannedSomeoneChannelDocument, variables)(),
     options
   );
-<<<<<<< HEAD
->>>>>>> Nez Querry and Mutation
-=======
->>>>>>> Querries ended
+export const GetChannelHeaderDocument = `
+    query GetChannelHeader($channelId: Int!) {
+  channel(id: $channelId) {
+    id
+    name
+    owner {
+      name
+      id
+      avatar
+    }
+    private
+    passwordProtected
+  }
+}
+    `;
+export const useGetChannelHeaderQuery = <
+  TData = GetChannelHeaderQuery,
+  TError = unknown
+>(
+  variables: GetChannelHeaderQueryVariables,
+  options?: UseQueryOptions<GetChannelHeaderQuery, TError, TData>
+) =>
+  useQuery<GetChannelHeaderQuery, TError, TData>(
+    ["GetChannelHeader", variables],
+    fetcher<GetChannelHeaderQuery, GetChannelHeaderQueryVariables>(
+      GetChannelHeaderDocument,
+      variables
+    ),
+    options
+  );
 export const CreateChanelDocument = `
     mutation CreateChanel($inviteOnly: Boolean!, $password: String!, $name: String!) {
   createChanel(inviteOnly: $inviteOnly, password: $password, name: $name) {
@@ -981,20 +888,9 @@ export const useCreateChanelMutation = <TError = unknown, TContext = unknown>(
       )(),
     options
   );
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-=======
-export const CreateGameDocument = `
-    mutation CreateGame($mode: Int!, $player2Id: Int) {
-  CreateGame(mode: $mode, player2Id: $player2Id) {
-=======
 export const CreateGameDocument = `
     mutation CreateGame($mode: Int!, $player2Id: Int) {
   createGame(mode: $mode, player2Id: $player2Id) {
->>>>>>> Querries ended
     id
     gamemode
     startAt
@@ -1152,6 +1048,57 @@ export const useDeleteDirectMessageContentQuery = <
       DeleteDirectMessageContentQuery,
       DeleteDirectMessageContentQueryVariables
     >(DeleteDirectMessageContentDocument, variables),
+    options
+  );
+export const GetUserProfileDocument = `
+    query GetUserProfile($userId: Int) {
+  user(id: $userId) {
+    id
+    name
+    avatar
+    rank
+    games {
+      player1 {
+        rank
+        avatar
+        name
+        id
+      }
+      player2 {
+        id
+        name
+        avatar
+        rank
+      }
+      player1score
+      player2score
+      gamemode
+      id
+      startAt
+      finishedAt
+    }
+    blocked
+    friends {
+      id
+    }
+  }
+}
+    `;
+export const useGetUserProfileQuery = <
+  TData = GetUserProfileQuery,
+  TError = unknown
+>(
+  variables?: GetUserProfileQueryVariables,
+  options?: UseQueryOptions<GetUserProfileQuery, TError, TData>
+) =>
+  useQuery<GetUserProfileQuery, TError, TData>(
+    variables === undefined
+      ? ["GetUserProfile"]
+      : ["GetUserProfile", variables],
+    fetcher<GetUserProfileQuery, GetUserProfileQueryVariables>(
+      GetUserProfileDocument,
+      variables
+    ),
     options
   );
 export const InfoChannelDocument = `
@@ -1420,7 +1367,6 @@ export const useSearchGamesQuery = <TData = SearchGamesQuery, TError = unknown>(
     ),
     options
   );
->>>>>>> Nez Querry and Mutation
 export const SearchUsersChannelsDocument = `
     query SearchUsersChannels($name: String) {
   users(name: $name) {
@@ -1454,7 +1400,6 @@ export const useSearchUsersChannelsQuery = <
     ),
     options
   );
->>>>>>> Update games Query
 export const SendChannelMessageDocument = `
     mutation sendChannelMessage($message: String!, $recipientId: Int!) {
   sendChanelMessage(message: $message, recipientId: $recipientId) {
@@ -1532,155 +1477,9 @@ export const useSendDirectMessageMutation = <
       )(),
     options
   );
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-export const GetChannelHeaderDocument = `
-    query GetChannelHeader($channelId: Int!) {
-  channel(id: $channelId) {
-    id
-    name
-    owner {
-      name
-      id
-      avatar
-    }
-    private
-    passwordProtected
-  }
-}
-    `;
-export const useGetChannelHeaderQuery = <
-  TData = GetChannelHeaderQuery,
-  TError = unknown
->(
-  variables: GetChannelHeaderQueryVariables,
-  options?: UseQueryOptions<GetChannelHeaderQuery, TError, TData>
-) =>
-  useQuery<GetChannelHeaderQuery, TError, TData>(
-    ["GetChannelHeader", variables],
-    fetcher<GetChannelHeaderQuery, GetChannelHeaderQueryVariables>(
-      GetChannelHeaderDocument,
-      variables
-    ),
-    options
-  );
-export const GetUserProfileDocument = `
-    query GetUserProfile($userId: Int) {
-  user(id: $userId) {
-    id
-    name
-    avatar
-    rank
-    games {
-      player1 {
-        rank
-        avatar
-        name
-        id
-      }
-      player2 {
-        id
-        name
-        avatar
-        rank
-      }
-      player1score
-      player2score
-      gamemode
-      id
-      startAt
-      finishedAt
-    }
-    blocked
-    friends {
-      id
-    }
-  }
-}
-    `;
-export const useGetUserProfileQuery = <
-  TData = GetUserProfileQuery,
-  TError = unknown
->(
-  variables?: GetUserProfileQueryVariables,
-  options?: UseQueryOptions<GetUserProfileQuery, TError, TData>
-) =>
-  useQuery<GetUserProfileQuery, TError, TData>(
-    variables === undefined
-      ? ["GetUserProfile"]
-      : ["GetUserProfile", variables],
-    fetcher<GetUserProfileQuery, GetUserProfileQueryVariables>(
-      GetUserProfileDocument,
-      variables
-    ),
-    options
-  );
-export const GetUserProfileHeaderDocument = `
-    query GetUserProfileHeader($userId: Int) {
-  user(id: $userId) {
-    id
-    name
-    avatar
-    rank
-  }
-}
-    `;
-export const useGetUserProfileHeaderQuery = <
-  TData = GetUserProfileHeaderQuery,
-  TError = unknown
->(
-  variables?: GetUserProfileHeaderQueryVariables,
-  options?: UseQueryOptions<GetUserProfileHeaderQuery, TError, TData>
-) =>
-  useQuery<GetUserProfileHeaderQuery, TError, TData>(
-    variables === undefined
-      ? ["GetUserProfileHeader"]
-      : ["GetUserProfileHeader", variables],
-    fetcher<GetUserProfileHeaderQuery, GetUserProfileHeaderQueryVariables>(
-      GetUserProfileHeaderDocument,
-      variables
-    ),
-    options
-  );
-export const SearchUsersChannelsDocument = `
-    query SearchUsersChannels($name: String) {
-  users(name: $name) {
-    __typename
-    name
-    id
-    avatar
-  }
-  channels(name: $name) {
-    __typename
-    name
-    id
-    name
-  }
-}
-    `;
-export const useSearchUsersChannelsQuery = <
-  TData = SearchUsersChannelsQuery,
-  TError = unknown
->(
-  variables?: SearchUsersChannelsQueryVariables,
-  options?: UseQueryOptions<SearchUsersChannelsQuery, TError, TData>
-) =>
-  useQuery<SearchUsersChannelsQuery, TError, TData>(
-    variables === undefined
-      ? ["SearchUsersChannels"]
-      : ["SearchUsersChannels", variables],
-    fetcher<SearchUsersChannelsQuery, SearchUsersChannelsQueryVariables>(
-      SearchUsersChannelsDocument,
-=======
-export const WaitingRoomGameDocument = `
-    query WaitingRoomGame($gamesId: Int, $started: Boolean, $finished: Boolean) {
-  games(id: $gamesId, started: $started, finished: $finished) {
-=======
 export const UpdateDateBannedDocument = `
     query UpdateDateBanned($channelId: Int!, $userId: Int!, $date: String) {
   updateBanned(channelId: $channelId, userId: $userId, date: $date) {
->>>>>>> Querries ended
     id
     name
   }
@@ -1690,102 +1489,8 @@ export const useUpdateDateBannedQuery = <
   TData = UpdateDateBannedQuery,
   TError = unknown
 >(
-<<<<<<< HEAD
-  variables?: WaitingRoomGameQueryVariables,
-  options?: UseQueryOptions<WaitingRoomGameQuery, TError, TData>
-) =>
-  useQuery<WaitingRoomGameQuery, TError, TData>(
-    variables === undefined
-      ? ["WaitingRoomGame"]
-      : ["WaitingRoomGame", variables],
-    fetcher<WaitingRoomGameQuery, WaitingRoomGameQueryVariables>(
-      WaitingRoomGameDocument,
->>>>>>> Nez Querry and Mutation
-      variables
-    ),
-    options
-  );
-<<<<<<< HEAD
-=======
->>>>>>> Update name grapql file
-=======
->>>>>>> Update games Query
-=======
->>>>>>> Nez Querry and Mutation
-export const GetChannelDocument = `
-    query GetChannel($channelId: Int!) {
-  channel(id: $channelId) {
-    private
-    passwordProtected
-    name
-    owner {
-      name
-      id
-    }
-    messages {
-      id
-      author {
-        id
-        name
-        avatar
-      }
-      readBy {
-        user {
-          id
-          name
-          avatar
-        }
-      }
-      content
-      sentAt
-    }
-    admins {
-      id
-      name
-      avatar
-    }
-    members {
-      id
-      name
-      avatar
-    }
-  }
-}
-    `;
-export const useGetChannelQuery = <TData = GetChannelQuery, TError = unknown>(
-  variables: GetChannelQueryVariables,
-  options?: UseQueryOptions<GetChannelQuery, TError, TData>
-) =>
-  useQuery<GetChannelQuery, TError, TData>(
-    ["GetChannel", variables],
-    fetcher<GetChannelQuery, GetChannelQueryVariables>(
-      GetChannelDocument,
-      variables
-    ),
-    options
-  );
-export const GetChannelsDocument = `
-    query GetChannels {
-  user {
-    friends {
-      __typename
-      name
-      avatar
-    }
-    channels {
-      __typename
-      name
-    }
-  }
-}
-    `;
-export const useGetChannelsQuery = <TData = GetChannelsQuery, TError = unknown>(
-  variables?: GetChannelsQueryVariables,
-  options?: UseQueryOptions<GetChannelsQuery, TError, TData>
-=======
   variables: UpdateDateBannedQueryVariables,
   options?: UseQueryOptions<UpdateDateBannedQuery, TError, TData>
->>>>>>> Querries ended
 ) =>
   useQuery<UpdateDateBannedQuery, TError, TData>(
     ["UpdateDateBanned", variables],
@@ -1857,6 +1562,33 @@ export const useUpdateGameJoiningPlayerQuery = <
     >(UpdateGameJoiningPlayerDocument, variables),
     options
   );
+export const UserProfileHeaderDocument = `
+    query UserProfileHeader($userId: Int) {
+  user(id: $userId) {
+    id
+    name
+    avatar
+    rank
+  }
+}
+    `;
+export const useUserProfileHeaderQuery = <
+  TData = UserProfileHeaderQuery,
+  TError = unknown
+>(
+  variables?: UserProfileHeaderQueryVariables,
+  options?: UseQueryOptions<UserProfileHeaderQuery, TError, TData>
+) =>
+  useQuery<UserProfileHeaderQuery, TError, TData>(
+    variables === undefined
+      ? ["UserProfileHeader"]
+      : ["UserProfileHeader", variables],
+    fetcher<UserProfileHeaderQuery, UserProfileHeaderQueryVariables>(
+      UserProfileHeaderDocument,
+      variables
+    ),
+    options
+  );
 export const WaitingRoomGameDocument = `
     query WaitingRoomGame($gamesId: Int, $started: Boolean, $finished: Boolean) {
   games(id: $gamesId, started: $started, finished: $finished) {
@@ -1875,40 +1607,8 @@ export const WaitingRoomGameDocument = `
   }
 }
     `;
-<<<<<<< HEAD
-export const useGetInfoUsersQuery = <
-  TData = GetInfoUsersQuery,
-  TError = unknown
->(
-  variables?: GetInfoUsersQueryVariables,
-  options?: UseQueryOptions<GetInfoUsersQuery, TError, TData>
-) =>
-  useQuery<GetInfoUsersQuery, TError, TData>(
-    variables === undefined ? ["GetInfoUsers"] : ["GetInfoUsers", variables],
-    fetcher<GetInfoUsersQuery, GetInfoUsersQueryVariables>(
-      GetInfoUsersDocument,
-      variables
-    ),
-    options
-  );
-<<<<<<< HEAD
-=======
-export const GetUserProfileDocument = `
-    query GetUserProfile($userId: Int) {
-  user(id: $userId) {
-    id
-    name
-    avatar
-    rank
-  }
-}
-    `;
-export const useGetUserProfileQuery = <
-  TData = GetUserProfileQuery,
-=======
 export const useWaitingRoomGameQuery = <
   TData = WaitingRoomGameQuery,
->>>>>>> Querries ended
   TError = unknown
 >(
   variables?: WaitingRoomGameQueryVariables,
@@ -1924,117 +1624,3 @@ export const useWaitingRoomGameQuery = <
     ),
     options
   );
-<<<<<<< HEAD
-export const SearchUsersChannelsDocument = `
-    query SearchUsersChannels($name: String) {
-  users(name: $name) {
-    __typename
-    name
-    id
-    avatar
-  }
-  channels(name: $name) {
-    __typename
-    name
-    id
-    name
-  }
-}
-    `;
-export const useSearchUsersChannelsQuery = <
-  TData = SearchUsersChannelsQuery,
-  TError = unknown
->(
-  variables?: SearchUsersChannelsQueryVariables,
-  options?: UseQueryOptions<SearchUsersChannelsQuery, TError, TData>
-) =>
-  useQuery<SearchUsersChannelsQuery, TError, TData>(
-    variables === undefined
-      ? ["SearchUsersChannels"]
-      : ["SearchUsersChannels", variables],
-    fetcher<SearchUsersChannelsQuery, SearchUsersChannelsQueryVariables>(
-      SearchUsersChannelsDocument,
-      variables
-    ),
-    options
-  );
-export const SendChannelMessageDocument = `
-    mutation sendChannelMessage($message: String!, $recipientId: Int!) {
-  sendChanelMessage(message: $message, recipientId: $recipientId) {
-    id
-    author {
-      name
-      id
-    }
-    readBy {
-      id
-      user {
-        name
-        id
-      }
-    }
-    content
-    sentAt
-  }
-}
-    `;
-export const useSendChannelMessageMutation = <
-  TError = unknown,
-  TContext = unknown
->(
-  options?: UseMutationOptions<
-    SendChannelMessageMutation,
-    TError,
-    SendChannelMessageMutationVariables,
-    TContext
-  >
-) =>
-  useMutation<
-    SendChannelMessageMutation,
-    TError,
-    SendChannelMessageMutationVariables,
-    TContext
-  >(
-    ["sendChannelMessage"],
-    (variables?: SendChannelMessageMutationVariables) =>
-      fetcher<SendChannelMessageMutation, SendChannelMessageMutationVariables>(
-        SendChannelMessageDocument,
-        variables
-      )(),
-    options
-  );
-export const SendDirectMessageDocument = `
-    mutation SendDirectMessage($message: String!, $recipientId: Int!) {
-  sendDirectMessage(message: $message, recipientId: $recipientId) {
-    id
-  }
-}
-    `;
-export const useSendDirectMessageMutation = <
-  TError = unknown,
-  TContext = unknown
->(
-  options?: UseMutationOptions<
-    SendDirectMessageMutation,
-    TError,
-    SendDirectMessageMutationVariables,
-    TContext
-  >
-) =>
-  useMutation<
-    SendDirectMessageMutation,
-    TError,
-    SendDirectMessageMutationVariables,
-    TContext
-  >(
-    ["SendDirectMessage"],
-    (variables?: SendDirectMessageMutationVariables) =>
-      fetcher<SendDirectMessageMutation, SendDirectMessageMutationVariables>(
-        SendDirectMessageDocument,
-        variables
-      )(),
-    options
-  );
->>>>>>> Update name grapql file
-=======
->>>>>>> Update games Query

@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -100,7 +101,7 @@ const ChannelMessage = ({
 //TODO : fix scrollbar behind text area
 export default function Channel() {
   const { channelId } = useParams();
-
+  const queryClient = useQueryClient();
   if (!channelId) return <div>no channel id</div>;
   const { isLoading, isFetching, error, data } = useInfoChannelQuery(
     { channelId: +channelId },
