@@ -35,7 +35,7 @@ const ReadBy = ({ users }: { users: User[] }) => {
             <div
               className={`${
                 showName ? "opacity-100" : "opacity-0 "
-              } absolute top-5 right-0 my-1 w-24 grow text-ellipsis text-right text-xs text-slate-300 transition-all duration-100`}
+              } absolute top-5 right-0 my-1 w-24 grow truncate text-right text-xs text-slate-300 transition-all duration-100`}
             >
               {name}
             </div>
