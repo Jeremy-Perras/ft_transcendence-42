@@ -11,6 +11,7 @@ import CreateChannel from "./pages/createChannel";
 import Channel from "./pages/channel";
 import Chat from "./pages/chat";
 import Profile from "./pages/profile";
+import CurrentUserProfile from "./pages/currentUserProfile";
 
 const router = createMemoryRouter([
   {
@@ -35,6 +36,10 @@ const router = createMemoryRouter([
       {
         path: "/profile/:userId",
         element: <Profile />,
+      },
+      {
+        path: "/profile/me",
+        element: <CurrentUserProfile />,
       },
     ],
   },

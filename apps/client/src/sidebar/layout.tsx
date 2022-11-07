@@ -222,7 +222,7 @@ function CurrentUserProfileLink() {
   return (
     <div
       className="flex w-10 justify-center border-r-2 transition-all hover:cursor-pointer hover:bg-slate-100"
-      onClick={() => navigate(`/profile/${data?.id}`)}
+      onClick={() => navigate(`/profile/me`)}
     >
       <img
         className="right-1 top-1 h-8 w-8 self-center rounded-full "
