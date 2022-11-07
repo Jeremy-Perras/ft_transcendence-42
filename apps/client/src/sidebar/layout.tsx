@@ -88,6 +88,43 @@ const LeftButton = ({
   );
 };
 
+function CurrentUserProfileLink() {
+  const { isLoading, data, error, isFetching } = useUserProfileHeaderQuery(
+    {},
+    {
+      select({ user }) {
+        const res: {
+          id: number;
+          name: string;
+          avatar: string;
+          rank: number;
+        } = {
+          id: user.id,
+          name: user.name,
+          avatar: user.avatar,
+          rank: user.rank,
+        };
+        return res;
+      },
+    }
+  );
+  const navigate = useNavigate();
+
+  return (
+    <div
+      className="flex w-10 justify-center border-r-2 transition-all hover:cursor-pointer hover:bg-slate-100"
+      onClick={() => navigate(`/profile/me`)}
+    >
+      <img
+        className="right-1 top-1 h-8 w-8 self-center rounded-full "
+        src={data?.avatar}
+        alt="Current user avatar"
+      />
+    </div>
+  );
+}
+
+/******** MAIN HEADER COMPONENT ********/
 function Header({
   search,
   setSearch,
@@ -163,6 +200,7 @@ function Header({
   );
 }
 
+/**************** USER HEADER ***************/
 function UserHeader({ userId }: { userId: number }) {
   const { isLoading, data, error, isFetching } = useUserProfileHeaderQuery(
     { userId: userId },
@@ -189,7 +227,11 @@ function UserHeader({ userId }: { userId: number }) {
       className="flex h-9 w-full items-center justify-center p-2 hover:cursor-pointer hover:bg-slate-100"
       onClick={() => navigate(`/profile/${userId}`)}
     >
-      <img className="mb-px h-8 w-8 rounded-full" src={data?.avatar} />
+      <img
+        className="mb-px h-8 w-8 rounded-full"
+        src={data?.avatar}
+        alt="User avatar"
+      />
       <span className="ml-2 mb-px h-full text-base font-bold">
         {data?.name}
       </span>
@@ -197,42 +239,20 @@ function UserHeader({ userId }: { userId: number }) {
   );
 }
 
-function CurrentUserProfileLink() {
-  const { isLoading, data, error, isFetching } = useUserProfileHeaderQuery(
-    {},
-    {
-      select({ user }) {
-        const res: {
-          id: number;
-          name: string;
-          avatar: string;
-          rank: number;
-        } = {
-          id: user.id,
-          name: user.name,
-          avatar: user.avatar,
-          rank: user.rank,
-        };
-        return res;
-      },
-    }
-  );
+/**************** CHANNEL HEADER ***************/
+const ChannelSettingsButton = ({ id }: { id: number | undefined }) => {
   const navigate = useNavigate();
-
   return (
     <div
-      className="flex w-10 justify-center border-r-2 transition-all hover:cursor-pointer hover:bg-slate-100"
-      onClick={() => navigate(`/profile/me`)}
+      className="flex w-10 justify-center border-l-2 px-1 transition-all hover:cursor-pointer hover:bg-slate-100"
+      onClick={() => navigate(`/channel/${id}/settings`)}
     >
-      <img
-        className="right-1 top-1 h-8 w-8 self-center rounded-full "
-        src={data?.avatar}
-      />
+      <UsersIcon />
+      {/* TODO: change icon */}
     </div>
   );
-}
+};
 
-// TODO : replace type pw / public/ priv with icon - add avatar - add link?
 function ChannelHeader({ channelId }: { channelId: number }) {
   const { isLoading, data, error, isFetching } = useGetChannelHeaderQuery(
     { channelId: channelId },
@@ -257,18 +277,16 @@ function ChannelHeader({ channelId }: { channelId: number }) {
   );
 
   return (
-    <div className="flex w-full p-2 text-sm">
-      <div className="justify-start">
-        {data?.private ? "Priv" : data?.password ? "Pw" : "Public"}
-      </div>
-      <span className="flex-grow justify-center font-bold">
-        Channel: {data?.name}{" "}
+    <>
+      <span className="w-full pt-1 text-center align-middle text-lg font-bold">
+        {data?.name}
       </span>
-      <span className="justify-end">Owner: {data?.owner.name}</span>
-    </div>
+      <ChannelSettingsButton id={data?.id} />
+    </>
   );
 }
 
+/********* SEARCH ITEMS ********* */
 const Highlight = ({
   content,
   search,

@@ -17,10 +17,6 @@ export default function CreateChannel() {
     <>
       <div>
         {" "}
-        <button
-          onClick={() => setForm(!form)}
-          className="h-10 w-10 bg-black  "
-        />
         <form
           onSubmit={handleSubmit(() =>
             createChannelMutation.mutate({
@@ -46,7 +42,10 @@ export default function CreateChannel() {
             <input {...register("Password")} defaultValue="" />
           </div>
 
-          <input type="submit" />
+          <input
+            className="rounded-md bg-slate-100 p-2 hover:cursor-pointer hover:bg-slate-100"
+            type="submit"
+          />
         </form>
       </div>
     </>

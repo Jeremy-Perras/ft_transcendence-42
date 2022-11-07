@@ -1,0 +1,34 @@
+query ChannelSettings($channelId: Int!, $userId: Int) {
+  channel(id: $channelId) {
+    name
+    id
+    private
+    passwordProtected
+    owner {
+      id
+      name
+      avatar
+    }
+    admins {
+      id
+      name
+      avatar
+    }
+    members {
+      id
+      name
+      avatar
+    }
+    banned {
+      id
+      endAt
+    }
+    muted {
+      endAt
+      id
+    }
+  }
+  user(id: $userId) {
+    id
+  }
+}

@@ -45,6 +45,7 @@ const DirectMessage = ({
             author.id === userId ? "order-first" : "order-last"
           } m-1 mb-px flex h-6 w-6 basis-1 self-end rounded-full`}
           src={author.avatar}
+          alt="Message author avatar"
         />
         <div>
           <div

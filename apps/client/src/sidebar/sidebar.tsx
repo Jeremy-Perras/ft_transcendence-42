@@ -8,6 +8,7 @@ import { ReactComponent as BackBurgerIcon } from "pixelarticons/svg/backburger.s
 import * as Dialog from "@radix-ui/react-dialog";
 import Home from "./pages/home";
 import CreateChannel from "./pages/createChannel";
+import ChannelSettings from "./pages/channelSettings";
 import Channel from "./pages/channel";
 import Chat from "./pages/chat";
 import CurrentUserProfile from "./pages/currentUserProfile";
@@ -37,6 +38,10 @@ const router = createMemoryRouter([
       {
         path: "/channel/:channelId",
         element: <Channel />,
+      },
+      {
+        path: "/channel/:channelId/settings",
+        element: <ChannelSettings />,
       },
       {
         path: "/chat/:userId",

@@ -27,6 +27,7 @@ const ReadBy = ({ users }: { users: User[] }) => {
               className="m-px h-4 w-4 self-center rounded-full transition-all hover:h-5 hover:w-5"
               key={index}
               src={avatar}
+              alt="User avatar"
               onClick={() => navigate(`/profile/${id}`)}
               onMouseOver={() => setShowName(true)}
               onMouseOut={() => setShowName(false)}
@@ -74,6 +75,7 @@ const ChannelMessage = ({
             <img
               className="h-6 w-6 rounded-full transition-all hover:h-7 hover:w-7"
               src={author.avatar}
+              alt="Message author avatar"
               onClick={() => navigate(`/profile/${author.id}`)}
             />
           </div>
@@ -146,7 +148,7 @@ export default function Channel() {
           <textarea
             rows={1}
             className="h-10 w-11/12 overflow-visible rounded-lg px-3 pt-2"
-            placeholder="Type your message here..."
+            placeholder="TO DO"
           />
         </div>
       </>

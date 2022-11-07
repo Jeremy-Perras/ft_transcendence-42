@@ -42,6 +42,7 @@ export default function CurrentUserProfile() {
               <img
                 className="h-10 w-10 rounded-full object-cover "
                 src={game.player1.avatar}
+                alt="Player 1 avatar"
               />
               <div className="ml-2 w-28 text-clip text-left">
                 {game.player1.name}
@@ -53,6 +54,7 @@ export default function CurrentUserProfile() {
               <img
                 className="h-10 w-10 rounded-full object-cover"
                 src={game.player2.avatar}
+                alt="Player 2 avatar"
               />
               <div className=" mx-2 w-20 border-x-2 border-white text-center font-bold">
                 {victory ? <div>VICTORY</div> : <div>DEFEAT</div>}
