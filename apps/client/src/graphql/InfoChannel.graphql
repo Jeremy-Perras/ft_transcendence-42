@@ -4,8 +4,9 @@ query InfoChannel($channelId: Int!) {
     passwordProtected
     name
     owner {
-      name
       id
+      name
+      avatar
     }
     messages {
       id

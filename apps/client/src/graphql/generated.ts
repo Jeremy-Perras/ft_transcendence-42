@@ -331,6 +331,46 @@ export type GetChannelHeaderQuery = {
   };
 };
 
+export type ChannelSettingsQueryVariables = Exact<{
+  channelId: Scalars["Int"];
+  userId?: InputMaybe<Scalars["Int"]>;
+}>;
+
+export type ChannelSettingsQuery = {
+  __typename?: "Query";
+  channel: {
+    __typename?: "Channel";
+    name: string;
+    id: number;
+    private: boolean;
+    passwordProtected: boolean;
+    owner: { __typename?: "User"; id: number; name: string; avatar: string };
+    admins: Array<{
+      __typename?: "User";
+      id: number;
+      name: string;
+      avatar: string;
+    }>;
+    members: Array<{
+      __typename?: "User";
+      id: number;
+      name: string;
+      avatar: string;
+    }>;
+    banned: Array<{
+      __typename?: "RestrictedMember";
+      id: number;
+      endAt?: number | null;
+    }>;
+    muted: Array<{
+      __typename?: "RestrictedMember";
+      endAt?: number | null;
+      id: number;
+    }>;
+  };
+  user: { __typename?: "User"; id: number };
+};
+
 export type CreateChanelMutationVariables = Exact<{
   inviteOnly: Scalars["Boolean"];
   password: Scalars["String"];
@@ -442,7 +482,7 @@ export type InfoChannelQuery = {
     private: boolean;
     passwordProtected: boolean;
     name: string;
-    owner: { __typename?: "User"; name: string; id: number };
+    owner: { __typename?: "User"; id: number; name: string; avatar: string };
     messages: Array<{
       __typename?: "ChannelMessage";
       id: number;
@@ -858,6 +898,57 @@ export const useGetChannelHeaderQuery = <
     ),
     options
   );
+export const ChannelSettingsDocument = `
+    query ChannelSettings($channelId: Int!, $userId: Int) {
+  channel(id: $channelId) {
+    name
+    id
+    private
+    passwordProtected
+    owner {
+      id
+      name
+      avatar
+    }
+    admins {
+      id
+      name
+      avatar
+    }
+    members {
+      id
+      name
+      avatar
+    }
+    banned {
+      id
+      endAt
+    }
+    muted {
+      endAt
+      id
+    }
+  }
+  user(id: $userId) {
+    id
+  }
+}
+    `;
+export const useChannelSettingsQuery = <
+  TData = ChannelSettingsQuery,
+  TError = unknown
+>(
+  variables: ChannelSettingsQueryVariables,
+  options?: UseQueryOptions<ChannelSettingsQuery, TError, TData>
+) =>
+  useQuery<ChannelSettingsQuery, TError, TData>(
+    ["ChannelSettings", variables],
+    fetcher<ChannelSettingsQuery, ChannelSettingsQueryVariables>(
+      ChannelSettingsDocument,
+      variables
+    ),
+    options
+  );
 export const CreateChanelDocument = `
     mutation CreateChanel($inviteOnly: Boolean!, $password: String!, $name: String!) {
   createChanel(inviteOnly: $inviteOnly, password: $password, name: $name) {
@@ -1057,8 +1148,9 @@ export const InfoChannelDocument = `
     passwordProtected
     name
     owner {
-      name
       id
+      name
+      avatar
     }
     messages {
       id

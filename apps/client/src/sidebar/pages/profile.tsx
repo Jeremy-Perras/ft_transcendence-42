@@ -1,6 +1,7 @@
 import { useParams } from "react-router-dom";
 import { useUserProfileQuery } from "../../graphql/generated";
 
+//TODO : object destructuring
 const DisplayUserProfile = () => {
   const params = useParams();
   if (typeof params.userId === "undefined") return <div></div>;
@@ -58,6 +59,7 @@ const DisplayUserProfile = () => {
               <img
                 className="h-10 w-10 rounded-full object-cover "
                 src={game.player1.avatar}
+                alt="Player 1 avatar"
               />
               <div className="ml-2 w-28 text-clip text-left">
                 {game.player1.name}
@@ -69,6 +71,7 @@ const DisplayUserProfile = () => {
               <img
                 className="h-10 w-10 rounded-full object-cover"
                 src={game.player2.avatar}
+                alt="Player 2 avatar"
               />
               <div className=" mx-2 w-20 border-x-2 border-white text-center font-bold">
                 {victory ? <div>VICTORY</div> : <div>DEFEAT</div>}
@@ -84,15 +87,8 @@ const DisplayUserProfile = () => {
       </div>
     </div>
   );
-  // }
 };
 
 export default function Profile() {
   return <DisplayUserProfile />;
-}
-
-{
-  /* {`${
-          author.id === userId ? "justify-start" : "justify-end"
-        } flex`} */
 }
