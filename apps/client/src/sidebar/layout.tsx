@@ -111,6 +111,7 @@ function Header({
               key={1}
             />
             <SearchBar search={search} setSearch={setSearch} key={2} />
+            <CurrentUserProfileLink />
           </>
         ) : (
           <>
@@ -121,7 +122,7 @@ function Header({
             />
             <div
               key={4}
-              className="relative grow border-r-2 text-center text-lg"
+              className="relative flex grow border-r-2 text-center text-lg"
             >
               {location.pathname.substring(0, 6) === "/chat/" ? (
                 <UserHeader
@@ -187,6 +188,41 @@ function UserHeader({ userId }: { userId: number }) {
       <span className="ml-2 mb-px h-full text-base font-bold">
         {data?.name}
       </span>
+    </div>
+  );
+}
+
+function CurrentUserProfileLink() {
+  const { isLoading, data, error, isFetching } = useUserProfileHeaderQuery(
+    {},
+    {
+      select({ user }) {
+        const res: {
+          id: number;
+          name: string;
+          avatar: string;
+          rank: number;
+        } = {
+          id: user.id,
+          name: user.name,
+          avatar: user.avatar,
+          rank: user.rank,
+        };
+        return res;
+      },
+    }
+  );
+  const navigate = useNavigate();
+
+  return (
+    <div
+      className="flex w-10 justify-center border-r-2 transition-all hover:cursor-pointer hover:bg-slate-100"
+      onClick={() => navigate(`/profile/${data?.id}`)}
+    >
+      <img
+        className="right-1 top-1 h-8 w-8 self-center rounded-full "
+        src={data?.avatar}
+      />
     </div>
   );
 }
