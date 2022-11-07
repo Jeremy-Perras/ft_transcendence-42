@@ -90,28 +90,31 @@ const Chat = ({ __typename, name, avatar, id, messages }: Chat) => {
       onClick={() =>
         navigate(`/${__typename == "User" ? "chat" : "channel"}/${id}`)
       }
-      className="flex hover:cursor-pointer"
+      className="flex justify-center transition-all hover:cursor-pointer  hover:bg-slate-100"
     >
-      <div className="flex h-20 w-20 shrink-0 justify-center bg-black text-white">
+      <div className="m-2 flex h-16 w-16 shrink-0 justify-center   text-white">
         {__typename == "User" ? (
           <Avatar.Root>
-            <Avatar.Image className="h-20 w-20 object-cover " src={avatar} />
+            <Avatar.Image
+              className="h-16 w-16 rounded-full object-cover "
+              src={avatar}
+            />
             <Avatar.Fallback delayMs={0}>
-              <UserIcon className="h-20 w-20" />
+              <UserIcon className="h-16 w-16" />
             </Avatar.Fallback>
           </Avatar.Root>
         ) : (
-          <UsersIcon className="mt-2 h-20 w-20" />
+          <UsersIcon className="mt-2 h-16 w-16 bg-slate-50 text-neutral-700" />
         )}
       </div>
-      <div className="flex grow flex-col border-l-2 border-b-2 px-2 hover:bg-slate-100">
+      <div className="flex grow flex-col justify-center px-2">
         <div className="flex justify-between">
-          <span className="font-bold">{name}</span>
-          <span className="text-xs text-slate-400">
+          <span className="pb-px font-bold">{name}</span>
+          <span className="mt-1 text-xs text-slate-400">
             {lastMessage?.sentAt ? getDate(+lastMessage.sentAt) : ""}
           </span>
         </div>
-        <span className="flex max-h-10 overflow-hidden text-clip text-sm text-slate-400">
+        <span className="flex max-h-5 overflow-hidden text-clip text-sm text-slate-400">
           {lastMessage?.content}
         </span>
       </div>
@@ -170,26 +173,11 @@ const Home = () => {
   } else {
     return (
       <>
-        <div
-          className="flex flex-row items-center  border-4 border-double  border-slate-300 p-2 hover:cursor-pointer hover:bg-slate-100"
-          onClick={() => navigate(`/profile/${data?.currentUser.id}`)}
-        >
-          <img
-            src={data?.currentUser.avatar}
-            alt="Player avatar"
-            className="h-24 rounded-full border-2 border-solid  border-slate-300"
-          />
-          <div className="m-2 flex flex-col">
-            <div className="text-xl font-bold">{data?.currentUser.name}</div>
-            <div>Rank : {data?.currentUser.rank}</div>
-          </div>
-        </div>
-
         {data?.chats.map((chat, index) => (
           <Chat key={index} {...chat} />
         ))}
         {data?.chats.length === 0 ? <Empty /> : null}
-        <button
+        {/* <button
           onClick={() => setForm(!form)}
           className="h-10 w-10 bg-black  "
         />
@@ -219,7 +207,7 @@ const Home = () => {
           </div>
 
           <input type="submit" />
-        </form>
+        </form> */}
       </>
     );
   }

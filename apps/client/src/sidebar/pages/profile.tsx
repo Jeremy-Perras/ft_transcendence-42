@@ -19,16 +19,18 @@ const DisplayUserProfile = () => {
   }
   return (
     <div className="mt-4 flex w-full flex-col ">
-      <div className="flex h-24 justify-center">
+      <div className="flex flex-col items-center justify-center p-2 ">
         <img
-          className=" mr-4  h-20 w-20 justify-center rounded-full object-cover"
           src={data?.user.avatar}
+          alt="Player avatar"
+          className="h-24 rounded-full"
         />
-        <div className="flex h-full flex-col justify-center font-bold">
-          <div className="text-xl ">{data?.user.name}</div>
-          <div className="">Rank : {data?.user.rank}</div>
+        <div className="m-2 flex flex-col text-center">
+          <div className="text-xl font-bold">{data?.user.name}</div>
+          <div>Rank : {data?.user.rank}</div>
         </div>
       </div>
+
       <div className="mt-4 flex justify-evenly text-xl font-bold">
         <div className="w-24 rounded-xl  border-2 border-slate-200 bg-slate-100 p-2 text-center hover:border-slate-300 hover:bg-slate-200 ">
           Chat
