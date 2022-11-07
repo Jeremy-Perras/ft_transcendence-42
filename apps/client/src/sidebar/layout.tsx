@@ -8,6 +8,7 @@ import { ReactComponent as SearchIcon } from "pixelarticons/svg/search.svg";
 import { ReactComponent as BackBurgerIcon } from "pixelarticons/svg/backburger.svg";
 import { ReactComponent as MessagePlusIcon } from "pixelarticons/svg/message-plus.svg";
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
+import { ReactComponent as UsersIcon } from "pixelarticons/svg/users.svg";
 import { SideBarContext } from "./context";
 import { useSearchUsersChannelsQuery } from "../graphql/generated";
 import * as Avatar from "@radix-ui/react-avatar";
@@ -142,6 +143,10 @@ function Header({
                     )
                   }
                 />
+              ) : location.pathname === "/create-channel" ? (
+                <div className="mt-1 w-full text-center font-bold">
+                  New channel
+                </div>
               ) : (
                 <div>{location.pathname}</div>
               )}
@@ -327,7 +332,7 @@ const SearchResult = ({
           {result.__typename === "User" ? (
             <Avatar.Root>
               <Avatar.Image
-                className="h-10 w-10 object-cover "
+                className="h-10 w-10 rounded-full object-cover "
                 src={result.avatar}
               />
               <Avatar.Fallback>
@@ -335,7 +340,7 @@ const SearchResult = ({
               </Avatar.Fallback>
             </Avatar.Root>
           ) : (
-            <div className="h-10 w-10 bg-black"></div>
+            <UsersIcon className="h-10 w-10" />
           )}
           <Highlight content={result.name} search={search} />
         </li>

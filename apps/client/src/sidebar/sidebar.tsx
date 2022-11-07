@@ -7,6 +7,7 @@ import { motion, useAnimationControls } from "framer-motion";
 import { ReactComponent as BackBurgerIcon } from "pixelarticons/svg/backburger.svg";
 import * as Dialog from "@radix-ui/react-dialog";
 import Home from "./pages/home";
+import CreateChannel from "./pages/createChannel";
 import Channel from "./pages/channel";
 import Chat from "./pages/chat";
 import Profile, { loader } from "./pages/profile";
@@ -30,7 +31,7 @@ const router = createMemoryRouter([
       },
       {
         path: "/create-channel",
-        element: <Channel />,
+        element: <CreateChannel />,
       },
       {
         path: "/channel/:channelId",
