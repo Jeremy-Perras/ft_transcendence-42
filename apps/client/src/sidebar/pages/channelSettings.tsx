@@ -1,5 +1,6 @@
 import { useParams } from "react-router-dom";
 import { useChannelSettingsQuery } from "../../graphql/generated";
+import { ReactComponent as UsersIcon } from "pixelarticons/svg/users.svg";
 
 //TODO : object destructuring
 export default function ChannelSettings() {
@@ -20,8 +21,11 @@ export default function ChannelSettings() {
     return <div>Error</div>;
   }
   return (
-    <>
-      <div>{data?.channel.name}</div>
+    <div className="flex flex-col">
+      <UsersIcon className="h-20 w-20 self-center" />
+      <div className="mt-2 w-full text-center text-2xl font-bold">
+        {data?.channel.name}
+      </div>
       <div>Type</div>
       <div className="flex">
         <div>Owner</div>
@@ -36,6 +40,6 @@ export default function ChannelSettings() {
       <div>Membres + nb mb</div>
       <div>Si admin : add someone / Mute ? Block</div>
       <div>Si owner : Delete</div>
-    </>
+    </div>
   );
 }

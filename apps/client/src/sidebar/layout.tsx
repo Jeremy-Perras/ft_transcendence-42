@@ -12,7 +12,6 @@ import { ReactComponent as UsersIcon } from "pixelarticons/svg/users.svg";
 import { SideBarContext } from "./context";
 import { useSearchUsersChannelsQuery } from "../graphql/generated";
 import * as Avatar from "@radix-ui/react-avatar";
-import Chating from "./pages/chating";
 import {
   useUserProfileHeaderQuery,
   useGetChannelHeaderQuery,
@@ -109,7 +108,6 @@ function CurrentUserProfileLink() {
     }
   );
   const navigate = useNavigate();
-
   return (
     <div
       className="flex w-10 justify-center border-r-2 transition-all hover:cursor-pointer hover:bg-slate-100"
@@ -137,7 +135,7 @@ function Header({
   const navigate = useNavigate();
   const setShowSideBar = useContext(SideBarContext);
   const isSmallScreen = useMediaQuery("(max-width: 1536px)");
-
+  // TODO : put this in corresponding component
   return (
     <div className="z-10 flex shadow-sm shadow-slate-400">
       <AnimatePresence initial={false} exitBeforeEnter>
@@ -149,7 +147,6 @@ function Header({
               key={1}
             />
             <SearchBar search={search} setSearch={setSearch} key={2} />
-            <CurrentUserProfileLink />
           </>
         ) : (
           <>
@@ -184,6 +181,14 @@ function Header({
                 <div className="mt-1 w-full text-center font-bold">
                   New channel
                 </div>
+              ) : location.pathname.substring(0, 9) === "/settings" ? (
+                <div className="mt-1 w-full text-center font-bold">
+                  Settings
+                </div>
+              ) : location.pathname.substring(0, 11) === "/profile/me" ? (
+                <div className="mt-1 w-full text-center font-bold">
+                  My profile
+                </div>
               ) : (
                 <div>{location.pathname}</div>
               )}
@@ -191,6 +196,7 @@ function Header({
           </>
         )}
       </AnimatePresence>
+      <CurrentUserProfileLink />
       {isSmallScreen ? (
         <button onClick={() => setShowSideBar && setShowSideBar(false)}>
           <BackBurgerIcon className="h-9 rotate-180 transition-colors duration-200 hover:text-slate-500" />
@@ -240,18 +246,6 @@ function UserHeader({ userId }: { userId: number }) {
 }
 
 /**************** CHANNEL HEADER ***************/
-const ChannelSettingsButton = ({ id }: { id: number | undefined }) => {
-  const navigate = useNavigate();
-  return (
-    <div
-      className="flex w-10 justify-center border-l-2 px-1 transition-all hover:cursor-pointer hover:bg-slate-100"
-      onClick={() => navigate(`/channel/${id}/settings`)}
-    >
-      <UsersIcon />
-      {/* TODO: change icon */}
-    </div>
-  );
-};
 
 function ChannelHeader({ channelId }: { channelId: number }) {
   const { isLoading, data, error, isFetching } = useGetChannelHeaderQuery(
@@ -275,13 +269,16 @@ function ChannelHeader({ channelId }: { channelId: number }) {
       },
     }
   );
+  const navigate = useNavigate();
 
   return (
     <>
-      <span className="w-full pt-1 text-center align-middle text-lg font-bold">
+      <span
+        className="w-full pt-1 text-center align-middle text-lg font-bold hover:cursor-pointer hover:bg-slate-100"
+        onClick={() => navigate(`/settings/channel/${channelId}`)}
+      >
         {data?.name}
       </span>
-      <ChannelSettingsButton id={data?.id} />
     </>
   );
 }
