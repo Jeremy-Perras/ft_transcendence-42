@@ -99,14 +99,36 @@ export type Game = {
 
 export type Mutation = {
   __typename?: "Mutation";
+  blockedBy: User;
+  blockingUser: User;
   createBanned: RestrictedMember;
   createChanel: Channel;
   createChannelMessageRead: ChannelMessageRead;
   createGame: Game;
   createMuted: RestrictedMember;
   deleteChannel: Channel;
+  deleteChannelMessageContent: ChannelMessage;
+  deleteDirectMessageContent: DirectMessage;
   sendChanelMessage: ChannelMessage;
   sendDirectMessage: DirectMessage;
+  updateAdmins: Channel;
+  updateBanned: Channel;
+  updateFriend: User;
+  updateFriendBy: User;
+  updateGame: Game;
+  updateMuted: Channel;
+  updatePassword: Channel;
+  userAvatar: User;
+  userName: User;
+};
+
+export type MutationBlockedByArgs = {
+  id: Scalars["Int"];
+  myId: Scalars["Int"];
+};
+
+export type MutationBlockingUserArgs = {
+  id: Scalars["Int"];
 };
 
 export type MutationCreateBannedArgs = {
@@ -141,6 +163,14 @@ export type MutationDeleteChannelArgs = {
   channelId: Scalars["Int"];
 };
 
+export type MutationDeleteChannelMessageContentArgs = {
+  messageId: Scalars["Int"];
+};
+
+export type MutationDeleteDirectMessageContentArgs = {
+  messageId: Scalars["Int"];
+};
+
 export type MutationSendChanelMessageArgs = {
   message: Scalars["String"];
   recipientId: Scalars["Int"];
@@ -151,36 +181,57 @@ export type MutationSendDirectMessageArgs = {
   recipientId: Scalars["Int"];
 };
 
+export type MutationUpdateAdminsArgs = {
+  id: Scalars["Int"];
+  userId: Scalars["Int"];
+};
+
+export type MutationUpdateBannedArgs = {
+  channelId: Scalars["Int"];
+  date?: InputMaybe<Scalars["String"]>;
+  userId: Scalars["Int"];
+};
+
+export type MutationUpdateFriendArgs = {
+  id: Scalars["Int"];
+};
+
+export type MutationUpdateFriendByArgs = {
+  id: Scalars["Int"];
+  meId: Scalars["Int"];
+};
+
+export type MutationUpdateGameArgs = {
+  id: Scalars["Int"];
+};
+
+export type MutationUpdateMutedArgs = {
+  channelId: Scalars["Int"];
+  date?: InputMaybe<Scalars["String"]>;
+  userId: Scalars["Int"];
+};
+
+export type MutationUpdatePasswordArgs = {
+  idchannel: Scalars["Int"];
+  password?: InputMaybe<Scalars["String"]>;
+};
+
+export type MutationUserAvatarArgs = {
+  avatar: Scalars["String"];
+};
+
+export type MutationUserNameArgs = {
+  name: Scalars["String"];
+};
+
 export type Query = {
   __typename?: "Query";
-  blockedBy: User;
-  blockingUser: User;
   channel: Channel;
   channels: Array<Channel>;
-  deleteChannelMessageContent: ChannelMessage;
-  deleteDirectMessageContent: DirectMessage;
   game: Game;
   games: Array<Game>;
-  updateAdmins: Channel;
-  updateBanned: Channel;
-  updateFriend: User;
-  updateFriendBy: User;
-  updateGame: Game;
-  updateMuted: Channel;
-  updatePassword: Channel;
   user: User;
-  userAvatar: User;
-  userName: User;
   users: Array<Maybe<User>>;
-};
-
-export type QueryBlockedByArgs = {
-  id: Scalars["Int"];
-  myId: Scalars["Int"];
-};
-
-export type QueryBlockingUserArgs = {
-  id: Scalars["Int"];
 };
 
 export type QueryChannelArgs = {
@@ -194,14 +245,6 @@ export type QueryChannelsArgs = {
   ownerId?: InputMaybe<Scalars["Int"]>;
 };
 
-export type QueryDeleteChannelMessageContentArgs = {
-  messageId: Scalars["Int"];
-};
-
-export type QueryDeleteDirectMessageContentArgs = {
-  messageId: Scalars["Int"];
-};
-
 export type QueryGameArgs = {
   id: Scalars["Int"];
 };
@@ -213,51 +256,8 @@ export type QueryGamesArgs = {
   started?: InputMaybe<Scalars["Boolean"]>;
 };
 
-export type QueryUpdateAdminsArgs = {
-  id: Scalars["Int"];
-  userId: Scalars["Int"];
-};
-
-export type QueryUpdateBannedArgs = {
-  channelId: Scalars["Int"];
-  date?: InputMaybe<Scalars["String"]>;
-  userId: Scalars["Int"];
-};
-
-export type QueryUpdateFriendArgs = {
-  id: Scalars["Int"];
-};
-
-export type QueryUpdateFriendByArgs = {
-  id: Scalars["Int"];
-  meId: Scalars["Int"];
-};
-
-export type QueryUpdateGameArgs = {
-  id: Scalars["Int"];
-};
-
-export type QueryUpdateMutedArgs = {
-  channelId: Scalars["Int"];
-  date?: InputMaybe<Scalars["String"]>;
-  userId: Scalars["Int"];
-};
-
-export type QueryUpdatePasswordArgs = {
-  idchannel: Scalars["Int"];
-  password?: InputMaybe<Scalars["String"]>;
-};
-
 export type QueryUserArgs = {
   id?: InputMaybe<Scalars["Int"]>;
-};
-
-export type QueryUserAvatarArgs = {
-  avatar: Scalars["String"];
-};
-
-export type QueryUserNameArgs = {
-  name: Scalars["String"];
 };
 
 export type QueryUsersArgs = {
@@ -315,12 +315,12 @@ export type BannedSomeoneChannelMutation = {
   };
 };
 
-export type BlockSomeoneQueryVariables = Exact<{
+export type BlockSomeoneMutationVariables = Exact<{
   blockingUserId: Scalars["Int"];
 }>;
 
-export type BlockSomeoneQuery = {
-  __typename?: "Query";
+export type BlockSomeoneMutation = {
+  __typename?: "Mutation";
   blockingUser: {
     __typename?: "User";
     id: number;
@@ -419,12 +419,12 @@ export type DeleteChannelMutation = {
   deleteChannel: { __typename?: "Channel"; id: number; name: string };
 };
 
-export type DeleteChannelMessageContentQueryVariables = Exact<{
+export type DeleteChannelMessageContentMutationVariables = Exact<{
   messageId: Scalars["Int"];
 }>;
 
-export type DeleteChannelMessageContentQuery = {
-  __typename?: "Query";
+export type DeleteChannelMessageContentMutation = {
+  __typename?: "Mutation";
   deleteChannelMessageContent: {
     __typename?: "ChannelMessage";
     id: number;
@@ -433,12 +433,12 @@ export type DeleteChannelMessageContentQuery = {
   };
 };
 
-export type DeleteDirectMessageContentQueryVariables = Exact<{
+export type DeleteDirectMessageContentMutationVariables = Exact<{
   messageId: Scalars["Int"];
 }>;
 
-export type DeleteDirectMessageContentQuery = {
-  __typename?: "Query";
+export type DeleteDirectMessageContentMutation = {
+  __typename?: "Mutation";
   deleteDirectMessageContent: {
     __typename?: "DirectMessage";
     id: number;
@@ -673,34 +673,34 @@ export type SendDirectMessageMutation = {
   sendDirectMessage: { __typename?: "DirectMessage"; id: number };
 };
 
-export type UpdateDateBannedQueryVariables = Exact<{
+export type UpdateDateBannedMutationVariables = Exact<{
   channelId: Scalars["Int"];
   userId: Scalars["Int"];
   date?: InputMaybe<Scalars["String"]>;
 }>;
 
-export type UpdateDateBannedQuery = {
-  __typename?: "Query";
+export type UpdateDateBannedMutation = {
+  __typename?: "Mutation";
   updateBanned: { __typename?: "Channel"; id: number; name: string };
 };
 
-export type UpdateDateMutedQueryVariables = Exact<{
+export type UpdateDateMutedMutationVariables = Exact<{
   channelId: Scalars["Int"];
   userId: Scalars["Int"];
   date?: InputMaybe<Scalars["String"]>;
 }>;
 
-export type UpdateDateMutedQuery = {
-  __typename?: "Query";
+export type UpdateDateMutedMutation = {
+  __typename?: "Mutation";
   updateMuted: { __typename?: "Channel"; id: number; name: string };
 };
 
-export type UpdateGameJoiningPlayerQueryVariables = Exact<{
+export type UpdateGameJoiningPlayerMutationVariables = Exact<{
   updateGameId: Scalars["Int"];
 }>;
 
-export type UpdateGameJoiningPlayerQuery = {
-  __typename?: "Query";
+export type UpdateGameJoiningPlayerMutation = {
+  __typename?: "Mutation";
   updateGame: {
     __typename?: "Game";
     id: number;
@@ -851,7 +851,7 @@ useBannedSomeoneChannelMutation.fetcher = (
     variables
   );
 export const BlockSomeoneDocument = `
-    query BlockSomeone($blockingUserId: Int!) {
+    mutation BlockSomeone($blockingUserId: Int!) {
   blockingUser(id: $blockingUserId) {
     id
     name
@@ -860,28 +860,30 @@ export const BlockSomeoneDocument = `
   }
 }
     `;
-export const useBlockSomeoneQuery = <
-  TData = BlockSomeoneQuery,
-  TError = unknown
->(
-  variables: BlockSomeoneQueryVariables,
-  options?: UseQueryOptions<BlockSomeoneQuery, TError, TData>
+export const useBlockSomeoneMutation = <TError = unknown, TContext = unknown>(
+  options?: UseMutationOptions<
+    BlockSomeoneMutation,
+    TError,
+    BlockSomeoneMutationVariables,
+    TContext
+  >
 ) =>
-  useQuery<BlockSomeoneQuery, TError, TData>(
-    ["BlockSomeone", variables],
-    fetcher<BlockSomeoneQuery, BlockSomeoneQueryVariables>(
-      BlockSomeoneDocument,
-      variables
-    ),
+  useMutation<
+    BlockSomeoneMutation,
+    TError,
+    BlockSomeoneMutationVariables,
+    TContext
+  >(
+    ["BlockSomeone"],
+    (variables?: BlockSomeoneMutationVariables) =>
+      fetcher<BlockSomeoneMutation, BlockSomeoneMutationVariables>(
+        BlockSomeoneDocument,
+        variables
+      )(),
     options
   );
-
-useBlockSomeoneQuery.getKey = (variables: BlockSomeoneQueryVariables) => [
-  "BlockSomeone",
-  variables,
-];
-useBlockSomeoneQuery.fetcher = (variables: BlockSomeoneQueryVariables) =>
-  fetcher<BlockSomeoneQuery, BlockSomeoneQueryVariables>(
+useBlockSomeoneMutation.fetcher = (variables: BlockSomeoneMutationVariables) =>
+  fetcher<BlockSomeoneMutation, BlockSomeoneMutationVariables>(
     BlockSomeoneDocument,
     variables
   );
@@ -1096,7 +1098,7 @@ useDeleteChannelMutation.fetcher = (
     variables
   );
 export const DeleteChannelMessageContentDocument = `
-    query deleteChannelMessageContent($messageId: Int!) {
+    mutation deleteChannelMessageContent($messageId: Int!) {
   deleteChannelMessageContent(messageId: $messageId) {
     id
     content
@@ -1104,65 +1106,77 @@ export const DeleteChannelMessageContentDocument = `
   }
 }
     `;
-export const useDeleteChannelMessageContentQuery = <
-  TData = DeleteChannelMessageContentQuery,
-  TError = unknown
+export const useDeleteChannelMessageContentMutation = <
+  TError = unknown,
+  TContext = unknown
 >(
-  variables: DeleteChannelMessageContentQueryVariables,
-  options?: UseQueryOptions<DeleteChannelMessageContentQuery, TError, TData>
+  options?: UseMutationOptions<
+    DeleteChannelMessageContentMutation,
+    TError,
+    DeleteChannelMessageContentMutationVariables,
+    TContext
+  >
 ) =>
-  useQuery<DeleteChannelMessageContentQuery, TError, TData>(
-    ["deleteChannelMessageContent", variables],
-    fetcher<
-      DeleteChannelMessageContentQuery,
-      DeleteChannelMessageContentQueryVariables
-    >(DeleteChannelMessageContentDocument, variables),
+  useMutation<
+    DeleteChannelMessageContentMutation,
+    TError,
+    DeleteChannelMessageContentMutationVariables,
+    TContext
+  >(
+    ["deleteChannelMessageContent"],
+    (variables?: DeleteChannelMessageContentMutationVariables) =>
+      fetcher<
+        DeleteChannelMessageContentMutation,
+        DeleteChannelMessageContentMutationVariables
+      >(DeleteChannelMessageContentDocument, variables)(),
     options
   );
-
-useDeleteChannelMessageContentQuery.getKey = (
-  variables: DeleteChannelMessageContentQueryVariables
-) => ["deleteChannelMessageContent", variables];
-useDeleteChannelMessageContentQuery.fetcher = (
-  variables: DeleteChannelMessageContentQueryVariables
+useDeleteChannelMessageContentMutation.fetcher = (
+  variables: DeleteChannelMessageContentMutationVariables
 ) =>
   fetcher<
-    DeleteChannelMessageContentQuery,
-    DeleteChannelMessageContentQueryVariables
+    DeleteChannelMessageContentMutation,
+    DeleteChannelMessageContentMutationVariables
   >(DeleteChannelMessageContentDocument, variables);
 export const DeleteDirectMessageContentDocument = `
-    query deleteDirectMessageContent($messageId: Int!) {
+    mutation deleteDirectMessageContent($messageId: Int!) {
   deleteDirectMessageContent(messageId: $messageId) {
     id
     content
   }
 }
     `;
-export const useDeleteDirectMessageContentQuery = <
-  TData = DeleteDirectMessageContentQuery,
-  TError = unknown
+export const useDeleteDirectMessageContentMutation = <
+  TError = unknown,
+  TContext = unknown
 >(
-  variables: DeleteDirectMessageContentQueryVariables,
-  options?: UseQueryOptions<DeleteDirectMessageContentQuery, TError, TData>
+  options?: UseMutationOptions<
+    DeleteDirectMessageContentMutation,
+    TError,
+    DeleteDirectMessageContentMutationVariables,
+    TContext
+  >
 ) =>
-  useQuery<DeleteDirectMessageContentQuery, TError, TData>(
-    ["deleteDirectMessageContent", variables],
-    fetcher<
-      DeleteDirectMessageContentQuery,
-      DeleteDirectMessageContentQueryVariables
-    >(DeleteDirectMessageContentDocument, variables),
+  useMutation<
+    DeleteDirectMessageContentMutation,
+    TError,
+    DeleteDirectMessageContentMutationVariables,
+    TContext
+  >(
+    ["deleteDirectMessageContent"],
+    (variables?: DeleteDirectMessageContentMutationVariables) =>
+      fetcher<
+        DeleteDirectMessageContentMutation,
+        DeleteDirectMessageContentMutationVariables
+      >(DeleteDirectMessageContentDocument, variables)(),
     options
   );
-
-useDeleteDirectMessageContentQuery.getKey = (
-  variables: DeleteDirectMessageContentQueryVariables
-) => ["deleteDirectMessageContent", variables];
-useDeleteDirectMessageContentQuery.fetcher = (
-  variables: DeleteDirectMessageContentQueryVariables
+useDeleteDirectMessageContentMutation.fetcher = (
+  variables: DeleteDirectMessageContentMutationVariables
 ) =>
   fetcher<
-    DeleteDirectMessageContentQuery,
-    DeleteDirectMessageContentQueryVariables
+    DeleteDirectMessageContentMutation,
+    DeleteDirectMessageContentMutationVariables
   >(DeleteDirectMessageContentDocument, variables);
 export const InfoChannelDocument = `
     query InfoChannel($channelId: Int!) {
@@ -1634,74 +1648,87 @@ useSendDirectMessageMutation.fetcher = (
     variables
   );
 export const UpdateDateBannedDocument = `
-    query UpdateDateBanned($channelId: Int!, $userId: Int!, $date: String) {
+    mutation UpdateDateBanned($channelId: Int!, $userId: Int!, $date: String) {
   updateBanned(channelId: $channelId, userId: $userId, date: $date) {
     id
     name
   }
 }
     `;
-export const useUpdateDateBannedQuery = <
-  TData = UpdateDateBannedQuery,
-  TError = unknown
+export const useUpdateDateBannedMutation = <
+  TError = unknown,
+  TContext = unknown
 >(
-  variables: UpdateDateBannedQueryVariables,
-  options?: UseQueryOptions<UpdateDateBannedQuery, TError, TData>
+  options?: UseMutationOptions<
+    UpdateDateBannedMutation,
+    TError,
+    UpdateDateBannedMutationVariables,
+    TContext
+  >
 ) =>
-  useQuery<UpdateDateBannedQuery, TError, TData>(
-    ["UpdateDateBanned", variables],
-    fetcher<UpdateDateBannedQuery, UpdateDateBannedQueryVariables>(
-      UpdateDateBannedDocument,
-      variables
-    ),
+  useMutation<
+    UpdateDateBannedMutation,
+    TError,
+    UpdateDateBannedMutationVariables,
+    TContext
+  >(
+    ["UpdateDateBanned"],
+    (variables?: UpdateDateBannedMutationVariables) =>
+      fetcher<UpdateDateBannedMutation, UpdateDateBannedMutationVariables>(
+        UpdateDateBannedDocument,
+        variables
+      )(),
     options
   );
-
-useUpdateDateBannedQuery.getKey = (
-  variables: UpdateDateBannedQueryVariables
-) => ["UpdateDateBanned", variables];
-useUpdateDateBannedQuery.fetcher = (
-  variables: UpdateDateBannedQueryVariables
+useUpdateDateBannedMutation.fetcher = (
+  variables: UpdateDateBannedMutationVariables
 ) =>
-  fetcher<UpdateDateBannedQuery, UpdateDateBannedQueryVariables>(
+  fetcher<UpdateDateBannedMutation, UpdateDateBannedMutationVariables>(
     UpdateDateBannedDocument,
     variables
   );
 export const UpdateDateMutedDocument = `
-    query UpdateDateMuted($channelId: Int!, $userId: Int!, $date: String) {
+    mutation UpdateDateMuted($channelId: Int!, $userId: Int!, $date: String) {
   updateMuted(channelId: $channelId, userId: $userId, date: $date) {
     id
     name
   }
 }
     `;
-export const useUpdateDateMutedQuery = <
-  TData = UpdateDateMutedQuery,
-  TError = unknown
+export const useUpdateDateMutedMutation = <
+  TError = unknown,
+  TContext = unknown
 >(
-  variables: UpdateDateMutedQueryVariables,
-  options?: UseQueryOptions<UpdateDateMutedQuery, TError, TData>
+  options?: UseMutationOptions<
+    UpdateDateMutedMutation,
+    TError,
+    UpdateDateMutedMutationVariables,
+    TContext
+  >
 ) =>
-  useQuery<UpdateDateMutedQuery, TError, TData>(
-    ["UpdateDateMuted", variables],
-    fetcher<UpdateDateMutedQuery, UpdateDateMutedQueryVariables>(
-      UpdateDateMutedDocument,
-      variables
-    ),
+  useMutation<
+    UpdateDateMutedMutation,
+    TError,
+    UpdateDateMutedMutationVariables,
+    TContext
+  >(
+    ["UpdateDateMuted"],
+    (variables?: UpdateDateMutedMutationVariables) =>
+      fetcher<UpdateDateMutedMutation, UpdateDateMutedMutationVariables>(
+        UpdateDateMutedDocument,
+        variables
+      )(),
     options
   );
-
-useUpdateDateMutedQuery.getKey = (variables: UpdateDateMutedQueryVariables) => [
-  "UpdateDateMuted",
-  variables,
-];
-useUpdateDateMutedQuery.fetcher = (variables: UpdateDateMutedQueryVariables) =>
-  fetcher<UpdateDateMutedQuery, UpdateDateMutedQueryVariables>(
+useUpdateDateMutedMutation.fetcher = (
+  variables: UpdateDateMutedMutationVariables
+) =>
+  fetcher<UpdateDateMutedMutation, UpdateDateMutedMutationVariables>(
     UpdateDateMutedDocument,
     variables
   );
 export const UpdateGameJoiningPlayerDocument = `
-    query UpdateGameJoiningPlayer($updateGameId: Int!) {
+    mutation UpdateGameJoiningPlayer($updateGameId: Int!) {
   updateGame(id: $updateGameId) {
     id
     gamemode
@@ -1724,32 +1751,38 @@ export const UpdateGameJoiningPlayerDocument = `
   }
 }
     `;
-export const useUpdateGameJoiningPlayerQuery = <
-  TData = UpdateGameJoiningPlayerQuery,
-  TError = unknown
+export const useUpdateGameJoiningPlayerMutation = <
+  TError = unknown,
+  TContext = unknown
 >(
-  variables: UpdateGameJoiningPlayerQueryVariables,
-  options?: UseQueryOptions<UpdateGameJoiningPlayerQuery, TError, TData>
+  options?: UseMutationOptions<
+    UpdateGameJoiningPlayerMutation,
+    TError,
+    UpdateGameJoiningPlayerMutationVariables,
+    TContext
+  >
 ) =>
-  useQuery<UpdateGameJoiningPlayerQuery, TError, TData>(
-    ["UpdateGameJoiningPlayer", variables],
-    fetcher<
-      UpdateGameJoiningPlayerQuery,
-      UpdateGameJoiningPlayerQueryVariables
-    >(UpdateGameJoiningPlayerDocument, variables),
+  useMutation<
+    UpdateGameJoiningPlayerMutation,
+    TError,
+    UpdateGameJoiningPlayerMutationVariables,
+    TContext
+  >(
+    ["UpdateGameJoiningPlayer"],
+    (variables?: UpdateGameJoiningPlayerMutationVariables) =>
+      fetcher<
+        UpdateGameJoiningPlayerMutation,
+        UpdateGameJoiningPlayerMutationVariables
+      >(UpdateGameJoiningPlayerDocument, variables)(),
     options
   );
-
-useUpdateGameJoiningPlayerQuery.getKey = (
-  variables: UpdateGameJoiningPlayerQueryVariables
-) => ["UpdateGameJoiningPlayer", variables];
-useUpdateGameJoiningPlayerQuery.fetcher = (
-  variables: UpdateGameJoiningPlayerQueryVariables
+useUpdateGameJoiningPlayerMutation.fetcher = (
+  variables: UpdateGameJoiningPlayerMutationVariables
 ) =>
-  fetcher<UpdateGameJoiningPlayerQuery, UpdateGameJoiningPlayerQueryVariables>(
-    UpdateGameJoiningPlayerDocument,
-    variables
-  );
+  fetcher<
+    UpdateGameJoiningPlayerMutation,
+    UpdateGameJoiningPlayerMutationVariables
+  >(UpdateGameJoiningPlayerDocument, variables);
 export const UserProfileDocument = `
     query UserProfile($userId: Int) {
   user(id: $userId) {

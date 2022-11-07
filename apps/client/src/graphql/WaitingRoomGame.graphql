@@ -1,4 +1,4 @@
-mutation WaitingRoomGame($gamesId: Int, $started: Boolean, $finished: Boolean) {
+query WaitingRoomGame($gamesId: Int, $started: Boolean, $finished: Boolean) {
   games(id: $gamesId, started: $started, finished: $finished) {
     id
     player1 {

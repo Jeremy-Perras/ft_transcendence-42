@@ -1,6 +1,15 @@
-import { QueryClient, useQuery, UseQueryOptions } from "@tanstack/react-query";
+import {
+  QueryClient,
+  useQuery,
+  useQueryClient,
+  UseQueryOptions,
+} from "@tanstack/react-query";
 import { useLoaderData, useParams } from "react-router-dom";
-import { useUserProfileQuery, UserProfileQuery } from "../../graphql/generated";
+import {
+  useUserProfileQuery,
+  UserProfileQuery,
+  useBlockSomeoneMutation,
+} from "../../graphql/generated";
 
 // const useProfileDetailQuery = (id: number) => ({
 //   queryKey: [id],
@@ -39,9 +48,15 @@ export const loader =
   };
 
 const DisplayUserProfile = () => {
+  const queryClient = useQueryClient();
   const params = useParams();
   if (typeof params.userId === "undefined") return <div></div>;
   const userId = +params.userId;
+  const blockMutation = useBlockSomeoneMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries(["UserProfile", {}]);
+    },
+  });
   const initialData = useLoaderData() as Awaited<
     ReturnType<ReturnType<typeof loader>>
   >;
@@ -63,7 +78,10 @@ const DisplayUserProfile = () => {
         <div className="w-24 rounded-xl  border-2 border-slate-200 bg-slate-100 p-2 text-center hover:border-slate-300 hover:bg-slate-200 ">
           Chat
         </div>
-        <div className=" w-24 rounded-xl border-2  border-slate-200 bg-slate-100 p-2 text-center align-middle hover:border-slate-300 hover:bg-slate-200 ">
+        <div
+          onClick={() => blockMutation.mutate({ blockingUserId: userId })}
+          className=" w-24 rounded-xl border-2  border-slate-200 bg-slate-100 p-2 text-center align-middle hover:border-slate-300 hover:bg-slate-200 "
+        >
           {data?.user.blocked ? "Blocked" : "Block"}
         </div>
       </div>
