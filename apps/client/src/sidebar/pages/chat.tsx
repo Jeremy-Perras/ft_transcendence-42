@@ -135,7 +135,7 @@ const DirectConversation = () => {
   }
 
   return (
-    <div>
+    <>
       <ul className="mt-4 mb-16 flex h-fit w-full flex-col pr-2 pl-px">
         {data?.messages.map((message, index) => (
           <DirectMessage key={index} userId={userId} {...message} />
@@ -172,7 +172,7 @@ const DirectConversation = () => {
           }}
         />
       </div>
-    </div>
+    </>
   );
 };
 

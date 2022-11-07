@@ -129,7 +129,7 @@ export default function Channel() {
     return <Error />;
   } else {
     return (
-      <div>
+      <>
         <div className="mt-px mb-16 flex w-full flex-col pr-2 pl-px">
           {data?.messages?.map((message, index) => (
             <ChannelMessage key={index} {...message} />
@@ -142,7 +142,7 @@ export default function Channel() {
             placeholder="Type your message here..."
           />
         </div>
-      </div>
+      </>
     );
   }
 }

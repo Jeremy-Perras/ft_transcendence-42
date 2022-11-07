@@ -17,6 +17,11 @@ import {
   useGetChannelHeaderQuery,
 } from "../graphql/generated";
 
+//TODO : skeleton loader while loading
+// components h
+// retry
+// route loaders
+
 const SearchBar = ({
   search,
   setSearch,
@@ -83,13 +88,9 @@ const LeftButton = ({
 };
 
 function Header({
-  setTest,
-  test,
   search,
   setSearch,
 }: {
-  test: boolean;
-  setTest: React.Dispatch<React.SetStateAction<boolean>>;
   search: string;
   setSearch: (value: string) => void;
 }) {
@@ -183,7 +184,9 @@ function UserHeader({ userId }: { userId: number }) {
       onClick={() => navigate(`/profile/${userId}`)}
     >
       <img className="mb-px h-8 w-8 rounded-full" src={data?.avatar} />
-      <div className="ml-2 mb-px h-full text-base font-bold">{data?.name}</div>
+      <span className="ml-2 mb-px h-full text-base font-bold">
+        {data?.name}
+      </span>
     </div>
   );
 }
@@ -217,10 +220,10 @@ function ChannelHeader({ channelId }: { channelId: number }) {
       <div className="justify-start">
         {data?.private ? "Priv" : data?.password ? "Pw" : "Public"}
       </div>
-      <div className="flex-grow justify-center font-bold">
+      <span className="flex-grow justify-center font-bold">
         Channel: {data?.name}{" "}
-      </div>
-      <div className="justify-end">Owner: {data?.owner.name}</div>
+      </span>
+      <span className="justify-end">Owner: {data?.owner.name}</span>
     </div>
   );
 }
@@ -307,15 +310,9 @@ const SearchResult = ({
 
 export const SidebarLayout = () => {
   const [search, setSearch] = useThrottledState("", 500);
-  const [test, setTest] = useState(false);
   return (
     <>
-      <Header
-        test={test}
-        setTest={setTest}
-        search={search}
-        setSearch={setSearch}
-      />
+      <Header search={search} setSearch={setSearch} />
       <div className="h-full overflow-y-auto">
         {search.length === 0 ? (
           <Outlet />
@@ -323,7 +320,6 @@ export const SidebarLayout = () => {
           <SearchResult search={search} setSearch={setSearch} />
         )}
       </div>
-      <div className={`${test ? "visible" : "visible"}`}></div>
     </>
   );
 };
