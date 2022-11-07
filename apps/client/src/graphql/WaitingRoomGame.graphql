@@ -1,5 +1,5 @@
-query WaitingRoomGame($gamesId: Int, $started: Boolean, $finished: Boolean) {
-  games(id: $gamesId, started: $started, finished: $finished) {
+query WaitingRoomGame($gamesId: Int, $started: Boolean, $finished: Boolean, $gameMode: Int) {
+  games(id: $gamesId, started: $started, finished: $finished,gameMode: $gameMode) {
     id
     player1 {
       id

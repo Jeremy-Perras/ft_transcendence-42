@@ -699,6 +699,7 @@ export type WaitingRoomGameQueryVariables = Exact<{
   gamesId?: InputMaybe<Scalars["Int"]>;
   started?: InputMaybe<Scalars["Boolean"]>;
   finished?: InputMaybe<Scalars["Boolean"]>;
+  gameMode?: InputMaybe<Scalars["Int"]>;
 }>;
 
 export type WaitingRoomGameQuery = {
@@ -1411,8 +1412,8 @@ export const useUpdateGameJoiningPlayerQuery = <
     options
   );
 export const WaitingRoomGameDocument = `
-    query WaitingRoomGame($gamesId: Int, $started: Boolean, $finished: Boolean) {
-  games(id: $gamesId, started: $started, finished: $finished) {
+    query WaitingRoomGame($gamesId: Int, $started: Boolean, $finished: Boolean, $gameMode: Int) {
+  games(id: $gamesId, started: $started, finished: $finished, gameMode: $gameMode) {
     id
     player1 {
       id

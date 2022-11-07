@@ -1,4 +1,9 @@
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import {
+  Link,
+  Navigate,
+  NavigateFunction,
+  useNavigate,
+} from "react-router-dom";
 import {
   AnimationControls,
   motion,
@@ -9,31 +14,22 @@ import { useMediaQuery } from "@react-hookz/web";
 import { useEffect, useState } from "react";
 
 import ArrowImage from "../../assets/game_modes/arrow.svg";
-import { useWaitingRoomGameQuery } from "../../graphql/generated";
+import {
+  useWaitingRoomGameQuery,
+  WaitingRoomGameQuery,
+} from "../../graphql/generated";
 import { getInfoUserId, UpdateGameJoiningPlayer } from "../queries";
-//TODO handle this function
-// const GameHandler = ({ gamemode }: { gamemode: number }) => {
-//   const { isLoading, data, error, isFetching } = useWaitingRoomGameQuery({
-//     started: false,
-//     gamesId: gamemode,
-//   });
-//   // console.log(data);
-//   const Iduser = getInfoUserId();
-//   const navigate = useNavigate();
-//   const getId = data?.games.map((game) => game.id);
-//   console.log(getId);
-//   if (getId?.length) {
-//     if (getId[0]) UpdateGameJoiningPlayer(getId[0]);
-//     navigate(`/game/${getId[0]}`);
-//   }
-//   return <></>;
-// };
-
 let intervalId = -1;
+
 const GameMode = ({ imgs, name, alt, textEffects, animate }: GameModeType) => {
   const [isSelected, setIsSelected] = useState(false);
   const [animationIndex, setanimationIndex] = useState(0);
-
+  const isNarrow = useMediaQuery("(max-width : 640px)");
+  const isSmall = useMediaQuery("(max-height : 720px)");
+  const navigate = useNavigate();
+  const { isLoading, data, error, isFetching } = useWaitingRoomGameQuery({
+    started: false,
+  });
   useEffect(() => {
     if (intervalId == -1) {
       intervalId = setInterval(() => {
@@ -48,12 +44,30 @@ const GameMode = ({ imgs, name, alt, textEffects, animate }: GameModeType) => {
     }
   }, []);
 
-  const isNarrow = useMediaQuery("(max-width : 640px)");
-  const isSmall = useMediaQuery("(max-height : 720px)");
+  // TODO handle this function
+  const GameHandler = ({
+    data,
+  }: {
+    data: WaitingRoomGameQuery | undefined;
+  }) => {
+    console.log(data);
+
+    const getId = data?.games.map((game) =>
+      game.gamemode === "Classi" ? game.id : undefined
+    );
+    console.log(getId);
+    // if (getId?.length) {
+    //   if (getId[0]) UpdateGameJoiningPlayer(getId[0]);
+    // navigate(`/game/$}`);
+    // }
+  };
 
   return (
-    <Link to="/waiting">
-      <GameHandler gamemode={1} />
+    <div
+      onClick={() => {
+        GameHandler({ data: data });
+      }}
+    >
       <motion.div
         className="flex flex-col items-center"
         initial={{ scale: 0, opacity: 0.5 }}
@@ -99,7 +113,7 @@ const GameMode = ({ imgs, name, alt, textEffects, animate }: GameModeType) => {
           {name}
         </motion.div>
       </motion.div>
-    </Link>
+    </div>
   );
 };
 
