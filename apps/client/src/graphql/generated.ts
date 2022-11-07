@@ -431,46 +431,6 @@ export type DeleteDirectMessageContentQuery = {
   };
 };
 
-export type GetUserProfileQueryVariables = Exact<{
-  userId?: InputMaybe<Scalars["Int"]>;
-}>;
-
-export type GetUserProfileQuery = {
-  __typename?: "Query";
-  user: {
-    __typename?: "User";
-    id: number;
-    name: string;
-    avatar: string;
-    rank: number;
-    blocked: boolean;
-    games: Array<{
-      __typename?: "Game";
-      player1score: number;
-      player2score: number;
-      gamemode: string;
-      id: number;
-      startAt?: number | null;
-      finishedAt?: number | null;
-      player1: {
-        __typename?: "User";
-        rank: number;
-        avatar: string;
-        name: string;
-        id: number;
-      };
-      player2?: {
-        __typename?: "User";
-        id: number;
-        name: string;
-        avatar: string;
-        rank: number;
-      } | null;
-    }>;
-    friends: Array<{ __typename?: "User"; id: number }>;
-  };
-};
-
 export type InfoChannelQueryVariables = Exact<{
   channelId: Scalars["Int"];
 }>;
@@ -748,6 +708,46 @@ export type UpdateGameJoiningPlayerQuery = {
       avatar: string;
       rank: number;
     };
+  };
+};
+
+export type UserProfileQueryVariables = Exact<{
+  userId?: InputMaybe<Scalars["Int"]>;
+}>;
+
+export type UserProfileQuery = {
+  __typename?: "Query";
+  user: {
+    __typename?: "User";
+    id: number;
+    name: string;
+    avatar: string;
+    rank: number;
+    blocked: boolean;
+    games: Array<{
+      __typename?: "Game";
+      player1score: number;
+      player2score: number;
+      gamemode: string;
+      id: number;
+      startAt?: number | null;
+      finishedAt?: number | null;
+      player1: {
+        __typename?: "User";
+        rank: number;
+        avatar: string;
+        name: string;
+        id: number;
+      };
+      player2?: {
+        __typename?: "User";
+        id: number;
+        name: string;
+        avatar: string;
+        rank: number;
+      } | null;
+    }>;
+    friends: Array<{ __typename?: "User"; id: number }>;
   };
 };
 
@@ -1048,57 +1048,6 @@ export const useDeleteDirectMessageContentQuery = <
       DeleteDirectMessageContentQuery,
       DeleteDirectMessageContentQueryVariables
     >(DeleteDirectMessageContentDocument, variables),
-    options
-  );
-export const GetUserProfileDocument = `
-    query GetUserProfile($userId: Int) {
-  user(id: $userId) {
-    id
-    name
-    avatar
-    rank
-    games {
-      player1 {
-        rank
-        avatar
-        name
-        id
-      }
-      player2 {
-        id
-        name
-        avatar
-        rank
-      }
-      player1score
-      player2score
-      gamemode
-      id
-      startAt
-      finishedAt
-    }
-    blocked
-    friends {
-      id
-    }
-  }
-}
-    `;
-export const useGetUserProfileQuery = <
-  TData = GetUserProfileQuery,
-  TError = unknown
->(
-  variables?: GetUserProfileQueryVariables,
-  options?: UseQueryOptions<GetUserProfileQuery, TError, TData>
-) =>
-  useQuery<GetUserProfileQuery, TError, TData>(
-    variables === undefined
-      ? ["GetUserProfile"]
-      : ["GetUserProfile", variables],
-    fetcher<GetUserProfileQuery, GetUserProfileQueryVariables>(
-      GetUserProfileDocument,
-      variables
-    ),
     options
   );
 export const InfoChannelDocument = `
@@ -1560,6 +1509,52 @@ export const useUpdateGameJoiningPlayerQuery = <
       UpdateGameJoiningPlayerQuery,
       UpdateGameJoiningPlayerQueryVariables
     >(UpdateGameJoiningPlayerDocument, variables),
+    options
+  );
+export const UserProfileDocument = `
+    query UserProfile($userId: Int) {
+  user(id: $userId) {
+    id
+    name
+    avatar
+    rank
+    games {
+      player1 {
+        rank
+        avatar
+        name
+        id
+      }
+      player2 {
+        id
+        name
+        avatar
+        rank
+      }
+      player1score
+      player2score
+      gamemode
+      id
+      startAt
+      finishedAt
+    }
+    blocked
+    friends {
+      id
+    }
+  }
+}
+    `;
+export const useUserProfileQuery = <TData = UserProfileQuery, TError = unknown>(
+  variables?: UserProfileQueryVariables,
+  options?: UseQueryOptions<UserProfileQuery, TError, TData>
+) =>
+  useQuery<UserProfileQuery, TError, TData>(
+    variables === undefined ? ["UserProfile"] : ["UserProfile", variables],
+    fetcher<UserProfileQuery, UserProfileQueryVariables>(
+      UserProfileDocument,
+      variables
+    ),
     options
   );
 export const UserProfileHeaderDocument = `
