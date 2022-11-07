@@ -119,6 +119,7 @@ export default function ChannelSettings() {
       <div>Admins</div>
       <div>Membres + nb mb</div>
       <div>Si admin : add someone / Mute ? Block</div>
+
       {owner ? (
         <div
           className="w-24 rounded-md bg-red-300 text-center hover:cursor-pointer hover:bg-red-400"

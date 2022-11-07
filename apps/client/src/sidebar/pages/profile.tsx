@@ -11,24 +11,6 @@ import {
   useBlockSomeoneMutation,
 } from "../../graphql/generated";
 
-// const useProfileDetailQuery = (id: number) => ({
-//   queryKey: [id],
-//   queryFn: async () => {
-//     const { data } = useUserProfileQuery({
-//       userId: id,
-//     });
-
-//     if (!data) {
-//       throw new Response("", {
-//         status: 404,
-//         statusText: "Not Found",
-//       });
-//     }
-//     console.log(data);
-//     return data;
-//   },
-// });
-
 const query = (
   userId: number
 ): UseQueryOptions<UserProfileQuery, unknown, UserProfileQuery> => {

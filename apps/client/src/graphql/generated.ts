@@ -957,6 +957,7 @@ export const useGetChannelHeaderQuery = <
     ),
     options
   );
+<<<<<<< HEAD
 
 useGetChannelHeaderQuery.getKey = (
   variables: GetChannelHeaderQueryVariables
@@ -968,6 +969,8 @@ useGetChannelHeaderQuery.fetcher = (
     GetChannelHeaderDocument,
     variables
   );
+=======
+>>>>>>> 1734d5f62da40fe45ea91f5c591c152e271a5fde
 export const ChannelSettingsDocument = `
     query ChannelSettings($channelId: Int!, $userId: Int) {
   channel(id: $channelId) {
@@ -1019,6 +1022,7 @@ export const useChannelSettingsQuery = <
     ),
     options
   );
+<<<<<<< HEAD
 
 useChannelSettingsQuery.getKey = (variables: ChannelSettingsQueryVariables) => [
   "ChannelSettings",
@@ -1029,6 +1033,8 @@ useChannelSettingsQuery.fetcher = (variables: ChannelSettingsQueryVariables) =>
     ChannelSettingsDocument,
     variables
   );
+=======
+>>>>>>> 1734d5f62da40fe45ea91f5c591c152e271a5fde
 export const CreateChanelDocument = `
     mutation CreateChanel($inviteOnly: Boolean!, $password: String!, $name: String!) {
   createChanel(inviteOnly: $inviteOnly, password: $password, name: $name) {
