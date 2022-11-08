@@ -18,7 +18,7 @@ export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & {
 
 function fetcher<TData, TVariables>(query: string, variables?: TVariables) {
   return async (): Promise<TData> => {
-    const res = await fetch("http://localhost:3000/graphql", {
+    const res = await fetch("http://localhost:5173/graphql", {
       method: "POST",
       ...{ headers: { "Content-Type": "application/json" } },
       body: JSON.stringify({ query, variables }),

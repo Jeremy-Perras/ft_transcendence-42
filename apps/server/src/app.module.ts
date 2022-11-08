@@ -4,18 +4,18 @@ import { ServeStaticModule } from "@nestjs/serve-static";
 import { GraphQLModule } from "@nestjs/graphql";
 import { ApolloDriver, ApolloDriverConfig } from "@nestjs/apollo";
 import { ApolloServerPluginLandingPageLocalDefault } from "apollo-server-core";
-import { FakeAuthGuard } from "./auth/fake.guard";
-import { APP_GUARD } from "@nestjs/core";
 import { UserModule } from "./user/user.module";
 import { ChannelModule } from "./channel/channel.module";
 import { GameModule } from "./game/game.module";
+import { AuthModule } from "./auth/auth.module";
 
 @Module({
   imports: [
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, "../../", "client/dist"),
-      exclude: ["/graphql"],
+      exclude: ["/graphql", "/login"],
     }),
+    AuthModule,
     UserModule,
     GameModule,
     ChannelModule,
@@ -29,13 +29,6 @@ import { GameModule } from "./game/game.module";
       playground: false,
       plugins: [ApolloServerPluginLandingPageLocalDefault()],
     }),
-  ],
-  controllers: [],
-  providers: [
-    {
-      provide: APP_GUARD,
-      useClass: FakeAuthGuard,
-    },
   ],
 })
 export class AppModule {}

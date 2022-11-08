@@ -1,4 +1,4 @@
-import { useContext, useRef, useState } from "react";
+import { useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useMediaQuery, useThrottledState } from "@react-hookz/web";
@@ -9,13 +9,13 @@ import { ReactComponent as BackBurgerIcon } from "pixelarticons/svg/backburger.s
 import { ReactComponent as MessagePlusIcon } from "pixelarticons/svg/message-plus.svg";
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { ReactComponent as UsersIcon } from "pixelarticons/svg/users.svg";
-import { SideBarContext } from "./context";
-import { useSearchUsersChannelsQuery } from "../graphql/generated";
 import * as Avatar from "@radix-ui/react-avatar";
 import {
+  useSearchUsersChannelsQuery,
   useUserProfileHeaderQuery,
   useGetChannelHeaderQuery,
 } from "../graphql/generated";
+import { useSidebarStore } from "../stores";
 
 //TODO : skeleton loader while loading
 // components h
@@ -133,7 +133,7 @@ function Header({
   const location = useLocation();
   const home = location.pathname === "/";
   const navigate = useNavigate();
-  const setShowSideBar = useContext(SideBarContext);
+  const closeSidebar = useSidebarStore((state) => state.close);
   const isSmallScreen = useMediaQuery("(max-width: 1536px)");
   // TODO : put this in corresponding component
 
@@ -193,7 +193,7 @@ function Header({
       </AnimatePresence>
       <CurrentUserProfileLink />
       {isSmallScreen ? (
-        <button onClick={() => setShowSideBar && setShowSideBar(false)}>
+        <button onClick={closeSidebar}>
           <BackBurgerIcon className="h-9 rotate-180 transition-colors duration-200 hover:text-slate-500" />
         </button>
       ) : null}

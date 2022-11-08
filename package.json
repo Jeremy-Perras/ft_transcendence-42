@@ -6,6 +6,7 @@
     "dev:client": "npm run dev -w apps/client",
     "dev:server": "npm run dev -w apps/server",
     "dev:prisma": "npm run prisma:watch -w apps/server",
+    "dev:seed": "npm run prisma:seed -w apps/server",
     "build:client": "npm run build -w apps/client",
     "build:server": "npm run build -w apps/server",
     "build:all": "npm run build:client && npm run build:server",

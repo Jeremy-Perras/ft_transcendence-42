@@ -1,4 +1,4 @@
-import { Post } from "@nestjs/common";
+import { UseGuards } from "@nestjs/common";
 import {
   Resolver,
   Query,
@@ -7,10 +7,9 @@ import {
   ResolveField,
   Root,
   Mutation,
-  registerEnumType,
-  createUnionType,
 } from "@nestjs/graphql";
 import { Prisma } from "@prisma/client";
+import { GqlAuthenticatedGuard } from "../auth/authenticated.guard";
 import { CurrentUser } from "../auth/currentUser.decorator";
 import { channelType } from "../channel/channel.resolver";
 import { gameType } from "../game/game.resolver";
@@ -25,12 +24,13 @@ export type userType = Omit<
 type directMessageType = Omit<DirectMessage, "author" | "recipient">;
 
 @Resolver(User)
+@UseGuards(GqlAuthenticatedGuard)
 export class UserResolver {
   constructor(private prisma: PrismaService) {}
 
   @Query((returns) => User)
   async user(
-    @CurrentUser() me: User,
+    @CurrentUser() currentUserId: number,
     @Args("id", { type: () => Int, nullable: true, defaultValue: null })
     id?: number | null
   ): Promise<userType> {
@@ -41,7 +41,7 @@ export class UserResolver {
         avatar: true,
         rank: true,
       },
-      where: { id: id !== null ? id : me.id },
+      where: { id: id !== null ? id : currentUserId },
     });
 
     if (!user) {
@@ -196,11 +196,14 @@ export class UserResolver {
   }
 
   @ResolveField()
-  async blocked(@Root() user: User, @CurrentUser() me: User): Promise<boolean> {
+  async blocked(
+    @Root() user: User,
+    @CurrentUser() currentUserId: number
+  ): Promise<boolean> {
     const u = await this.prisma.user.findUnique({
       select: { blocking: true },
       where: {
-        id: me.id,
+        id: currentUserId,
       },
     });
     return u ? u.blocking.some((e) => e.id === user.id) : false;
@@ -209,12 +212,12 @@ export class UserResolver {
   @ResolveField()
   async blocking(
     @Root() user: User,
-    @CurrentUser() me: User
+    @CurrentUser() currentUserId: number
   ): Promise<boolean> {
     const u = await this.prisma.user.findUnique({
       select: { blockedBy: true },
       where: {
-        id: me.id,
+        id: currentUserId,
       },
     });
     return u ? u.blockedBy.some((e) => e.id === user.id) : false;
@@ -223,7 +226,7 @@ export class UserResolver {
   @ResolveField()
   async messages(
     @Root() user: User,
-    @CurrentUser() me: User
+    @CurrentUser() currentUserId: number
   ): Promise<directMessageType[]> {
     const u = await this.prisma.user.findUnique({
       select: {
@@ -249,7 +252,7 @@ export class UserResolver {
         },
       },
       where: {
-        id: me.id,
+        id: currentUserId,
       },
     });
     const result = u?.messageReceived.concat(u.messageSent);
@@ -269,7 +272,7 @@ export class UserResolver {
 
   @Mutation((returns) => User)
   async blockingUser(
-    @CurrentUser() me: User,
+    @CurrentUser() currentUserId: number,
     @Args("id", { type: () => Int }) id: number
   ): Promise<userType> {
     const m = await this.prisma.user.update({
@@ -281,7 +284,7 @@ export class UserResolver {
         blockedBy: true,
       },
       where: {
-        id: me.id,
+        id: currentUserId,
       },
       data: {
         blocking: {
@@ -291,7 +294,7 @@ export class UserResolver {
         },
       },
     });
-    this.blockedBy(me.id, id);
+    this.blockedBy(currentUserId, id);
     return { avatar: m.avatar, id: m.id, name: m.name, rank: m.rank };
   }
 
@@ -518,6 +521,7 @@ export class UserResolver {
 }
 
 @Resolver(DirectMessage)
+@UseGuards(GqlAuthenticatedGuard)
 export class DirectMessageResolver {
   constructor(private prisma: PrismaService) {}
 
@@ -561,16 +565,16 @@ export class DirectMessageResolver {
   async sendDirectMessage(
     @Args("message", { type: () => String }) message: string,
     @Args("recipientId", { type: () => Int }) recipientId: number,
-    @CurrentUser() me: User
+    @CurrentUser() currentUserId: number
   ): Promise<directMessageType> {
-    if (recipientId === me.id)
+    if (recipientId === currentUserId)
       throw new Error("You cannot send messages to yourself");
 
     const m = await this.prisma.directMessage.create({
       data: {
         content: message,
         sentAt: new Date(),
-        authorId: me.id,
+        authorId: currentUserId,
         recipientId: recipientId,
       },
     });

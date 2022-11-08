@@ -1,3 +1,4 @@
+import { UseGuards } from "@nestjs/common";
 import {
   Args,
   Int,
@@ -7,7 +8,8 @@ import {
   Resolver,
   Root,
 } from "@nestjs/graphql";
-import { MutedMember, Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
+import { GqlAuthenticatedGuard } from "../auth/authenticated.guard";
 import { CurrentUser } from "../auth/currentUser.decorator";
 import { PrismaService } from "../prisma/prisma.service";
 import { Restricted, RestrictedMember, User } from "../user/user.model";
@@ -23,6 +25,7 @@ type channelMessageReadType = Omit<ChannelMessageRead, "user">;
 type restrictedMemberType = userType & Restricted;
 
 @Resolver(Channel)
+@UseGuards(GqlAuthenticatedGuard)
 export class ChannelResolver {
   constructor(private prisma: PrismaService) {}
 
@@ -199,7 +202,7 @@ export class ChannelResolver {
   @ResolveField()
   async messages(
     @Root() channel: Channel,
-    @CurrentUser() me: User
+    @CurrentUser() currentUserId: number
   ): Promise<channelMessageType[]> {
     const c = await this.prisma.channel.findFirst({
       select: {
@@ -216,19 +219,19 @@ export class ChannelResolver {
         id: channel.id,
         OR: [
           {
-            ownerId: me.id,
+            ownerId: currentUserId,
           },
           {
             admins: {
               some: {
-                userId: me.id,
+                userId: currentUserId,
               },
             },
           },
           {
             members: {
               some: {
-                userId: me.id,
+                userId: currentUserId,
               },
             },
           },
@@ -250,15 +253,15 @@ export class ChannelResolver {
     @Args("inviteOnly", { type: () => Boolean }) inviteOnly: boolean,
     @Args("password", { type: () => String }) password: string,
     @Args("name", { type: () => String }) name: string,
-    @CurrentUser() me: User
+    @CurrentUser() currentUserId: number
   ): Promise<channelType> {
     const m = await this.prisma.channel.create({
       data: {
         inviteOnly: inviteOnly,
         name: name,
         password: password,
-        ownerId: me.id,
-        admins: { create: { userId: me.id } },
+        ownerId: currentUserId,
+        admins: { create: { userId: currentUserId } },
       },
     });
     return {
@@ -461,6 +464,7 @@ export class ChannelResolver {
 }
 
 @Resolver(ChannelMessage)
+@UseGuards(GqlAuthenticatedGuard)
 export class ChannelMessageResolver {
   constructor(private prisma: PrismaService) {}
 
@@ -508,13 +512,13 @@ export class ChannelMessageResolver {
   async sendChanelMessage(
     @Args("message", { type: () => String }) message: string,
     @Args("recipientId", { type: () => Int }) recipientId: number,
-    @CurrentUser() me: User
+    @CurrentUser() currentUserId: number
   ): Promise<channelMessageType> {
     const m = await this.prisma.channelMessage.create({
       data: {
         content: message,
         sentAt: new Date(),
-        authorId: me.id,
+        authorId: currentUserId,
         channelId: recipientId,
       },
     });
@@ -543,6 +547,7 @@ export class ChannelMessageResolver {
 }
 
 @Resolver(ChannelMessageRead)
+@UseGuards(GqlAuthenticatedGuard)
 export class ChannelMessageReadResolver {
   constructor(private prisma: PrismaService) {}
 
