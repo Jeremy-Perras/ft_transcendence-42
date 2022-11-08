@@ -6,6 +6,8 @@ import { ReactComponent as MuteIcon } from "pixelarticons/svg/volume-x.svg";
 import { ReactComponent as UnmuteIcon } from "pixelarticons/svg/volume.svg";
 import { ReactComponent as UnbanIcon } from "pixelarticons/svg/user-plus.svg";
 import { ReactComponent as BanIcon } from "pixelarticons/svg/user-x.svg";
+import { ReactComponent as AdminIcon } from "pixelarticons/svg/briefcase-plus.svg";
+import { useState } from "react";
 
 const ChannelTypeButton = ({
   text,
@@ -62,59 +64,105 @@ const UserBanner = ({
   banned: boolean | undefined;
   changesAuthorized: boolean;
 }) => {
+  const [mute, setMute] = useState(muted); //TODO : remove this when mutation ok
+  const [ban, setBan] = useState(banned); //TODO : remove this when mutation ok
+  const [adm, setAdm] = useState(admin); //TODO : remove this when mutation ok
   const navigate = useNavigate();
   return (
     <>
-      <div
-        className="mt-1 flex w-full items-center justify-between p-1 hover:cursor-pointer hover:bg-slate-100"
-        onClick={() => navigate(`/profile/${id}`)}
-      >
-        <div className="flex grow">
+      <div className="flex h-full w-full shrink-0 items-center justify-between transition-all hover:bg-slate-100">
+        <div
+          className="flex grow hover:cursor-pointer"
+          onClick={() => navigate(`/profile/${id}`)}
+        >
           <img
             src={avatar}
             alt="Owner avatar"
-            className="ml-2 mr-2 h-12 w-12 rounded-full"
+            className="m-1 h-12 w-12 rounded-full"
           />
           <div className="flex flex-col justify-center text-xs">
             <div className="flex">
               <span className="truncate text-base font-bold ">{name}</span>
-              <div className="mx-2 flex">
-                {muted ? <MuteIcon className="w-4 text-red-300" /> : null}
-                {banned ? <BanIcon className="w-4 text-red-600" /> : null}
+              <div className="mx-2 flex shrink-0">
+                {mute ? <MuteIcon className="w-4 text-red-300" /> : null}
+                {ban ? <BanIcon className="w-4 text-red-600" /> : null}
               </div>
             </div>
             <div className="text-xs">
-              {owner ? "Owner" : admin ? "Admin" : "Member"}
+              {owner ? "Owner" : adm ? "Admin" : "Member"}
             </div>
           </div>
         </div>
-
-        {changesAuthorized ? (
-          <div className="mx-2 flex h-8 justify-center text-sm">
+        <div className="flex justify-end">
+          {changesAuthorized && !adm && !owner ? (
             <div
-              className={`${
-                muted
-                  ? "bg-slate-200 hover:bg-slate-300 "
-                  : "bg-orange-300 font-bold hover:bg-orange-400"
-              } mx-2 flex w-12 items-center justify-center rounded-md`}
+              className="flex w-20 shrink-0 flex-col items-center justify-end text-center text-xs text-neutral-600 transition-all hover:cursor-pointer hover:text-black"
+              onClick={() => {
+                setAdm(!adm);
+                //TODO : mutation
+                console.log("Set admin button");
+              }}
             >
-              <div className="w-10 text-center">
-                <div>{muted ? "Unmute" : "Mute"}</div>
+              {" "}
+              <AdminIcon className="w-7" />
+              <div>Set as admin</div>
+            </div>
+          ) : null}
+          {changesAuthorized ? (
+            <div className="flex shrink-0 text-xs">
+              <div
+                className={`${
+                  mute
+                    ? "text-slate-300 hover:text-slate-400"
+                    : "font-bold text-neutral-600 hover:text-black"
+                } mx-2 flex w-8 flex-col justify-end text-center transition-all hover:cursor-pointer`}
+              >
+                <div>
+                  <div
+                    onClick={() => {
+                      setMute(!mute);
+                      //TODO : mutation
+                      console.log("Mute button");
+                    }}
+                  >
+                    {" "}
+                    {mute ? (
+                      <UnmuteIcon className="w-7" />
+                    ) : (
+                      <MuteIcon className="w-7" />
+                    )}
+                    {mute ? "Unmute" : "Mute"}
+                  </div>
+                </div>
+              </div>
+              <div
+                className={`${
+                  ban
+                    ? "text-slate-300 hover:text-slate-400"
+                    : " font-bold text-neutral-600 hover:text-black"
+                } mx-2 flex w-8 flex-col justify-end text-center transition-all hover:cursor-pointer`}
+              >
+                <div className="flex justify-center ">
+                  <div
+                    onClick={() => {
+                      setBan(!ban);
+                      //TODO : mutation
+                      console.log("Ban button");
+                    }}
+                  >
+                    {" "}
+                    {ban ? (
+                      <UnbanIcon className="w-6" />
+                    ) : (
+                      <BanIcon className="w-6 -translate-x-0.5" />
+                    )}
+                    {ban ? "Unban" : "Ban"}
+                  </div>
+                </div>
               </div>
             </div>
-            <div
-              className={`${
-                banned
-                  ? "bg-slate-200 hover:bg-slate-300 "
-                  : "bg-red-400 font-bold hover:bg-red-500"
-              } mx-2 flex w-12 items-center justify-center rounded-md`}
-            >
-              <div className="w-10 text-center">
-                <div>{banned ? "Unban" : "Ban"}</div>
-              </div>
-            </div>
-          </div>
-        ) : null}
+          ) : null}
+        </div>
       </div>
     </>
   );
@@ -172,6 +220,7 @@ export default function ChannelSettings() {
       </div>
       <div>CHANGE PW</div>
       <div>ADD AS ADMIN</div>
+      <div>ADD MEMBER</div>
       <div>Mute limited time</div>
       <UserBanner
         id={data?.channel.owner.id}
