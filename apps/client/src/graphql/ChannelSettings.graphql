@@ -8,16 +8,19 @@ query ChannelSettings($channelId: Int!, $userId: Int) {
       id
       name
       avatar
+      rank
     }
     admins {
       id
       name
       avatar
+      rank
     }
     members {
       id
       name
       avatar
+      rank
     }
     banned {
       id

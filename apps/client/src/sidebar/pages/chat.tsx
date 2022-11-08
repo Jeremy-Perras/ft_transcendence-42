@@ -145,7 +145,7 @@ const DirectConversation = () => {
       <div className="absolute bottom-0 h-16 w-full border-t-2 bg-slate-50 p-2">
         <textarea
           rows={1}
-          className="h-10 w-11/12 overflow-visible rounded-lg px-3 pt-2"
+          className="h-10 w-11/12 resize-none overflow-visible rounded-lg px-3 pt-2"
           onChange={(e) => setContent(e.target.value)}
           placeholder={`${
             infoSpeak?.blocking == true
