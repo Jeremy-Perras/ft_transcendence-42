@@ -1,7 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { useMediaQuery } from "@react-hookz/web";
-import { SideBarContext } from "./context";
 import { SidebarLayout } from "./layout";
 import { motion, useAnimationControls } from "framer-motion";
 import { ReactComponent as BackBurgerIcon } from "pixelarticons/svg/backburger.svg";
@@ -13,15 +12,10 @@ import Channel from "./pages/channel";
 import Chat from "./pages/chat";
 import CurrentUserProfile from "./pages/currentUserProfile";
 import Profile, { loader } from "./pages/profile";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 1000 * 10,
-    },
-  },
-});
+import { QueryClientProvider } from "@tanstack/react-query";
+import queryClient from "../query";
+import { ErrorBoundary } from "react-error-boundary";
+import { useSidebarStore } from "../stores";
 
 const router = createMemoryRouter([
   {
@@ -65,14 +59,25 @@ const router = createMemoryRouter([
 ]);
 
 export default function SideBar() {
+  const sidebarIsOpen = useSidebarStore((state) => state.isOpen);
+  const closeSidebar = useSidebarStore((state) => state.close);
+  const openSidebar = useSidebarStore((state) => state.open);
+
+  const newMessage = false; // use react query to get this
+
   const isSmallScreen = useMediaQuery("(max-width: 1536px)");
-  const [newMessage, setNewMessage] = useState(false);
-  const [showSideBar, setShowSideBar] = useState(true); // TODO: set to false
   const controls = useAnimationControls();
 
   useEffect(() => {
     if (typeof isSmallScreen !== "undefined") {
-      // setShowSideBar(!isSmallScreen);
+      switch (isSmallScreen) {
+        case true:
+          closeSidebar();
+          break;
+        case false:
+          openSidebar();
+          break;
+      }
     }
   }, [isSmallScreen]);
 
@@ -82,7 +87,7 @@ export default function SideBar() {
       ease: "easeIn",
     };
     (async () => {
-      switch (showSideBar) {
+      switch (sidebarIsOpen) {
         case true:
           await controls.set({ visibility: "visible" });
           controls.start({ x: 0, transition });
@@ -93,55 +98,57 @@ export default function SideBar() {
           break;
       }
     })();
-  }, [showSideBar]);
+  }, [sidebarIsOpen]);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <div className="shrink-0 font-cursive">
-        {!showSideBar && isSmallScreen ? (
-          <button
-            onClick={() =>
-              setTimeout(() => {
-                setShowSideBar(true);
-              }, 1)
-            }
-            className="absolute top-1 right-2 z-10"
-          >
-            <BackBurgerIcon className="w-8 text-slate-50 sm:w-9" />
-            {newMessage ? (
-              <span className="absolute top-0 right-0 flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping bg-red-400 opacity-75"></span>
-                <span className="relative inline-flex h-2 w-2 bg-red-500"></span>
-              </span>
-            ) : null}
-          </button>
-        ) : null}
-        <Dialog.Root open={showSideBar} modal={false}>
-          <Dialog.Content
-            forceMount
-            asChild
-            onEscapeKeyDown={(e) => {
-              e.preventDefault();
-              if (isSmallScreen) {
-                setShowSideBar(false);
+    <ErrorBoundary FallbackComponent={() => <div>error</div>}>
+      <QueryClientProvider client={queryClient}>
+        <div className="z-10 shrink-0 font-cursive">
+          {!sidebarIsOpen && isSmallScreen ? (
+            <button
+              onClick={() =>
+                setTimeout(() => {
+                  openSidebar();
+                }, 1)
               }
-            }}
-            onInteractOutside={(e) => {
-              e.preventDefault();
-              if (isSmallScreen) {
-                setShowSideBar(false);
-              }
-            }}
-            className="invisible absolute right-0 flex h-screen w-full flex-col bg-slate-50 shadow-2xl shadow-black sm:w-128 2xl:relative"
-          >
-            <motion.div animate={controls}>
-              <SideBarContext.Provider value={setShowSideBar}>
+              className="absolute top-1 right-2 z-10"
+            >
+              <BackBurgerIcon className="w-8 text-slate-50 sm:w-9" />
+              {newMessage ? (
+                <span className="absolute top-0 right-0 flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping bg-red-400 opacity-75"></span>
+                  <span className="relative inline-flex h-2 w-2 bg-red-500"></span>
+                </span>
+              ) : null}
+            </button>
+          ) : null}
+          <Dialog.Root open={sidebarIsOpen} modal={false}>
+            <Dialog.Content
+              forceMount
+              asChild
+              onEscapeKeyDown={(e) => {
+                e.preventDefault();
+                if (isSmallScreen) {
+                  closeSidebar();
+                }
+              }}
+              onInteractOutside={(e) => {
+                e.preventDefault();
+                if (isSmallScreen) {
+                  closeSidebar();
+                }
+              }}
+              className={`invisible absolute right-0 flex h-screen w-full flex-col bg-slate-50  sm:w-128 2xl:relative ${
+                isSmallScreen ? "shadow-2xl shadow-black" : null
+              }`}
+            >
+              <motion.div animate={controls}>
                 <RouterProvider router={router} />
-              </SideBarContext.Provider>
-            </motion.div>
-          </Dialog.Content>
-        </Dialog.Root>
-      </div>
-    </QueryClientProvider>
+              </motion.div>
+            </Dialog.Content>
+          </Dialog.Root>
+        </div>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }

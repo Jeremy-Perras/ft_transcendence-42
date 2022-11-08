@@ -1,3 +1,4 @@
+import { UseGuards } from "@nestjs/common";
 import {
   Args,
   Int,
@@ -8,6 +9,7 @@ import {
   Root,
 } from "@nestjs/graphql";
 import { GameMode, Prisma, User } from "@prisma/client";
+import { GqlAuthenticatedGuard } from "../auth/authenticated.guard";
 import { CurrentUser } from "../auth/currentUser.decorator";
 import { PrismaService } from "../prisma/prisma.service";
 import { userType } from "../user/user.resolver";
@@ -15,6 +17,7 @@ import { Game } from "./game.model";
 
 export type gameType = Omit<Game, "player1" | "player2">;
 @Resolver(Game)
+@UseGuards(GqlAuthenticatedGuard)
 export class GameResolver {
   constructor(private prisma: PrismaService) {}
 
@@ -157,13 +160,13 @@ export class GameResolver {
   async createGame(
     @Args("mode", { type: () => Int }) mode: number,
     @Args("player2Id", { type: () => Int, nullable: true }) player2Id: number,
-    @CurrentUser() me: User
+    @CurrentUser() currentUserId: number
   ): Promise<gameType> {
     const m = await this.prisma.game.create({
       data: {
         player1Score: 0,
         player2Score: 0,
-        player1Id: me.id,
+        player1Id: currentUserId,
         gameModeId: mode,
         player2Id: player2Id ? player2Id : undefined,
       },
@@ -185,7 +188,7 @@ export class GameResolver {
 
   @Mutation((returns) => Game)
   async updateGame(
-    @CurrentUser() me: User,
+    @CurrentUser() currentUserId: number,
     @Args("id", { type: () => Int })
     id: number
   ): Promise<gameType> {
@@ -202,7 +205,7 @@ export class GameResolver {
       where: {
         id: id,
       },
-      data: { startedAt: new Date(), player2Id: me.id },
+      data: { startedAt: new Date(), player2Id: currentUserId },
     });
 
     return {

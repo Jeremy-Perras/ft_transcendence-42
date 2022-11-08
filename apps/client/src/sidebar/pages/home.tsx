@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import { useNavigate } from "react-router-dom";
 import * as Avatar from "@radix-ui/react-avatar";
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
@@ -13,7 +12,6 @@ import {
 } from "../../graphql/generated";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
 
 export function getDate(time: number) {
   const date = new Date(time);

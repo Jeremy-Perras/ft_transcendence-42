@@ -18,7 +18,7 @@ const config: CodegenConfig = {
         exposeQueryKeys: true,
         exposeFetcher: true,
         fetcher: {
-          endpoint: "http://localhost:3000/graphql",
+          endpoint: "http://localhost:5173/graphql",
           fetchParams: {
             headers: {
               "Content-Type": "application/json",

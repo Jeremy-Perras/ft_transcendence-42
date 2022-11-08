@@ -4,8 +4,9 @@ import Home from "./pages/home";
 import Waiting from "./pages/waiting";
 import ModeSelection from "./pages/modeSelection";
 import Game from "./pages/game";
-
 import LogoImage from "../assets/images/logo.svg";
+import { useAuthStore } from "../stores";
+import { useState } from "react";
 
 const LogoLayout = ({ children }: { children: JSX.Element }) => {
   return (
@@ -48,11 +49,46 @@ const router = createBrowserRouter([
   },
 ]);
 
-export default function Main() {
+const LoginTest = () => {
+  const [userId, setUserId] = useState<number>();
+  const login = useAuthStore((state) => state.login);
+
   return (
-    <div className="shrink grow bg-black">
+    <>
+      <input
+        type="text"
+        onChange={(e) => {
+          setUserId(+e.currentTarget.value);
+        }}
+      />
+      <button
+        className="text-white"
+        onClick={async () => {
+          await fetch("/auth/login", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              id: userId,
+            }),
+          });
+          login();
+        }}
+      >
+        log
+      </button>
+    </>
+  );
+};
+
+export default function Main() {
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+
+  return (
+    <div className="crt shrink grow bg-black">
+      {isLoggedIn ? <RouterProvider router={router} /> : <Home />}
       {/* <div className="absolute z-10 h-full w-full backdrop-blur"></div> */}
-      <RouterProvider router={router} />
     </div>
   );
 }

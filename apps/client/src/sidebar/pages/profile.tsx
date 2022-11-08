@@ -4,7 +4,7 @@ import {
   useQueryClient,
   UseQueryOptions,
 } from "@tanstack/react-query";
-import { useLoaderData, useParams } from "react-router-dom";
+import { Params, useLoaderData, useParams } from "react-router-dom";
 import {
   useUserProfileQuery,
   UserProfileQuery,
@@ -26,9 +26,11 @@ const query = (
 
 export const loader =
   (queryClient: QueryClient) =>
-  ({ params }: { params: { userId: string } }) => {
-    const userId = +params.userId;
-    return queryClient.fetchQuery(query(userId));
+  async ({ params }: { params: Params<"userId"> }) => {
+    if (params.userId) {
+      const userId = +params.userId;
+      return queryClient.fetchQuery(query(userId));
+    }
   };
 
 const Friend = ({

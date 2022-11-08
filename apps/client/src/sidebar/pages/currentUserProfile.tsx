@@ -1,4 +1,3 @@
-import { useParams } from "react-router-dom";
 import { useUserProfileQuery } from "../../graphql/generated";
 
 export default function CurrentUserProfile() {
