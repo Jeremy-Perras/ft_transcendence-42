@@ -4,11 +4,15 @@ import {
   useQueryClient,
   UseQueryOptions,
 } from "@tanstack/react-query";
+import { useState } from "react";
 import { useLoaderData, useParams } from "react-router-dom";
 import {
   useUserProfileQuery,
   UserProfileQuery,
   useBlockSomeoneMutation,
+  useUnblockingUserMutation,
+  useUpdateFriendMutation,
+  useUpdateUnFriendMutation,
 } from "../../graphql/generated";
 
 const query = (
@@ -27,21 +31,69 @@ export const loader =
     return queryClient.fetchQuery(query(userId));
   };
 
-//TODO : object destructuring
-const DisplayUserProfile = () => {
+const Friend = ({
+  data,
+  userId,
+}: {
+  data: UserProfileQuery;
+  userId: number;
+}) => {
   const queryClient = useQueryClient();
-  const params = useParams();
-  if (typeof params.userId === "undefined") return <div></div>;
-  const userId = +params.userId;
-  const blockMutation = useBlockSomeoneMutation({
+  const askFriend = useUpdateFriendMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries(useUserProfileQuery.getKey({ userId }));
+      queryClient.invalidateQueries([]);
     },
   });
-  const initialData = useLoaderData() as Awaited<
-    ReturnType<ReturnType<typeof loader>>
-  >;
-  const { data } = useQuery({ ...query(userId), initialData });
+
+  return (
+    <div className="mt-4 flex w-full flex-col ">
+      <div className="flex flex-col items-center justify-center p-2 ">
+        <img
+          src={data?.user.avatar}
+          alt="Player avatar"
+          className="h-24 rounded-full"
+        />
+        <div className="m-2 flex flex-col text-center">
+          <div className="text-xl font-bold">{data?.user.name}</div>
+          <div>Rank : {data?.user.rank}</div>
+        </div>
+        <span
+          onClick={() => {
+            askFriend.mutate({ updateFriendId: userId });
+          }}
+          className=" mt-4 flex  w-24 justify-center  rounded-xl border-2  border-slate-200 bg-slate-100 p-2 text-center text-xl  font-bold hover:bg-slate-200"
+        >
+          Friend
+        </span>
+      </div>
+    </div>
+  );
+};
+
+//TODO : object destructuring
+const DisplayUserProfile = ({
+  data,
+  userId,
+}: {
+  data: UserProfileQuery;
+  userId: number;
+}) => {
+  const queryClient = useQueryClient();
+  const unFriend = useUpdateUnFriendMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries([]);
+    },
+  });
+  const blockMutation = useBlockSomeoneMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries([]);
+    },
+  });
+  const unblockMutation = useUnblockingUserMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries([]);
+    },
+  });
 
   return (
     <div className="mt-4 flex w-full flex-col ">
@@ -58,14 +110,27 @@ const DisplayUserProfile = () => {
       </div>
 
       <div className="mt-4 flex justify-evenly text-xl font-bold">
-        <div className="w-24 rounded-xl  border-2 border-slate-200 bg-slate-100 p-2 text-center hover:border-slate-300 hover:bg-slate-200 ">
-          Chat
+        <div
+          onClick={() => {
+            unFriend.mutate({ updateUnFriendId: userId });
+          }}
+          className="w-24 rounded-xl  border-2 border-slate-200 bg-slate-100 p-2 text-center hover:border-slate-300 hover:bg-slate-200 "
+        >
+          Unfriend
         </div>
         <div
-          onClick={() => blockMutation.mutate({ blockingUserId: userId })}
-          className=" w-24 rounded-xl border-2  border-slate-200 bg-slate-100 p-2 text-center align-middle hover:border-slate-300 hover:bg-slate-200 "
+          onClick={() => {
+            data?.user.blocked
+              ? unblockMutation.mutate({ unblockingUserId: userId })
+              : blockMutation.mutate({ blockingUserId: userId });
+          }}
+          className={`${
+            data.user.blocked
+              ? "bg-green-100 hover:bg-green-200"
+              : "bg-red-100 hover:bg-red-200"
+          } flex w-24 justify-center  rounded-xl  border-2 border-slate-200 p-2 text-center`}
         >
-          {data?.user.blocked ? "Blocked" : "Block"}
+          {data?.user.blocked ? "Unblocked" : "Block"}
         </div>
       </div>
       <div className="flex w-full flex-col  text-sm">
@@ -118,6 +183,23 @@ const DisplayUserProfile = () => {
   );
 };
 
+const MyData = () => {
+  const { data } = useUserProfileQuery();
+  return data;
+};
+
 export default function Profile() {
-  return <DisplayUserProfile />;
+  const params = useParams();
+  if (typeof params.userId === "undefined") return <div></div>;
+  const userId = +params.userId;
+  const initialData = useLoaderData() as Awaited<
+    ReturnType<ReturnType<typeof loader>>
+  >;
+  const { data } = useQuery({ ...query(userId), initialData });
+  const myData = MyData();
+  return myData?.user.friends.some((friend) => friend.id == userId) ? (
+    <DisplayUserProfile data={data} userId={userId} />
+  ) : (
+    <Friend data={data} userId={userId} />
+  );
 }

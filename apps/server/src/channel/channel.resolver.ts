@@ -386,7 +386,6 @@ export class ChannelResolver {
       where: { channelId_userId: { channelId: channelId, userId: userId } },
       data: { endAt: date },
     });
-    console.log(m);
     return {
       id: m.channel.id,
       name: m.channel.name,

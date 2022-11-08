@@ -47,7 +47,6 @@ export default function ChannelSettings() {
           onClick={
             owner
               ? () => {
-                  console.log("Change mode");
                   // mutation
                 }
               : () => {
@@ -70,7 +69,6 @@ export default function ChannelSettings() {
           onClick={
             owner
               ? () => {
-                  console.log("Change mode");
                   // mutation
                 }
               : () => {
@@ -93,7 +91,6 @@ export default function ChannelSettings() {
           onClick={
             owner
               ? () => {
-                  console.log("Change mode");
                   // mutation
                 }
               : () => {
@@ -123,9 +120,7 @@ export default function ChannelSettings() {
       {owner ? (
         <div
           className="w-24 rounded-md bg-red-300 text-center hover:cursor-pointer hover:bg-red-400"
-          onClick={() => {
-            console.log("Delete channel");
-          }}
+          onClick={() => {}}
           // TODO : mutation to delete channel
         >
           Delete

@@ -144,7 +144,6 @@ export class UserResolver {
         AND: conditions,
       },
     });
-    console.log(games);
     return games.map((game) => ({
       id: game.id,
       gamemode: game.mode.name,
@@ -267,6 +266,7 @@ export class UserResolver {
           }))
       : [];
   }
+
   @Mutation((returns) => User)
   async blockingUser(
     @CurrentUser() me: User,
@@ -314,6 +314,57 @@ export class UserResolver {
       data: {
         blockedBy: {
           connect: {
+            id: id,
+          },
+        },
+      },
+    });
+    return { avatar: m.avatar, id: m.id, name: m.name, rank: m.rank };
+  }
+
+  @Mutation((returns) => User)
+  async unblockingUser(
+    @CurrentUser() me: User,
+    @Args("id", { type: () => Int }) id: number
+  ): Promise<userType> {
+    const m = await this.prisma.user.update({
+      select: {
+        avatar: true,
+        id: true,
+        name: true,
+        rank: true,
+        blockedBy: true,
+      },
+      where: {
+        id: me.id,
+      },
+      data: {
+        blocking: { disconnect: { id: id } },
+      },
+    });
+    this.unblockedBy(me.id, id);
+    return { avatar: m.avatar, id: m.id, name: m.name, rank: m.rank };
+  }
+
+  @Mutation((returns) => User)
+  async unblockedBy(
+    @Args("id", { type: () => Int }) id: number,
+    @Args("myId", { type: () => Int }) myId: number
+  ): Promise<userType> {
+    const m = await this.prisma.user.update({
+      select: {
+        avatar: true,
+        id: true,
+        name: true,
+        rank: true,
+        blockedBy: true,
+      },
+      where: {
+        id: myId,
+      },
+      data: {
+        blockedBy: {
+          disconnect: {
             id: id,
           },
         },
@@ -412,6 +463,53 @@ export class UserResolver {
       },
       data: {
         friendedBy: { connect: { id: meId } },
+      },
+    });
+
+    return { avatar: m.avatar, id: m.id, name: m.name, rank: m.rank };
+  }
+
+  @Mutation((returns) => User)
+  async updateUnFriend(
+    @CurrentUser() me: User,
+    @Args("id", { type: () => Int }) id: number
+  ): Promise<userType> {
+    const m = await this.prisma.user.update({
+      select: {
+        avatar: true,
+        id: true,
+        name: true,
+        rank: true,
+        blockedBy: true,
+      },
+      where: {
+        id: me.id,
+      },
+      data: {
+        friends: { disconnect: { id: id } },
+      },
+    });
+    this.updateUnFriendBy(me.id, id);
+    return { avatar: m.avatar, id: m.id, name: m.name, rank: m.rank };
+  }
+  @Mutation((returns) => User)
+  async updateUnFriendBy(
+    @Args("meId", { type: () => Int }) meId: number,
+    @Args("id", { type: () => Int }) id: number
+  ): Promise<userType> {
+    const m = await this.prisma.user.update({
+      select: {
+        avatar: true,
+        id: true,
+        name: true,
+        rank: true,
+        blockedBy: true,
+      },
+      where: {
+        id: id,
+      },
+      data: {
+        friendedBy: { disconnect: { id: meId } },
       },
     });
 

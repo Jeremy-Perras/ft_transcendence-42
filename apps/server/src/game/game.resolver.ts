@@ -105,7 +105,6 @@ export class GameResolver {
         AND: conditions,
       },
     });
-    console.log(games);
     return games.map((game) => ({
       id: game.id,
       gamemode: game.mode.name,
@@ -142,7 +141,6 @@ export class GameResolver {
         id: game.id,
       },
     });
-    console.log(u);
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     u = u!;
     return u.player2
