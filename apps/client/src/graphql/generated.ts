@@ -111,6 +111,8 @@ export type Mutation = {
   deleteDirectMessageContent: DirectMessage;
   sendChanelMessage: ChannelMessage;
   sendDirectMessage: DirectMessage;
+  unblockedBy: User;
+  unblockingUser: User;
   updateAdmins: Channel;
   updateBanned: Channel;
   updateFriend: User;
@@ -118,6 +120,8 @@ export type Mutation = {
   updateGame: Game;
   updateMuted: Channel;
   updatePassword: Channel;
+  updateUnFriend: User;
+  updateUnFriendBy: User;
   userAvatar: User;
   userName: User;
 };
@@ -181,6 +185,15 @@ export type MutationSendDirectMessageArgs = {
   recipientId: Scalars["Int"];
 };
 
+export type MutationUnblockedByArgs = {
+  id: Scalars["Int"];
+  myId: Scalars["Int"];
+};
+
+export type MutationUnblockingUserArgs = {
+  id: Scalars["Int"];
+};
+
 export type MutationUpdateAdminsArgs = {
   id: Scalars["Int"];
   userId: Scalars["Int"];
@@ -214,6 +227,15 @@ export type MutationUpdateMutedArgs = {
 export type MutationUpdatePasswordArgs = {
   idchannel: Scalars["Int"];
   password?: InputMaybe<Scalars["String"]>;
+};
+
+export type MutationUpdateUnFriendArgs = {
+  id: Scalars["Int"];
+};
+
+export type MutationUpdateUnFriendByArgs = {
+  id: Scalars["Int"];
+  meId: Scalars["Int"];
 };
 
 export type MutationUserAvatarArgs = {
@@ -713,6 +735,20 @@ export type SendDirectMessageMutation = {
   sendDirectMessage: { __typename?: "DirectMessage"; id: number };
 };
 
+export type UnblockingUserMutationVariables = Exact<{
+  unblockingUserId: Scalars["Int"];
+}>;
+
+export type UnblockingUserMutation = {
+  __typename?: "Mutation";
+  unblockingUser: {
+    __typename?: "User";
+    avatar: string;
+    rank: number;
+    name: string;
+  };
+};
+
 export type UpdateDateBannedMutationVariables = Exact<{
   channelId: Scalars["Int"];
   userId: Scalars["Int"];
@@ -733,6 +769,21 @@ export type UpdateDateMutedMutationVariables = Exact<{
 export type UpdateDateMutedMutation = {
   __typename?: "Mutation";
   updateMuted: { __typename?: "Channel"; id: number; name: string };
+};
+
+export type UpdateFriendMutationVariables = Exact<{
+  updateFriendId: Scalars["Int"];
+}>;
+
+export type UpdateFriendMutation = {
+  __typename?: "Mutation";
+  updateFriend: {
+    __typename?: "User";
+    id: number;
+    name: string;
+    rank: number;
+    avatar: string;
+  };
 };
 
 export type UpdateGameJoiningPlayerMutationVariables = Exact<{
@@ -763,6 +814,21 @@ export type UpdateGameJoiningPlayerMutation = {
       avatar: string;
       rank: number;
     };
+  };
+};
+
+export type UpdateUnFriendMutationVariables = Exact<{
+  updateUnFriendId: Scalars["Int"];
+}>;
+
+export type UpdateUnFriendMutation = {
+  __typename?: "Mutation";
+  updateUnFriend: {
+    __typename?: "User";
+    avatar: string;
+    id: number;
+    name: string;
+    rank: number;
   };
 };
 
@@ -957,7 +1023,6 @@ export const useGetChannelHeaderQuery = <
     ),
     options
   );
-<<<<<<< HEAD
 
 useGetChannelHeaderQuery.getKey = (
   variables: GetChannelHeaderQueryVariables
@@ -969,8 +1034,6 @@ useGetChannelHeaderQuery.fetcher = (
     GetChannelHeaderDocument,
     variables
   );
-=======
->>>>>>> 1734d5f62da40fe45ea91f5c591c152e271a5fde
 export const ChannelSettingsDocument = `
     query ChannelSettings($channelId: Int!, $userId: Int) {
   channel(id: $channelId) {
@@ -1022,7 +1085,6 @@ export const useChannelSettingsQuery = <
     ),
     options
   );
-<<<<<<< HEAD
 
 useChannelSettingsQuery.getKey = (variables: ChannelSettingsQueryVariables) => [
   "ChannelSettings",
@@ -1033,8 +1095,6 @@ useChannelSettingsQuery.fetcher = (variables: ChannelSettingsQueryVariables) =>
     ChannelSettingsDocument,
     variables
   );
-=======
->>>>>>> 1734d5f62da40fe45ea91f5c591c152e271a5fde
 export const CreateChanelDocument = `
     mutation CreateChanel($inviteOnly: Boolean!, $password: String!, $name: String!) {
   createChanel(inviteOnly: $inviteOnly, password: $password, name: $name) {
@@ -1755,6 +1815,44 @@ useSendDirectMessageMutation.fetcher = (
     SendDirectMessageDocument,
     variables
   );
+export const UnblockingUserDocument = `
+    mutation UnblockingUser($unblockingUserId: Int!) {
+  unblockingUser(id: $unblockingUserId) {
+    avatar
+    rank
+    name
+  }
+}
+    `;
+export const useUnblockingUserMutation = <TError = unknown, TContext = unknown>(
+  options?: UseMutationOptions<
+    UnblockingUserMutation,
+    TError,
+    UnblockingUserMutationVariables,
+    TContext
+  >
+) =>
+  useMutation<
+    UnblockingUserMutation,
+    TError,
+    UnblockingUserMutationVariables,
+    TContext
+  >(
+    ["UnblockingUser"],
+    (variables?: UnblockingUserMutationVariables) =>
+      fetcher<UnblockingUserMutation, UnblockingUserMutationVariables>(
+        UnblockingUserDocument,
+        variables
+      )(),
+    options
+  );
+useUnblockingUserMutation.fetcher = (
+  variables: UnblockingUserMutationVariables
+) =>
+  fetcher<UnblockingUserMutation, UnblockingUserMutationVariables>(
+    UnblockingUserDocument,
+    variables
+  );
 export const UpdateDateBannedDocument = `
     mutation UpdateDateBanned($channelId: Int!, $userId: Int!, $date: String) {
   updateBanned(channelId: $channelId, userId: $userId, date: $date) {
@@ -1835,6 +1933,43 @@ useUpdateDateMutedMutation.fetcher = (
     UpdateDateMutedDocument,
     variables
   );
+export const UpdateFriendDocument = `
+    mutation UpdateFriend($updateFriendId: Int!) {
+  updateFriend(id: $updateFriendId) {
+    id
+    name
+    rank
+    avatar
+  }
+}
+    `;
+export const useUpdateFriendMutation = <TError = unknown, TContext = unknown>(
+  options?: UseMutationOptions<
+    UpdateFriendMutation,
+    TError,
+    UpdateFriendMutationVariables,
+    TContext
+  >
+) =>
+  useMutation<
+    UpdateFriendMutation,
+    TError,
+    UpdateFriendMutationVariables,
+    TContext
+  >(
+    ["UpdateFriend"],
+    (variables?: UpdateFriendMutationVariables) =>
+      fetcher<UpdateFriendMutation, UpdateFriendMutationVariables>(
+        UpdateFriendDocument,
+        variables
+      )(),
+    options
+  );
+useUpdateFriendMutation.fetcher = (variables: UpdateFriendMutationVariables) =>
+  fetcher<UpdateFriendMutation, UpdateFriendMutationVariables>(
+    UpdateFriendDocument,
+    variables
+  );
 export const UpdateGameJoiningPlayerDocument = `
     mutation UpdateGameJoiningPlayer($updateGameId: Int!) {
   updateGame(id: $updateGameId) {
@@ -1891,6 +2026,45 @@ useUpdateGameJoiningPlayerMutation.fetcher = (
     UpdateGameJoiningPlayerMutation,
     UpdateGameJoiningPlayerMutationVariables
   >(UpdateGameJoiningPlayerDocument, variables);
+export const UpdateUnFriendDocument = `
+    mutation UpdateUnFriend($updateUnFriendId: Int!) {
+  updateUnFriend(id: $updateUnFriendId) {
+    avatar
+    id
+    name
+    rank
+  }
+}
+    `;
+export const useUpdateUnFriendMutation = <TError = unknown, TContext = unknown>(
+  options?: UseMutationOptions<
+    UpdateUnFriendMutation,
+    TError,
+    UpdateUnFriendMutationVariables,
+    TContext
+  >
+) =>
+  useMutation<
+    UpdateUnFriendMutation,
+    TError,
+    UpdateUnFriendMutationVariables,
+    TContext
+  >(
+    ["UpdateUnFriend"],
+    (variables?: UpdateUnFriendMutationVariables) =>
+      fetcher<UpdateUnFriendMutation, UpdateUnFriendMutationVariables>(
+        UpdateUnFriendDocument,
+        variables
+      )(),
+    options
+  );
+useUpdateUnFriendMutation.fetcher = (
+  variables: UpdateUnFriendMutationVariables
+) =>
+  fetcher<UpdateUnFriendMutation, UpdateUnFriendMutationVariables>(
+    UpdateUnFriendDocument,
+    variables
+  );
 export const UserProfileDocument = `
     query UserProfile($userId: Int) {
   user(id: $userId) {
