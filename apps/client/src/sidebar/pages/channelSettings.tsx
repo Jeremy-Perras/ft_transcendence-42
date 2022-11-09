@@ -1,10 +1,5 @@
 import { useNavigate, useParams } from "react-router-dom";
-import {
-  useChannelSettingsQuery,
-  useDeleteChannelMessageContentMutation,
-  useDeleteChannelMutation,
-  useUpdateAdminsMutation,
-} from "../../graphql/generated";
+import { useChannelSettingsQuery } from "../../graphql/generated";
 import { ReactComponent as UsersIcon } from "pixelarticons/svg/users.svg";
 import { ReactComponent as TrashIcon } from "pixelarticons/svg/trash.svg";
 import { ReactComponent as MuteIcon } from "pixelarticons/svg/volume-x.svg";
@@ -14,7 +9,6 @@ import { ReactComponent as AddMemberIcon } from "pixelarticons/svg/user-plus.svg
 import { ReactComponent as BanIcon } from "pixelarticons/svg/user-x.svg";
 import { ReactComponent as AdminIcon } from "pixelarticons/svg/briefcase-plus.svg";
 import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 
 const ChannelTypeButton = ({
   text,
@@ -81,8 +75,6 @@ const UserBanner = ({
   const [showInfoBan, setShowInfoBan] = useState(false); //DON'T TOUCH
   const [showTimeMute, setShowTimeMute] = useState(false); //DON'T TOUCH
   const [showTimeBan, setShowTimeBan] = useState(false); //DON'T TOUCH
-  const queryClient = useQueryClient();
-
   return (
     <>
       <div className="flex h-full w-full shrink-0 items-end justify-center pr-2 transition-all hover:bg-slate-100 hover:shadow-sm">
@@ -310,15 +302,6 @@ const UserBanner = ({
 //TODO : object destructuring
 export default function ChannelSettings() {
   const params = useParams();
-  const queryClient = useQueryClient();
-  const updateDeleteChannel = useDeleteChannelMutation({
-    onSuccess: () => {
-      queryClient.invalidateQueries([
-        "ChannelSettings",
-        { userId: null, channelId: channelId },
-      ]);
-    },
-  });
   if (typeof params.channelId === "undefined") return <div></div>;
   const channelId = +params.channelId;
   const { isLoading, data, error, isFetching } = useChannelSettingsQuery({
@@ -335,6 +318,7 @@ export default function ChannelSettings() {
     return <div>Error</div>;
   }
   const owner = data?.user.id === data?.channel.owner.id ? true : false;
+
   return (
     <div className="flex w-full flex-col ">
       <div className="relative flex flex-col justify-center bg-slate-200">
@@ -342,8 +326,8 @@ export default function ChannelSettings() {
           <div
             className="absolute right-1 top-1 flex w-fit justify-center self-center rounded-md p-3 text-center text-lg text-slate-500 hover:cursor-pointer hover:text-slate-700"
             onClick={() => {
-              updateDeleteChannel.mutate({ channelId: channelId });
               alert("Delete the channel ?"); //replace with confirmation ?
+              console.log("Delete channel"); // TODO : MUTATION
             }}
           >
             <TrashIcon className="w-8 -translate-y-0.5" />
@@ -354,51 +338,9 @@ export default function ChannelSettings() {
         <div className="mt-4 flex h-24 w-24 justify-center self-center rounded-full  bg-black text-white">
           <UsersIcon className="mt-1 h-20 w-20 self-center" />
         </div>
-        <div
-          className={`${
-            data?.channel.private
-              ? `border-slate-300 bg-slate-200 text-lg font-bold text-black ${
-                  owner ? "hover:cursor-pointer hover:bg-slate-300" : ""
-                }`
-              : `border-slate-200 bg-slate-50 text-slate-400 ${
-                  owner ? "hover:cursor-pointer hover:bg-slate-200" : ""
-                }`
-          } flex h-24 w-24 items-center justify-center rounded-full border-2 text-center`}
-          onClick={
-            owner
-              ? () => {
-                  // mutation
-                }
-              : () => {
-                  return null;
-                }
-          }
-        >
-          Private
+        <div className="mt-2 mb-4 w-full text-center text-2xl font-bold">
+          {data?.channel.name}
         </div>
-        <div
-          className={`${
-            data?.channel.passwordProtected
-              ? `border-slate-300 bg-slate-200 text-lg font-bold text-black ${
-                  owner ? "hover:cursor-pointer hover:bg-slate-300" : ""
-                }`
-              : `border-slate-200 bg-slate-50 text-slate-400 ${
-                  owner ? "hover:cursor-pointer hover:bg-slate-200" : ""
-                }`
-          } flex h-24 w-24 items-center justify-center rounded-full border-2 text-center `}
-          onClick={
-            owner
-              ? () => {
-                  // mutation
-                }
-              : () => {
-                  return null;
-                }
-          }
-        >
-          Password protected
-        </div>
-        {/* TODO : ACTIVE ON CLICK + MUTATION IF OWNER */}
       </div>
       <div className="my-10 flex justify-evenly">
         <ChannelTypeButton
