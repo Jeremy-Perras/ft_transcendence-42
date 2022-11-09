@@ -106,9 +106,11 @@ export type Mutation = {
   createChannelMessageRead: ChannelMessageRead;
   createGame: Game;
   createMuted: RestrictedMember;
+  deleteBanned: RestrictedMember;
   deleteChannel: Channel;
   deleteChannelMessageContent: ChannelMessage;
   deleteDirectMessageContent: DirectMessage;
+  deleteMuted: RestrictedMember;
   sendChanelMessage: ChannelMessage;
   sendDirectMessage: DirectMessage;
   unblockedBy: User;
@@ -137,7 +139,7 @@ export type MutationBlockingUserArgs = {
 
 export type MutationCreateBannedArgs = {
   channelId: Scalars["Int"];
-  date?: InputMaybe<Scalars["String"]>;
+  date?: InputMaybe<Scalars["Timestamp"]>;
   id: Scalars["Int"];
 };
 
@@ -159,8 +161,13 @@ export type MutationCreateGameArgs = {
 
 export type MutationCreateMutedArgs = {
   channelId: Scalars["Int"];
-  date?: InputMaybe<Scalars["String"]>;
+  date?: InputMaybe<Scalars["Timestamp"]>;
   id: Scalars["Int"];
+};
+
+export type MutationDeleteBannedArgs = {
+  channel: Scalars["Int"];
+  userId: Scalars["Int"];
 };
 
 export type MutationDeleteChannelArgs = {
@@ -173,6 +180,11 @@ export type MutationDeleteChannelMessageContentArgs = {
 
 export type MutationDeleteDirectMessageContentArgs = {
   messageId: Scalars["Int"];
+};
+
+export type MutationDeleteMutedArgs = {
+  channel: Scalars["Int"];
+  userId: Scalars["Int"];
 };
 
 export type MutationSendChanelMessageArgs = {
@@ -201,7 +213,7 @@ export type MutationUpdateAdminsArgs = {
 
 export type MutationUpdateBannedArgs = {
   channelId: Scalars["Int"];
-  date?: InputMaybe<Scalars["String"]>;
+  date?: InputMaybe<Scalars["Timestamp"]>;
   userId: Scalars["Int"];
 };
 
@@ -220,7 +232,7 @@ export type MutationUpdateGameArgs = {
 
 export type MutationUpdateMutedArgs = {
   channelId: Scalars["Int"];
-  date?: InputMaybe<Scalars["String"]>;
+  date?: InputMaybe<Scalars["Timestamp"]>;
   userId: Scalars["Int"];
 };
 
@@ -322,12 +334,12 @@ export type UserGamesArgs = {
 export type BannedSomeoneChannelMutationVariables = Exact<{
   createMutedId: Scalars["Int"];
   channelId: Scalars["Int"];
-  date?: InputMaybe<Scalars["String"]>;
+  date?: InputMaybe<Scalars["Timestamp"]>;
 }>;
 
 export type BannedSomeoneChannelMutation = {
   __typename?: "Mutation";
-  createMuted: {
+  createBanned: {
     __typename?: "RestrictedMember";
     endAt?: number | null;
     id: number;
@@ -480,6 +492,16 @@ export type CreateReadAtMessageByIdMutation = {
   };
 };
 
+export type DeleteBannedMutationVariables = Exact<{
+  channel: Scalars["Int"];
+  userId: Scalars["Int"];
+}>;
+
+export type DeleteBannedMutation = {
+  __typename?: "Mutation";
+  deleteBanned: { __typename?: "RestrictedMember"; id: number; name: string };
+};
+
 export type DeleteChannelMutationVariables = Exact<{
   channelId: Scalars["Int"];
 }>;
@@ -514,6 +536,16 @@ export type DeleteDirectMessageContentMutation = {
     id: number;
     content: string;
   };
+};
+
+export type DeleteMutedMutationVariables = Exact<{
+  channel: Scalars["Int"];
+  userId: Scalars["Int"];
+}>;
+
+export type DeleteMutedMutation = {
+  __typename?: "Mutation";
+  deleteMuted: { __typename?: "RestrictedMember"; id: number; name: string };
 };
 
 export type InfoChannelQueryVariables = Exact<{
@@ -648,7 +680,7 @@ export type InfoUsersQuery = {
 export type MutedSomeoneChannelMutationVariables = Exact<{
   createMutedId: Scalars["Int"];
   channelId: Scalars["Int"];
-  date?: InputMaybe<Scalars["String"]>;
+  date?: InputMaybe<Scalars["Timestamp"]>;
 }>;
 
 export type MutedSomeoneChannelMutation = {
@@ -776,7 +808,7 @@ export type UpdateAdminsMutation = {
 export type UpdateDateBannedMutationVariables = Exact<{
   channelId: Scalars["Int"];
   userId: Scalars["Int"];
-  date?: InputMaybe<Scalars["String"]>;
+  date?: InputMaybe<Scalars["Timestamp"]>;
 }>;
 
 export type UpdateDateBannedMutation = {
@@ -787,7 +819,7 @@ export type UpdateDateBannedMutation = {
 export type UpdateDateMutedMutationVariables = Exact<{
   channelId: Scalars["Int"];
   userId: Scalars["Int"];
-  date?: InputMaybe<Scalars["String"]>;
+  date?: InputMaybe<Scalars["Timestamp"]>;
 }>;
 
 export type UpdateDateMutedMutation = {
@@ -938,8 +970,8 @@ export type WaitingRoomGameQuery = {
 };
 
 export const BannedSomeoneChannelDocument = `
-    mutation BannedSomeoneChannel($createMutedId: Int!, $channelId: Int!, $date: String) {
-  createMuted(id: $createMutedId, channelId: $channelId, date: $date) {
+    mutation BannedSomeoneChannel($createMutedId: Int!, $channelId: Int!, $date: Timestamp) {
+  createBanned(id: $createMutedId, channelId: $channelId, date: $date) {
     endAt
     id
     name
@@ -1254,6 +1286,41 @@ useCreateReadAtMessageByIdMutation.fetcher = (
     CreateReadAtMessageByIdMutation,
     CreateReadAtMessageByIdMutationVariables
   >(CreateReadAtMessageByIdDocument, variables);
+export const DeleteBannedDocument = `
+    mutation DeleteBanned($channel: Int!, $userId: Int!) {
+  deleteBanned(channel: $channel, userId: $userId) {
+    id
+    name
+  }
+}
+    `;
+export const useDeleteBannedMutation = <TError = unknown, TContext = unknown>(
+  options?: UseMutationOptions<
+    DeleteBannedMutation,
+    TError,
+    DeleteBannedMutationVariables,
+    TContext
+  >
+) =>
+  useMutation<
+    DeleteBannedMutation,
+    TError,
+    DeleteBannedMutationVariables,
+    TContext
+  >(
+    ["DeleteBanned"],
+    (variables?: DeleteBannedMutationVariables) =>
+      fetcher<DeleteBannedMutation, DeleteBannedMutationVariables>(
+        DeleteBannedDocument,
+        variables
+      )(),
+    options
+  );
+useDeleteBannedMutation.fetcher = (variables: DeleteBannedMutationVariables) =>
+  fetcher<DeleteBannedMutation, DeleteBannedMutationVariables>(
+    DeleteBannedDocument,
+    variables
+  );
 export const DeleteChannelDocument = `
     mutation DeleteChannel($channelId: Int!) {
   deleteChannel(channelId: $channelId) {
@@ -1372,6 +1439,41 @@ useDeleteDirectMessageContentMutation.fetcher = (
     DeleteDirectMessageContentMutation,
     DeleteDirectMessageContentMutationVariables
   >(DeleteDirectMessageContentDocument, variables);
+export const DeleteMutedDocument = `
+    mutation DeleteMuted($channel: Int!, $userId: Int!) {
+  deleteMuted(channel: $channel, userId: $userId) {
+    id
+    name
+  }
+}
+    `;
+export const useDeleteMutedMutation = <TError = unknown, TContext = unknown>(
+  options?: UseMutationOptions<
+    DeleteMutedMutation,
+    TError,
+    DeleteMutedMutationVariables,
+    TContext
+  >
+) =>
+  useMutation<
+    DeleteMutedMutation,
+    TError,
+    DeleteMutedMutationVariables,
+    TContext
+  >(
+    ["DeleteMuted"],
+    (variables?: DeleteMutedMutationVariables) =>
+      fetcher<DeleteMutedMutation, DeleteMutedMutationVariables>(
+        DeleteMutedDocument,
+        variables
+      )(),
+    options
+  );
+useDeleteMutedMutation.fetcher = (variables: DeleteMutedMutationVariables) =>
+  fetcher<DeleteMutedMutation, DeleteMutedMutationVariables>(
+    DeleteMutedDocument,
+    variables
+  );
 export const InfoChannelDocument = `
     query InfoChannel($channelId: Int!) {
   channel(id: $channelId) {
@@ -1618,7 +1720,7 @@ useInfoUsersQuery.fetcher = (variables?: InfoUsersQueryVariables) =>
     variables
   );
 export const MutedSomeoneChannelDocument = `
-    mutation MutedSomeoneChannel($createMutedId: Int!, $channelId: Int!, $date: String) {
+    mutation MutedSomeoneChannel($createMutedId: Int!, $channelId: Int!, $date: Timestamp) {
   createMuted(id: $createMutedId, channelId: $channelId, date: $date) {
     endAt
     id
@@ -1918,7 +2020,7 @@ useUpdateAdminsMutation.fetcher = (variables: UpdateAdminsMutationVariables) =>
     variables
   );
 export const UpdateDateBannedDocument = `
-    mutation UpdateDateBanned($channelId: Int!, $userId: Int!, $date: String) {
+    mutation UpdateDateBanned($channelId: Int!, $userId: Int!, $date: Timestamp) {
   updateBanned(channelId: $channelId, userId: $userId, date: $date) {
     id
     name
@@ -1958,7 +2060,7 @@ useUpdateDateBannedMutation.fetcher = (
     variables
   );
 export const UpdateDateMutedDocument = `
-    mutation UpdateDateMuted($channelId: Int!, $userId: Int!, $date: String) {
+    mutation UpdateDateMuted($channelId: Int!, $userId: Int!, $date: Timestamp) {
   updateMuted(channelId: $channelId, userId: $userId, date: $date) {
     id
     name

@@ -22,7 +22,7 @@ import {
 // retry
 // route loaders
 
-const SearchBar = ({
+export const SearchBar = ({
   search,
   setSearch,
 }: {

@@ -1,0 +1,6 @@
+mutation DeleteBanned($channel: Int!, $userId: Int!) {
+  deleteBanned(channel: $channel, userId: $userId) {
+    id
+    name
+  }
+}
