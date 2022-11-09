@@ -396,7 +396,7 @@ export class ChannelResolver {
 
   @Mutation((returns) => Channel)
   async updateAdmins(
-    @Args("id", { type: () => Int }) id: number,
+    @Args("channelId", { type: () => Int }) channelId: number,
     @Args("userId", { type: () => Int }) user: number
   ): Promise<channelType> {
     const m = await this.prisma.channel.update({
@@ -407,7 +407,7 @@ export class ChannelResolver {
         password: true,
         inviteOnly: true,
       },
-      where: { id: id },
+      where: { id: channelId },
       data: {
         admins: {
           create: {

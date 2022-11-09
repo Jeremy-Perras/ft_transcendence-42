@@ -1,13 +1,20 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { useChannelSettingsQuery } from "../../graphql/generated";
+import {
+  useChannelSettingsQuery,
+  useDeleteChannelMessageContentMutation,
+  useDeleteChannelMutation,
+  useUpdateAdminsMutation,
+} from "../../graphql/generated";
 import { ReactComponent as UsersIcon } from "pixelarticons/svg/users.svg";
 import { ReactComponent as TrashIcon } from "pixelarticons/svg/trash.svg";
 import { ReactComponent as MuteIcon } from "pixelarticons/svg/volume-x.svg";
 import { ReactComponent as UnmuteIcon } from "pixelarticons/svg/volume.svg";
-import { ReactComponent as UnbanIcon } from "pixelarticons/svg/user-plus.svg";
+import { ReactComponent as UnbanIcon } from "pixelarticons/svg/user.svg";
+import { ReactComponent as AddMemberIcon } from "pixelarticons/svg/user-plus.svg";
 import { ReactComponent as BanIcon } from "pixelarticons/svg/user-x.svg";
 import { ReactComponent as AdminIcon } from "pixelarticons/svg/briefcase-plus.svg";
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 
 const ChannelTypeButton = ({
   text,
@@ -45,6 +52,7 @@ const ChannelTypeButton = ({
   );
 };
 
+//TODO :  simplify this horrific thing
 const UserBanner = ({
   id,
   name,
@@ -68,9 +76,16 @@ const UserBanner = ({
   const [ban, setBan] = useState(banned); //TODO : remove this when mutation ok
   const [adm, setAdm] = useState(admin); //TODO : remove this when mutation ok
   const navigate = useNavigate();
+  const [showInfoAdmin, setShowInfoAdmin] = useState(false); //DON'T TOUCH
+  const [showInfoMute, setShowInfoMute] = useState(false); //DON'T TOUCH
+  const [showInfoBan, setShowInfoBan] = useState(false); //DON'T TOUCH
+  const [showTimeMute, setShowTimeMute] = useState(false); //DON'T TOUCH
+  const [showTimeBan, setShowTimeBan] = useState(false); //DON'T TOUCH
+  const queryClient = useQueryClient();
+
   return (
     <>
-      <div className="flex h-full w-full shrink-0 items-center justify-between transition-all hover:bg-slate-100">
+      <div className="flex h-full w-full shrink-0 items-end justify-center pr-2 transition-all hover:bg-slate-100 hover:shadow-sm">
         <div
           className="flex grow hover:cursor-pointer"
           onClick={() => navigate(`/profile/${id}`)}
@@ -80,12 +95,12 @@ const UserBanner = ({
             alt="Owner avatar"
             className="m-1 h-12 w-12 rounded-full"
           />
-          <div className="flex flex-col justify-center text-xs">
+          <div className="ml-2 flex flex-col justify-center text-xs">
             <div className="flex">
               <span className="truncate text-base font-bold ">{name}</span>
               <div className="mx-2 flex shrink-0">
-                {mute ? <MuteIcon className="w-4 text-red-300" /> : null}
                 {ban ? <BanIcon className="w-4 text-red-600" /> : null}
+                {mute ? <MuteIcon className="w-4 text-red-300" /> : null}
               </div>
             </div>
             <div className="text-xs">
@@ -93,83 +108,217 @@ const UserBanner = ({
             </div>
           </div>
         </div>
-        <div className="flex justify-end">
+        <div className="flex justify-center self-center">
           {changesAuthorized && !adm && !owner ? (
             <div
-              className="flex w-20 shrink-0 flex-col items-center justify-end text-center text-xs text-neutral-600 transition-all hover:cursor-pointer hover:text-black"
+              className="relative flex w-8 flex-col items-center justify-start"
               onClick={() => {
-                setAdm(!adm);
-                //TODO : mutation
-                console.log("Set admin button");
+                setAdm(!adm); //TODO : MUTATION
               }}
             >
               {" "}
-              <AdminIcon className="w-7" />
-              <div>Set as admin</div>
+              <AdminIcon
+                onMouseOver={() => setShowInfoAdmin(true)}
+                onMouseOut={() => {
+                  setShowInfoAdmin(false);
+                }}
+                className="w-6 border-2 border-slate-300 text-neutral-600 hover:cursor-pointer hover:border-slate-700 hover:text-black"
+              />
+              <div
+                className={`${
+                  showInfoAdmin ? "opacity-100" : "opacity-0 "
+                } absolute top-6 w-24 text-center text-xs text-slate-400 `}
+              >
+                Set as admin
+              </div>
             </div>
-          ) : null}
+          ) : (
+            <div></div>
+          )}
           {changesAuthorized ? (
-            <div className="flex shrink-0 text-xs">
+            <div className="relative flex w-8 flex-col text-center transition-all hover:cursor-pointer">
               <div
+                onMouseLeave={() => setShowTimeMute(false)}
                 className={`${
-                  mute
-                    ? "text-slate-300 hover:text-slate-400"
-                    : "font-bold text-neutral-600 hover:text-black"
-                } mx-2 flex w-8 flex-col justify-end text-center transition-all hover:cursor-pointer`}
+                  showTimeMute
+                    ? "visible h-fit w-10 border-2 opacity-100"
+                    : "hidden h-0 w-0 opacity-0"
+                } absolute -left-1 -top-5 z-10 flex-col border-slate-300 bg-slate-200 text-center text-xs text-slate-700 transition-all`}
               >
-                <div>
-                  <div
-                    onClick={() => {
-                      setMute(!mute);
-                      //TODO : mutation
-                      console.log("Mute button");
-                    }}
-                  >
-                    {" "}
-                    {mute ? (
-                      <UnmuteIcon className="w-7" />
-                    ) : (
-                      <MuteIcon className="w-7" />
-                    )}
-                    {mute ? "Unmute" : "Mute"}
-                  </div>
+                <div
+                  className="hover:bg-slate-300"
+                  onClick={() => {
+                    setShowTimeMute(false), //DONT TOUCH
+                      setMute(!mute); //MUTATION
+                  }}
+                >
+                  1h
+                </div>
+                <div
+                  className="hover:bg-slate-300"
+                  onClick={() => {
+                    setShowTimeMute(false), //DONT TOUCH
+                      setMute(!mute); //MUTATION
+                  }}
+                >
+                  8h
+                </div>
+                <div
+                  className="hover:bg-slate-300"
+                  onClick={() => {
+                    setShowTimeMute(false), //DONT TOUCH
+                      setMute(!mute); //MUTATION
+                  }}
+                >
+                  24h
+                </div>
+                <div
+                  className="hover:bg-slate-300"
+                  onClick={() => {
+                    setShowTimeMute(false), //DONT TOUCH
+                      setMute(!mute); //MUTATION
+                  }}
+                >
+                  Forever
                 </div>
               </div>
               <div
-                className={`${
-                  ban
-                    ? "text-slate-300 hover:text-slate-400"
-                    : " font-bold text-neutral-600 hover:text-black"
-                } mx-2 flex w-8 flex-col justify-end text-center transition-all hover:cursor-pointer`}
+                className="flex flex-col items-center justify-center"
+                onClick={() => {
+                  !mute ? setShowTimeMute(true) : setMute(!mute); //change setMute with mutation - dont touch set show time
+                }}
               >
-                <div className="flex justify-center ">
-                  <div
-                    onClick={() => {
-                      setBan(!ban);
-                      //TODO : mutation
-                      console.log("Ban button");
+                {" "}
+                {mute ? (
+                  <UnmuteIcon
+                    onMouseOver={() => setShowInfoMute(true)}
+                    onMouseOut={() => {
+                      setShowInfoMute(false);
                     }}
-                  >
-                    {" "}
-                    {ban ? (
-                      <UnbanIcon className="w-6" />
-                    ) : (
-                      <BanIcon className="w-6 -translate-x-0.5" />
-                    )}
-                    {ban ? "Unban" : "Ban"}
-                  </div>
+                    className="w-6 border-2 border-slate-300  text-neutral-600 hover:cursor-pointer hover:border-slate-700 hover:text-black"
+                  />
+                ) : (
+                  <MuteIcon
+                    onMouseOver={() => setShowInfoMute(true)}
+                    onMouseOut={() => {
+                      setShowInfoMute(false);
+                    }}
+                    onClick={() => setShowTimeMute(true)} //DONT TOUCH
+                    className="w-6 border-2 border-slate-300  text-neutral-600 hover:cursor-pointer hover:border-slate-700 hover:text-black"
+                  />
+                )}
+                <div
+                  className={`${
+                    showInfoMute ? "opacity-100" : "opacity-0 "
+                  } absolute top-6 w-24 text-center text-xs text-slate-400`}
+                >
+                  {mute ? "Unmute" : "Mute"}
                 </div>
               </div>
             </div>
-          ) : null}
+          ) : (
+            <div></div>
+          )}
+          {changesAuthorized ? (
+            <div className="relative flex w-8 flex-col justify-end text-center transition-all hover:cursor-pointer">
+              <div
+                onMouseLeave={() => setShowTimeBan(false)}
+                className={`${
+                  showTimeBan
+                    ? "visible h-fit w-10 border-2 opacity-100"
+                    : "hidden h-0 w-0 opacity-0"
+                } absolute -left-1 -top-5 z-10 flex-col border-slate-300 bg-slate-200 text-center text-xs text-slate-700 transition-all`}
+              >
+                <div
+                  className="hover:bg-slate-300"
+                  onClick={() => {
+                    setShowTimeBan(false), //DONT TOUCH
+                      setBan(!ban); //MUTATION
+                  }}
+                >
+                  1h
+                </div>
+                <div
+                  className="hover:bg-slate-300"
+                  onClick={() => {
+                    setShowTimeBan(false), //don't touch
+                      setBan(!ban); //MUTATION
+                  }}
+                >
+                  8h
+                </div>
+                <div
+                  className="hover:bg-slate-300"
+                  onClick={() => {
+                    setShowTimeBan(false), //don't touch
+                      setBan(!ban); //MUTATION
+                  }}
+                >
+                  24h
+                </div>
+                <div
+                  className="hover:bg-slate-300"
+                  onClick={() => {
+                    setShowTimeBan(false), //don't touch
+                      setBan(!ban); //MUTATION
+                  }}
+                >
+                  Forever
+                </div>
+              </div>
+              <div
+                className="flex flex-col items-center justify-center"
+                onClick={
+                  () =>
+                    !ban
+                      ? setShowTimeBan(true) //DONT TOUCH
+                      : setBan(!ban) //MUTATION
+                }
+              >
+                {" "}
+                {ban ? (
+                  <UnbanIcon
+                    onMouseOver={() => setShowInfoBan(true)}
+                    onMouseOut={() => setShowInfoBan(false)}
+                    className="w-6 border-2 border-slate-300  text-neutral-600 hover:cursor-pointer hover:border-slate-700 hover:text-black"
+                  />
+                ) : (
+                  <BanIcon
+                    onMouseOver={() => setShowInfoBan(true)}
+                    onMouseOut={() => setShowInfoBan(false)}
+                    className="w-6 border-2 border-slate-300  text-neutral-600 hover:cursor-pointer hover:border-slate-700 hover:text-black"
+                  />
+                )}
+                <div
+                  className={`${
+                    showInfoBan ? "opacity-100" : "opacity-0 "
+                  } absolute top-6 w-8 text-center text-xs text-slate-400`}
+                >
+                  {ban ? "Unban" : "Ban"}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div></div>
+          )}
         </div>
       </div>
     </>
   );
 };
+
 //TODO : object destructuring
 export default function ChannelSettings() {
   const params = useParams();
+  const queryClient = useQueryClient();
+  const updateDeleteChannel = useDeleteChannelMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries([
+        "ChannelSettings",
+        { userId: null, channelId: channelId },
+      ]);
+    },
+  });
   if (typeof params.channelId === "undefined") return <div></div>;
   const channelId = +params.channelId;
   const { isLoading, data, error, isFetching } = useChannelSettingsQuery({
@@ -186,40 +335,24 @@ export default function ChannelSettings() {
     return <div>Error</div>;
   }
   const owner = data?.user.id === data?.channel.owner.id ? true : false;
-
-  // TODO : add bool for admin to authorize some changes (ban / mute)
-
   return (
     <div className="flex w-full flex-col ">
-      <div className="mt-4 flex h-24 w-24 justify-center self-center rounded-full  bg-black text-white">
-        <UsersIcon className="mt-1 h-20 w-20 self-center" />
-      </div>
-      <div className="mt-2 w-full text-center text-2xl font-bold">
-        {data?.channel.name}
-      </div>
-
-      <div className="mt-10 flex justify-evenly">
-        <div
-          className={`${
-            !data?.channel.passwordProtected && !data?.channel.private
-              ? `border-slate-300 bg-slate-200 text-lg font-bold text-black ${
-                  owner ? "hover:cursor-pointer hover:bg-slate-300" : ""
-                }`
-              : `border-slate-200 bg-slate-50 text-slate-400 ${
-                  owner ? "hover:cursor-pointer hover:bg-slate-200" : ""
-                }`
-          } flex h-24 w-24 items-center justify-center rounded-full border-2 text-center`}
-          onClick={
-            owner
-              ? () => {
-                  // mutation
-                }
-              : () => {
-                  return null;
-                }
-          }
-        >
-          Public
+      <div className="relative flex flex-col justify-center bg-slate-200">
+        {owner ? (
+          <div
+            className="absolute right-1 top-1 flex w-fit justify-center self-center rounded-md p-3 text-center text-lg text-slate-500 hover:cursor-pointer hover:text-slate-700"
+            onClick={() => {
+              updateDeleteChannel.mutate({ channelId: channelId });
+              alert("Delete the channel ?"); //replace with confirmation ?
+            }}
+          >
+            <TrashIcon className="w-8 -translate-y-0.5" />
+          </div>
+        ) : (
+          <div></div>
+        )}
+        <div className="mt-4 flex h-24 w-24 justify-center self-center rounded-full  bg-black text-white">
+          <UsersIcon className="mt-1 h-20 w-20 self-center" />
         </div>
         <div
           className={`${
@@ -286,10 +419,22 @@ export default function ChannelSettings() {
           activeMode={data?.channel.passwordProtected}
         />
       </div>
-      <div>CHANGE PW</div>
-      <div>ADD AS ADMIN</div>
-      <div>ADD MEMBER</div>
-      <div>Mute limited time</div>
+      {data?.channel.passwordProtected && owner ? (
+        <div className="ml-2 mb-5 flex items-end justify-start">
+          <div>Change Password : </div>
+          <textarea className="w-46 mx-2 h-7 resize-none rounded-sm" />
+          <input
+            className="h-7 rounded-md border-2 bg-slate-100 p-1 hover:cursor-pointer hover:bg-slate-100"
+            type="submit"
+          />
+        </div>
+      ) : (
+        <div></div>
+      )}
+      <div className=" mb-2 bg-slate-100 p-3 text-center text-xl font-bold text-slate-700">
+        MEMBERS
+      </div>
+
       <UserBanner
         id={data?.channel.owner.id}
         name={data?.channel.owner.name}
@@ -338,19 +483,18 @@ export default function ChannelSettings() {
           />
         ) : null;
       })}
-      {owner ? (
+      {data?.channel.admins.some((admin) => admin.id === data?.user.id) ? (
         <div
-          className="mt-8 mb-2 flex w-fit justify-center self-center rounded-md bg-red-500 p-3 text-center text-lg text-white hover:cursor-pointer hover:bg-red-600"
           onClick={() => {
-            console.log("Delete channel");
+            console.log("ADD MEMBER"); //TO DO :  SEARCH USER TO ADD
           }}
-          // TODO : mutation to delete channel
+          className="mt-4 flex w-fit items-center self-center rounded-md border-2 bg-slate-100 px-2 text-slate-600 hover:cursor-pointer hover:border-slate-300 hover:bg-slate-200 hover:text-black"
         >
-          <TrashIcon className="mr-2  w-6 -translate-y-0.5" />
-          <div>Delete channel</div>
+          <AddMemberIcon className="w-8 " />
+          <div className="mx-4 my-2 text-base">Add member</div>
         </div>
       ) : (
-        <div></div>
+        <></>
       )}
     </div>
   );

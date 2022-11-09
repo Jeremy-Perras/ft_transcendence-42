@@ -195,7 +195,7 @@ export type MutationUnblockingUserArgs = {
 };
 
 export type MutationUpdateAdminsArgs = {
-  id: Scalars["Int"];
+  channelId: Scalars["Int"];
   userId: Scalars["Int"];
 };
 
@@ -753,6 +753,22 @@ export type UnblockingUserMutation = {
     __typename?: "User";
     avatar: string;
     rank: number;
+    name: string;
+  };
+};
+
+export type UpdateAdminsMutationVariables = Exact<{
+  channelId: Scalars["Int"];
+  userId: Scalars["Int"];
+}>;
+
+export type UpdateAdminsMutation = {
+  __typename?: "Mutation";
+  updateAdmins: {
+    __typename?: "Channel";
+    id: number;
+    passwordProtected: boolean;
+    private: boolean;
     name: string;
   };
 };
@@ -1862,6 +1878,43 @@ useUnblockingUserMutation.fetcher = (
 ) =>
   fetcher<UnblockingUserMutation, UnblockingUserMutationVariables>(
     UnblockingUserDocument,
+    variables
+  );
+export const UpdateAdminsDocument = `
+    mutation UpdateAdmins($channelId: Int!, $userId: Int!) {
+  updateAdmins(channelId: $channelId, userId: $userId) {
+    id
+    passwordProtected
+    private
+    name
+  }
+}
+    `;
+export const useUpdateAdminsMutation = <TError = unknown, TContext = unknown>(
+  options?: UseMutationOptions<
+    UpdateAdminsMutation,
+    TError,
+    UpdateAdminsMutationVariables,
+    TContext
+  >
+) =>
+  useMutation<
+    UpdateAdminsMutation,
+    TError,
+    UpdateAdminsMutationVariables,
+    TContext
+  >(
+    ["UpdateAdmins"],
+    (variables?: UpdateAdminsMutationVariables) =>
+      fetcher<UpdateAdminsMutation, UpdateAdminsMutationVariables>(
+        UpdateAdminsDocument,
+        variables
+      )(),
+    options
+  );
+useUpdateAdminsMutation.fetcher = (variables: UpdateAdminsMutationVariables) =>
+  fetcher<UpdateAdminsMutation, UpdateAdminsMutationVariables>(
+    UpdateAdminsDocument,
     variables
   );
 export const UpdateDateBannedDocument = `
