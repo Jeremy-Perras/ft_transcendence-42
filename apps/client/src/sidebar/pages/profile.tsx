@@ -47,23 +47,24 @@ const Friend = ({
 
   return (
     <div className="flex w-full flex-col ">
-      <div className="flex flex-col items-center justify-center  bg-slate-100 shadow-md">
+      <div className="flex flex-col items-center justify-center shadow-md">
         <div className="flex w-full flex-col items-center justify-center">
           <img
             src={data?.user.avatar}
             alt="Player avatar"
-            className="my-4 h-24 w-24 rounded-full"
+            className="my-4 h-24 w-24 "
           />
           <div className="mb-4 flex flex-col text-center">
             <div className="text-xl font-bold">{data?.user.name}</div>
             <div>Rank : {data?.user.rank}</div>
+            <div>Statistics : TO DO</div>
           </div>
         </div>
         <span
           onClick={() => {
             askFriend.mutate({ updateFriendId: userId });
           }}
-          className="my-12 flex h-36 w-36 items-center justify-center self-center rounded-full border-2 border-slate-300 bg-slate-200 p-2 text-center  text-2xl font-bold  transition-all hover:bg-slate-300"
+          className="my-12 flex h-36 w-36 items-center justify-center self-center border-2 border-slate-300 bg-slate-200 p-2 text-center text-2xl  font-bold transition-all  hover:cursor-pointer hover:bg-slate-300"
         >
           Add as Friend
         </span>
@@ -98,56 +99,29 @@ const DisplayUserProfile = ({
   });
 
   return (
-    <div className="relative flex w-full flex-col ">
-      <div className="flex flex-col items-center justify-center bg-slate-100">
-        <div className="flex w-full flex-col items-center justify-center">
-          <img
-            src={data?.user.avatar}
-            alt="Player avatar"
-            className="my-4 h-24 w-24 rounded-full"
-          />
-          <div className="mb-4 flex flex-col text-center">
-            <div className="text-xl font-bold">{data?.user.name}</div>
-            <div>Rank : {data?.user.rank}</div>
-          </div>
+    <div className="flex h-full w-full flex-col ">
+      <div className="flex flex items-center justify-start ">
+        <img
+          src={data?.user.avatar}
+          alt="Player avatar"
+          className="my-2 ml-2 mr-4 h-28 w-28 "
+        />
+        <div className="my-4 flex flex-col text-left">
+          <div className="text-xl font-bold">{data?.user.name}</div>
+          <div>Rank : {data?.user.rank}</div>
+          <div>Statistics : TODO </div>
         </div>
       </div>
-      <div className="flex justify-evenly bg-slate-100 p-4 pb-8 text-xl font-bold shadow-md">
-        <div
-          onClick={() => {
-            alert("Launch Game invitation");
-          }}
-          className="flex h-24 w-24 items-center justify-center rounded-full border-2 border-green-300 bg-green-200 p-2 text-center transition-all hover:bg-green-300"
-        >
-          Play !
-        </div>
-        <div
-          onClick={() => {
-            unFriend.mutate({ updateUnFriendId: userId });
-          }}
-          className="flex h-24 w-24 items-center justify-center rounded-full border-2 border-slate-300 bg-slate-200 p-2 text-center transition-all hover:bg-slate-300 "
-        >
-          Unfriend
-        </div>
-        <div
-          onClick={() => {
-            data?.user.blocked
-              ? unblockMutation.mutate({ unblockingUserId: userId })
-              : blockMutation.mutate({ blockingUserId: userId });
-          }}
-          className={`${
-            data.user.blocked
-              ? "border-green-400 bg-green-300   hover:bg-green-400"
-              : "border-red-500 bg-red-400    hover:bg-red-500"
-          } flex h-24 w-24 items-center justify-center rounded-full border-2 p-2 text-center transition-all`}
-        >
-          {data?.user.blocked ? "Unblock" : "Block"}
-        </div>
-      </div>
-      <div className="flex w-full flex-col  text-sm">
+
+      <div className="flex w-full grow flex-col overflow-auto text-sm">
         <div className="mt-8 pb-2 text-center text-xl font-bold">
           MATCH HISTORY
         </div>
+        {data.user.games.length === 0 ? (
+          <div> NO MATCH YET : TO DO - ICON + text </div>
+        ) : (
+          <></>
+        )}
         {data?.user.games.map((game, index) => {
           const victory =
             (game.player1.id === data?.user.id &&
@@ -158,11 +132,11 @@ const DisplayUserProfile = ({
             <div
               key={index}
               className={`${
-                victory ? "bg-green-300" : "bg-red-400 "
+                victory ? "bg-red-300" : "bg-red-400 "
               } mt-px flex h-12 items-center px-2`}
             >
               <img
-                className="h-10 w-10 rounded-full object-cover "
+                className="h-10 w-10 object-cover "
                 src={game.player1.avatar}
                 alt="Player 1 avatar"
               />
@@ -174,7 +148,7 @@ const DisplayUserProfile = ({
                 {game.player2.name}
               </div>
               <img
-                className="h-10 w-10 rounded-full object-cover"
+                className="h-10 w-10 object-cover"
                 src={game.player2.avatar}
                 alt="Player 2 avatar"
               />
@@ -189,6 +163,34 @@ const DisplayUserProfile = ({
             </div>
           );
         })}
+      </div>
+      <div className="flex h-24 bg-slate-100 text-xl font-bold">
+        <div
+          onClick={() => {
+            alert("Launch Game invitation");
+          }}
+          className="flex  basis-1/3 items-center justify-center border-2 border-slate-300 bg-slate-200 text-center transition-all hover:cursor-pointer hover:bg-slate-300"
+        >
+          Play !
+        </div>
+        <div
+          onClick={() => {
+            unFriend.mutate({ updateUnFriendId: userId });
+          }}
+          className="flex basis-1/3 items-center justify-center border-y-2 border-slate-300 bg-slate-200 text-center transition-all hover:cursor-pointer hover:bg-slate-300"
+        >
+          Unfriend
+        </div>
+        <div
+          onClick={() => {
+            data?.user.blocked
+              ? unblockMutation.mutate({ unblockingUserId: userId })
+              : blockMutation.mutate({ blockingUserId: userId });
+          }}
+          className="flex basis-1/3 items-center justify-center border-2 border-slate-300 bg-slate-200  text-center transition-all  hover:cursor-pointer hover:bg-slate-300"
+        >
+          {data?.user.blocked ? "Unblock" : "Block"}
+        </div>
       </div>
     </div>
   );

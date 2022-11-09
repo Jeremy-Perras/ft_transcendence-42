@@ -22,9 +22,9 @@ export const ChannelTypeButton = ({
     <div
       className={`${
         active
-          ? `border-slate-300 bg-slate-200 text-xl font-bold text-black ${"hover:cursor-pointer hover:bg-slate-300"}`
-          : `border-slate-200 bg-slate-50 text-lg text-slate-400 ${"hover:cursor-pointer hover:bg-slate-200"}`
-      } flex h-32 w-32 items-center justify-center rounded-full border-2 text-center`}
+          ? ` bg-slate-200 text-xl font-bold text-black ${"hover:cursor-pointer hover:bg-slate-300"}`
+          : ` bg-slate-50 text-lg text-slate-400 ${"hover:cursor-pointer hover:bg-slate-200"}`
+      } flex h-32 basis-1/3 items-center justify-center border-y-2 border-l-2 border-slate-300 text-center`}
       onClick={() => {
         fn(!active);
         inactiveFn1(false);
@@ -61,11 +61,11 @@ export default function CreateChannel() {
             navigate("/");
         })}
       >
-        <div className="flex flex-col bg-slate-200">
+        <div className="flex flex-col bg-slate-100">
           <div className="my-4 self-center text-3xl text-slate-600">
             Create your own Channel !
           </div>
-          <div className="my-4 flex h-32 w-32 justify-center self-center rounded-full  bg-black text-white">
+          <div className="my-4 flex h-32 w-32 justify-center self-center bg-black text-white">
             <UsersIcon className="mt-1 h-28 w-28 self-center" />
           </div>
           <div className="mt-4 mb-6 flex w-full flex-col items-center text-2xl ">
@@ -74,7 +74,7 @@ export default function CreateChannel() {
               Channel name{" "}
             </label>
             <input
-              className="my-4 h-10 w-64 rounded-lg px-1 text-xl"
+              className="my-4 h-10 w-64 px-1 text-xl"
               {...register("Name", {
                 required: true,
                 maxLength: 100,
@@ -84,7 +84,7 @@ export default function CreateChannel() {
           </div>
         </div>
 
-        <div className="my-20 flex justify-evenly">
+        <div className="mb-8 flex justify-evenly border-r-2">
           <ChannelTypeButton
             text="Public"
             active={!privateMode && !passwordProtected}
@@ -100,7 +100,7 @@ export default function CreateChannel() {
             inactiveFn2={setPasswordProtected}
           />
           <ChannelTypeButton
-            text="Password protected"
+            text="Password"
             active={passwordProtected}
             fn={setPasswordProtected}
             inactiveFn1={setPrivateMode}
@@ -120,7 +120,7 @@ export default function CreateChannel() {
                   maxLength: 100,
                 })}
                 defaultValue=""
-                className="my-4 h-10 w-64 self-center rounded-lg px-1 text-xl "
+                className="my-4 h-10 w-64 self-center px-1 text-xl "
               />
             </div>
           ) : (
@@ -128,7 +128,7 @@ export default function CreateChannel() {
           )}
         </div>
         <input
-          className="mt-4 flex w-36 justify-center self-center rounded-2xl border-2 border-slate-300 bg-slate-200 px-2 py-4 text-center text-2xl font-bold hover:cursor-pointer hover:bg-slate-300"
+          className="mt-4 flex w-36 justify-center self-center border-2 border-slate-300 bg-slate-200 px-2 py-4 text-center text-2xl font-bold hover:cursor-pointer hover:bg-slate-300"
           type="submit"
         />
       </form>

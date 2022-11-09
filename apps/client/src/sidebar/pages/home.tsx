@@ -93,10 +93,7 @@ const Chat = ({ __typename, name, avatar, id, messages }: Chat) => {
       <div className="m-2 flex h-16 w-16 shrink-0 justify-center   text-white">
         {__typename == "User" ? (
           <Avatar.Root>
-            <Avatar.Image
-              className="h-16 w-16 rounded-full object-cover "
-              src={avatar}
-            />
+            <Avatar.Image className="h-16 w-16 object-cover " src={avatar} />
             <Avatar.Fallback delayMs={0}>
               <UserIcon className="h-16 w-16" />
             </Avatar.Fallback>

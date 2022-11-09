@@ -18,12 +18,18 @@ import { ReactComponent as UnbanIcon } from "pixelarticons/svg/user.svg";
 import { ReactComponent as AddMemberIcon } from "pixelarticons/svg/user-plus.svg";
 import { ReactComponent as BanIcon } from "pixelarticons/svg/user-x.svg";
 import { ReactComponent as AdminIcon } from "pixelarticons/svg/briefcase-plus.svg";
-import { useState } from "react";
+import { ReactComponent as CloseIcon } from "pixelarticons/svg/close.svg";
+import { ReactComponent as SearchIcon } from "pixelarticons/svg/search.svg";
+import { useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { SearchBar } from "../layout";
+
 import { useThrottledState } from "@react-hookz/web";
 import * as Avatar from "@radix-ui/react-avatar";
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
+
+/********************************************************************/
+/*                      CHANNEL TYPE BUTTONS                        */
+/********************************************************************/
 const ChannelTypeButton = ({
   text,
   owner,
@@ -37,13 +43,13 @@ const ChannelTypeButton = ({
     <div
       className={`${
         activeMode
-          ? `border-slate-300 bg-slate-200 text-lg font-bold text-black ${
+          ? `bg-slate-200 text-lg font-bold text-black ${
               owner ? "hover:cursor-pointer hover:bg-slate-300" : ""
             }`
-          : `border-slate-200 bg-slate-50 text-slate-400 ${
+          : `bg-slate-50 text-slate-400 ${
               owner ? "hover:cursor-pointer hover:bg-slate-200" : ""
             }`
-      } flex h-24 w-24 items-center justify-center rounded-full border-2 text-center`}
+      } flex h-24 basis-1/3 items-center justify-center border-y-2 border-l-2 border-slate-300 text-center text-xl`}
       onClick={
         owner
           ? () => {
@@ -60,6 +66,9 @@ const ChannelTypeButton = ({
   );
 };
 
+/********************************************************************/
+/*                        USER BANNERS                              */
+/********************************************************************/
 //TODO :  simplify this horrific thing
 const UserBanner = ({
   id,
@@ -134,16 +143,12 @@ const UserBanner = ({
   });
   return (
     <>
-      <div className="flex h-full w-full shrink-0 items-end justify-center pr-2 transition-all hover:bg-slate-100 hover:shadow-sm">
+      <div className="flex h-full w-full shrink-0 items-end justify-center pr-2 transition-all hover:bg-slate-100 ">
         <div
           className="flex grow hover:cursor-pointer"
           onClick={() => navigate(`/profile/${id}`)}
         >
-          <img
-            src={avatar}
-            alt="Owner avatar"
-            className="m-1 h-12 w-12 rounded-full"
-          />
+          <img src={avatar} alt="Owner avatar" className="m-1 h-12 w-12 " />
           <div className="ml-2 flex flex-col justify-center text-xs">
             <div className="flex">
               <span className="truncate text-base font-bold ">{name}</span>
@@ -402,14 +407,61 @@ const UserBanner = ({
   );
 };
 
-const Search = ({
+/********************************************************************/
+/*                        SEARCH BAR                                */
+/********************************************************************/
+export const SearchBar = ({
   search,
   setSearch,
-  blabla,
 }: {
   search: string;
   setSearch: (value: string) => void;
-  blabla: ChannelSettingsQuery;
+}) => {
+  const input = useRef<HTMLInputElement>(null);
+
+  const resetSearch = () => {
+    if (input.current) input.current.value = "";
+    setSearch("");
+  };
+
+  return (
+    <div className="relative flex grow border-t-2 bg-slate-100">
+      <AddMemberIcon className="flex h-full w-10 self-center border-r-2 text-slate-400 " />
+      <input
+        type="text"
+        ref={input}
+        spellCheck={false}
+        className="w-full py-1 px-2 text-lg focus:outline-none focus:ring-2 focus:ring-inset"
+        placeholder="Add member"
+        onChange={(e) => setSearch(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.code == "Escape" && search.length > 0) {
+            e.preventDefault();
+            e.stopPropagation();
+            resetSearch();
+          }
+        }}
+      />
+      <div className="absolute inset-y-0 right-2 flex items-center">
+        {search.length > 0 ? (
+          <button onClick={resetSearch}>
+            <CloseIcon className="h-6 text-slate-400" />
+          </button>
+        ) : (
+          <SearchIcon className="h-6 text-slate-400" />
+        )}
+      </div>
+    </div>
+  );
+};
+const Search = ({
+  search,
+  setSearch,
+  queryData,
+}: {
+  search: string;
+  setSearch: (value: string) => void;
+  queryData: ChannelSettingsQuery;
 }) => {
   const { data } = useSearchUsersChannelsQuery(
     { name: search },
@@ -421,38 +473,38 @@ const Search = ({
       },
     }
   );
-  //TODO condiction from blabla
   return (
     <div className="relative flex flex-col divide-y divide-slate-200">
       {data?.map((result, index) => (
-        <div
-          key={index}
-          className="flex items-center p-2 even:bg-white hover:cursor-pointer hover:bg-blue-100"
-        >
-          {/* {!blabla.channel.members.some((member) => {
-            member.id !== result?.id;
-          }) ? ( */}
-          <>
-            <Avatar.Root>
-              <Avatar.Image
-                className="h-10 w-10 rounded-full object-cover "
-                src={result.avatar}
-              />
-              <Avatar.Fallback>
-                <UserIcon className="h-10 w-10" />
-              </Avatar.Fallback>
-            </Avatar.Root>
-            <Highlight content={result.name} search={search} />
-            <AddMemberIcon
-              className="absolute right-0 w-8"
-              onClick={() => {
-                console.log("ADD MEMBER"); //TO DO :  SEARCH USER TO ADD
-              }}
-            />{" "}
-          </>
-          {/* ) : (
-            ""
-          )} */}
+        <div>
+          {!queryData.channel.members.some((u) => u.id === result?.id) &&
+          !queryData.channel.admins.some((u) => u.id === result?.id) ? (
+            <div
+              key={index}
+              className="flex items-center p-2 even:bg-white hover:cursor-pointer hover:bg-blue-100"
+            >
+              <>
+                <Avatar.Root>
+                  <Avatar.Image
+                    className="h-10 w-10 object-cover "
+                    src={result?.avatar}
+                  />
+                  <Avatar.Fallback>
+                    <UserIcon className="h-10 w-10" />
+                  </Avatar.Fallback>
+                </Avatar.Root>
+                <Highlight content={result.name} search={search} />
+                <AddMemberIcon
+                  className="absolute right-0 w-8"
+                  onClick={() => {
+                    alert("TO DO : MUTATION"); //TODO :  MUTATION
+                  }}
+                />{" "}
+              </>
+            </div>
+          ) : (
+            <></>
+          )}
         </div>
       ))}
     </div>
@@ -478,6 +530,10 @@ const Highlight = ({
     </span>
   );
 };
+
+/********************************************************************/
+/*                        MAIN COMPONENT                            */
+/********************************************************************/
 //TODO : object destructuring
 export default function ChannelSettings() {
   const [search, setSearch] = useThrottledState("", 500);
@@ -534,13 +590,13 @@ export default function ChannelSettings() {
                     deleteChannel.mutate({ channelId: channelId });
                     navigate("/");
                   }}
-                  className="block w-full rounded-full bg-gray-200 px-4 py-3 text-sm font-semibold text-red-700 "
+                  className="block w-full  bg-gray-200 px-4 py-3 text-sm font-semibold text-red-700 "
                 >
                   Delete
                 </button>
                 <button
                   onClick={() => setConfirmation(false)}
-                  className="ml-2 block w-full rounded-full bg-gray-200 px-4 py-3 text-sm font-semibold "
+                  className="ml-2 block w-full bg-gray-200 px-4 py-3 text-sm font-semibold "
                 >
                   Cancel
                 </button>
@@ -551,10 +607,10 @@ export default function ChannelSettings() {
       ) : (
         ""
       )}
-      <div className="relative flex flex-col justify-center bg-slate-200">
+      <div className="relative flex flex-col justify-center bg-slate-100">
         {owner ? (
           <div
-            className="absolute right-1 top-1 flex w-fit justify-center self-center rounded-md p-3 text-center text-lg text-slate-500 hover:cursor-pointer hover:text-slate-700"
+            className="absolute right-1 top-1 flex w-fit justify-center self-center  p-3 text-center text-lg text-slate-500 hover:cursor-pointer hover:text-slate-700"
             onClick={() => {
               setConfirmation(true);
             }}
@@ -564,15 +620,15 @@ export default function ChannelSettings() {
         ) : (
           <div></div>
         )}
-        <div className="mt-4 flex h-24 w-24 justify-center self-center rounded-full  bg-black text-white">
+        <div className="mt-4 flex h-24 w-24 justify-center self-center  bg-black text-white">
           <UsersIcon className="mt-1 h-20 w-20 self-center" />
         </div>
         <div className="mt-2 mb-4 w-full text-center text-2xl font-bold">
           {data?.channel.name}
         </div>
       </div>
-      <div className="my-10 flex justify-evenly">
-        <div>
+      <div className="flex flex-col bg-slate-100 ">
+        <div className="flex border-r-2 border-slate-300">
           <ChannelTypeButton
             text="Public"
             owner={owner}
@@ -580,34 +636,35 @@ export default function ChannelSettings() {
               !data?.channel.passwordProtected && !data?.channel.private
             }
           />
-        </div>
-        <div>
           <ChannelTypeButton
             text="Private"
             owner={owner}
             activeMode={data?.channel.private}
           />
-        </div>
-        <ChannelTypeButton
-          text="Password protected"
-          owner={owner}
-          activeMode={data?.channel.passwordProtected}
-        />
-      </div>
 
-      {data?.channel.passwordProtected && owner ? (
-        <div className="ml-2 mb-5 flex items-end justify-start">
-          <div>Change Password : </div>
-          <textarea className="w-46 mx-2 h-7 resize-none rounded-sm" />
-          <input
-            className="h-7 rounded-md border-2 bg-slate-100 p-1 hover:cursor-pointer hover:bg-slate-100"
-            type="submit"
+          <ChannelTypeButton
+            text="Password protected"
+            owner={owner}
+            activeMode={data?.channel.passwordProtected}
           />
         </div>
-      ) : (
-        <div></div>
-      )}
-      <div className=" mb-2 bg-slate-100 p-3 text-center text-xl font-bold text-slate-700">
+        {data?.channel.passwordProtected && owner ? (
+          <div className="ml-2 mb-5 flex flex-col items-center justify-center">
+            <div className="mb-4 flex">
+              <div>Change Password : </div>
+              <textarea className="w-46 mx-2 h-7 resize-none " />
+            </div>
+            <input
+              className=" border-2 border-slate-300 bg-slate-200 px-3 py-2 hover:cursor-pointer hover:bg-slate-300"
+              type="submit"
+            />
+          </div>
+        ) : (
+          <div></div>
+        )}
+      </div>
+
+      <div className="p-5 text-center text-xl font-bold text-slate-700">
         MEMBERS
       </div>
 
@@ -664,12 +721,12 @@ export default function ChannelSettings() {
       })}
       {data?.channel.admins.some((admin) => admin.id === data?.user.id) ? (
         <>
-          <div className="flex flex-col">
+          <div className="mt-5 flex flex-col">
             <SearchBar search={search} setSearch={setSearch} />
             {search.length === 0 ? (
               ""
             ) : (
-              <Search search={search} setSearch={setSearch} blabla={data} />
+              <Search search={search} setSearch={setSearch} queryData={data} />
             )}
           </div>
         </>
