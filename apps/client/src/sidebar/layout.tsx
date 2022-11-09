@@ -22,7 +22,7 @@ import {
 // retry
 // route loaders
 
-export const SearchBar = ({
+const SearchBar = ({
   search,
   setSearch,
 }: {
@@ -114,7 +114,7 @@ function CurrentUserProfileLink() {
       onClick={() => navigate(`/profile/me`)}
     >
       <img
-        className="right-1 top-1 h-8 w-8 self-center rounded-full "
+        className="right-1 top-1 h-8 w-8 self-center "
         src={data?.avatar}
         alt="Current user avatar"
       />
@@ -228,11 +228,7 @@ function UserHeader({ userId }: { userId: number }) {
       className="flex h-9 w-full items-center justify-center p-2 hover:cursor-pointer hover:bg-slate-100"
       onClick={() => navigate(`/profile/${userId}`)}
     >
-      <img
-        className="mb-px h-8 w-8 rounded-full"
-        src={data?.avatar}
-        alt="User avatar"
-      />
+      <img className="mb-px h-7 w-7 " src={data?.avatar} alt="User avatar" />
       <span className="ml-2 mb-px h-full text-base font-bold">
         {data?.name}
       </span>
@@ -342,7 +338,7 @@ const SearchResult = ({
           {result.__typename === "User" ? (
             <Avatar.Root>
               <Avatar.Image
-                className="h-10 w-10 rounded-full object-cover "
+                className="h-10 w-10 object-cover "
                 src={result.avatar}
               />
               <Avatar.Fallback>

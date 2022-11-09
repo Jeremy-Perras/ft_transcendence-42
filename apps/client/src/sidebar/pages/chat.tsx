@@ -136,13 +136,21 @@ const DirectConversation = () => {
   }
 
   return (
-    <>
-      <ul className="mt-4 mb-16 flex h-fit w-full flex-col pr-2 pl-px">
+    <div className="flex h-full flex-col">
+      <ul className="mt-4 flex h-fit w-full grow flex-col overflow-auto pr-2 pl-px">
+        {data?.messages.length === 0 ? (
+          <div className="text-center text-slate-400 ">
+            You didn't speak with your friend yet. Sent the first message !
+            {/* TODO : text + icon */}
+          </div>
+        ) : (
+          <></>
+        )}
         {data?.messages.map((message, index) => (
           <DirectMessage key={index} userId={userId} {...message} />
         ))}
       </ul>
-      <div className="absolute bottom-0 h-16 w-full border-t-2 bg-slate-50 p-2">
+      <div className="flex h-16 w-full border-t-2 bg-slate-50 p-2">
         <textarea
           rows={1}
           className="h-10 w-11/12 resize-none overflow-visible rounded-lg px-3 pt-2"
@@ -173,7 +181,7 @@ const DirectConversation = () => {
           }}
         />
       </div>
-    </>
+    </div>
   );
 };
 

@@ -24,7 +24,7 @@ const ReadBy = ({ users }: { users: User[] }) => {
             key={index}
           >
             <img
-              className="m-px h-4 w-4 self-center rounded-full transition-all hover:h-5 hover:w-5"
+              className="m-px h-4 w-4 self-center rounded-full transition-all hover:h-5 hover:w-5 hover:cursor-pointer"
               key={index}
               src={avatar}
               alt="User avatar"
@@ -73,7 +73,7 @@ const ChannelMessage = ({
         <div className="flex w-9 shrink-0 justify-center">
           <div className="flex self-end">
             <img
-              className="h-6 w-6 rounded-full transition-all hover:h-7 hover:w-7"
+              className="h-6 w-6 rounded-full transition-all hover:h-7 hover:w-7 hover:cursor-pointer"
               src={author.avatar}
               alt="Message author avatar"
               onClick={() => navigate(`/profile/${author.id}`)}
@@ -138,20 +138,27 @@ export default function Channel() {
     return <Error />;
   } else {
     return (
-      <>
-        <div className="mt-px mb-16 flex w-full flex-col pr-2 pl-px">
+      <div className="flex h-full flex-col">
+        <div className="mt-px flex w-full grow flex-col overflow-auto pr-2 pl-px">
+          {data?.messages.length === 0 ? (
+            <div className="mt-6 text-center text-slate-300">
+              No one has spoken yet. Send the first message !
+            </div>
+          ) : (
+            <></>
+          )}
           {data?.messages?.map((message, index) => (
             <ChannelMessage key={index} {...message} />
           ))}
         </div>
-        <div className="absolute bottom-0 h-16 w-full border-t-2 bg-slate-50 p-2">
+        <div className="flex h-16 w-full border-t-2 bg-slate-50 p-2">
           <textarea
             rows={1}
             className="h-10 w-11/12 resize-none overflow-visible rounded-lg px-3 pt-2"
             placeholder="TO DO"
           />
         </div>
-      </>
+      </div>
     );
   }
 }
