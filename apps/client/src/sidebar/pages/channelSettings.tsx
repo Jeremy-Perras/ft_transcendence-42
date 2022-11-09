@@ -191,6 +191,7 @@ export default function ChannelSettings() {
 
   return (
     <div className="flex w-full flex-col ">
+<<<<<<< HEAD
       <div className="flex flex-col justify-center bg-slate-100">
         <div className="mt-4 flex h-24 w-24 justify-center self-center rounded-full  bg-black text-white">
           <UsersIcon className="mt-1 h-20 w-20 self-center" />
@@ -198,6 +199,83 @@ export default function ChannelSettings() {
         <div className="mt-2 mb-4 w-full text-center text-2xl font-bold">
           {data?.channel.name}
         </div>
+=======
+      <div className="mt-4 flex h-24 w-24 justify-center self-center rounded-full  bg-black text-white">
+        <UsersIcon className="mt-1 h-20 w-20 self-center" />
+      </div>
+      <div className="mt-2 w-full text-center text-2xl font-bold">
+        {data?.channel.name}
+      </div>
+
+      <div className="mt-10 flex justify-evenly">
+        <div
+          className={`${
+            !data?.channel.passwordProtected && !data?.channel.private
+              ? `border-slate-300 bg-slate-200 text-lg font-bold text-black ${
+                  owner ? "hover:cursor-pointer hover:bg-slate-300" : ""
+                }`
+              : `border-slate-200 bg-slate-50 text-slate-400 ${
+                  owner ? "hover:cursor-pointer hover:bg-slate-200" : ""
+                }`
+          } flex h-24 w-24 items-center justify-center rounded-full border-2 text-center`}
+          onClick={
+            owner
+              ? () => {
+                  // mutation
+                }
+              : () => {
+                  return null;
+                }
+          }
+        >
+          Public
+        </div>
+        <div
+          className={`${
+            data?.channel.private
+              ? `border-slate-300 bg-slate-200 text-lg font-bold text-black ${
+                  owner ? "hover:cursor-pointer hover:bg-slate-300" : ""
+                }`
+              : `border-slate-200 bg-slate-50 text-slate-400 ${
+                  owner ? "hover:cursor-pointer hover:bg-slate-200" : ""
+                }`
+          } flex h-24 w-24 items-center justify-center rounded-full border-2 text-center`}
+          onClick={
+            owner
+              ? () => {
+                  // mutation
+                }
+              : () => {
+                  return null;
+                }
+          }
+        >
+          Private
+        </div>
+        <div
+          className={`${
+            data?.channel.passwordProtected
+              ? `border-slate-300 bg-slate-200 text-lg font-bold text-black ${
+                  owner ? "hover:cursor-pointer hover:bg-slate-300" : ""
+                }`
+              : `border-slate-200 bg-slate-50 text-slate-400 ${
+                  owner ? "hover:cursor-pointer hover:bg-slate-200" : ""
+                }`
+          } flex h-24 w-24 items-center justify-center rounded-full border-2 text-center `}
+          onClick={
+            owner
+              ? () => {
+                  // mutation
+                }
+              : () => {
+                  return null;
+                }
+          }
+        >
+          Password protected
+        </div>
+        {/* TODO : ACTIVE ON CLICK + MUTATION IF OWNER */}
+>>>>>>> 57ad31699137963b913ceb00190bfd9a60e7ecae
       </div>
       <div className="my-10 flex justify-evenly">
         <ChannelTypeButton
@@ -272,10 +350,15 @@ export default function ChannelSettings() {
       })}
       {owner ? (
         <div
+<<<<<<< HEAD
           className="mt-8 mb-2 flex w-fit justify-center self-center rounded-md bg-red-500 p-3 text-center text-lg text-white hover:cursor-pointer hover:bg-red-600"
           onClick={() => {
             console.log("Delete channel");
           }}
+=======
+          className="w-24 rounded-md bg-red-300 text-center hover:cursor-pointer hover:bg-red-400"
+          onClick={() => {}}
+>>>>>>> 57ad31699137963b913ceb00190bfd9a60e7ecae
           // TODO : mutation to delete channel
         >
           <TrashIcon className="mr-2  w-6 -translate-y-0.5" />

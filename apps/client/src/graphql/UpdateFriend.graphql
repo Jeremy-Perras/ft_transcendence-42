@@ -1,0 +1,8 @@
+mutation UpdateFriend($updateFriendId: Int!) {
+  updateFriend(id: $updateFriendId) {
+    id
+    name
+    rank
+    avatar
+  }
+}

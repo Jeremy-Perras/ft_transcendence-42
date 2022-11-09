@@ -152,7 +152,7 @@ function Header({
           <>
             <LeftButton
               key={3}
-              navigate={() => navigate(-1)}
+              navigate={() => navigate("/")}
               Icon={ArrowLeftBoxIcon}
             />
             <div
