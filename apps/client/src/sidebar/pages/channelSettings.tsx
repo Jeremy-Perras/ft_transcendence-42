@@ -90,6 +90,7 @@ const UserBanner = ({
   const [showInfoBan, setShowInfoBan] = useState(false); //DON'T TOUCH
   const [showTimeMute, setShowTimeMute] = useState(false); //DON'T TOUCH
   const [showTimeBan, setShowTimeBan] = useState(false); //DON'T TOUCH
+
   const queryClient = useQueryClient();
 
   const updateAdmins = useUpdateAdminsMutation({
@@ -132,6 +133,7 @@ const UserBanner = ({
       ]);
     },
   });
+
   return (
     <>
       <div className="flex h-full w-full shrink-0 items-end justify-center pr-2 transition-all hover:bg-slate-100 hover:shadow-sm">
@@ -158,6 +160,7 @@ const UserBanner = ({
           </div>
         </div>
         <div className="flex justify-center self-center">
+
           {changesAuthorized && !admin && !owner ? (
             <div
               className="relative flex w-8 flex-col items-center justify-start"
@@ -166,6 +169,7 @@ const UserBanner = ({
                   channelId: channelId ? channelId : 0,
                   userId: id ? id : 0,
                 });
+
               }}
             >
               {" "}
@@ -201,11 +205,13 @@ const UserBanner = ({
                   className="hover:bg-slate-300"
                   onClick={() => {
                     setShowTimeMute(false), //DONT TOUCH
+
                       mutedSomeone.mutate({
                         channelId: channelId ? channelId : 0,
                         createMutedId: id ? id : 0,
                         date: Math.floor(new Date()) + 60 * 60 * 2 * 1000,
                       });
+
                   }}
                 >
                   1h
@@ -214,11 +220,13 @@ const UserBanner = ({
                   className="hover:bg-slate-300"
                   onClick={() => {
                     setShowTimeMute(false), //DONT TOUCH
+
                       mutedSomeone.mutate({
                         channelId: channelId ? channelId : 0,
                         createMutedId: id ? id : 0,
                         date: Math.floor(new Date()) + 60 * 60 * 9 * 1000,
                       });
+
                   }}
                 >
                   8h
@@ -227,11 +235,13 @@ const UserBanner = ({
                   className="hover:bg-slate-300"
                   onClick={() => {
                     setShowTimeMute(false), //DONT TOUCH
+
                       mutedSomeone.mutate({
                         channelId: channelId ? channelId : 0,
                         createMutedId: id ? id : 0,
                         date: Math.floor(new Date()) + 60 * 60 * 25 * 1000,
                       });
+
                   }}
                 >
                   24h
@@ -240,11 +250,13 @@ const UserBanner = ({
                   className="hover:bg-slate-300"
                   onClick={() => {
                     setShowTimeMute(false), //DONT TOUCH
+
                       mutedSomeone.mutate({
                         channelId: channelId ? channelId : 0,
                         createMutedId: id ? id : 0,
                         date: null,
                       });
+
                   }}
                 >
                   Forever
@@ -263,12 +275,14 @@ const UserBanner = ({
                     onMouseOut={() => {
                       setShowInfoMute(false);
                     }}
+
                     onClick={() => {
                       deleteMutedSomeone.mutate({
                         channel: channelId ? channelId : 0,
                         userId: id ? id : 0,
                       });
                     }}
+
                     className="w-6 border-2 border-slate-300  text-neutral-600 hover:cursor-pointer hover:border-slate-700 hover:text-black"
                   />
                 ) : (
@@ -307,11 +321,13 @@ const UserBanner = ({
                   className="hover:bg-slate-300"
                   onClick={() => {
                     setShowTimeBan(false), //DONT TOUCH
+
                       bannedSomeone.mutate({
                         channelId: channelId ? channelId : 0,
                         createMutedId: id ? id : 0,
                         date: Math.floor(new Date()) + 60 * 60 * 1000 * 2,
                       });
+
                   }}
                 >
                   1h
@@ -320,11 +336,13 @@ const UserBanner = ({
                   className="hover:bg-slate-300"
                   onClick={() => {
                     setShowTimeBan(false), //don't touch
+
                       bannedSomeone.mutate({
                         channelId: channelId ? channelId : 0,
                         createMutedId: id ? id : 0,
                         date: Math.floor(new Date()) + 60 * 60 * 9 * 1000,
                       });
+
                   }}
                 >
                   8h
@@ -333,11 +351,13 @@ const UserBanner = ({
                   className="hover:bg-slate-300"
                   onClick={() => {
                     setShowTimeBan(false), //don't touch
+
                       bannedSomeone.mutate({
                         channelId: channelId ? channelId : 0,
                         createMutedId: id ? id : 0,
                         date: Math.floor(new Date()) + 60 * 60 * 25 * 1000,
                       });
+
                   }}
                 >
                   24h
@@ -346,11 +366,13 @@ const UserBanner = ({
                   className="hover:bg-slate-300"
                   onClick={() => {
                     setShowTimeBan(false), //don't touch
+
                       bannedSomeone.mutate({
                         channelId: channelId ? channelId : 0,
                         createMutedId: id ? id : 0,
                         date: null,
                       });
+
                   }}
                 >
                   Forever
@@ -365,17 +387,20 @@ const UserBanner = ({
                       : setBan(!ban) //MUTATION
                 }
               >
+
                 {ban ? (
                   <UnbanIcon
                     onMouseOver={() => setShowInfoBan(true)}
                     onMouseOut={() => setShowInfoBan(false)}
                     className="w-6 border-2 border-slate-300  text-neutral-600 hover:cursor-pointer hover:border-slate-700 hover:text-black"
+
                     onClick={() => {
                       deleteBannedSomeone.mutate({
                         channel: channelId ? channelId : 0,
                         userId: id ? id : 0,
                       });
                     }}
+
                   />
                 ) : (
                   <BanIcon
@@ -478,6 +503,7 @@ const Highlight = ({
     </span>
   );
 };
+
 //TODO : object destructuring
 export default function ChannelSettings() {
   const [search, setSearch] = useThrottledState("", 500);
@@ -495,21 +521,22 @@ export default function ChannelSettings() {
     },
   });
   if (typeof params.channelId === "undefined") return <div></div>;
+  console.log(params);
   const channelId = +params.channelId;
   const { isLoading, data, error, isFetching } = useChannelSettingsQuery({
     userId: null,
     channelId: channelId,
   });
-  if (isLoading) return <div>Loading ...</div>;
 
+  if (isLoading) return <div>Loading ...</div>;
   if (isFetching) {
     return <div>Fetching</div>;
   }
-
   if (error) {
     return <div>Error</div>;
   }
   const owner = data?.user.id === data?.channel.owner.id ? true : false;
+
   console.log(Math.floor(new Date() / 1000));
   return (
     <div className="flex w-full flex-col ">
@@ -551,12 +578,15 @@ export default function ChannelSettings() {
       ) : (
         ""
       )}
+
       <div className="relative flex flex-col justify-center bg-slate-200">
         {owner ? (
           <div
             className="absolute right-1 top-1 flex w-fit justify-center self-center rounded-md p-3 text-center text-lg text-slate-500 hover:cursor-pointer hover:text-slate-700"
             onClick={() => {
+
               setConfirmation(true);
+
             }}
           >
             <TrashIcon className="w-8 -translate-y-0.5" />
@@ -663,6 +693,7 @@ export default function ChannelSettings() {
         ) : null;
       })}
       {data?.channel.admins.some((admin) => admin.id === data?.user.id) ? (
+
         <>
           <div className="flex flex-col">
             <SearchBar search={search} setSearch={setSearch} />
@@ -673,6 +704,8 @@ export default function ChannelSettings() {
             )}
           </div>
         </>
+
+        
       ) : (
         <></>
       )}
