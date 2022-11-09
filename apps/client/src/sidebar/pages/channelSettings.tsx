@@ -90,10 +90,6 @@ const UserBanner = ({
   const [showInfoBan, setShowInfoBan] = useState(false); //DON'T TOUCH
   const [showTimeMute, setShowTimeMute] = useState(false); //DON'T TOUCH
   const [showTimeBan, setShowTimeBan] = useState(false); //DON'T TOUCH
-<<<<<<< HEAD
-=======
-
->>>>>>> c8a634a2987cebcd13f2059466a610ef18091d19
   const queryClient = useQueryClient();
 
   const updateAdmins = useUpdateAdminsMutation({
@@ -560,9 +556,7 @@ export default function ChannelSettings() {
           <div
             className="absolute right-1 top-1 flex w-fit justify-center self-center rounded-md p-3 text-center text-lg text-slate-500 hover:cursor-pointer hover:text-slate-700"
             onClick={() => {
-
               setConfirmation(true);
-
             }}
           >
             <TrashIcon className="w-8 -translate-y-0.5" />
