@@ -49,7 +49,7 @@ export default function CreateChannel() {
   const [publicMode, setPublicMode] = useState(true);
   const [privateMode, setPrivateMode] = useState(false);
   return (
-    <div className="flex flex-col">
+    <div className="flex h-full flex-col bg-slate-100">
       <form
         className="flex flex-col"
         onSubmit={handleSubmit(() => {
@@ -61,7 +61,7 @@ export default function CreateChannel() {
             navigate("/");
         })}
       >
-        <div className="flex flex-col bg-slate-100">
+        <div className="flex flex-col bg-slate-200">
           <div className="my-4 self-center text-3xl text-slate-600">
             Create your own Channel !
           </div>
@@ -74,7 +74,7 @@ export default function CreateChannel() {
               Channel name{" "}
             </label>
             <input
-              className="my-4 h-10 w-64 rounded-lg px-1 text-xl "
+              className="my-4 h-10 w-64 rounded-lg px-1 text-xl"
               {...register("Name", {
                 required: true,
                 maxLength: 100,
@@ -83,6 +83,7 @@ export default function CreateChannel() {
             />
           </div>
         </div>
+
         <div className="my-20 flex justify-evenly">
           <ChannelTypeButton
             text="Public"
@@ -119,7 +120,7 @@ export default function CreateChannel() {
                   maxLength: 100,
                 })}
                 defaultValue=""
-                className="my-2 h-10 w-64 self-center rounded-lg px-1 text-xl "
+                className="my-4 h-10 w-64 self-center rounded-lg px-1 text-xl "
               />
             </div>
           ) : (
