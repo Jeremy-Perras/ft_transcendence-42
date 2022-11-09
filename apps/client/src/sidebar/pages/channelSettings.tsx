@@ -303,17 +303,17 @@ const UserBanner = ({
 export default function ChannelSettings() {
   const params = useParams();
   if (typeof params.channelId === "undefined") return <div></div>;
+  console.log(params);
   const channelId = +params.channelId;
   const { isLoading, data, error, isFetching } = useChannelSettingsQuery({
     userId: null,
     channelId: channelId,
   });
-  if (isLoading) return <div>Loading ...</div>;
 
+  if (isLoading) return <div>Loading ...</div>;
   if (isFetching) {
     return <div>Fetching</div>;
   }
-
   if (error) {
     return <div>Error</div>;
   }
