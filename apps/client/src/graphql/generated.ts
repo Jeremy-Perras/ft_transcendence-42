@@ -195,7 +195,7 @@ export type MutationUnblockingUserArgs = {
 };
 
 export type MutationUpdateAdminsArgs = {
-  id: Scalars["Int"];
+  channelId: Scalars["Int"];
   userId: Scalars["Int"];
 };
 
