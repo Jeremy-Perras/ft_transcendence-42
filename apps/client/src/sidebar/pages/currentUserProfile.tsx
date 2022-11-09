@@ -27,7 +27,7 @@ export default function CurrentUserProfile() {
         <div className="mt-8 pb-2 text-center text-xl font-bold">
           MATCH HISTORY
         </div>
-        {data?.user.games.map((game) => {
+        {data?.user.games.map((game, index) => {
           const victory =
             (game.player1.id === data?.user.id &&
               game.player1score > game.player2score) ||
@@ -35,6 +35,7 @@ export default function CurrentUserProfile() {
               game.player2score > game.player1score);
           return (
             <div
+              key={index}
               className={`${
                 victory ? "bg-green-300" : "bg-red-400 "
               } mt-px flex h-12 items-center px-2`}

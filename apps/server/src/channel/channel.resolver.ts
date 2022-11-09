@@ -7,7 +7,7 @@ import {
   Resolver,
   Root,
 } from "@nestjs/graphql";
-import { Prisma } from "@prisma/client";
+import { MutedMember, Prisma } from "@prisma/client";
 import { CurrentUser } from "../auth/currentUser.decorator";
 import { PrismaService } from "../prisma/prisma.service";
 import { Restricted, RestrictedMember, User } from "../user/user.model";
@@ -273,7 +273,7 @@ export class ChannelResolver {
   async createMuted(
     @Args("id", { type: () => Int }) id: number,
     @Args("channelId", { type: () => Int }) channelId: number,
-    @Args("date", { type: () => String, nullable: true })
+    @Args("date", { type: () => Date, nullable: true })
     date: string | Date | null | undefined
   ): Promise<restrictedMemberType> {
     const m = await this.prisma.mutedMember.create({
@@ -296,9 +296,10 @@ export class ChannelResolver {
   async createBanned(
     @Args("id", { type: () => Int }) id: number,
     @Args("channelId", { type: () => Int }) channelId: number,
-    @Args("date", { type: () => String, nullable: true })
+    @Args("date", { type: () => Date, nullable: true })
     date: string | Date | null | undefined
   ): Promise<restrictedMemberType> {
+    console.log(date);
     const m = await this.prisma.bannedMember.create({
       select: {
         user: true,
@@ -331,8 +332,43 @@ export class ChannelResolver {
     };
   }
 
-  // UPDATE
+  @Mutation((returns) => RestrictedMember)
+  async deleteMuted(
+    @Args("channel", { type: () => Int }) channelId: number,
+    @Args("userId", { type: () => Int }) userId: number
+  ): Promise<restrictedMemberType> {
+    const m = await this.prisma.mutedMember.delete({
+      select: { channel: true, user: true, endAt: true },
+      where: { channelId_userId: { channelId: channelId, userId: userId } },
+    });
+    return {
+      avatar: m.user.avatar,
+      endAt: m.endAt,
+      id: m.user.id,
+      name: m.user.name,
+      rank: m.user.rank,
+    };
+  }
 
+  @Mutation((returns) => RestrictedMember)
+  async deleteBanned(
+    @Args("channel", { type: () => Int }) channelId: number,
+    @Args("userId", { type: () => Int }) userId: number
+  ): Promise<restrictedMemberType> {
+    const m = await this.prisma.bannedMember.delete({
+      select: { channel: true, user: true, endAt: true },
+      where: { channelId_userId: { channelId: channelId, userId: userId } },
+    });
+    return {
+      avatar: m.user.avatar,
+      endAt: m.endAt,
+      id: m.user.id,
+      name: m.user.name,
+      rank: m.user.rank,
+    };
+  }
+
+  // UPDATE
   @Mutation((returns) => Channel)
   async updatePassword(
     @Args("password", { type: () => String, nullable: true }) password: string,
@@ -352,12 +388,11 @@ export class ChannelResolver {
     };
   }
 
-  //TODO need see for changing Date input : "2022-11-03T19:39:16.899Z"
   @Mutation((returns) => Channel)
   async updateMuted(
     @Args("channelId", { type: () => Int }) channelId: number,
     @Args("userId", { type: () => Int }) userId: number,
-    @Args("date", { type: () => String, nullable: true })
+    @Args("date", { type: () => Date, nullable: true })
     date: string | Date | null | undefined
   ): Promise<channelType> {
     const m = await this.prisma.mutedMember.update({
@@ -373,12 +408,11 @@ export class ChannelResolver {
     };
   }
 
-  //TODO need see for changing Date input : "2022-11-03T19:39:16.899Z"
   @Mutation((returns) => Channel)
   async updateBanned(
     @Args("channelId", { type: () => Int }) channelId: number,
     @Args("userId", { type: () => Int }) userId: number,
-    @Args("date", { type: () => String, nullable: true })
+    @Args("date", { type: () => Date, nullable: true })
     date: string | Date | null | undefined
   ): Promise<channelType> {
     const m = await this.prisma.bannedMember.update({
