@@ -1,0 +1,8 @@
+mutation UpdateAdmins($channelId: Int!, $userId: Int!) {
+  updateAdmins(channelId: $channelId, userId: $userId) {
+    id
+    passwordProtected
+    private
+    name
+  }
+}

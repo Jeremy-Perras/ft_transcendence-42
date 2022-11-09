@@ -90,6 +90,10 @@ const UserBanner = ({
   const [showInfoBan, setShowInfoBan] = useState(false); //DON'T TOUCH
   const [showTimeMute, setShowTimeMute] = useState(false); //DON'T TOUCH
   const [showTimeBan, setShowTimeBan] = useState(false); //DON'T TOUCH
+<<<<<<< HEAD
+=======
+
+>>>>>>> c8a634a2987cebcd13f2059466a610ef18091d19
   const queryClient = useQueryClient();
 
   const updateAdmins = useUpdateAdminsMutation({
@@ -132,6 +136,10 @@ const UserBanner = ({
       ]);
     },
   });
+<<<<<<< HEAD
+=======
+
+>>>>>>> c8a634a2987cebcd13f2059466a610ef18091d19
   return (
     <>
       <div className="flex h-full w-full shrink-0 items-end justify-center pr-2 transition-all hover:bg-slate-100 hover:shadow-sm">
@@ -158,6 +166,10 @@ const UserBanner = ({
           </div>
         </div>
         <div className="flex justify-center self-center">
+<<<<<<< HEAD
+=======
+
+>>>>>>> c8a634a2987cebcd13f2059466a610ef18091d19
           {changesAuthorized && !admin && !owner ? (
             <div
               className="relative flex w-8 flex-col items-center justify-start"
@@ -166,6 +178,10 @@ const UserBanner = ({
                   channelId: channelId ? channelId : 0,
                   userId: id ? id : 0,
                 });
+<<<<<<< HEAD
+=======
+
+>>>>>>> c8a634a2987cebcd13f2059466a610ef18091d19
               }}
             >
               {" "}
@@ -201,11 +217,19 @@ const UserBanner = ({
                   className="hover:bg-slate-300"
                   onClick={() => {
                     setShowTimeMute(false), //DONT TOUCH
+<<<<<<< HEAD
+=======
+
+>>>>>>> c8a634a2987cebcd13f2059466a610ef18091d19
                       mutedSomeone.mutate({
                         channelId: channelId ? channelId : 0,
                         createMutedId: id ? id : 0,
                         date: Math.floor(new Date()) + 60 * 60 * 2 * 1000,
                       });
+<<<<<<< HEAD
+=======
+
+>>>>>>> c8a634a2987cebcd13f2059466a610ef18091d19
                   }}
                 >
                   1h
@@ -214,11 +238,19 @@ const UserBanner = ({
                   className="hover:bg-slate-300"
                   onClick={() => {
                     setShowTimeMute(false), //DONT TOUCH
+<<<<<<< HEAD
+=======
+
+>>>>>>> c8a634a2987cebcd13f2059466a610ef18091d19
                       mutedSomeone.mutate({
                         channelId: channelId ? channelId : 0,
                         createMutedId: id ? id : 0,
                         date: Math.floor(new Date()) + 60 * 60 * 9 * 1000,
                       });
+<<<<<<< HEAD
+=======
+
+>>>>>>> c8a634a2987cebcd13f2059466a610ef18091d19
                   }}
                 >
                   8h
@@ -227,11 +259,19 @@ const UserBanner = ({
                   className="hover:bg-slate-300"
                   onClick={() => {
                     setShowTimeMute(false), //DONT TOUCH
+<<<<<<< HEAD
+=======
+
+>>>>>>> c8a634a2987cebcd13f2059466a610ef18091d19
                       mutedSomeone.mutate({
                         channelId: channelId ? channelId : 0,
                         createMutedId: id ? id : 0,
                         date: Math.floor(new Date()) + 60 * 60 * 25 * 1000,
                       });
+<<<<<<< HEAD
+=======
+
+>>>>>>> c8a634a2987cebcd13f2059466a610ef18091d19
                   }}
                 >
                   24h
@@ -240,11 +280,19 @@ const UserBanner = ({
                   className="hover:bg-slate-300"
                   onClick={() => {
                     setShowTimeMute(false), //DONT TOUCH
+<<<<<<< HEAD
+=======
+
+>>>>>>> c8a634a2987cebcd13f2059466a610ef18091d19
                       mutedSomeone.mutate({
                         channelId: channelId ? channelId : 0,
                         createMutedId: id ? id : 0,
                         date: null,
                       });
+<<<<<<< HEAD
+=======
+
+>>>>>>> c8a634a2987cebcd13f2059466a610ef18091d19
                   }}
                 >
                   Forever
@@ -263,12 +311,20 @@ const UserBanner = ({
                     onMouseOut={() => {
                       setShowInfoMute(false);
                     }}
+<<<<<<< HEAD
+=======
+
+>>>>>>> c8a634a2987cebcd13f2059466a610ef18091d19
                     onClick={() => {
                       deleteMutedSomeone.mutate({
                         channel: channelId ? channelId : 0,
                         userId: id ? id : 0,
                       });
                     }}
+<<<<<<< HEAD
+=======
+
+>>>>>>> c8a634a2987cebcd13f2059466a610ef18091d19
                     className="w-6 border-2 border-slate-300  text-neutral-600 hover:cursor-pointer hover:border-slate-700 hover:text-black"
                   />
                 ) : (
@@ -307,11 +363,19 @@ const UserBanner = ({
                   className="hover:bg-slate-300"
                   onClick={() => {
                     setShowTimeBan(false), //DONT TOUCH
+<<<<<<< HEAD
+=======
+
+>>>>>>> c8a634a2987cebcd13f2059466a610ef18091d19
                       bannedSomeone.mutate({
                         channelId: channelId ? channelId : 0,
                         createMutedId: id ? id : 0,
                         date: Math.floor(new Date()) + 60 * 60 * 1000 * 2,
                       });
+<<<<<<< HEAD
+=======
+
+>>>>>>> c8a634a2987cebcd13f2059466a610ef18091d19
                   }}
                 >
                   1h
@@ -320,11 +384,19 @@ const UserBanner = ({
                   className="hover:bg-slate-300"
                   onClick={() => {
                     setShowTimeBan(false), //don't touch
+<<<<<<< HEAD
+=======
+
+>>>>>>> c8a634a2987cebcd13f2059466a610ef18091d19
                       bannedSomeone.mutate({
                         channelId: channelId ? channelId : 0,
                         createMutedId: id ? id : 0,
                         date: Math.floor(new Date()) + 60 * 60 * 9 * 1000,
                       });
+<<<<<<< HEAD
+=======
+
+>>>>>>> c8a634a2987cebcd13f2059466a610ef18091d19
                   }}
                 >
                   8h
@@ -333,11 +405,19 @@ const UserBanner = ({
                   className="hover:bg-slate-300"
                   onClick={() => {
                     setShowTimeBan(false), //don't touch
+<<<<<<< HEAD
+=======
+
+>>>>>>> c8a634a2987cebcd13f2059466a610ef18091d19
                       bannedSomeone.mutate({
                         channelId: channelId ? channelId : 0,
                         createMutedId: id ? id : 0,
                         date: Math.floor(new Date()) + 60 * 60 * 25 * 1000,
                       });
+<<<<<<< HEAD
+=======
+
+>>>>>>> c8a634a2987cebcd13f2059466a610ef18091d19
                   }}
                 >
                   24h
@@ -346,11 +426,19 @@ const UserBanner = ({
                   className="hover:bg-slate-300"
                   onClick={() => {
                     setShowTimeBan(false), //don't touch
+<<<<<<< HEAD
+=======
+
+>>>>>>> c8a634a2987cebcd13f2059466a610ef18091d19
                       bannedSomeone.mutate({
                         channelId: channelId ? channelId : 0,
                         createMutedId: id ? id : 0,
                         date: null,
                       });
+<<<<<<< HEAD
+=======
+
+>>>>>>> c8a634a2987cebcd13f2059466a610ef18091d19
                   }}
                 >
                   Forever
@@ -365,17 +453,29 @@ const UserBanner = ({
                       : setBan(!ban) //MUTATION
                 }
               >
+<<<<<<< HEAD
+=======
+
+>>>>>>> c8a634a2987cebcd13f2059466a610ef18091d19
                 {ban ? (
                   <UnbanIcon
                     onMouseOver={() => setShowInfoBan(true)}
                     onMouseOut={() => setShowInfoBan(false)}
                     className="w-6 border-2 border-slate-300  text-neutral-600 hover:cursor-pointer hover:border-slate-700 hover:text-black"
+<<<<<<< HEAD
+=======
+
+>>>>>>> c8a634a2987cebcd13f2059466a610ef18091d19
                     onClick={() => {
                       deleteBannedSomeone.mutate({
                         channel: channelId ? channelId : 0,
                         userId: id ? id : 0,
                       });
                     }}
+<<<<<<< HEAD
+=======
+
+>>>>>>> c8a634a2987cebcd13f2059466a610ef18091d19
                   />
                 ) : (
                   <BanIcon
@@ -478,6 +578,10 @@ const Highlight = ({
     </span>
   );
 };
+<<<<<<< HEAD
+=======
+
+>>>>>>> c8a634a2987cebcd13f2059466a610ef18091d19
 //TODO : object destructuring
 export default function ChannelSettings() {
   const [search, setSearch] = useThrottledState("", 500);
@@ -495,21 +599,25 @@ export default function ChannelSettings() {
     },
   });
   if (typeof params.channelId === "undefined") return <div></div>;
+  console.log(params);
   const channelId = +params.channelId;
   const { isLoading, data, error, isFetching } = useChannelSettingsQuery({
     userId: null,
     channelId: channelId,
   });
-  if (isLoading) return <div>Loading ...</div>;
 
+  if (isLoading) return <div>Loading ...</div>;
   if (isFetching) {
     return <div>Fetching</div>;
   }
-
   if (error) {
     return <div>Error</div>;
   }
   const owner = data?.user.id === data?.channel.owner.id ? true : false;
+<<<<<<< HEAD
+=======
+
+>>>>>>> c8a634a2987cebcd13f2059466a610ef18091d19
   console.log(Math.floor(new Date() / 1000));
   return (
     <div className="flex w-full flex-col ">
@@ -551,12 +659,22 @@ export default function ChannelSettings() {
       ) : (
         ""
       )}
+<<<<<<< HEAD
+=======
+
+>>>>>>> c8a634a2987cebcd13f2059466a610ef18091d19
       <div className="relative flex flex-col justify-center bg-slate-200">
         {owner ? (
           <div
             className="absolute right-1 top-1 flex w-fit justify-center self-center rounded-md p-3 text-center text-lg text-slate-500 hover:cursor-pointer hover:text-slate-700"
             onClick={() => {
+<<<<<<< HEAD
               setConfirmation(true);
+=======
+
+              setConfirmation(true);
+
+>>>>>>> c8a634a2987cebcd13f2059466a610ef18091d19
             }}
           >
             <TrashIcon className="w-8 -translate-y-0.5" />
@@ -663,6 +781,10 @@ export default function ChannelSettings() {
         ) : null;
       })}
       {data?.channel.admins.some((admin) => admin.id === data?.user.id) ? (
+<<<<<<< HEAD
+=======
+
+>>>>>>> c8a634a2987cebcd13f2059466a610ef18091d19
         <>
           <div className="flex flex-col">
             <SearchBar search={search} setSearch={setSearch} />
@@ -673,6 +795,11 @@ export default function ChannelSettings() {
             )}
           </div>
         </>
+<<<<<<< HEAD
+=======
+
+        
+>>>>>>> c8a634a2987cebcd13f2059466a610ef18091d19
       ) : (
         <></>
       )}

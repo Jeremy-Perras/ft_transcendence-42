@@ -136,6 +136,7 @@ function Header({
   const setShowSideBar = useContext(SideBarContext);
   const isSmallScreen = useMediaQuery("(max-width: 1536px)");
   // TODO : put this in corresponding component
+
   return (
     <div className="z-10 flex shadow-sm shadow-slate-400">
       <AnimatePresence initial={false} exitBeforeEnter>
@@ -160,21 +161,11 @@ function Header({
               className="relative flex grow border-r-2 text-center text-lg"
             >
               {location.pathname.substring(0, 6) === "/chat/" ? (
-                <UserHeader
-                  userId={
-                    +location.pathname.substring(
-                      7,
-                      location.pathname.length - 1
-                    )
-                  }
-                />
+                <UserHeader userId={+location.pathname.substring(6)} />
               ) : location.pathname.substring(0, 9) === "/channel/" ? (
                 <ChannelHeader
                   channelId={
-                    +location.pathname.substring(
-                      10,
-                      location.pathname.length - 1
-                    )
+                    +location.pathname.substring(9) //HERE IS THE ISSUE
                   }
                 />
               ) : location.pathname === "/create-channel" ? (
