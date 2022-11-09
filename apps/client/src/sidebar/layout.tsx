@@ -158,16 +158,12 @@ function Header({
             />
             <div
               key={4}
-              className="relative flex grow border-r-2 text-center text-lg"
+              className="relative flex grow border-r-2 pl-8 text-center text-lg"
             >
               {location.pathname.substring(0, 6) === "/chat/" ? (
                 <UserHeader userId={+location.pathname.substring(6)} />
               ) : location.pathname.substring(0, 9) === "/channel/" ? (
-                <ChannelHeader
-                  channelId={
-                    +location.pathname.substring(9) //HERE IS THE ISSUE
-                  }
-                />
+                <ChannelHeader channelId={+location.pathname.substring(9)} />
               ) : location.pathname === "/create-channel" ? (
                 <div className="mt-1 w-full text-center font-bold">
                   New channel
@@ -179,6 +175,10 @@ function Header({
               ) : location.pathname.substring(0, 11) === "/profile/me" ? (
                 <div className="mt-1 w-full text-center font-bold">
                   My profile
+                </div>
+              ) : location.pathname.substring(0, 9) === "/profile/" ? (
+                <div className="mt-1 w-full text-center font-bold">
+                  User profile
                 </div>
               ) : (
                 <div>{location.pathname}</div>

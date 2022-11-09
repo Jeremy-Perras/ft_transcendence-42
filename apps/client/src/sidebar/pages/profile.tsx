@@ -4,7 +4,6 @@ import {
   useQueryClient,
   UseQueryOptions,
 } from "@tanstack/react-query";
-import { useState } from "react";
 import { useLoaderData, useParams } from "react-router-dom";
 import {
   useUserProfileQuery,
@@ -14,6 +13,7 @@ import {
   useUpdateFriendMutation,
   useUpdateUnFriendMutation,
 } from "../../graphql/generated";
+import { ReactComponent as PlayIcon } from "pixelarticons/svg/gamepad.svg";
 
 const query = (
   userId: number
@@ -46,24 +46,26 @@ const Friend = ({
   });
 
   return (
-    <div className="mt-4 flex w-full flex-col ">
-      <div className="flex flex-col items-center justify-center p-2 ">
-        <img
-          src={data?.user.avatar}
-          alt="Player avatar"
-          className="h-24 rounded-full"
-        />
-        <div className="m-2 flex flex-col text-center">
-          <div className="text-xl font-bold">{data?.user.name}</div>
-          <div>Rank : {data?.user.rank}</div>
+    <div className="flex w-full flex-col ">
+      <div className="flex flex-col items-center justify-center  bg-slate-100 shadow-md">
+        <div className="flex w-full flex-col items-center justify-center">
+          <img
+            src={data?.user.avatar}
+            alt="Player avatar"
+            className="my-4 h-24 w-24 rounded-full"
+          />
+          <div className="mb-4 flex flex-col text-center">
+            <div className="text-xl font-bold">{data?.user.name}</div>
+            <div>Rank : {data?.user.rank}</div>
+          </div>
         </div>
         <span
           onClick={() => {
             askFriend.mutate({ updateFriendId: userId });
           }}
-          className=" mt-4 flex  w-24 justify-center  rounded-xl border-2  border-slate-200 bg-slate-100 p-2 text-center text-xl  font-bold hover:bg-slate-200"
+          className="my-12 flex h-36 w-36 items-center justify-center self-center rounded-full border-2 border-slate-300 bg-slate-200 p-2 text-center  text-2xl font-bold  transition-all hover:bg-slate-300"
         >
-          Friend
+          Add as Friend
         </span>
       </div>
     </div>
@@ -96,25 +98,34 @@ const DisplayUserProfile = ({
   });
 
   return (
-    <div className="mt-4 flex w-full flex-col ">
-      <div className="flex flex-col items-center justify-center p-2 ">
-        <img
-          src={data?.user.avatar}
-          alt="Player avatar"
-          className="h-24 rounded-full"
-        />
-        <div className="m-2 flex flex-col text-center">
-          <div className="text-xl font-bold">{data?.user.name}</div>
-          <div>Rank : {data?.user.rank}</div>
+    <div className="relative flex w-full flex-col ">
+      <div className="flex flex-col items-center justify-center bg-slate-100">
+        <div className="flex w-full flex-col items-center justify-center">
+          <img
+            src={data?.user.avatar}
+            alt="Player avatar"
+            className="my-4 h-24 w-24 rounded-full"
+          />
+          <div className="mb-4 flex flex-col text-center">
+            <div className="text-xl font-bold">{data?.user.name}</div>
+            <div>Rank : {data?.user.rank}</div>
+          </div>
         </div>
       </div>
-
-      <div className="mt-4 flex justify-evenly text-xl font-bold">
+      <div className="flex justify-evenly bg-slate-100 p-4 pb-8 text-xl font-bold shadow-md">
+        <div
+          onClick={() => {
+            alert("Launch Game invitation");
+          }}
+          className="flex h-24 w-24 items-center justify-center rounded-full border-2 border-green-300 bg-green-200 p-2 text-center transition-all hover:bg-green-300"
+        >
+          Play !
+        </div>
         <div
           onClick={() => {
             unFriend.mutate({ updateUnFriendId: userId });
           }}
-          className="w-24 rounded-xl  border-2 border-slate-200 bg-slate-100 p-2 text-center hover:border-slate-300 hover:bg-slate-200 "
+          className="flex h-24 w-24 items-center justify-center rounded-full border-2 border-slate-300 bg-slate-200 p-2 text-center transition-all hover:bg-slate-300 "
         >
           Unfriend
         </div>
@@ -126,11 +137,11 @@ const DisplayUserProfile = ({
           }}
           className={`${
             data.user.blocked
-              ? "bg-green-100 hover:bg-green-200"
-              : "bg-red-100 hover:bg-red-200"
-          } flex w-24 justify-center  rounded-xl  border-2 border-slate-200 p-2 text-center`}
+              ? "border-green-400 bg-green-300   hover:bg-green-400"
+              : "border-red-500 bg-red-400    hover:bg-red-500"
+          } flex h-24 w-24 items-center justify-center rounded-full border-2 p-2 text-center transition-all`}
         >
-          {data?.user.blocked ? "Unblocked" : "Block"}
+          {data?.user.blocked ? "Unblock" : "Block"}
         </div>
       </div>
       <div className="flex w-full flex-col  text-sm">
