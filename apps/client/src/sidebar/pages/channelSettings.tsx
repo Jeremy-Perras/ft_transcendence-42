@@ -51,7 +51,7 @@ const ChannelType = ({
     },
   });
   return (
-    <div className="flex h-full flex-col bg-slate-100">
+    <div className="flex h-full flex-col">
       <form
         className="flex h-full flex-col"
         onSubmit={handleSubmit(() => {
@@ -63,7 +63,7 @@ const ChannelType = ({
           });
         })}
       >
-        <div className="mb-4 flex h-full ">Mode : {activeMode}</div>
+        <div className="mb-2 flex h-full ">Mode : {activeMode}</div>
         <div className="flex h-full items-center justify-start">
           {activeMode === "Password protected" ? (
             <div className="flex items-center justify-start ">
@@ -175,7 +175,11 @@ const UserBanner = ({
           className="flex grow hover:cursor-pointer"
           onClick={() => navigate(`/profile/${id}`)}
         >
-          <img src={avatar} alt="Owner avatar" className="m-1 h-12 w-12 " />
+          <img
+            src={avatar} //TODO : replace with default if not set
+            alt="User avatar"
+            className="m-1 h-12 w-12 border border-black "
+          />
           <div className="ml-2 flex flex-col justify-center text-xs">
             <div className="flex">
               <span className="truncate text-base font-bold ">{name}</span>
@@ -524,7 +528,7 @@ const Search = ({
               <>
                 <Avatar.Root>
                   <Avatar.Image
-                    className="h-10 w-10 object-cover "
+                    className="h-10 w-10 border border-black object-cover"
                     src={result?.avatar}
                   />
                   <Avatar.Fallback>
@@ -573,16 +577,19 @@ const Highlight = ({
 };
 
 /********************************************************************/
-/*                        MAIN COMPONENT                            */
+/*                                POPUP                             */
 /********************************************************************/
-//TODO : object destructuring
-export default function ChannelSettings() {
-  const [search, setSearch] = useThrottledState("", 500);
-  const params = useParams();
+const DeletePopUp = ({
+  channelId,
+  confirmation,
+  setConfirmation,
+}: {
+  channelId: number;
+  confirmation: boolean;
+  setConfirmation: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [confirmation, setConfirmation] = useState(false);
-  // TODO Slow to reload data when invalidate only the Queries
   const deleteChannel = useDeleteChannelMutation({
     onSuccess: () => {
       queryClient.invalidateQueries([
@@ -591,6 +598,54 @@ export default function ChannelSettings() {
       ]);
     },
   });
+  return (
+    <div
+      className="absolute top-0 right-0 z-10 flex h-full w-full items-center justify-center bg-opacity-0"
+      onClick={() => setConfirmation(false)}
+    >
+      <div className="flex h-1/6 w-2/3 items-center justify-center border-2 bg-white ">
+        <div className="flex flex-col items-center">
+          <div className=" mt-4  text-center">
+            <p className="font-bold">Delete your Channel</p>
+            <p className="mt-1 text-sm text-gray-700">
+              This action cannot be undone.
+            </p>
+          </div>
+
+          <div className="mt-4 flex flex-row text-center">
+            <button
+              onClick={() => {
+                deleteChannel.mutate({ channelId: channelId });
+                navigate("/");
+              }}
+              className="block w-full border-2 border-slate-200 bg-slate-100 px-4 py-3 text-sm font-semibold text-red-700 hover:bg-slate-200 "
+            >
+              Delete
+            </button>
+            <button
+              onClick={() => setConfirmation(false)}
+              className="ml-2 block w-full border-2 border-slate-200 bg-slate-100 px-4 py-3 text-sm font-semibold  hover:bg-slate-200"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/********************************************************************/
+/*                        MAIN COMPONENT                            */
+/********************************************************************/
+//TODO : object destructuring
+export default function ChannelSettings() {
+  const [search, setSearch] = useThrottledState("", 500);
+  const params = useParams();
+
+  const [confirmation, setConfirmation] = useState(false);
+  // TODO Slow to reload data when invalidate only the Queries
+
   if (typeof params.channelId === "undefined") return <div></div>;
   const channelId = +params.channelId;
   const { isLoading, data, error, isFetching } = useChannelSettingsQuery({
@@ -609,44 +664,17 @@ export default function ChannelSettings() {
   return (
     <div className="relative flex h-full w-full flex-col ">
       {confirmation ? (
-        <div
-          className="absolute top-0 right-0 z-10 flex h-full w-full items-center justify-center bg-opacity-0"
-          onClick={() => setConfirmation(false)}
-        >
-          <div className="flex h-1/6 w-2/3 items-center justify-center border-2 bg-white ">
-            <div className="flex flex-col items-center">
-              <div className=" mt-4  text-center">
-                <p className="font-bold">Delete your Channel</p>
-                <p className="mt-1 text-sm text-gray-700">
-                  This action cannot be undone.
-                </p>
-              </div>
-
-              <div className="mt-4 flex flex-row text-center">
-                <button
-                  onClick={() => {
-                    deleteChannel.mutate({ channelId: channelId });
-                    navigate("/");
-                  }}
-                  className="block w-full border-2 border-slate-200 bg-slate-100 px-4 py-3 text-sm font-semibold text-red-700 hover:bg-slate-200 "
-                >
-                  Delete
-                </button>
-                <button
-                  onClick={() => setConfirmation(false)}
-                  className="ml-2 block w-full border-2 border-slate-200 bg-slate-100 px-4 py-3 text-sm font-semibold  hover:bg-slate-200"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <DeletePopUp
+          channelId={channelId}
+          confirmation={confirmation}
+          setConfirmation={setConfirmation}
+        />
       ) : (
         ""
       )}
       <div className={`${confirmation ? "blur-sm" : ""} `}>
-        <div className="relative flex flex-col justify-center bg-slate-100 p-2">
+        {/* TODO : put this in a component */}
+        <div className="relative flex flex-col justify-center p-2">
           {owner ? (
             <div
               className="absolute right-1 top-1 flex w-fit justify-center self-center p-3 text-center text-lg text-slate-500 hover:cursor-pointer hover:text-slate-700"
@@ -659,15 +687,15 @@ export default function ChannelSettings() {
           ) : (
             <div></div>
           )}
-          <div className="flex h-40 w-full items-center">
-            <div className="flex h-28 w-28 justify-center self-center  border border-slate-400 bg-white">
+          <div className="flex w-full grow items-center">
+            <div className="flex h-28 w-28 justify-center self-center border border-slate-400 bg-white">
               <UsersIcon className="mt-2 h-20 w-20 self-center text-slate-700 " />
             </div>
-            <div className="mx-4 flex h-full flex-col justify-evenly py-2">
-              <div className="mt-1 w-full text-left text-2xl font-bold">
+            <div className="mx-4 flex h-full flex-col ">
+              <div className="text-left text-2xl font-bold">
                 Channel : {data?.channel.name}
               </div>
-              <div className="flex flex-row ">
+              <div className="mt-2 flex flex-row ">
                 <ChannelType
                   idChannel={data?.channel.id ? data.channel.id : 0}
                   activeMode={
@@ -682,7 +710,9 @@ export default function ChannelSettings() {
             </div>
           </div>
         </div>
-        <div className="p-5 text-center text-xl font-bold text-slate-700">
+        {/* TODO : put this in a component */}
+
+        <div className="ml-1 pt-5 text-left text-xl font-bold text-slate-700">
           MEMBERS
         </div>
         <UserBanner
