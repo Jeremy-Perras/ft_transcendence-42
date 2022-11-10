@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useMediaQuery, useThrottledState } from "@react-hookz/web";
@@ -14,6 +14,7 @@ import {
   useSearchUsersChannelsQuery,
   useUserProfileHeaderQuery,
   useGetChannelHeaderQuery,
+  useInfoUsersQuery,
 } from "../graphql/generated";
 
 import { useSidebarStore } from "../stores";
