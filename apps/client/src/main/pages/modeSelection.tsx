@@ -1,4 +1,4 @@
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import {
   AnimationControls,
   motion,
@@ -9,8 +9,6 @@ import { useMediaQuery } from "@react-hookz/web";
 import { useEffect, useState } from "react";
 
 import ArrowImage from "../../assets/game_modes/arrow.svg";
-import { useWaitingRoomGameQuery } from "../../graphql/generated";
-import { getInfoUserId, UpdateGameJoiningPlayer } from "../queries";
 
 let intervalId = -1;
 const GameMode = ({ imgs, name, alt, textEffects, animate }: GameModeType) => {

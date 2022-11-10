@@ -1,11 +1,5 @@
 import "reflect-metadata";
-import {
-  Field,
-  InputType,
-  Int,
-  IntersectionType,
-  ObjectType,
-} from "@nestjs/graphql";
+import { Field, Int, ObjectType } from "@nestjs/graphql";
 import { IsNotEmpty, Min } from "class-validator";
 import { RestrictedMember, User } from "../user/user.model";
 

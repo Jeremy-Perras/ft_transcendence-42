@@ -5,7 +5,15 @@ import { PrismaService } from "../prisma/prisma.service";
 export class AuthService {
   constructor(private prismaService: PrismaService) {}
 
-  async getFirstUser() {
-    return await this.prismaService.user.findFirst();
+  async getUserById(userId: number) {
+    try {
+      const user = await this.prismaService.user.findFirst({
+        where: { id: userId },
+      });
+      return user;
+    } catch (error) {
+      console.error(error);
+      return undefined;
+    }
   }
 }
