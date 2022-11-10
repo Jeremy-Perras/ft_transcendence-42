@@ -6,20 +6,6 @@ import ModeSelection from "./pages/modeSelection";
 import Game from "./pages/game";
 import LogoImage from "../assets/images/logo.svg";
 import { useAuthStore } from "../stores";
-import { useState } from "react";
-
-const LogoLayout = ({ children }: { children: JSX.Element }) => {
-  return (
-    <div className="flex h-full w-full flex-col items-center bg-black">
-      <img
-        src={LogoImage}
-        className="mt-5 w-4/5 sm:max-w-lg lg:max-w-xl 2xl:max-w-2xl"
-        alt="Pong game logo"
-      />
-      {children}
-    </div>
-  );
-};
 
 const router = createBrowserRouter([
   {
@@ -29,11 +15,7 @@ const router = createBrowserRouter([
   },
   {
     path: "/gamehomepage",
-    element: (
-      <LogoLayout>
-        <ModeSelection />
-      </LogoLayout>
-    ),
+    element: <ModeSelection />,
   },
   {
     path: "/game/:gameId",
@@ -41,52 +23,20 @@ const router = createBrowserRouter([
   },
   {
     path: "/waiting",
-    element: (
-      <LogoLayout>
-        <Waiting />
-      </LogoLayout>
-    ),
+    element: <Waiting />,
   },
 ]);
-
-const LoginTest = () => {
-  const [userId, setUserId] = useState<number>();
-  const login = useAuthStore((state) => state.login);
-
-  return (
-    <>
-      <input
-        type="text"
-        onChange={(e) => {
-          setUserId(+e.currentTarget.value);
-        }}
-      />
-      <button
-        className="text-white"
-        onClick={async () => {
-          await fetch("/auth/login", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              id: userId,
-            }),
-          });
-          login();
-        }}
-      >
-        log
-      </button>
-    </>
-  );
-};
 
 export default function Main() {
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
 
   return (
-    <div className="crt shrink grow bg-black">
+    <div className="crt relative shrink grow bg-blue-300 font-display">
+      <img
+        src={LogoImage}
+        className="absolute left-1/2 mt-5 w-4/5 -translate-x-1/2 transform sm:max-w-lg lg:max-w-xl 2xl:max-w-2xl"
+        alt="Pong game logo"
+      />
       {isLoggedIn ? <RouterProvider router={router} /> : <Home />}
       {/* <div className="absolute z-10 h-full w-full backdrop-blur"></div> */}
     </div>

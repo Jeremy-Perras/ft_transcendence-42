@@ -16,7 +16,7 @@ module.exports = {
         },
       },
       fontFamily: {
-        cursive: ["w95fa"],
+        content: ["w95fa"],
         display: ["arcade"],
       },
     },

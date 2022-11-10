@@ -13,7 +13,7 @@ import { AuthModule } from "./auth/auth.module";
   imports: [
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, "../../", "client/dist"),
-      exclude: ["/graphql", "/login"],
+      exclude: ["/graphql"],
     }),
     AuthModule,
     UserModule,

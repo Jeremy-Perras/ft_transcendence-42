@@ -103,7 +103,7 @@ export default function SideBar() {
   return (
     <ErrorBoundary FallbackComponent={() => <div>error</div>}>
       <QueryClientProvider client={queryClient}>
-        <div className="z-10 shrink-0 font-cursive">
+        <div className="z-10 shrink-0 font-content">
           {!sidebarIsOpen && isSmallScreen ? (
             <button
               onClick={() =>
