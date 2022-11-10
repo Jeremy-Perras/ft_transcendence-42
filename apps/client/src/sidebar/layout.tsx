@@ -9,15 +9,6 @@ import { ReactComponent as BackBurgerIcon } from "pixelarticons/svg/backburger.s
 import { ReactComponent as MessagePlusIcon } from "pixelarticons/svg/message-plus.svg";
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { ReactComponent as UsersIcon } from "pixelarticons/svg/users.svg";
-<<<<<<< HEAD
-import { SideBarContext } from "./context";
-import {
-  useInfoUsersQuery,
-  useSearchUsersChannelsQuery,
-  useUserProfileQuery,
-} from "../graphql/generated";
-=======
->>>>>>> main
 import * as Avatar from "@radix-ui/react-avatar";
 import {
   useSearchUsersChannelsQuery,
