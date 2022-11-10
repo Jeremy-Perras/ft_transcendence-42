@@ -88,6 +88,7 @@ const DisplayAddAsFriend = ({
           <div className="text-xl font-bold">{data?.user.name}</div>
 
           <div>Statistics : TODO </div>
+          {/* TODO:STATS */}
         </div>
       </div>
       <div className="mt-24 w-48 self-center text-center text-xl text-slate-300">
@@ -96,6 +97,7 @@ const DisplayAddAsFriend = ({
       <span
         onClick={() => {
           askFriend.mutate({ updateFriendId: userId });
+          alert("BROKEN");
         }}
         className="my-8 flex h-24 w-24 items-center justify-center self-center border-2 border-slate-300 bg-slate-200 p-2 text-center text-xl  font-bold transition-all  hover:cursor-pointer hover:bg-slate-300"
       >
@@ -260,6 +262,7 @@ const DisplayUserProfile = ({
         <div
           onClick={() => {
             unFriend.mutate({ updateUnFriendId: userId });
+            alert("BROKEN");
           }}
           className="flex basis-1/3 items-center justify-center border-y-2 border-slate-300 bg-slate-200 text-center transition-all hover:cursor-pointer hover:bg-slate-300"
         >
@@ -270,6 +273,7 @@ const DisplayUserProfile = ({
             data?.user.blocked
               ? unblockMutation.mutate({ unblockingUserId: userId })
               : blockMutation.mutate({ blockingUserId: userId });
+            alert("BROKEN");
           }}
           className="flex basis-1/3 items-center justify-center border-2 border-slate-300 bg-slate-200  text-center transition-all  hover:cursor-pointer hover:bg-slate-300"
         >
