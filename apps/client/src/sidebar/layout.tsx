@@ -15,7 +15,9 @@ import {
   useUserProfileHeaderQuery,
   useGetChannelHeaderQuery,
 } from "../graphql/generated";
+
 import { useSidebarStore } from "../stores";
+import CreateChannel from "./pages/createChannel";
 
 //TODO : skeleton loader while loading
 // components h
@@ -69,9 +71,15 @@ const SearchBar = ({
 const LeftButton = ({
   navigate,
   Icon,
+  showBottomElement,
+  showChannelCreation,
+  setFn,
 }: {
   navigate: () => void;
   Icon: React.FunctionComponent<React.SVGProps<SVGSVGElement>>;
+  showBottomElement: boolean;
+  showChannelCreation: boolean;
+  setFn: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   return (
     <motion.button
@@ -79,7 +87,7 @@ const LeftButton = ({
       animate={{ scale: 1 }}
       exit={{ scale: 0.8 }}
       transition={{ duration: 0.0 }}
-      onClick={navigate}
+      onClick={showBottomElement ? () => setFn(!showChannelCreation) : navigate}
       className="border-r-2 transition-colors duration-200 hover:text-slate-500"
     >
       <Icon className="h-9" />
@@ -114,7 +122,7 @@ function CurrentUserProfileLink() {
       onClick={() => navigate(`/profile/me`)}
     >
       <img
-        className="right-1 top-1 h-8 w-8 self-center "
+        className="right-1 top-1 h-8 w-8 self-center border border-black"
         src={data?.avatar}
         alt="Current user avatar"
       />
@@ -126,9 +134,13 @@ function CurrentUserProfileLink() {
 function Header({
   search,
   setSearch,
+  showChannelCreation,
+  setFn,
 }: {
   search: string;
   setSearch: (value: string) => void;
+  showChannelCreation: boolean;
+  setFn: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const location = useLocation();
   const home = location.pathname === "/";
@@ -142,8 +154,16 @@ function Header({
       <AnimatePresence initial={false} exitBeforeEnter>
         {home ? (
           <>
-            <LeftButton
+            {/* <LeftButton
               navigate={() => navigate("/create-channel")}
+              Icon={MessagePlusIcon}
+              key={1}
+            /> */}
+            <LeftButton
+              navigate={() => setFn(!showChannelCreation)}
+              showBottomElement={true}
+              setFn={setFn}
+              showChannelCreation={showChannelCreation}
               Icon={MessagePlusIcon}
               key={1}
             />
@@ -154,11 +174,16 @@ function Header({
             <LeftButton
               key={3}
               navigate={() => navigate("/")}
+              setFn={() => {
+                return null;
+              }}
+              showChannelCreation={false}
+              showBottomElement={false}
               Icon={ArrowLeftBoxIcon}
             />
             <div
               key={4}
-              className="relative ml-8 flex grow border-r-2 text-center text-lg"
+              className="relative flex w-full grow border-r-2  text-center text-lg"
             >
               {location.pathname.substring(0, 6) === "/chat/" ? (
                 <UserHeader userId={+location.pathname.substring(6)} />
@@ -223,15 +248,27 @@ function UserHeader({ userId }: { userId: number }) {
     }
   );
   const navigate = useNavigate();
+  console.log(data?.avatar);
   return (
     <div
       className="flex h-9 w-full items-center justify-center p-2 hover:cursor-pointer hover:bg-slate-100"
       onClick={() => navigate(`/profile/${userId}`)}
     >
-      <img className="mb-px h-7 w-7 " src={data?.avatar} alt="User avatar" />
-      <span className="ml-2 mb-px h-full text-base font-bold">
-        {data?.name}
-      </span>
+      <>
+        {typeof data?.avatar !== undefined && data?.avatar !== "" ? (
+          <img
+            className="mb-px h-7 w-7 border border-black"
+            src={data?.avatar}
+            alt="User avatar"
+          />
+        ) : (
+          <UserIcon className="h-7 w-7 border border-black text-neutral-700" />
+        )}
+
+        <span className="ml-2 mb-px h-full text-base font-bold">
+          {data?.name}
+        </span>
+      </>
     </div>
   );
 }
@@ -355,7 +392,7 @@ const SearchResult = ({
           {result.__typename === "User" ? (
             <Avatar.Root>
               <Avatar.Image
-                className="h-10 w-10 object-cover "
+                className="h-10 w-10 border border-black object-cover"
                 src={result.avatar}
               />
               <Avatar.Fallback>
@@ -363,7 +400,7 @@ const SearchResult = ({
               </Avatar.Fallback>
             </Avatar.Root>
           ) : (
-            <UsersIcon className="h-10 w-10" />
+            <UsersIcon className="h-10 w-10 border border-black p-1 pt-2" />
           )}
           <Highlight content={result.name} search={search} />
         </li>
@@ -374,16 +411,52 @@ const SearchResult = ({
 
 export const SidebarLayout = () => {
   const [search, setSearch] = useThrottledState("", 500);
+  const [showChannelCreation, setShowChannelCreation] = useState(false);
+  const location = useLocation();
+
+  console.log(showChannelCreation);
   return (
-    <>
-      <Header search={search} setSearch={setSearch} />
-      <div className="h-full overflow-y-auto">
-        {search.length === 0 ? (
-          <Outlet />
-        ) : (
-          <SearchResult search={search} setSearch={setSearch} />
-        )}
+    <div className="relative flex h-full flex-col">
+      <div
+        className={`${
+          !showChannelCreation ? "blur-sm" : ""
+        } flex h-full flex-col transition-all delay-200 duration-200`}
+      >
+        <Header
+          search={search}
+          setSearch={setSearch}
+          showChannelCreation={showChannelCreation}
+          setFn={setShowChannelCreation}
+        />
+        <div className="h-full overflow-y-auto">
+          {search.length === 0 ? (
+            <Outlet />
+          ) : (
+            <SearchResult search={search} setSearch={setSearch} />
+          )}
+        </div>
       </div>
-    </>
+
+      {location.pathname === "/" ? (
+        <div
+          className={`${
+            showChannelCreation ? "translate-y-full" : ""
+          } absolute top-0 flex h-full w-full flex-col justify-end transition-all duration-700`}
+        >
+          <div
+            className={`${
+              showChannelCreation ? "" : ""
+            } flex h-full grow bg-opacity-0 transition-all duration-700`}
+            onClick={() => setShowChannelCreation(!showChannelCreation)}
+          ></div>
+          <div className="flex h-full shadow-[10px_10px_15px_15px_rgba(0,0,0,0.2)]">
+            <CreateChannel
+              show={showChannelCreation}
+              fn={setShowChannelCreation}
+            />
+          </div>
+        </div>
+      ) : null}
+    </div>
   );
 };

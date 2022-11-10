@@ -1,0 +1,37 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M1 15V17" stroke="#4B3F28"/>
+<path d="M1.5 14.5H5" stroke="#4B3F28"/>
+<path d="M5 13.5H8.5" stroke="#4B3F28"/>
+<path d="M8.5 12.5H12" stroke="#4B3F28"/>
+<path d="M12.5 12V8.5" stroke="#4B3F28"/>
+<path d="M13.5 8.5V5" stroke="#4B3F28"/>
+<path d="M14.5 5V1.5" stroke="#4B3F28"/>
+<path d="M15 1H17" stroke="#4B3F28"/>
+<path d="M17.5 1.5V5" stroke="#4B3F28"/>
+<path d="M18.5 5V8.5" stroke="#4B3F28"/>
+<path d="M19.5 8.5V12M20 12.5H23.5" stroke="#4B3F28"/>
+<path d="M23.5 13.5H27" stroke="#4B3F28"/>
+<path d="M27 14.5H30.5" stroke="#4B3F28"/>
+<path d="M31 15V17" stroke="#4B3F28"/>
+<path d="M30.5 17.5H27" stroke="#4B3F28"/>
+<path d="M27 18.5H23.5" stroke="#4B3F28"/>
+<path d="M23.5 19.5H20" stroke="#4B3F28"/>
+<path d="M19.5 20V23.5" stroke="#4B3F28"/>
+<path d="M18.5 23.5V27" stroke="#4B3F28"/>
+<path d="M17.5 27V30.5" stroke="#4B3F28"/>
+<path d="M17 31H15" stroke="#4B3F28"/>
+<path d="M14.5 30.5V27" stroke="#4B3F28"/>
+<path d="M13.5 27V23.5" stroke="#4B3F28"/>
+<path d="M12.5 23.5V20" stroke="#4B3F28"/>
+<path d="M12 19.5H8.5" stroke="#4B3F28"/>
+<path d="M8.5 18.5H5" stroke="#4B3F28"/>
+<path d="M5 17.5H1.5" stroke="#4B3F28"/>
+<path d="M16 16V1.5H15V5H14V8.5H13V12H12V13H13V14H14V15H15V16H16Z" fill="#FFC24B"/>
+<path d="M17 1.5H16V16H17V15H18V14H19V13H20V12H19V8.5H18V5H17V1.5Z" fill="#FFF7DB"/>
+<path d="M16 30.5V16H17V17H18V18H19V19H20V20H19V23.5H18V27H17V30.5H16Z" fill="#FFE073"/>
+<path d="M15 17V16H16V30.5H15V27H14V23.5H13V20H12V19H13V18H14V17H15Z" fill="#C16B1B"/>
+<path d="M15 16H1.5V15H5V14H8.5V13H12H13V14H14V15H15V16Z" fill="#FFDA57"/>
+<path d="M1.5 17V16H15V17H14V18H13V19H8.5V18H5V17H1.5Z" fill="#F8AF23"/>
+<path d="M30.5 16H17V17H18V18H19V19H23.5V18H27V17H30.5V16Z" fill="#FFC24B"/>
+<path d="M30.5 16H17V15H18V14H19V13H23.5V14H27V15H30.5V16Z" fill="#FFE381"/>
+</svg>

@@ -24,7 +24,7 @@ export const ChannelTypeButton = ({
         active
           ? ` bg-slate-200 text-xl font-bold text-black ${"hover:cursor-pointer hover:bg-slate-300"}`
           : ` bg-slate-50 text-lg text-slate-400 ${"hover:cursor-pointer hover:bg-slate-200"}`
-      } flex h-32 basis-1/3 items-center justify-center border-y-2 border-l-2 border-slate-300 text-center`}
+      } flex h-24 basis-1/3 items-center justify-center border-y-2 border-l-2 border-slate-300 text-center`}
       onClick={() => {
         fn(!active);
         inactiveFn1(false);
@@ -36,7 +36,13 @@ export const ChannelTypeButton = ({
   );
 };
 
-export default function CreateChannel() {
+export default function CreateChannel({
+  show,
+  fn,
+}: {
+  show: boolean;
+  fn: React.Dispatch<React.SetStateAction<boolean>>;
+}) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { register, handleSubmit, watch } = useForm();
@@ -48,43 +54,48 @@ export default function CreateChannel() {
   const [passwordProtected, setPasswordProtected] = useState(false);
   const [publicMode, setPublicMode] = useState(true);
   const [privateMode, setPrivateMode] = useState(false);
+
   return (
-    <div className="flex h-full flex-col bg-slate-100">
+    <div className="z-20 flex h-full w-full flex-col border-t-2 bg-slate-100 opacity-100 transition-all">
       <form
-        className="flex flex-col"
+        className="flex h-full flex-col bg-slate-100"
         onSubmit={handleSubmit(() => {
           createChannelMutation.mutate({
             inviteOnly: privateMode,
             name: watch("Name"),
             password: passwordProtected ? watch("Password") : "",
           }),
-            navigate("/");
+            fn(!show);
         })}
       >
         <div className="flex flex-col bg-slate-100">
-          <div className="my-4 self-center text-3xl text-slate-600">
+          <div className="mt-6 mb-4 self-center text-2xl text-slate-600">
             Create your own Channel !
           </div>
-          <div className="my-4 flex h-32 w-32 justify-center self-center bg-black text-white">
-            <UsersIcon className="mt-1 h-28 w-28 self-center" />
-          </div>
-          <div className="mt-4 mb-6 flex w-full flex-col items-center text-2xl ">
-            <label className="text-2xl text-slate-400" htmlFor="name">
-              {" "}
-              Channel name{" "}
-            </label>
-            <input
-              className="my-4 h-10 w-64 px-1 text-xl"
-              {...register("Name", {
-                required: true,
-                maxLength: 100,
-              })}
-              defaultValue=""
-            />
+          <div className="flex w-full px-4">
+            <UsersIcon className="mt-5 h-24 w-24 self-center text-slate-600" />
+
+            <div className="mt-6 ml-8 flex w-full flex-col items-start text-xl ">
+              <label
+                className="text-center text-xl text-slate-400"
+                htmlFor="name"
+              >
+                {" "}
+                Channel name
+              </label>
+              <input
+                className="mt-2 mb-4 h-8 w-64 px-1 text-xl"
+                {...register("Name", {
+                  required: true,
+                  maxLength: 100,
+                })}
+                defaultValue=""
+              />
+            </div>
           </div>
         </div>
 
-        <div className="mb-8 flex justify-evenly border-r-2">
+        <div className="flex justify-evenly border-r-2 border-slate-300 bg-slate-100">
           <ChannelTypeButton
             text="Public"
             active={!privateMode && !passwordProtected}
@@ -126,10 +137,6 @@ export default function CreateChannel() {
             <></>
           )}
         </div>
-        <input
-          className="mt-4 flex w-36 justify-center self-center border-2 border-slate-300 bg-slate-200 px-2 py-4 text-center text-2xl font-bold hover:cursor-pointer hover:bg-slate-300"
-          type="submit"
-        />
       </form>
     </div>
   );

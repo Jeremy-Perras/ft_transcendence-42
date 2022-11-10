@@ -91,13 +91,16 @@ const Chat = ({ __typename, name, avatar, id, messages }: Chat) => {
       <div className="m-2 flex h-16 w-16 shrink-0 justify-center   text-white">
         {__typename == "User" ? (
           <Avatar.Root>
-            <Avatar.Image className="h-16 w-16 object-cover " src={avatar} />
+            <Avatar.Image
+              className="h-16 w-16 border border-black object-cover"
+              src={avatar}
+            />
             <Avatar.Fallback delayMs={0}>
-              <UserIcon className="h-16 w-16" />
+              <UserIcon className="h-16 w-16 border border-black bg-slate-50 p-1 text-neutral-700" />
             </Avatar.Fallback>
           </Avatar.Root>
         ) : (
-          <UsersIcon className="mt-2 h-16 w-16 bg-slate-50 text-neutral-700" />
+          <UsersIcon className="h-16 w-16 border border-black bg-slate-50 p-1 pt-2 text-neutral-700" />
         )}
       </div>
       <div className="flex grow flex-col justify-center px-2">
