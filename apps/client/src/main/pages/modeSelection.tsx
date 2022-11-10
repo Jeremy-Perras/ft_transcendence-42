@@ -74,7 +74,7 @@ const GameMode = ({ imgs, name, alt, textEffects, animate }: GameModeType) => {
         <motion.div
           className={`${
             isSmall && !isNarrow ? "pl-10 pr-10" : ""
-          } ${textEffects} font-cursive text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl`}
+          } ${textEffects} text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-6xl`}
         >
           {name}
         </motion.div>
@@ -171,7 +171,7 @@ export default function ModeSelection() {
   ];
 
   return (
-    <div className="flex h-full w-full flex-col justify-center bg-black sm:flex-row sm:items-center">
+    <div className="flex h-full w-full flex-col justify-center  sm:flex-row sm:items-center">
       {gameModes.map((gameMode) => {
         return <GameMode key={gameMode.name} {...gameMode} />;
       })}
