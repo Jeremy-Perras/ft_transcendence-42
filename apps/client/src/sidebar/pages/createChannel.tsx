@@ -107,7 +107,6 @@ export default function CreateChannel() {
             inactiveFn2={setPublicMode}
           />
         </div>
-        <div></div>
         <div className="h-32">
           {passwordProtected ? (
             <div className="flex flex-col justify-center text-center">

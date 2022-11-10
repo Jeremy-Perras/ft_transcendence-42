@@ -296,6 +296,19 @@ const Highlight = ({
   );
 };
 
+const myInfo = () => {
+  const { data } = useInfoUsersQuery(
+    { userId: null },
+    {
+      select({ user }) {
+        const res: { id: number } = { id: user.id };
+        return res;
+      },
+    }
+  );
+  return data;
+};
+
 const SearchResult = ({
   search,
   setSearch,
@@ -318,7 +331,7 @@ const SearchResult = ({
       },
     }
   );
-
+  const infoUser = myInfo();
   return (
     <ul className="flex flex-col divide-y divide-slate-200">
       {data?.map((result) => (
@@ -328,7 +341,11 @@ const SearchResult = ({
           onClick={() => {
             navigate(
               `${result.__typename === "Channel" ? "channel" : "profile"}/${
-                result.id
+                result?.__typename === "Channel"
+                  ? result.id
+                  : result.id === infoUser?.id
+                  ? "me"
+                  : result.id
               }`
             );
 

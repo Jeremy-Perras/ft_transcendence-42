@@ -2,7 +2,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
+  useCreateChannelMessageReadMutation,
   useInfoChannelQuery,
+  useInfoUsersQuery,
   useSendChannelMessageMutation,
 } from "../../graphql/generated";
 import { User } from "./chat";
@@ -47,6 +49,7 @@ const ReadBy = ({ users }: { users: User[] }) => {
 };
 
 type ChannelMessage = {
+  id: number;
   author: User;
   readBy: {
     __typename?: "ChannelMessageRead" | undefined;
@@ -57,6 +60,7 @@ type ChannelMessage = {
 };
 
 const ChannelMessage = ({
+  id,
   author,
   readBy,
   content,
@@ -99,21 +103,43 @@ const ChannelMessage = ({
     </>
   );
 };
-
+const GetInfo = (Id: number) => {
+  const { isLoading, data, error, isFetching } = useInfoUsersQuery(
+    {
+      userId: Id,
+    },
+    {
+      select({ user }) {
+        const res: {
+          blocked: boolean;
+          blocking: boolean;
+        } = {
+          blocked: user.blocked,
+          blocking: user.blocking,
+        };
+        return res;
+      },
+    }
+  );
+  return data;
+};
 //TODO : fix scrollbar behind text area
 export default function Channel() {
   const { channelId } = useParams();
   const queryClient = useQueryClient();
+
   if (!channelId) return <div>no channel id</div>;
   const { isLoading, isFetching, error, data } = useInfoChannelQuery(
-    { channelId: +channelId },
+    { channelId: +channelId, userId: null },
     {
-      select({ channel }) {
+      select({ channel, user }) {
         const res: {
+          userId: number;
           name: string;
           messages: ChannelMessage[];
           owner: { id: number; name: string };
         } = {
+          userId: user.id,
           name: channel.name,
           messages: channel.messages,
           owner: { id: channel.owner.id, name: channel.owner.name },
@@ -122,12 +148,18 @@ export default function Channel() {
       },
     }
   );
+  // const infoSpeak = GetInfo(userId);
   const messageMutation = useSendChannelMessageMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries(["GetChannel", { channelId: +channelId }]);
+      queryClient.invalidateQueries([]);
     },
   });
-
+  const createChannelMessageRead = useCreateChannelMessageReadMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries([]);
+    },
+  });
+  const [content, setContent] = useState("");
   if (isLoading) {
     return <Loading />;
   }
@@ -138,7 +170,20 @@ export default function Channel() {
     return <Error />;
   } else {
     return (
-      <div className="flex h-full flex-col">
+      <div
+        onClick={() => {
+          data?.messages.forEach((message) => {
+            console.log(message);
+            message.readBy
+              ? ""
+              : createChannelMessageRead.mutate({
+                  messageId: message.id,
+                  userId: data.userId,
+                });
+          });
+        }}
+        className="flex h-full flex-col"
+      >
         <div className="mt-px flex w-full grow flex-col overflow-auto pr-2 pl-px">
           {data?.messages.length === 0 ? (
             <div className="mt-6 text-center text-slate-300">
@@ -155,7 +200,25 @@ export default function Channel() {
           <textarea
             rows={1}
             className="h-10 w-11/12 resize-none overflow-visible rounded-lg px-3 pt-2"
-            placeholder="TO DO"
+            onChange={(e) => setContent(e.target.value)}
+            placeholder="Type your message here ..."
+            onKeyDown={(e) => {
+              if (e.code == "Enter" && !e.getModifierState("Shift")) {
+                messageMutation.mutate({
+                  message: content,
+                  recipientId: +channelId,
+                });
+                e.currentTarget.value = "";
+                e.preventDefault();
+                setContent("");
+              } else {
+                if (e.code == "Enter" && !e.getModifierState("Shift")) {
+                  e.currentTarget.value = "";
+                  e.preventDefault();
+                  setContent("");
+                }
+              }
+            }}
           />
         </div>
       </div>

@@ -1,0 +1,6 @@
+mutation UpdateMembers($channelId: Int!, $userId: Int!) {
+  updateMembers(channelId: $channelId, userId: $userId) {
+    id
+    name
+  }
+}

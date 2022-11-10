@@ -1,0 +1,7 @@
+mutation UpdateRight($idchannel: Int!, $inviteOnly: Boolean, $password: String) {
+  updateRight(idchannel: $idchannel, inviteOnly: $inviteOnly, password: $password) {
+    id
+    name
+  }
+}
+    

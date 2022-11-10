@@ -9,6 +9,8 @@ import {
   useSearchUsersChannelsQuery,
   useUpdateAdminsMutation,
   useDeleteBannedMutation,
+  useUpdateRightMutation,
+  useUpdateMembersMutation,
 } from "../../graphql/generated";
 import { ReactComponent as UsersIcon } from "pixelarticons/svg/users.svg";
 import { ReactComponent as TrashIcon } from "pixelarticons/svg/trash.svg";
@@ -26,46 +28,38 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useThrottledState } from "@react-hookz/web";
 import * as Avatar from "@radix-ui/react-avatar";
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
+import { useForm } from "react-hook-form";
 
-/********************************************************************/
-/*                      CHANNEL TYPE BUTTONS                        */
-/********************************************************************/
-const ChannelTypeButton = ({
+export const ChannelTypeButton = ({
   text,
-  owner,
-  activeMode,
+  active,
+  fn,
+  inactiveFn1,
+  inactiveFn2,
 }: {
   text: string;
-  owner: boolean;
-  activeMode: boolean | undefined; //TODO :CHECK IN BACK => should not be undefined
+  active: boolean;
+  fn: React.Dispatch<React.SetStateAction<boolean>>;
+  inactiveFn1: React.Dispatch<React.SetStateAction<boolean>>;
+  inactiveFn2: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   return (
     <div
       className={`${
-        activeMode
-          ? `bg-slate-200 text-lg font-bold text-black ${
-              owner ? "hover:cursor-pointer hover:bg-slate-300" : ""
-            }`
-          : `bg-slate-50 text-slate-400 ${
-              owner ? "hover:cursor-pointer hover:bg-slate-200" : ""
-            }`
-      } flex h-24 basis-1/3 items-center justify-center border-y-2 border-l-2 border-slate-300 text-center text-xl`}
-      onClick={
-        owner
-          ? () => {
-              console.log("Change mode");
-              // mutation
-            }
-          : () => {
-              console.log("Unauthorized");
-            }
-      }
+        active
+          ? ` bg-slate-200 text-xl font-bold text-black ${"hover:cursor-pointer hover:bg-slate-300"}`
+          : ` bg-slate-50 text-lg text-slate-400 ${"hover:cursor-pointer hover:bg-slate-200"}`
+      } flex h-32 basis-1/3 items-center justify-center border-y-2 border-l-2 border-slate-300 text-center`}
+      onClick={() => {
+        fn(!active);
+        inactiveFn1(false);
+        inactiveFn2(false);
+      }}
     >
       {text}
     </div>
   );
 };
-
 /********************************************************************/
 /*                        USER BANNERS                              */
 /********************************************************************/
@@ -458,11 +452,14 @@ const Search = ({
   search,
   setSearch,
   queryData,
+  channelId,
 }: {
   search: string;
   setSearch: (value: string) => void;
   queryData: ChannelSettingsQuery;
+  channelId: number;
 }) => {
+  const queryClient = useQueryClient();
   const { data } = useSearchUsersChannelsQuery(
     { name: search },
     {
@@ -473,6 +470,14 @@ const Search = ({
       },
     }
   );
+  const updateMembers = useUpdateMembersMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries([
+        // "ChannelSettings",
+        // { userId: null, channelId: channelId },
+      ]);
+    },
+  });
   return (
     <div className="relative flex flex-col divide-y divide-slate-200">
       {data?.map((result, index) => (
@@ -497,7 +502,10 @@ const Search = ({
                 <AddMemberIcon
                   className="absolute right-0 w-8"
                   onClick={() => {
-                    alert("TO DO : MUTATION"); //TODO :  MUTATION
+                    updateMembers.mutate({
+                      channelId: channelId,
+                      userId: result?.id,
+                    });
                   }}
                 />{" "}
               </>
@@ -531,6 +539,89 @@ const Highlight = ({
   );
 };
 
+const UpdateChannel = ({ idChannel }: { idChannel: number }) => {
+  const queryClient = useQueryClient();
+  const { register, handleSubmit, watch } = useForm();
+  const [passwordProtected, setPasswordProtected] = useState(false);
+  const [publicMode, setPublicMode] = useState(true);
+  const [privateMode, setPrivateMode] = useState(false);
+  const updateRight = useUpdateRightMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries([
+        // "ChannelSettings",
+        // { userId: null, channelId: channelId },
+      ]);
+    },
+  });
+  return (
+    <div className="flex h-full flex-col bg-slate-100">
+      <form
+        className="flex flex-col"
+        onSubmit={handleSubmit(() => {
+          updateRight.mutate({
+            idchannel: idChannel,
+            inviteOnly: privateMode,
+            password: passwordProtected ? watch("Password") : "",
+          });
+        })}
+      >
+        <div className="mb-8 flex justify-evenly border-r-2">
+          <div className="flex">
+            <ChannelTypeButton
+              text="Public"
+              active={!privateMode && !passwordProtected}
+              fn={setPublicMode}
+              inactiveFn1={setPrivateMode}
+              inactiveFn2={setPasswordProtected}
+            />
+          </div>
+          <div className="flex">
+            <ChannelTypeButton
+              text="Private"
+              active={privateMode}
+              fn={setPrivateMode}
+              inactiveFn1={setPublicMode}
+              inactiveFn2={setPasswordProtected}
+            />
+          </div>
+          <div>
+            <ChannelTypeButton
+              text="Password"
+              active={passwordProtected}
+              fn={setPasswordProtected}
+              inactiveFn1={setPrivateMode}
+              inactiveFn2={setPublicMode}
+            />
+          </div>
+        </div>
+        <div className="h-32">
+          {passwordProtected ? (
+            <div className="flex flex-col justify-center text-center">
+              <label className="text-2xl text-slate-400" htmlFor="Password">
+                Enter password
+              </label>
+              <input
+                {...register("Password", {
+                  required: passwordProtected,
+                  maxLength: 100,
+                })}
+                defaultValue=""
+                className="my-4 h-10 w-64 self-center px-1 text-xl "
+              />
+            </div>
+          ) : (
+            <></>
+          )}
+        </div>
+        <input
+          className="mt-4 flex w-36 justify-center self-center border-2 border-slate-300 bg-slate-200 px-2 py-4 text-center text-2xl font-bold hover:cursor-pointer hover:bg-slate-300"
+          type="submit"
+        />
+      </form>
+    </div>
+  );
+};
+
 /********************************************************************/
 /*                        MAIN COMPONENT                            */
 /********************************************************************/
@@ -551,8 +642,8 @@ export default function ChannelSettings() {
     },
   });
   if (typeof params.channelId === "undefined") return <div></div>;
-  console.log(params);
   const channelId = +params.channelId;
+  const [passwordProtected, setPasswordProtected] = useState(false);
   const { isLoading, data, error, isFetching } = useChannelSettingsQuery({
     userId: null,
     channelId: channelId,
@@ -566,7 +657,6 @@ export default function ChannelSettings() {
     return <div>Error</div>;
   }
   const owner = data?.user.id === data?.channel.owner.id ? true : false;
-  console.log(Math.floor(new Date() / 1000));
   return (
     <div className="flex w-full flex-col ">
       {confirmation ? (
@@ -628,46 +718,14 @@ export default function ChannelSettings() {
         </div>
       </div>
       <div className="flex flex-col bg-slate-100 ">
-        <div className="flex border-r-2 border-slate-300">
-          <ChannelTypeButton
-            text="Public"
-            owner={owner}
-            activeMode={
-              !data?.channel.passwordProtected && !data?.channel.private
-            }
-          />
-          <ChannelTypeButton
-            text="Private"
-            owner={owner}
-            activeMode={data?.channel.private}
-          />
-
-          <ChannelTypeButton
-            text="Password protected"
-            owner={owner}
-            activeMode={data?.channel.passwordProtected}
-          />
+        <div className="flex  flex-row border-r-2 border-slate-300">
+          <UpdateChannel idChannel={data?.channel.id ? data.channel.id : 0} />
         </div>
-        {data?.channel.passwordProtected && owner ? (
-          <div className="ml-2 mb-5 flex flex-col items-center justify-center">
-            <div className="mb-4 flex">
-              <div>Change Password : </div>
-              <textarea className="w-46 mx-2 h-7 resize-none " />
-            </div>
-            <input
-              className=" border-2 border-slate-300 bg-slate-200 px-3 py-2 hover:cursor-pointer hover:bg-slate-300"
-              type="submit"
-            />
-          </div>
-        ) : (
-          <div></div>
-        )}
       </div>
 
       <div className="p-5 text-center text-xl font-bold text-slate-700">
         MEMBERS
       </div>
-
       <UserBanner
         id={data?.channel.owner.id}
         name={data?.channel.owner.name}
@@ -726,7 +784,12 @@ export default function ChannelSettings() {
             {search.length === 0 ? (
               ""
             ) : (
-              <Search search={search} setSearch={setSearch} queryData={data} />
+              <Search
+                search={search}
+                setSearch={setSearch}
+                queryData={data}
+                channelId={data.channel.id ? data.channel.id : 0}
+              />
             )}
           </div>
         </>
