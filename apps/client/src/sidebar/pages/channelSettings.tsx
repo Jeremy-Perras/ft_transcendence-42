@@ -30,36 +30,71 @@ import * as Avatar from "@radix-ui/react-avatar";
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { useForm } from "react-hook-form";
 
-export const ChannelTypeButton = ({
-  text,
-  active,
-  fn,
-  inactiveFn1,
-  inactiveFn2,
+/********************************************************************/
+/*           CHANNEL TYPE / Password protected CHANGE               */
+/********************************************************************/
+const ChannelType = ({
+  idChannel,
+  activeMode,
 }: {
-  text: string;
-  active: boolean;
-  fn: React.Dispatch<React.SetStateAction<boolean>>;
-  inactiveFn1: React.Dispatch<React.SetStateAction<boolean>>;
-  inactiveFn2: React.Dispatch<React.SetStateAction<boolean>>;
+  idChannel: number;
+  activeMode: string;
 }) => {
+  const queryClient = useQueryClient();
+  const { register, handleSubmit, watch } = useForm();
+  const updateRight = useUpdateRightMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries([
+        // "ChannelSettings",
+        // { userId: null, channelId: channelId },
+      ]);
+    },
+  });
   return (
-    <div
-      className={`${
-        active
-          ? ` bg-slate-200 text-xl font-bold text-black ${"hover:cursor-pointer hover:bg-slate-300"}`
-          : ` bg-slate-50 text-lg text-slate-400 ${"hover:cursor-pointer hover:bg-slate-200"}`
-      } flex h-32 basis-1/3 items-center justify-center border-y-2 border-l-2 border-slate-300 text-center`}
-      onClick={() => {
-        fn(!active);
-        inactiveFn1(false);
-        inactiveFn2(false);
-      }}
-    >
-      {text}
+    <div className="flex h-full flex-col bg-slate-100">
+      <form
+        className="flex h-full flex-col"
+        onSubmit={handleSubmit(() => {
+          updateRight.mutate({
+            idchannel: idChannel,
+            inviteOnly: activeMode === "Private",
+            password:
+              activeMode === "Password protected" ? watch("Password") : "",
+          });
+        })}
+      >
+        <div className="mb-4 flex h-full ">Mode : {activeMode}</div>
+        <div className="flex h-full items-center justify-start">
+          {activeMode === "Password protected" ? (
+            <div className="flex items-center justify-start ">
+              <label
+                className="mr-2 self-end text-sm text-slate-400"
+                htmlFor="Password"
+              >
+                Enter new password :
+              </label>
+              <input
+                {...register("Password", {
+                  required: activeMode === "Password protected",
+                  maxLength: 100,
+                })}
+                defaultValue=""
+                className="h-6 w-40 self-center px-1 text-xs"
+              />
+              <input
+                className="ml-3 flex w-fit justify-center self-center border border-slate-300 bg-slate-200 px-1  text-center text-sm font-bold hover:cursor-pointer hover:bg-slate-300"
+                type="submit"
+              />
+            </div>
+          ) : (
+            <></>
+          )}
+        </div>
+      </form>
     </div>
   );
 };
+
 /********************************************************************/
 /*                        USER BANNERS                              */
 /********************************************************************/
@@ -85,8 +120,6 @@ const UserBanner = ({
   banned: boolean | undefined;
   changesAuthorized: boolean;
 }) => {
-  const [mute, setMute] = useState(muted); //TODO : remove this when mutation ok
-  const [ban, setBan] = useState(banned); //TODO : remove this when mutation ok
   const navigate = useNavigate();
   const [showInfoAdmin, setShowInfoAdmin] = useState(false); //DON'T TOUCH
   const [showInfoMute, setShowInfoMute] = useState(false); //DON'T TOUCH
@@ -137,7 +170,7 @@ const UserBanner = ({
   });
   return (
     <>
-      <div className="flex h-full w-full shrink-0 items-end justify-center pr-2 transition-all hover:bg-slate-100 ">
+      <div className="flex w-full shrink-0 items-end justify-center pr-2 transition-all hover:bg-slate-100 ">
         <div
           className="flex grow hover:cursor-pointer"
           onClick={() => navigate(`/profile/${id}`)}
@@ -147,8 +180,8 @@ const UserBanner = ({
             <div className="flex">
               <span className="truncate text-base font-bold ">{name}</span>
               <div className="mx-2 flex shrink-0">
-                {ban ? <BanIcon className="w-4 text-red-600" /> : null}
-                {mute ? <MuteIcon className="w-4 text-red-300" /> : null}
+                {banned ? <BanIcon className="w-4 text-red-600" /> : null}
+                {muted ? <MuteIcon className="w-4 text-red-300" /> : null}
               </div>
             </div>
             <div className="text-xs">
@@ -252,11 +285,11 @@ const UserBanner = ({
               <div
                 className="flex flex-col items-center justify-center"
                 onClick={() => {
-                  !mute ? setShowTimeMute(true) : setMute(!mute); //change setMute with mutation - dont touch set show time
+                  !muted ? setShowTimeMute(true) : ""; //change setMute with mutation - dont touch set show time
                 }}
               >
                 {" "}
-                {mute ? (
+                {muted ? (
                   <UnmuteIcon
                     onMouseOver={() => setShowInfoMute(true)}
                     onMouseOut={() => {
@@ -285,7 +318,7 @@ const UserBanner = ({
                     showInfoMute ? "opacity-100" : "opacity-0 "
                   } absolute top-6 w-24 text-center text-xs text-slate-400`}
                 >
-                  {mute ? "Unmute" : "Mute"}
+                  {muted ? "Unmute" : "Mute"}
                 </div>
               </div>
             </div>
@@ -359,12 +392,12 @@ const UserBanner = ({
                 className="flex flex-col items-center justify-center"
                 onClick={
                   () =>
-                    !ban
+                    !banned
                       ? setShowTimeBan(true) //DONT TOUCH
-                      : setBan(!ban) //MUTATION
+                      : "" //MUTATION
                 }
               >
-                {ban ? (
+                {banned ? (
                   <UnbanIcon
                     onMouseOver={() => setShowInfoBan(true)}
                     onMouseOut={() => setShowInfoBan(false)}
@@ -388,7 +421,7 @@ const UserBanner = ({
                     showInfoBan ? "opacity-100" : "opacity-0 "
                   } absolute top-6 w-8 text-center text-xs text-slate-400`}
                 >
-                  {ban ? "Unban" : "Ban"}
+                  {banned ? "Unban" : "Ban"}
                 </div>
               </div>
             </div>
@@ -539,89 +572,6 @@ const Highlight = ({
   );
 };
 
-const UpdateChannel = ({ idChannel }: { idChannel: number }) => {
-  const queryClient = useQueryClient();
-  const { register, handleSubmit, watch } = useForm();
-  const [passwordProtected, setPasswordProtected] = useState(false);
-  const [publicMode, setPublicMode] = useState(true);
-  const [privateMode, setPrivateMode] = useState(false);
-  const updateRight = useUpdateRightMutation({
-    onSuccess: () => {
-      queryClient.invalidateQueries([
-        // "ChannelSettings",
-        // { userId: null, channelId: channelId },
-      ]);
-    },
-  });
-  return (
-    <div className="flex h-full flex-col bg-slate-100">
-      <form
-        className="flex flex-col"
-        onSubmit={handleSubmit(() => {
-          updateRight.mutate({
-            idchannel: idChannel,
-            inviteOnly: privateMode,
-            password: passwordProtected ? watch("Password") : "",
-          });
-        })}
-      >
-        <div className="mb-8 flex justify-evenly border-r-2">
-          <div className="flex">
-            <ChannelTypeButton
-              text="Public"
-              active={!privateMode && !passwordProtected}
-              fn={setPublicMode}
-              inactiveFn1={setPrivateMode}
-              inactiveFn2={setPasswordProtected}
-            />
-          </div>
-          <div className="flex">
-            <ChannelTypeButton
-              text="Private"
-              active={privateMode}
-              fn={setPrivateMode}
-              inactiveFn1={setPublicMode}
-              inactiveFn2={setPasswordProtected}
-            />
-          </div>
-          <div>
-            <ChannelTypeButton
-              text="Password"
-              active={passwordProtected}
-              fn={setPasswordProtected}
-              inactiveFn1={setPrivateMode}
-              inactiveFn2={setPublicMode}
-            />
-          </div>
-        </div>
-        <div className="h-32">
-          {passwordProtected ? (
-            <div className="flex flex-col justify-center text-center">
-              <label className="text-2xl text-slate-400" htmlFor="Password">
-                Enter password
-              </label>
-              <input
-                {...register("Password", {
-                  required: passwordProtected,
-                  maxLength: 100,
-                })}
-                defaultValue=""
-                className="my-4 h-10 w-64 self-center px-1 text-xl "
-              />
-            </div>
-          ) : (
-            <></>
-          )}
-        </div>
-        <input
-          className="mt-4 flex w-36 justify-center self-center border-2 border-slate-300 bg-slate-200 px-2 py-4 text-center text-2xl font-bold hover:cursor-pointer hover:bg-slate-300"
-          type="submit"
-        />
-      </form>
-    </div>
-  );
-};
-
 /********************************************************************/
 /*                        MAIN COMPONENT                            */
 /********************************************************************/
@@ -643,7 +593,6 @@ export default function ChannelSettings() {
   });
   if (typeof params.channelId === "undefined") return <div></div>;
   const channelId = +params.channelId;
-  const [passwordProtected, setPasswordProtected] = useState(false);
   const { isLoading, data, error, isFetching } = useChannelSettingsQuery({
     userId: null,
     channelId: channelId,
@@ -658,19 +607,18 @@ export default function ChannelSettings() {
   }
   const owner = data?.user.id === data?.channel.owner.id ? true : false;
   return (
-    <div className="flex w-full flex-col ">
+    <div className="relative flex h-full w-full flex-col ">
       {confirmation ? (
         <div
-          className=" absolute top-0 right-0 z-10 flex h-full w-full bg-white"
+          className="absolute top-0 right-0 z-10 flex h-full w-full items-center justify-center bg-opacity-0"
           onClick={() => setConfirmation(false)}
         >
-          <div className="relative flex items-center justify-center bg-white">
+          <div className="flex h-1/6 w-2/3 items-center justify-center border-2 bg-white ">
             <div className="flex flex-col items-center">
               <div className=" mt-4  text-center">
                 <p className="font-bold">Delete your Channel</p>
                 <p className="mt-1 text-sm text-gray-700">
-                  You will lose all of your data by deleting your Channel. This
-                  action cannot be undone.
+                  This action cannot be undone.
                 </p>
               </div>
 
@@ -680,13 +628,13 @@ export default function ChannelSettings() {
                     deleteChannel.mutate({ channelId: channelId });
                     navigate("/");
                   }}
-                  className="block w-full  bg-gray-200 px-4 py-3 text-sm font-semibold text-red-700 "
+                  className="block w-full border-2 border-slate-200 bg-slate-100 px-4 py-3 text-sm font-semibold text-red-700 hover:bg-slate-200 "
                 >
                   Delete
                 </button>
                 <button
                   onClick={() => setConfirmation(false)}
-                  className="ml-2 block w-full bg-gray-200 px-4 py-3 text-sm font-semibold "
+                  className="ml-2 block w-full border-2 border-slate-200 bg-slate-100 px-4 py-3 text-sm font-semibold  hover:bg-slate-200"
                 >
                   Cancel
                 </button>
@@ -697,105 +645,117 @@ export default function ChannelSettings() {
       ) : (
         ""
       )}
-      <div className="relative flex flex-col justify-center bg-slate-100">
-        {owner ? (
-          <div
-            className="absolute right-1 top-1 flex w-fit justify-center self-center  p-3 text-center text-lg text-slate-500 hover:cursor-pointer hover:text-slate-700"
-            onClick={() => {
-              setConfirmation(true);
-            }}
-          >
-            <TrashIcon className="w-8 -translate-y-0.5" />
+      <div className={`${confirmation ? "blur-sm" : ""} `}>
+        <div className="relative flex flex-col justify-center bg-slate-100 p-2">
+          {owner ? (
+            <div
+              className="absolute right-1 top-1 flex w-fit justify-center self-center p-3 text-center text-lg text-slate-500 hover:cursor-pointer hover:text-slate-700"
+              onClick={() => {
+                setConfirmation(true);
+              }}
+            >
+              <TrashIcon className="w-8 -translate-y-0.5" />
+            </div>
+          ) : (
+            <div></div>
+          )}
+          <div className="flex h-40 w-full items-center">
+            <div className="flex h-28 w-28 justify-center self-center  border border-slate-400 bg-white">
+              <UsersIcon className="mt-2 h-20 w-20 self-center text-slate-700 " />
+            </div>
+            <div className="mx-4 flex h-full flex-col justify-evenly py-2">
+              <div className="mt-1 w-full text-left text-2xl font-bold">
+                Channel : {data?.channel.name}
+              </div>
+              <div className="flex flex-row ">
+                <ChannelType
+                  idChannel={data?.channel.id ? data.channel.id : 0}
+                  activeMode={
+                    data?.channel.private
+                      ? "Private"
+                      : data?.channel.passwordProtected
+                      ? "Password protected"
+                      : "Public"
+                  }
+                />
+              </div>
+            </div>
           </div>
+        </div>
+        <div className="p-5 text-center text-xl font-bold text-slate-700">
+          MEMBERS
+        </div>
+        <UserBanner
+          id={data?.channel.owner.id}
+          name={data?.channel.owner.name}
+          avatar={data?.channel.owner.avatar}
+          channelId={data?.channel.id}
+          admin={false}
+          owner={true}
+          changesAuthorized={false}
+          muted={data?.channel.muted.some(
+            (user) => user.id === data?.channel.owner.id
+          )}
+          banned={data?.channel.banned.some(
+            (user) => user.id === data?.channel.owner.id
+          )}
+        />
+
+        {data?.channel.admins.map((user, index) => {
+          return !(user.id === data?.channel.owner.id) ? (
+            <UserBanner
+              key={index}
+              channelId={data?.channel.id}
+              id={user.id}
+              name={user.name}
+              avatar={user.avatar}
+              admin={true}
+              owner={false}
+              changesAuthorized={owner}
+              muted={data?.channel.muted.some((u) => u.id === user.id)}
+              banned={data?.channel.banned.some((u) => u.id === user.id)}
+            />
+          ) : null;
+        })}
+        {data?.channel.members.map((user, index) => {
+          return !data?.channel.admins.some((admin) => admin.id === user.id) ? (
+            <UserBanner
+              key={index}
+              channelId={data?.channel.id}
+              id={user.id}
+              name={user.name}
+              avatar={user.avatar}
+              admin={false}
+              owner={false}
+              changesAuthorized={
+                owner ||
+                data?.channel.admins.some((admin) => admin.id === user.id)
+              }
+              muted={data?.channel.muted.some((u) => u.id === user.id)}
+              banned={data?.channel.banned.some((u) => u.id === user.id)}
+            />
+          ) : null;
+        })}
+        {data?.channel.admins.some((admin) => admin.id === data?.user.id) ? (
+          <>
+            <div className="mt-5 flex flex-col">
+              <SearchBar search={search} setSearch={setSearch} />
+              {search.length === 0 ? (
+                ""
+              ) : (
+                <Search
+                  search={search}
+                  setSearch={setSearch}
+                  queryData={data}
+                  channelId={data.channel.id ? data.channel.id : 0}
+                />
+              )}
+            </div>
+          </>
         ) : (
-          <div></div>
+          <></>
         )}
-        <div className="mt-4 flex h-24 w-24 justify-center self-center  bg-black text-white">
-          <UsersIcon className="mt-1 h-20 w-20 self-center" />
-        </div>
-        <div className="mt-2 mb-4 w-full text-center text-2xl font-bold">
-          {data?.channel.name}
-        </div>
       </div>
-      <div className="flex flex-col bg-slate-100 ">
-        <div className="flex  flex-row border-r-2 border-slate-300">
-          <UpdateChannel idChannel={data?.channel.id ? data.channel.id : 0} />
-        </div>
-      </div>
-
-      <div className="p-5 text-center text-xl font-bold text-slate-700">
-        MEMBERS
-      </div>
-      <UserBanner
-        id={data?.channel.owner.id}
-        name={data?.channel.owner.name}
-        avatar={data?.channel.owner.avatar}
-        channelId={data?.channel.id}
-        admin={false}
-        owner={true}
-        changesAuthorized={false}
-        muted={data?.channel.muted.some(
-          (user) => user.id === data?.channel.owner.id
-        )}
-        banned={data?.channel.banned.some(
-          (user) => user.id === data?.channel.owner.id
-        )}
-      />
-
-      {data?.channel.admins.map((user, index) => {
-        return !(user.id === data?.channel.owner.id) ? (
-          <UserBanner
-            key={index}
-            channelId={data?.channel.id}
-            id={user.id}
-            name={user.name}
-            avatar={user.avatar}
-            admin={true}
-            owner={false}
-            changesAuthorized={owner}
-            muted={data?.channel.muted.some((u) => u.id === user.id)}
-            banned={data?.channel.banned.some((u) => u.id === user.id)}
-          />
-        ) : null;
-      })}
-      {data?.channel.members.map((user, index) => {
-        return !data?.channel.admins.some((admin) => admin.id === user.id) ? (
-          <UserBanner
-            key={index}
-            channelId={data?.channel.id}
-            id={user.id}
-            name={user.name}
-            avatar={user.avatar}
-            admin={false}
-            owner={false}
-            changesAuthorized={
-              owner ||
-              data?.channel.admins.some((admin) => admin.id === user.id)
-            }
-            muted={data?.channel.muted.some((u) => u.id === user.id)}
-            banned={data?.channel.banned.some((u) => u.id === user.id)}
-          />
-        ) : null;
-      })}
-      {data?.channel.admins.some((admin) => admin.id === data?.user.id) ? (
-        <>
-          <div className="mt-5 flex flex-col">
-            <SearchBar search={search} setSearch={setSearch} />
-            {search.length === 0 ? (
-              ""
-            ) : (
-              <Search
-                search={search}
-                setSearch={setSearch}
-                queryData={data}
-                channelId={data.channel.id ? data.channel.id : 0}
-              />
-            )}
-          </div>
-        </>
-      ) : (
-        <></>
-      )}
     </div>
   );
 }
