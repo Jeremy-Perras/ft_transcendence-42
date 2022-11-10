@@ -389,6 +389,26 @@ export class ChannelResolver {
   }
 
   @Mutation((returns) => Channel)
+  async updateRight(
+    @Args("password", { type: () => String, nullable: true }) password: string,
+    @Args("inviteOnly", { type: () => Boolean, nullable: true })
+    inviteOnly: boolean,
+    @Args("idchannel", { type: () => Int }) idchannel: number
+  ): Promise<channelType> {
+    const m = await this.prisma.channel.update({
+      select: { password: true, id: true, name: true, inviteOnly: true },
+      where: { id: idchannel },
+      data: { password: password, inviteOnly: inviteOnly },
+    });
+    return {
+      id: m.id,
+      name: m.name,
+      passwordProtected: m.password ? true : false,
+      private: m.inviteOnly,
+    };
+  }
+
+  @Mutation((returns) => Channel)
   async updateMuted(
     @Args("channelId", { type: () => Int }) channelId: number,
     @Args("userId", { type: () => Int }) userId: number,
@@ -444,6 +464,37 @@ export class ChannelResolver {
       where: { id: channelId },
       data: {
         admins: {
+          create: {
+            userId: user,
+          },
+        },
+      },
+    });
+
+    return {
+      id: m.id,
+      name: m.name,
+      passwordProtected: m.password ? true : false,
+      private: m.inviteOnly,
+    };
+  }
+
+  @Mutation((returns) => Channel)
+  async updateMembers(
+    @Args("channelId", { type: () => Int }) channelId: number,
+    @Args("userId", { type: () => Int }) user: number
+  ): Promise<channelType> {
+    const m = await this.prisma.channel.update({
+      select: {
+        id: true,
+        admins: true,
+        name: true,
+        password: true,
+        inviteOnly: true,
+      },
+      where: { id: channelId },
+      data: {
+        members: {
           create: {
             userId: user,
           },

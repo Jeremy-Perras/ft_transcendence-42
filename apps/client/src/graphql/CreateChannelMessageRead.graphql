@@ -1,0 +1,11 @@
+mutation createChannelMessageRead($userId: Int!, $messageId: Int!) {
+  createChannelMessageRead(userId: $userId, messageId: $messageId) {
+    id
+    readAt
+    user {
+      avatar
+      name
+      rank
+    }
+  }
+}

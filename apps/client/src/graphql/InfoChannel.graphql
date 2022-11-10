@@ -1,4 +1,4 @@
-query InfoChannel($channelId: Int!) {
+query InfoChannel($channelId: Int!, $userId: Int) {
   channel(id: $channelId) {
     private
     passwordProtected
@@ -35,5 +35,8 @@ query InfoChannel($channelId: Int!) {
       name
       avatar
     }
+  }
+  user(id: $userId) {
+    id
   }
 }
