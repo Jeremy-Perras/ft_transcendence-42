@@ -143,7 +143,11 @@ export default function Chat() {
         <textarea
           disabled={data?.blocking == true || data?.blocked === true}
           rows={1}
-          className="h-10 w-11/12 resize-none overflow-visible rounded-lg px-3 pt-2"
+          className={`${
+            data?.blocking == true || data?.blocked === true
+              ? "hover:cursor-not-allowed"
+              : ""
+          } h-10 w-11/12 resize-none overflow-visible rounded-lg px-3 pt-2`}
           onChange={(e) => setContent(e.target.value)}
           placeholder={`${
             data?.blocking === true

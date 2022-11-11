@@ -217,9 +217,11 @@ export default function Channel() {
         </div>
         <div className="flex h-16 w-full border-t-2 bg-slate-50 p-2">
           <textarea
-            disabled={banned == true || muted === true}
+            disabled={banned || muted}
             rows={1}
-            className="h-10 w-11/12 resize-none overflow-visible rounded-lg px-3 pt-2"
+            className={`${
+              banned || muted ? "hover:cursor-not-allowed" : ""
+            } h-10 w-11/12 resize-none overflow-visible rounded-lg px-3 pt-2`}
             onChange={(e) => setContent(e.target.value)}
             placeholder={`${
               banned === true
