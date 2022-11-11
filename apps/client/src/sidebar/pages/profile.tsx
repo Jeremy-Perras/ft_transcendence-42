@@ -18,10 +18,12 @@ import Rank2Icon from "/src/assets/images/Rank2.svg";
 import Rank3Icon from "/src/assets/images/Rank3.svg";
 import Rank4Icon from "/src/assets/images/Rank4.svg";
 import Rank5Icon from "/src/assets/images/Rank5.svg";
+
 import ClassicIcon from "/src/assets/images/ClassicIcon.svg";
 import BonusIcon from "/src/assets/images/BonusIcon.svg";
 import FireIcon from "/src/assets/images/FireIcon.svg";
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
+import { ReactComponent as AddAvatarIcon } from "pixelarticons/svg/cloud-upload.svg";
 import { ReactComponent as AddFriendIcon } from "pixelarticons/svg/user-plus.svg";
 import { ReactComponent as PlayIcon } from "pixelarticons/svg/gamepad.svg";
 
@@ -76,50 +78,44 @@ const UserProfileHeader = ({
   const victoryRate = Math.floor((100 * victories) / numberOfGames);
   return (
     <div className="flex items-center justify-start ">
-      {typeof data?.user.avatar !== undefined && data?.user.avatar !== "" ? (
+      <div className="relative my-2 ml-2 mr-4 ">
+        {typeof data?.user.avatar !== undefined && data?.user.avatar !== "" ? (
+          <img
+            src={data?.user.avatar}
+            alt="Player avatar"
+            className="h-28 w-28 border border-black"
+          />
+        ) : (
+          <UserIcon className="h-28 w-28 border border-black text-neutral-700" />
+        )}
         <img
-          src={data?.user.avatar}
-          alt="Player avatar"
-          className={`${
-            data.user.id === currentUserId ? "hover:cursor-pointer" : ""
-          } my-2 ml-2 mr-4 h-28 w-28 border border-black`}
-          onClick={
-            data.user.id === currentUserId
-              ? () => {
-                  alert("JEREMY : Put here function to change avatar");
-                }
-              : () => {
-                  return null; //remove this
-                }
-          }
+          src={RankIcon(data?.user.rank)}
+          className="absolute -right-4 top-2"
         />
-      ) : (
-        <UserIcon
-          className={`${
-            data.user.id === currentUserId ? "hover:cursor-pointer" : ""
-          } my-2 ml-2 mr-4 h-28 w-28 border border-black text-neutral-700`}
-          onClick={
-            data.user.id === currentUserId
-              ? () => {
-                  alert("JEREMY : Put here function to change avatar");
-                }
-              : () => {
-                  return null; //remove this
-                }
-          }
-        />
-      )}
-      <img
-        src={RankIcon(data?.user.rank)}
-        className="-translate-x-8 -translate-y-8"
-      />
-      <div className="my-4 flex grow flex-col text-left">
+        {data.user.id === currentUserId ? (
+          <AddAvatarIcon
+            onClick={
+              data.user.id === currentUserId
+                ? () => {
+                    alert("JEREMY : Put here function to change avatar");
+                  }
+                : () => {
+                    return null; //remove this
+                  }
+            }
+            className="absolute bottom-0 right-0 h-6 w-6 border border-black bg-white p-px hover:cursor-pointer"
+          /> //TODO: replace with correct position
+        ) : (
+          <></>
+        )}
+      </div>
+      <div className="my-4 mx-4 flex grow flex-col text-left">
         <div className="text-xl font-bold">{data?.user.name}</div>
         <div>Matchs played : {numberOfGames} </div>
         <div>Victories : {victories} </div>
         <div>Victory rate : {victoryRate} %</div>
       </div>
-      <div className="mr-2 flex w-20 justify-end ">
+      <div className="mr-2 flex w-20 justify-end">
         PUT HERE THE ACHIEVEMENTS
       </div>
     </div>

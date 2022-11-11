@@ -7,6 +7,7 @@ import {
   useSendDirectMessageMutation,
 } from "../../graphql/generated";
 import { getDate, Fetching, Loading, Error } from "./home";
+import { ReactComponent as EmptyChatIcon } from "pixelarticons/svg/message-plus.svg";
 
 export type User = {
   __typename?: "User" | undefined;
@@ -44,7 +45,7 @@ const DirectMessage = ({
         <div
           className={`${
             author.id === userId ? "order-first mr-1" : "order-last ml-1"
-          } flex h-full w-7 items-end justify-center`}
+          } flex h-full w-7 shrink-0 items-end justify-center`}
         >
           <img
             className="flex h-6 w-6 border border-black hover:h-7 hover:w-7 hover:cursor-pointer"
@@ -145,9 +146,9 @@ const DirectConversation = () => {
     <div className="flex h-full flex-col">
       <ul className="mt-4 flex h-fit w-full grow flex-col overflow-auto pr-2 pl-px">
         {data?.messages.length === 0 ? (
-          <div className="text-center text-slate-400 ">
-            You didn't speak with your friend yet. Send the first message !
-            {/* TODO  icon */}
+          <div className="mb-48 flex h-full flex-col items-center justify-center text-center text-slate-300">
+            <EmptyChatIcon className="w-96 text-slate-200" />
+            Seems a little bit too silent here... Send the first message !
           </div>
         ) : (
           <></>

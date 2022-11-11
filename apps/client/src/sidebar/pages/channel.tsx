@@ -9,6 +9,7 @@ import {
 } from "../../graphql/generated";
 import { User } from "./chat";
 import { getDate, Error, Loading, Fetching } from "./home";
+import { ReactComponent as EmptyChatIcon } from "pixelarticons/svg/message-plus.svg";
 
 const ReadBy = ({ users }: { users: User[] }) => {
   const navigate = useNavigate();
@@ -102,6 +103,7 @@ const ChannelMessage = ({
     </>
   );
 };
+
 const GetInfo = (Id: number) => {
   const { isLoading, data, error, isFetching } = useInfoUsersQuery(
     {
@@ -192,8 +194,9 @@ export default function Channel() {
       >
         <div className="mt-px flex w-full grow flex-col overflow-auto pr-2 pl-px">
           {data?.messages.length === 0 ? (
-            <div className="mt-6 text-center text-slate-300">
-              No one has spoken yet. Send the first message !
+            <div className="mb-48 flex h-full flex-col items-center justify-center text-center text-slate-300">
+              <EmptyChatIcon className="w-96 text-slate-200" />
+              Seems a little bit too silent here... Send the first message !
             </div>
           ) : (
             <></>
