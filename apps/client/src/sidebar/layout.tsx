@@ -26,7 +26,7 @@ import React from "react";
 // retry
 // route loaders
 
-export function ModalHeader({
+export function HeaderPortal({
   container,
   text,
   link,

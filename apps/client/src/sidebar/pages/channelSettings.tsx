@@ -29,7 +29,7 @@ import { useThrottledState } from "@react-hookz/web";
 import * as Avatar from "@radix-ui/react-avatar";
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { useForm } from "react-hook-form";
-import { ModalHeader } from "../layout";
+import { HeaderPortal } from "../layout";
 
 /*************************** WORKS AS INTENTED *************** */
 
@@ -666,7 +666,7 @@ export default function ChannelSettings() {
   return (
     <>
       {" "}
-      <ModalHeader
+      <HeaderPortal
         container={document.getElementById("header") as HTMLElement}
         text="Settings"
         link=""

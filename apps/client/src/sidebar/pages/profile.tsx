@@ -28,7 +28,7 @@ import { ReactComponent as AddFriendIcon } from "pixelarticons/svg/user-plus.svg
 import { ReactComponent as PlayIcon } from "pixelarticons/svg/gamepad.svg";
 import React from "react";
 import { createPortal } from "react-dom";
-import { ModalHeader } from "../layout";
+import { HeaderPortal } from "../layout";
 
 //TODO: add scores equal
 export const RankIcon = (rank: number) => {
@@ -306,7 +306,7 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
 
   return (
     <div className="flex h-full w-full flex-col ">
-      <ModalHeader
+      <HeaderPortal
         container={document.getElementById("header") as HTMLElement}
         text={
           data.user.id === currentUserData?.user.id

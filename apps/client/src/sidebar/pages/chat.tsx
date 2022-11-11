@@ -7,7 +7,7 @@ import {
 } from "../../graphql/generated";
 import { getDate, Fetching, Loading, Error } from "./home";
 import { ReactComponent as EmptyChatIcon } from "pixelarticons/svg/message-plus.svg";
-import { ModalHeader } from "../layout";
+import { HeaderPortal } from "../layout";
 import { RankIcon } from "./profile";
 
 export type User = {
@@ -130,7 +130,7 @@ export default function Chat() {
 
   return (
     <div className="flex h-full flex-col">
-      <ModalHeader
+      <HeaderPortal
         container={document.getElementById("header") as HTMLElement}
         text={data?.name}
         link={`/profile/${userId}`}
