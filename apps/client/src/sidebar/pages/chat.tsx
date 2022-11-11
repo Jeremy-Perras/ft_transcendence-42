@@ -30,6 +30,7 @@ const DirectMessage = ({
   readAt,
   author,
 }: DirectMessage) => {
+  const navigate = useNavigate();
   return (
     <li className="mx-2 mb-5 flex flex-col ">
       <div className="mb-2 text-center text-xs text-slate-300">
@@ -40,13 +41,18 @@ const DirectMessage = ({
           author.id === userId ? "justify-start" : "justify-end"
         } flex`}
       >
-        <img
+        <div
           className={`${
-            author.id === userId ? "order-first" : "order-last"
-          } m-1 mb-px flex h-6 w-6 basis-1 self-end rounded-full`}
-          src={author.avatar}
-          alt="Message author avatar"
-        />
+            author.id === userId ? "order-first mr-1" : "order-last ml-1"
+          } flex h-full w-7 items-end justify-center`}
+        >
+          <img
+            className="flex h-6 w-6 border border-black hover:h-7 hover:w-7 hover:cursor-pointer"
+            src={author.avatar}
+            alt="Message author avatar"
+            onClick={() => navigate(`/profile/${author.id}`)}
+          />
+        </div>
         <div>
           <div
             className={`px-4 py-2 tracking-wide ${
@@ -140,8 +146,8 @@ const DirectConversation = () => {
       <ul className="mt-4 flex h-fit w-full grow flex-col overflow-auto pr-2 pl-px">
         {data?.messages.length === 0 ? (
           <div className="text-center text-slate-400 ">
-            You didn't speak with your friend yet. Sent the first message !
-            {/* TODO : text + icon */}
+            You didn't speak with your friend yet. Send the first message !
+            {/* TODO  icon */}
           </div>
         ) : (
           <></>

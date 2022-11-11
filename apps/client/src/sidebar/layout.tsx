@@ -241,7 +241,6 @@ function UserHeader({ userId }: { userId: number }) {
     }
   );
   const navigate = useNavigate();
-  console.log(data?.avatar);
   return (
     <div
       className="flex h-9 w-full items-center justify-center p-2 hover:cursor-pointer hover:bg-slate-100"
@@ -407,7 +406,6 @@ export const SidebarLayout = () => {
   const [showChannelCreation, setShowChannelCreation] = useState(false);
   const location = useLocation();
 
-  console.log(showChannelCreation);
   return (
     <div className="relative flex h-full flex-col">
       <div
