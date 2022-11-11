@@ -8,6 +8,7 @@ import { UserModule } from "./user/user.module";
 import { ChannelModule } from "./channel/channel.module";
 import { GameModule } from "./game/game.module";
 import { AuthModule } from "./auth/auth.module";
+import { FileModule } from "./file/file.module";
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { AuthModule } from "./auth/auth.module";
       playground: false,
       plugins: [ApolloServerPluginLandingPageLocalDefault()],
     }),
+    FileModule,
   ],
 })
 export class AppModule {}
