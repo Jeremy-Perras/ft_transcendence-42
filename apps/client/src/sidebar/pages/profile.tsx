@@ -18,10 +18,10 @@ import Rank2Icon from "/src/assets/images/Rank2.svg";
 import Rank3Icon from "/src/assets/images/Rank3.svg";
 import Rank4Icon from "/src/assets/images/Rank4.svg";
 import Rank5Icon from "/src/assets/images/Rank5.svg";
-
 import ClassicIcon from "/src/assets/images/ClassicIcon.svg";
 import BonusIcon from "/src/assets/images/BonusIcon.svg";
 import FireIcon from "/src/assets/images/FireIcon.svg";
+import Achievement1Icon from "/src/assets/images/Achievement1.svg";
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { ReactComponent as AddAvatarIcon } from "pixelarticons/svg/cloud-upload.svg";
 import { ReactComponent as AddFriendIcon } from "pixelarticons/svg/user-plus.svg";
@@ -77,8 +77,8 @@ const UserProfileHeader = ({
   }).length;
   const victoryRate = Math.floor((100 * victories) / numberOfGames);
   return (
-    <div className="flex items-center justify-start ">
-      <div className="relative my-2 ml-2 mr-4 ">
+    <div className="flex w-full items-center">
+      <div className="relative my-2 ml-3 mr-2 flex shrink-0">
         {typeof data?.user.avatar !== undefined && data?.user.avatar !== "" ? (
           <img
             src={data?.user.avatar}
@@ -104,7 +104,7 @@ const UserProfileHeader = ({
                   }
             }
             className="absolute bottom-0 right-0 h-6 w-6 border border-black bg-white p-px hover:cursor-pointer"
-          /> //TODO: replace with correct position
+          />
         ) : (
           <></>
         )}
@@ -115,8 +115,22 @@ const UserProfileHeader = ({
         <div>Victories : {victories} </div>
         <div>Victory rate : {victoryRate} %</div>
       </div>
-      <div className="mr-2 flex w-20 justify-end">
-        PUT HERE THE ACHIEVEMENTS
+      {/* TODO : put here achievements */}
+      <div className="mr-2 flex shrink-0 flex-col justify-end pt-2 ">
+        <div className="flex">
+          <img src={Achievement1Icon} className="mx-1 py-1 opacity-10" />
+          <img src={Achievement1Icon} className="mx-1 py-1 opacity-100" />
+          <img src={Achievement1Icon} className="mx-1 py-1 opacity-10" />
+          <img src={Achievement1Icon} className="mx-1 py-1 opacity-100" />
+          <img src={Achievement1Icon} className="mx-1 py-1 opacity-10" />
+        </div>
+        <div className="flex">
+          <img src={Achievement1Icon} className="mx-1 py-1 opacity-10" />
+          <img src={Achievement1Icon} className="mx-1 py-1 opacity-10" />
+          <img src={Achievement1Icon} className="mx-1 py-1 opacity-10" />
+          <img src={Achievement1Icon} className="mx-1 py-1 opacity-10" />
+          <img src={Achievement1Icon} className="mx-1 py-1 opacity-10" />
+        </div>
       </div>
     </div>
   );
@@ -285,14 +299,12 @@ const FriendButtons = ({
   );
 };
 
-//TODO : replace with better thing with current user
-const CurrentUserData = () => {
-  const { data } = useUserProfileQuery();
-  return data;
-};
-
 //TODO : object destructuring
 const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
+  const CurrentUserData = () => {
+    const { data } = useUserProfileQuery();
+    return data;
+  }; //TODO : replace with better thing with current user
   const currentUserData = CurrentUserData();
   return (
     <div className="flex h-full w-full flex-col ">
