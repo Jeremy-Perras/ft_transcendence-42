@@ -118,14 +118,12 @@ const UserProfileHeader = ({
       {/* TODO : put here achievements */}
       <div className="mr-2 flex shrink-0 flex-col justify-end pt-2 ">
         <div className="flex">
-          <img src={Achievement1Icon} className="mx-1 py-1 opacity-10" />
           <img src={Achievement1Icon} className="mx-1 py-1 opacity-100" />
           <img src={Achievement1Icon} className="mx-1 py-1 opacity-10" />
           <img src={Achievement1Icon} className="mx-1 py-1 opacity-100" />
           <img src={Achievement1Icon} className="mx-1 py-1 opacity-10" />
         </div>
         <div className="flex">
-          <img src={Achievement1Icon} className="mx-1 py-1 opacity-10" />
           <img src={Achievement1Icon} className="mx-1 py-1 opacity-10" />
           <img src={Achievement1Icon} className="mx-1 py-1 opacity-10" />
           <img src={Achievement1Icon} className="mx-1 py-1 opacity-10" />

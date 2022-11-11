@@ -35,6 +35,12 @@ query InfoChannel($channelId: Int!, $userId: Int) {
       name
       avatar
     }
+    banned {
+      id
+    }
+    muted {
+      id
+    }
   }
   user(id: $userId) {
     id

@@ -1,10 +1,9 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   useCreateChannelMessageReadMutation,
   useInfoChannelQuery,
-  useInfoUsersQuery,
   useSendChannelMessageMutation,
 } from "../../graphql/generated";
 import { User } from "./chat";
@@ -104,27 +103,27 @@ const ChannelMessage = ({
   );
 };
 
-const GetInfo = (Id: number) => {
-  const { isLoading, data, error, isFetching } = useInfoUsersQuery(
-    {
-      userId: Id,
-    },
-    {
-      select({ user }) {
-        const res: {
-          blocked: boolean;
-          blocking: boolean;
-        } = {
-          blocked: user.blocked,
-          blocking: user.blocking,
-        };
-        return res;
-      },
-    }
-  );
-  return data;
-};
-//TODO : fix scrollbar behind text area
+// const GetInfo = (Id: number) => {
+//   const { isLoading, data, error, isFetching } = useInfoUsersQuery(
+//     {
+//       userId: Id,
+//     },
+//     {
+//       select({ user }) {
+//         const res: {
+//           blocked: boolean;
+//           blocking: boolean;
+//         } = {
+//           blocked: user.blocked,
+//           blocking: user.blocking,
+//         };
+//         return res;
+//       },
+//     }
+//   );
+//   return data;
+// };
+
 export default function Channel() {
   const { channelId } = useParams();
   const queryClient = useQueryClient();
@@ -139,16 +138,24 @@ export default function Channel() {
           name: string;
           messages: ChannelMessage[];
           owner: { id: number; name: string };
+          banned: {
+            __typename?: "RestrictedMember" | undefined;
+            id: number;
+          }[];
+          muted: { __typename?: "RestrictedMember" | undefined; id: number }[];
         } = {
           userId: user.id,
           name: channel.name,
           messages: channel.messages,
           owner: { id: channel.owner.id, name: channel.owner.name },
+          banned: channel.banned,
+          muted: channel.banned,
         };
         return res;
       },
     }
   );
+  console.log(data);
   // const infoSpeak = GetInfo(userId);
   const messageMutation = useSendChannelMessageMutation({
     onSuccess: () => {
@@ -164,11 +171,13 @@ export default function Channel() {
   const endMessages = useRef(null);
   // const b = endMessages.current as unknown as HTMLElement;
   // useEffect(() => {
-  //   // 👇️ scroll to bottom every time messages change
   //   b?.scrollIntoView({
   //     behavior: "smooth",
   //   });
   // }, [data?.messages]);
+
+  const banned = data?.banned.some((u) => u.id === data.userId);
+  const muted = data?.muted.some((u) => u.id === data.userId);
   if (isLoading) {
     return <Loading />;
   }
@@ -208,10 +217,17 @@ export default function Channel() {
         </div>
         <div className="flex h-16 w-full border-t-2 bg-slate-50 p-2">
           <textarea
+            disabled={banned == true || muted === true}
             rows={1}
             className="h-10 w-11/12 resize-none overflow-visible rounded-lg px-3 pt-2"
             onChange={(e) => setContent(e.target.value)}
-            placeholder="Type your message here ..."
+            placeholder={`${
+              banned === true
+                ? "Your are banned"
+                : muted === true
+                ? "You are muted"
+                : "Type your message here ..."
+            }`}
             onKeyDown={(e) => {
               if (e.code == "Enter" && !e.getModifierState("Shift")) {
                 messageMutation.mutate({
