@@ -639,6 +639,7 @@ export type InfoDirectMessagesQuery = {
     __typename?: "User";
     name: string;
     avatar: string;
+    rank: number;
     blocked: boolean;
     blocking: boolean;
     messages: Array<{
@@ -1687,6 +1688,7 @@ export const InfoDirectMessagesDocument = `
   user(id: $userId) {
     name
     avatar
+    rank
     messages {
       recipient {
         id

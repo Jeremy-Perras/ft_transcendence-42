@@ -8,6 +8,7 @@ import {
 import { getDate, Fetching, Loading, Error } from "./home";
 import { ReactComponent as EmptyChatIcon } from "pixelarticons/svg/message-plus.svg";
 import { ModalHeader } from "../layout";
+import { RankIcon } from "./profile";
 
 export type User = {
   __typename?: "User" | undefined;
@@ -96,12 +97,14 @@ export default function Chat() {
           }[];
           name: string;
           avatar: string;
+          rank: number;
           blocked: boolean;
           blocking: boolean;
         } = {
           messages: user.messages.sort((a, b) => a.sentAt - b.sentAt),
           name: user.name,
           avatar: user.avatar,
+          rank: user.rank,
           blocked: user.blocked,
           blocking: user.blocking,
         };
@@ -131,6 +134,7 @@ export default function Chat() {
         container={document.getElementById("header") as HTMLElement}
         text={data?.name}
         link={`/profile/${userId}`}
+        icon={RankIcon(data?.rank)}
       />
       <ul className="mt-4 flex h-fit w-full grow flex-col overflow-auto pr-2 pl-px">
         {data?.messages.length === 0 ? (

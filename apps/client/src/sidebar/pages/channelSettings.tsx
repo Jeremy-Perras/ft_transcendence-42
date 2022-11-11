@@ -670,6 +670,7 @@ export default function ChannelSettings() {
         container={document.getElementById("header") as HTMLElement}
         text="Settings"
         link=""
+        icon=""
       />
       <div className="relative flex h-full w-full flex-col ">
         {confirmation ? (

@@ -30,10 +30,12 @@ export function ModalHeader({
   container,
   text,
   link,
+  icon,
 }: {
   container: HTMLElement;
   text: string | undefined;
-  link: string; //change
+  link: string;
+  icon: string;
 }) {
   const navigate = useNavigate();
   return ReactDOM.createPortal(
@@ -43,10 +45,11 @@ export function ModalHeader({
       } flex w-full text-center`}
     >
       <div
-        className="flex grow justify-center text-center"
+        className="flex grow items-center justify-center text-center"
         onClick={() => navigate(link)}
       >
-        {text}
+        <div>{text}</div>
+        {icon !== "" ? <img src={icon} className="mx-2" /> : <></>}
       </div>
       <CurrentUserProfileLink />
     </div>,
@@ -148,7 +151,7 @@ function CurrentUserProfileLink() {
   const navigate = useNavigate();
   return (
     <div
-      className="flex w-10 shrink-0 justify-center border-r-2 transition-all hover:cursor-pointer hover:bg-slate-100"
+      className="flex w-10 shrink-0 justify-center border-l-2 transition-all hover:cursor-pointer hover:bg-slate-100"
       onClick={() => navigate(`/profile/${data?.id}`)}
     >
       <img

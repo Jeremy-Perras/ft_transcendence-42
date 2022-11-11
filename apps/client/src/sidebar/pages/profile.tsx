@@ -109,11 +109,7 @@ const UserProfileHeader = ({
           <></>
         )}
       </div>
-      <div className="my-4 mx-4 flex grow flex-col text-left">
-        <div className="flex items-end text-end text-xl font-bold ">
-          <div className="mr-2">{data?.user.name}</div>
-          <img src={RankIcon(data?.user.rank)} className="" />
-        </div>
+      <div className="mx-4 mt-4 flex grow flex-col self-start text-left">
         <div>Matchs played : {numberOfGames} </div>
         <div>Victories : {victories} </div>
         <div>Victory rate : {victoryRate} %</div>
@@ -312,8 +308,13 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
     <div className="flex h-full w-full flex-col ">
       <ModalHeader
         container={document.getElementById("header") as HTMLElement}
-        text={data.user.id === currentUserData?.user.id ? "ME" : data.user.name}
+        text={
+          data.user.id === currentUserData?.user.id
+            ? "My profile"
+            : data.user.name
+        }
         link=""
+        icon={RankIcon(data?.user.rank)}
       />
       <UserProfileHeader data={data} currentUserId={currentUserData?.user.id} />
       <GameHistory data={data} />
