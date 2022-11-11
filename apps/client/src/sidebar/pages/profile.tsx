@@ -146,6 +146,11 @@ const GameHistory = ({ data }: { data: UserProfileQuery }) => {
             game.player1score > game.player2score) ||
           (game.player2?.id === data?.user.id &&
             game.player2score > game.player1score);
+        const equal =
+          (game.player1.id === data?.user.id &&
+            game.player1score === game.player2score) ||
+          (game.player2?.id === data?.user.id &&
+            game.player2score === game.player1score);
         return (
           <div
             key={index}
@@ -175,10 +180,16 @@ const GameHistory = ({ data }: { data: UserProfileQuery }) => {
             </div>
             <div
               className={`${
-                victory ? "bg-green-400" : "bg-red-400"
+                victory ? "bg-green-400" : equal ? "bg-slate-200" : "bg-red-400"
               } mx-1 flex h-full basis-1/6 flex-col justify-center border-x border-black text-center font-bold`}
             >
-              {victory ? <div>VICTORY</div> : <div>DEFEAT</div>}
+              {victory ? (
+                <div>VICTORY</div>
+              ) : equal ? (
+                <div>EQUAL</div>
+              ) : (
+                <div>DEFEAT</div>
+              )}
               <div>
                 {game.player1score} - {game.player2score}
               </div>
