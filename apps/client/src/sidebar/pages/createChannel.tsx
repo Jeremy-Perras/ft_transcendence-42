@@ -7,6 +7,8 @@ import { ReactComponent as PrivateIcon } from "pixelarticons/svg/mail.svg";
 import { ReactComponent as PasswordIcon } from "pixelarticons/svg/lock.svg";
 import { ReactComponent as PublicIcon } from "pixelarticons/svg/lock-open.svg";
 
+/*************************** WORKS AS INTENTED *************** */
+
 export const ChannelTypeButton = ({
   text,
   active,

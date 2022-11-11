@@ -119,7 +119,7 @@ function CurrentUserProfileLink() {
   const navigate = useNavigate();
   return (
     <div
-      className="flex w-10 justify-center border-r-2 transition-all hover:cursor-pointer hover:bg-slate-100"
+      className="flex w-10 shrink-0 justify-center border-r-2 transition-all hover:cursor-pointer hover:bg-slate-100"
       onClick={() => navigate(`/profile/${data?.id}`)}
     >
       <img

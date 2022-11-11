@@ -30,15 +30,19 @@ import * as Avatar from "@radix-ui/react-avatar";
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { useForm } from "react-hook-form";
 
+/*************************** WORKS AS INTENTED *************** */
+
 /********************************************************************/
 /*           CHANNEL TYPE / Password protected CHANGE               */
 /********************************************************************/
 const ChannelType = ({
   idChannel,
   activeMode,
+  changesAuthorized,
 }: {
   idChannel: number;
   activeMode: string;
+  changesAuthorized: boolean;
 }) => {
   const queryClient = useQueryClient();
   const { register, handleSubmit, watch } = useForm();
@@ -65,7 +69,7 @@ const ChannelType = ({
       >
         <div className="mb-2 flex h-full ">Mode : {activeMode}</div>
         <div className="flex h-full items-center justify-start">
-          {activeMode === "Password protected" ? (
+          {activeMode === "Password protected" && changesAuthorized ? (
             <div className="flex items-center justify-start ">
               <label
                 className="mr-2 self-end text-sm text-slate-400"
@@ -524,6 +528,12 @@ const Search = ({
             <div
               key={index}
               className="flex items-center p-2 even:bg-white hover:cursor-pointer hover:bg-blue-100"
+              onClick={() => {
+                updateMembers.mutate({
+                  channelId: channelId,
+                  userId: result?.id,
+                });
+              }}
             >
               <>
                 <Avatar.Root>
@@ -536,15 +546,6 @@ const Search = ({
                   </Avatar.Fallback>
                 </Avatar.Root>
                 <Highlight content={result.name} search={search} />
-                <AddMemberIcon
-                  className="absolute right-0 w-8"
-                  onClick={() => {
-                    updateMembers.mutate({
-                      channelId: channelId,
-                      userId: result?.id,
-                    });
-                  }}
-                />{" "}
               </>
             </div>
           ) : (
@@ -660,7 +661,7 @@ export default function ChannelSettings() {
   if (error) {
     return <div>Error</div>;
   }
-  const owner = data?.user.id === data?.channel.owner.id ? true : false;
+  const owner = data?.user.id === data?.channel.owner.id;
   return (
     <div className="relative flex h-full w-full flex-col ">
       {confirmation ? (
@@ -705,6 +706,7 @@ export default function ChannelSettings() {
                       ? "Password protected"
                       : "Public"
                   }
+                  changesAuthorized={owner}
                 />
               </div>
             </div>
@@ -723,12 +725,8 @@ export default function ChannelSettings() {
           admin={false}
           owner={true}
           changesAuthorized={false}
-          muted={data?.channel.muted.some(
-            (user) => user.id === data?.channel.owner.id
-          )}
-          banned={data?.channel.banned.some(
-            (user) => user.id === data?.channel.owner.id
-          )}
+          muted={false}
+          banned={false}
         />
 
         {data?.channel.admins.map((user, index) => {
@@ -742,8 +740,8 @@ export default function ChannelSettings() {
               admin={true}
               owner={false}
               changesAuthorized={owner}
-              muted={data?.channel.muted.some((u) => u.id === user.id)}
-              banned={data?.channel.banned.some((u) => u.id === user.id)}
+              muted={false}
+              banned={false}
             />
           ) : null;
         })}

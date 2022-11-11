@@ -612,6 +612,8 @@ export type InfoChannelQuery = {
       name: string;
       avatar: string;
     }>;
+    banned: Array<{ __typename?: "RestrictedMember"; id: number }>;
+    muted: Array<{ __typename?: "RestrictedMember"; id: number }>;
   };
   user: { __typename?: "User"; id: number };
 };
@@ -637,6 +639,8 @@ export type InfoDirectMessagesQuery = {
     __typename?: "User";
     name: string;
     avatar: string;
+    blocked: boolean;
+    blocking: boolean;
     messages: Array<{
       __typename?: "DirectMessage";
       content: string;
@@ -678,8 +682,6 @@ export type InfoUsersQuery = {
     __typename: "User";
     id: number;
     name: string;
-    blocked: boolean;
-    blocking: boolean;
     avatar: string;
     rank: number;
     channels: Array<{
@@ -1608,6 +1610,12 @@ export const InfoChannelDocument = `
       name
       avatar
     }
+    banned {
+      id
+    }
+    muted {
+      id
+    }
   }
   user(id: $userId) {
     id
@@ -1694,6 +1702,8 @@ export const InfoDirectMessagesDocument = `
       sentAt
       readAt
     }
+    blocked
+    blocking
   }
 }
     `;
@@ -1771,8 +1781,6 @@ export const InfoUsersDocument = `
     id
     __typename
     name
-    blocked
-    blocking
     avatar
     rank
     channels {

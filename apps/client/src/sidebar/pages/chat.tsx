@@ -3,7 +3,6 @@ import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   useInfoDirectMessagesQuery,
-  useInfoUsersQuery,
   useSendDirectMessageMutation,
 } from "../../graphql/generated";
 import { getDate, Fetching, Loading, Error } from "./home";
@@ -77,34 +76,12 @@ const DirectMessage = ({
   );
 };
 
-const GetInfo = (Id: number) => {
-  const { isLoading, data, error, isFetching } = useInfoUsersQuery(
-    {
-      userId: Id,
-    },
-    {
-      select({ user }) {
-        const res: {
-          blocked: boolean;
-          blocking: boolean;
-        } = {
-          blocked: user.blocked,
-          blocking: user.blocking,
-        };
-        return res;
-      },
-    }
-  );
-  return data;
-};
-
-const DirectConversation = () => {
+export default function Chat() {
   const queryClient = useQueryClient();
   const params = useParams();
   if (typeof params.userId === "undefined") return <div></div>;
   const userId = +params.userId;
   const [content, setContent] = useState("");
-  const infoSpeak = GetInfo(userId);
   const { isLoading, data, error, isFetching } = useInfoDirectMessagesQuery(
     { userId: userId },
     {
@@ -118,15 +95,20 @@ const DirectConversation = () => {
           }[];
           name: string;
           avatar: string;
+          blocked: boolean;
+          blocking: boolean;
         } = {
           messages: user.messages.sort((a, b) => a.sentAt - b.sentAt),
           name: user.name,
           avatar: user.avatar,
+          blocked: user.blocked,
+          blocking: user.blocking,
         };
         return res;
       },
     }
   );
+
   const messageMutation = useSendDirectMessageMutation({
     onSuccess: () => {
       queryClient.invalidateQueries(["InfoDirectMessages", { userId: userId }]);
@@ -159,16 +141,19 @@ const DirectConversation = () => {
       </ul>
       <div className="flex h-16 w-full border-t-2 bg-slate-50 p-2">
         <textarea
+          disabled={data?.blocking == true || data?.blocked === true}
           rows={1}
           className="h-10 w-11/12 resize-none overflow-visible rounded-lg px-3 pt-2"
           onChange={(e) => setContent(e.target.value)}
           placeholder={`${
-            infoSpeak?.blocking == true
-              ? "You are blocked"
+            data?.blocking === true
+              ? "This user is blocked"
+              : data?.blocked === true
+              ? "You are blocked by this user"
               : "Type your message here ..."
           }`}
           onKeyDown={(e) => {
-            if (infoSpeak?.blocking == false) {
+            if (data?.blocking === false && data?.blocked === false) {
               if (e.code == "Enter" && !e.getModifierState("Shift")) {
                 messageMutation.mutate({
                   message: content,
@@ -190,8 +175,4 @@ const DirectConversation = () => {
       </div>
     </div>
   );
-};
-
-export default function Chat() {
-  return <DirectConversation />;
 }
