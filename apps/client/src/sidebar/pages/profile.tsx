@@ -57,10 +57,10 @@ export const loader =
 
 const UserProfileHeader = ({
   data,
-  userId,
+  currentUserId,
 }: {
   data: UserProfileQuery;
-  userId: number;
+  currentUserId: number | undefined;
 }) => {
   const numberOfGames = data?.user.games.length;
   const victories = data?.user.games.filter((game) => {
@@ -80,10 +80,34 @@ const UserProfileHeader = ({
         <img
           src={data?.user.avatar}
           alt="Player avatar"
-          className="my-2 ml-2 mr-4 h-28 w-28 border border-black"
+          className={`${
+            data.user.id === currentUserId ? "hover:cursor-pointer" : ""
+          } my-2 ml-2 mr-4 h-28 w-28 border border-black`}
+          onClick={
+            data.user.id === currentUserId
+              ? () => {
+                  alert("JEREMY : Put here function to change avatar");
+                }
+              : () => {
+                  return null; //remove this
+                }
+          }
         />
       ) : (
-        <UserIcon className="my-2 ml-2 mr-4 h-28 w-28 border border-black text-neutral-700" />
+        <UserIcon
+          className={`${
+            data.user.id === currentUserId ? "hover:cursor-pointer" : ""
+          } my-2 ml-2 mr-4 h-28 w-28 border border-black text-neutral-700`}
+          onClick={
+            data.user.id === currentUserId
+              ? () => {
+                  alert("JEREMY : Put here function to change avatar");
+                }
+              : () => {
+                  return null; //remove this
+                }
+          }
+        />
       )}
       <img
         src={RankIcon(data?.user.rank)}
@@ -102,13 +126,7 @@ const UserProfileHeader = ({
   );
 };
 
-const GameHistory = ({
-  data,
-  userId,
-}: {
-  data: UserProfileQuery;
-  userId: number;
-}) => {
+const GameHistory = ({ data }: { data: UserProfileQuery }) => {
   return (
     <div className="flex w-full grow flex-col overflow-auto p-1 text-sm">
       <div className="mt-8 pb-2 text-center text-xl font-bold">
@@ -188,11 +206,9 @@ const GameHistory = ({
 };
 
 const AddFriend = ({
-  data,
-  userId,
+  currentUserId,
 }: {
-  data: UserProfileQuery;
-  userId: number;
+  currentUserId: number | undefined;
 }) => {
   const queryClient = useQueryClient();
   const askFriend = useUpdateFriendMutation({
@@ -205,7 +221,7 @@ const AddFriend = ({
       <AddFriendIcon className="mx-4 mb-2 w-16 self-center " />
       <span
         onClick={() => {
-          askFriend.mutate({ updateFriendId: userId });
+          askFriend.mutate({ updateFriendId: currentUserId! });
           alert("BROKEN");
         }}
         className="flex items-center text-center text-2xl font-bold "
@@ -218,10 +234,10 @@ const AddFriend = ({
 
 const FriendButtons = ({
   data,
-  userId,
+  currentUserId,
 }: {
   data: UserProfileQuery;
-  userId: number;
+  currentUserId: number;
 }) => {
   const queryClient = useQueryClient();
   const unFriend = useUpdateUnFriendMutation({
@@ -251,7 +267,7 @@ const FriendButtons = ({
       </div>
       <div
         onClick={() => {
-          unFriend.mutate({ updateUnFriendId: userId });
+          unFriend.mutate({ updateUnFriendId: currentUserId });
           alert("BROKEN");
         }}
         className="flex basis-1/3 items-center justify-center border-y-2 border-slate-300 bg-slate-200 text-center transition-all hover:cursor-pointer hover:bg-slate-300"
@@ -261,8 +277,8 @@ const FriendButtons = ({
       <div
         onClick={() => {
           data?.user.blocked
-            ? unblockMutation.mutate({ unblockingUserId: userId })
-            : blockMutation.mutate({ blockingUserId: userId });
+            ? unblockMutation.mutate({ unblockingUserId: currentUserId })
+            : blockMutation.mutate({ blockingUserId: currentUserId });
           alert("BROKEN");
         }}
         className="flex basis-1/3 items-center justify-center border-2 border-slate-300 bg-slate-200  text-center transition-all  hover:cursor-pointer hover:bg-slate-300"
@@ -274,28 +290,26 @@ const FriendButtons = ({
 };
 
 //TODO : replace with better thing with current user
-const MyData = () => {
+const CurrentUserData = () => {
   const { data } = useUserProfileQuery();
   return data;
 };
 
 //TODO : object destructuring
-const DisplayUserProfile = ({
-  data,
-  userId,
-}: {
-  data: UserProfileQuery;
-  userId: number;
-}) => {
-  const myData = MyData();
+const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
+  const currentUserData = CurrentUserData();
   return (
     <div className="flex h-full w-full flex-col ">
-      <UserProfileHeader data={data} userId={userId} />
-      <GameHistory data={data} userId={userId} />
-      {myData?.user.friends.some((friend) => friend.id == userId) ? (
-        <FriendButtons data={data} userId={userId} />
+      <UserProfileHeader data={data} currentUserId={currentUserData?.user.id} />
+      <GameHistory data={data} />
+      {currentUserData?.user.id === data.user.id ? (
+        <></>
+      ) : currentUserData?.user.friends.some(
+          (friend) => friend.id == data.user.id
+        ) ? (
+        <FriendButtons data={data} currentUserId={currentUserData.user.id} />
       ) : (
-        <AddFriend data={data} userId={userId} />
+        <AddFriend currentUserId={currentUserData?.user.id} />
       )}
     </div>
   );
@@ -311,5 +325,5 @@ export default function Profile() {
   const { data } = useQuery({ ...query(userId), initialData });
   if (typeof data === "undefined") {
     return <div></div>;
-  } else return <DisplayUserProfile data={data} userId={userId} />;
+  } else return <DisplayUserProfile data={data} />;
 }
