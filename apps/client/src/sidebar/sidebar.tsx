@@ -25,10 +25,6 @@ const router = createMemoryRouter([
         path: "/",
         element: <Home />,
       },
-      // {
-      //   path: "/create-channel",
-      //   element: <CreateChannel />,
-      // },
       {
         path: "/channel/:channelId",
         element: <Channel />,

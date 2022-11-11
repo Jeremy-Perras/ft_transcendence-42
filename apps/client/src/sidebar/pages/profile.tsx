@@ -26,7 +26,11 @@ import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { ReactComponent as AddAvatarIcon } from "pixelarticons/svg/cloud-upload.svg";
 import { ReactComponent as AddFriendIcon } from "pixelarticons/svg/user-plus.svg";
 import { ReactComponent as PlayIcon } from "pixelarticons/svg/gamepad.svg";
+import React from "react";
+import { createPortal } from "react-dom";
+import { ModalHeader } from "../layout";
 
+//TODO: add scores equal
 export const RankIcon = (rank: number) => {
   return rank <= 10
     ? Rank1Icon
@@ -303,8 +307,14 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
     return data;
   }; //TODO : replace with better thing with current user
   const currentUserData = CurrentUserData();
+
   return (
     <div className="flex h-full w-full flex-col ">
+      <ModalHeader
+        container={document.getElementById("header") as HTMLElement}
+        text={data.user.id === currentUserData?.user.id ? "ME" : data.user.name}
+        link=""
+      />
       <UserProfileHeader data={data} currentUserId={currentUserData?.user.id} />
       <GameHistory data={data} />
       {currentUserData?.user.id === data.user.id ? (

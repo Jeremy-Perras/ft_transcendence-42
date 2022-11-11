@@ -19,11 +19,40 @@ import {
 
 import { useSidebarStore } from "../stores";
 import CreateChannel from "./pages/createChannel";
+import ReactDOM, { createPortal } from "react-dom";
+import React from "react";
 
 //TODO : skeleton loader while loading
-// components h
 // retry
 // route loaders
+
+export function ModalHeader({
+  container,
+  text,
+  link,
+}: {
+  container: HTMLElement;
+  text: string | undefined;
+  link: string; //change
+}) {
+  const navigate = useNavigate();
+  return ReactDOM.createPortal(
+    <div
+      className={`${
+        link != "" ? "hover:cursor-pointer" : ""
+      } flex w-full text-center`}
+    >
+      <div
+        className="flex grow justify-center text-center"
+        onClick={() => navigate(link)}
+      >
+        {text}
+      </div>
+      <CurrentUserProfileLink />
+    </div>,
+    container
+  );
+}
 
 const SearchBar = ({
   search,
@@ -149,8 +178,6 @@ function Header({
   const closeSidebar = useSidebarStore((state) => state.close);
   const isSmallScreen = useMediaQuery("(max-width: 1536px)");
 
-  // TODO : put this in corresponding component
-
   return (
     <div className="z-10 flex shadow-sm shadow-slate-400">
       <AnimatePresence initial={false} exitBeforeEnter>
@@ -180,36 +207,12 @@ function Header({
             />
             <div
               key={4}
+              id="header"
               className="relative flex w-full grow border-r-2  text-center text-lg"
-            >
-              {location.pathname.substring(0, 6) === "/chat/" ? (
-                <UserHeader userId={+location.pathname.substring(6)} />
-              ) : location.pathname.substring(0, 9) === "/channel/" ? (
-                <ChannelHeader
-                  channelId={
-                    +location.pathname.substring(9) //HERE IS THE ISSUE
-                  }
-                />
-              ) : location.pathname === "/create-channel" ? (
-                <div className="mt-1 w-full text-center font-bold">
-                  New channel
-                </div>
-              ) : location.pathname.substring(0, 9) === "/settings" ? (
-                <div className="mt-1 w-full text-center font-bold">
-                  Settings
-                </div>
-              ) : location.pathname.substring(0, 9) === "/profile/" ? (
-                <div className="mt-1 w-full text-center font-bold">
-                  User profile
-                </div>
-              ) : (
-                <div>{location.pathname}</div>
-              )}
-            </div>
+            />
           </>
         )}
       </AnimatePresence>
-      <CurrentUserProfileLink />
       {isSmallScreen ? (
         <button onClick={closeSidebar}>
           <BackBurgerIcon className="h-9 rotate-180 transition-colors duration-200 hover:text-slate-500" />

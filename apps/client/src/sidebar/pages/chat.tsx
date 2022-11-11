@@ -7,6 +7,7 @@ import {
 } from "../../graphql/generated";
 import { getDate, Fetching, Loading, Error } from "./home";
 import { ReactComponent as EmptyChatIcon } from "pixelarticons/svg/message-plus.svg";
+import { ModalHeader } from "../layout";
 
 export type User = {
   __typename?: "User" | undefined;
@@ -126,6 +127,11 @@ export default function Chat() {
 
   return (
     <div className="flex h-full flex-col">
+      <ModalHeader
+        container={document.getElementById("header") as HTMLElement}
+        text={data?.name}
+        link={`/profile/${userId}`}
+      />
       <ul className="mt-4 flex h-fit w-full grow flex-col overflow-auto pr-2 pl-px">
         {data?.messages.length === 0 ? (
           <div className="mb-48 flex h-full flex-col items-center justify-center text-center text-slate-300">
