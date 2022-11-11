@@ -14,7 +14,11 @@ import { FileModule } from "./file/file.module";
   imports: [
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, "../../", "client/dist"),
-      exclude: ["/graphql"],
+      serveRoot: "/",
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, "../uploads"),
+      serveRoot: "/uploads",
     }),
     AuthModule,
     UserModule,
