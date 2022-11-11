@@ -193,6 +193,7 @@ export default function Channel() {
           container={document.getElementById("header") as HTMLElement}
           text={data?.name}
           link={`/settings/channel/${channelId}`}
+          icon=""
         />
         <div
           onClick={() => {
