@@ -22,7 +22,7 @@ import ClassicIcon from "/src/assets/images/ClassicIcon.svg";
 import BonusIcon from "/src/assets/images/BonusIcon.svg";
 import FireIcon from "/src/assets/images/FireIcon.svg";
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
-import { ReactComponent as AddFriendIcon } from "pixelarticons/svg/user.svg";
+import { ReactComponent as AddFriendIcon } from "pixelarticons/svg/user-plus.svg";
 import { ReactComponent as PlayIcon } from "pixelarticons/svg/gamepad.svg";
 
 export const RankIcon = (rank: number) => {
@@ -36,6 +36,7 @@ export const RankIcon = (rank: number) => {
     ? Rank4Icon
     : Rank5Icon;
 };
+
 const query = (
   userId: number
 ): UseQueryOptions<UserProfileQuery, unknown, UserProfileQuery> => {
@@ -54,7 +55,139 @@ export const loader =
     }
   };
 
-const DisplayAddAsFriend = ({
+const UserProfileHeader = ({
+  data,
+  userId,
+}: {
+  data: UserProfileQuery;
+  userId: number;
+}) => {
+  const numberOfGames = data?.user.games.length;
+  const victories = data?.user.games.filter((game) => {
+    if (
+      (game.player1.id === data?.user.id &&
+        game.player1score > game.player2score) ||
+      (game.player2?.id === data?.user.id &&
+        game.player2score > game.player1score)
+    )
+      return true;
+    else return false;
+  }).length;
+  const victoryRate = Math.floor((100 * victories) / numberOfGames);
+  return (
+    <div className="flex items-center justify-start ">
+      {typeof data?.user.avatar !== undefined && data?.user.avatar !== "" ? (
+        <img
+          src={data?.user.avatar}
+          alt="Player avatar"
+          className="my-2 ml-2 mr-4 h-28 w-28 border border-black"
+        />
+      ) : (
+        <UserIcon className="my-2 ml-2 mr-4 h-28 w-28 border border-black text-neutral-700" />
+      )}
+      <img
+        src={RankIcon(data?.user.rank)}
+        className="-translate-x-8 -translate-y-8"
+      />
+      <div className="my-4 flex grow flex-col text-left">
+        <div className="text-xl font-bold">{data?.user.name}</div>
+        <div>Matchs played : {numberOfGames} </div>
+        <div>Victories : {victories} </div>
+        <div>Victory rate : {victoryRate} %</div>
+      </div>
+      <div className="mr-2 flex w-20 justify-end ">
+        PUT HERE THE ACHIEVEMENTS
+      </div>
+    </div>
+  );
+};
+
+const GameHistory = ({
+  data,
+  userId,
+}: {
+  data: UserProfileQuery;
+  userId: number;
+}) => {
+  return (
+    <div className="flex w-full grow flex-col overflow-auto p-1 text-sm">
+      <div className="mt-8 pb-2 text-center text-xl font-bold">
+        MATCH HISTORY
+      </div>
+      {data.user.games.length === 0 ? (
+        <div className="flex flex-col">
+          <div className="mt-20 text-center text-2xl text-slate-300">
+            {" "}
+            {data.user.name} didn't play yet !
+          </div>
+          <PlayIcon className="text-slate-100" />
+        </div>
+      ) : (
+        <></>
+      )}
+      {data?.user.games.map((game, index) => {
+        const victory =
+          (game.player1.id === data?.user.id &&
+            game.player1score > game.player2score) ||
+          (game.player2?.id === data?.user.id &&
+            game.player2score > game.player1score);
+        return (
+          <div
+            key={index}
+            className="mt-1 flex h-12 w-full
+     items-center border border-slate-700 bg-slate-200 "
+          >
+            <div className="flex w-full ">
+              <img
+                className="ml-1 h-10 w-10 border border-black object-cover "
+                src={game.player1.avatar}
+                alt="Player 1 avatar"
+              />
+              <div className="text-ellipsistext-left ml-2 w-32 self-center">
+                {game.player1.name}
+              </div>
+              <div className="grow select-none self-center text-center text-lg font-bold ">
+                VS
+              </div>
+              <div className="mr-2 flex w-32 justify-end self-center text-ellipsis text-right">
+                {game.player2?.name}
+              </div>
+              <img
+                className="h-10 w-10 justify-end border border-black object-cover"
+                src={game.player2?.avatar}
+                alt="Player 2 avatar"
+              />
+            </div>
+            <div
+              className={`${
+                victory ? "bg-green-400" : "bg-red-400"
+              } mx-1 flex h-full basis-1/6 flex-col justify-center border-x border-black text-center font-bold`}
+            >
+              {victory ? <div>VICTORY</div> : <div>DEFEAT</div>}
+              <div>
+                {game.player1score} - {game.player2score}
+              </div>
+            </div>
+            <div className="flex justify-center">
+              <img
+                className="h-8 w-10 "
+                src={
+                  game.gamemode === "Classic"
+                    ? ClassicIcon
+                    : game.gamemode === "Random"
+                    ? BonusIcon
+                    : FireIcon
+                }
+              />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+const AddFriend = ({
   data,
   userId,
 }: {
@@ -67,49 +200,23 @@ const DisplayAddAsFriend = ({
       queryClient.invalidateQueries([]);
     },
   });
-
   return (
-    <div className="flex w-full flex-col  justify-center ">
-      <div className="flex items-center justify-start ">
-        {typeof data?.user.avatar !== undefined && data?.user.avatar !== "" ? (
-          <img
-            src={data?.user.avatar}
-            alt="Player avatar"
-            className="my-2 ml-2 mr-4 h-28 w-28 border border-black"
-          />
-        ) : (
-          <UserIcon className="my-2 ml-2 mr-4 h-28 w-28 border border-black text-neutral-700" />
-        )}
-        <img
-          src={RankIcon(data?.user.rank)}
-          className="-translate-x-8 -translate-y-8"
-        />
-        <div className="my-4 flex flex-col text-left">
-          <div className="text-xl font-bold">{data?.user.name}</div>
-
-          <div>Statistics : TODO </div>
-          {/* TODO:STATS */}
-        </div>
-      </div>
-      <div className="mt-24 w-48 self-center text-center text-xl text-slate-300">
-        {data?.user.name} is not your friend !
-      </div>
+    <div className="flex h-24 w-full items-center justify-center border-2 bg-slate-100 p-4 text-xl font-bold text-slate-400 transition-all hover:cursor-pointer hover:bg-slate-200 ">
+      <AddFriendIcon className="mx-4 mb-2 w-16 self-center " />
       <span
         onClick={() => {
           askFriend.mutate({ updateFriendId: userId });
           alert("BROKEN");
         }}
-        className="my-8 flex h-24 w-24 items-center justify-center self-center border-2 border-slate-300 bg-slate-200 p-2 text-center text-xl  font-bold transition-all  hover:cursor-pointer hover:bg-slate-300"
+        className="flex items-center text-center text-2xl font-bold "
       >
         Add Friend
       </span>
-      <AddFriendIcon className="w-96 self-center text-slate-100 " />
     </div>
   );
 };
 
-//TODO : object destructuring
-const DisplayUserProfile = ({
+const FriendButtons = ({
   data,
   userId,
 }: {
@@ -132,161 +239,66 @@ const DisplayUserProfile = ({
       queryClient.invalidateQueries([]);
     },
   });
-  const numberOfGames = data?.user.games.length;
-  const victories = data?.user.games.filter((game) => {
-    if (
-      (game.player1.id === data?.user.id &&
-        game.player1score > game.player2score) ||
-      (game.player2?.id === data?.user.id &&
-        game.player2score > game.player1score)
-    )
-      return true;
-    else return false;
-  }).length;
-  const victoryRate = Math.floor((100 * victories) / numberOfGames);
-
   return (
-    <div className="flex h-full w-full flex-col ">
-      {/* MAKE A COMPONENT OF THIS */}
-      <div className="flex items-center justify-start ">
-        {typeof data?.user.avatar !== undefined && data?.user.avatar !== "" ? (
-          <img
-            src={data?.user.avatar}
-            alt="Player avatar"
-            className="my-2 ml-2 mr-4 h-28 w-28 border border-black"
-          />
-        ) : (
-          <UserIcon className="my-2 ml-2 mr-4 h-28 w-28 border border-black text-neutral-700" />
-        )}
-        <img
-          src={RankIcon(data?.user.rank)}
-          className="-translate-x-8 -translate-y-8"
-        />
-        <div className="my-4 flex grow flex-col text-left">
-          <div className="text-xl font-bold">{data?.user.name}</div>
-          <div>Matchs played : {numberOfGames} </div>
-          <div>Victories : {victories} </div>
-          <div>Victory rate : {victoryRate} %</div>
-        </div>
-        <div className="mr-2 flex w-20 justify-end ">
-          PUT HERE THE ACHIEVEMENTS
-        </div>
+    <div className="flex h-24 bg-slate-100 text-xl font-bold">
+      <div
+        onClick={() => {
+          alert("Launch Game invitation");
+        }}
+        className="flex basis-1/3 items-center justify-center border-2 border-slate-300 bg-slate-200 text-center transition-all hover:cursor-pointer hover:bg-slate-300"
+      >
+        Play !
       </div>
-
-      {/* MAKE A COMPONENT OF THIS */}
-      <div className="flex w-full grow flex-col overflow-auto p-1 text-sm">
-        <div className="mt-8 pb-2 text-center text-xl font-bold">
-          MATCH HISTORY
-        </div>
-        {data.user.games.length === 0 ? (
-          <div className="flex flex-col">
-            <div className="mt-20 text-center text-2xl text-slate-300">
-              {" "}
-              {data.user.name} didn't play yet !
-            </div>
-            <PlayIcon className="text-slate-100" />
-          </div>
-        ) : (
-          <></>
-        )}
-        {data?.user.games.map((game, index) => {
-          const victory =
-            (game.player1.id === data?.user.id &&
-              game.player1score > game.player2score) ||
-            (game.player2?.id === data?.user.id &&
-              game.player2score > game.player1score);
-          return (
-            <div
-              key={index}
-              className="mt-1 flex h-12 w-full
-               items-center border border-slate-700 bg-slate-200 "
-            >
-              <div className="flex w-full ">
-                <img
-                  className="ml-1 h-10 w-10 border border-black object-cover "
-                  src={game.player1.avatar}
-                  alt="Player 1 avatar"
-                />
-                <div className="text-ellipsistext-left ml-2 w-32 self-center">
-                  {game.player1.name}
-                </div>
-                <div className="grow select-none self-center text-center text-lg font-bold ">
-                  VS
-                </div>
-                <div className="mr-2 flex w-32 justify-end self-center text-ellipsis text-right">
-                  {game.player2?.name}
-                </div>
-                <img
-                  className="h-10 w-10 justify-end border border-black object-cover"
-                  src={game.player2?.avatar}
-                  alt="Player 2 avatar"
-                />
-              </div>
-              <div
-                className={`${
-                  victory ? "bg-green-400" : "bg-red-400"
-                } mx-1 flex h-full basis-1/6 flex-col justify-center border-x border-black text-center font-bold`}
-              >
-                {victory ? <div>VICTORY</div> : <div>DEFEAT</div>}
-                <div>
-                  {game.player1score} - {game.player2score}
-                </div>
-              </div>
-              <div className="flex justify-center">
-                <img
-                  className="h-8 w-10 "
-                  src={
-                    game.gamemode === "Classic"
-                      ? ClassicIcon
-                      : game.gamemode === "Random"
-                      ? BonusIcon
-                      : FireIcon
-                  }
-                />
-              </div>
-            </div>
-          );
-        })}
+      <div
+        onClick={() => {
+          unFriend.mutate({ updateUnFriendId: userId });
+          alert("BROKEN");
+        }}
+        className="flex basis-1/3 items-center justify-center border-y-2 border-slate-300 bg-slate-200 text-center transition-all hover:cursor-pointer hover:bg-slate-300"
+      >
+        Unfriend
       </div>
-
-      {/* MAKE A COMPONENT OF THIS */}
-      <div className="flex h-24 bg-slate-100 text-xl font-bold">
-        <div
-          onClick={() => {
-            alert("Launch Game invitation");
-          }}
-          className="flex  basis-1/3 items-center justify-center border-2 border-slate-300 bg-slate-200 text-center transition-all hover:cursor-pointer hover:bg-slate-300"
-        >
-          Play !
-        </div>
-        <div
-          onClick={() => {
-            unFriend.mutate({ updateUnFriendId: userId });
-            alert("BROKEN");
-          }}
-          className="flex basis-1/3 items-center justify-center border-y-2 border-slate-300 bg-slate-200 text-center transition-all hover:cursor-pointer hover:bg-slate-300"
-        >
-          Unfriend
-        </div>
-        <div
-          onClick={() => {
-            data?.user.blocked
-              ? unblockMutation.mutate({ unblockingUserId: userId })
-              : blockMutation.mutate({ blockingUserId: userId });
-            alert("BROKEN");
-          }}
-          className="flex basis-1/3 items-center justify-center border-2 border-slate-300 bg-slate-200  text-center transition-all  hover:cursor-pointer hover:bg-slate-300"
-        >
-          {data?.user.blocked ? "Unblock" : "Block"}
-        </div>
+      <div
+        onClick={() => {
+          data?.user.blocked
+            ? unblockMutation.mutate({ unblockingUserId: userId })
+            : blockMutation.mutate({ blockingUserId: userId });
+          alert("BROKEN");
+        }}
+        className="flex basis-1/3 items-center justify-center border-2 border-slate-300 bg-slate-200  text-center transition-all  hover:cursor-pointer hover:bg-slate-300"
+      >
+        {data?.user.blocked ? "Unblock" : "Block"}
       </div>
     </div>
   );
 };
 
+//TODO : replace with better thing with current user
 const MyData = () => {
   const { data } = useUserProfileQuery();
   return data;
+};
+
+//TODO : object destructuring
+const DisplayUserProfile = ({
+  data,
+  userId,
+}: {
+  data: UserProfileQuery;
+  userId: number;
+}) => {
+  const myData = MyData();
+  return (
+    <div className="flex h-full w-full flex-col ">
+      <UserProfileHeader data={data} userId={userId} />
+      <GameHistory data={data} userId={userId} />
+      {myData?.user.friends.some((friend) => friend.id == userId) ? (
+        <FriendButtons data={data} userId={userId} />
+      ) : (
+        <AddFriend data={data} userId={userId} />
+      )}
+    </div>
+  );
 };
 
 export default function Profile() {
@@ -297,10 +309,7 @@ export default function Profile() {
     ReturnType<ReturnType<typeof loader>>
   >;
   const { data } = useQuery({ ...query(userId), initialData });
-  const myData = MyData();
-  return myData?.user.friends.some((friend) => friend.id == userId) ? (
-    <DisplayUserProfile data={data} userId={userId} />
-  ) : (
-    <DisplayAddAsFriend data={data} userId={userId} />
-  );
+  if (typeof data === "undefined") {
+    return <div></div>;
+  } else return <DisplayUserProfile data={data} userId={userId} />;
 }
