@@ -29,6 +29,7 @@ import { ReactComponent as PlayIcon } from "pixelarticons/svg/gamepad.svg";
 import React from "react";
 import { createPortal } from "react-dom";
 import { HeaderPortal } from "../layout";
+import FileUploadPage from "./uploadAvatar";
 
 //TODO: add scores equal
 export const RankIcon = (rank: number) => {
@@ -81,54 +82,43 @@ const UserProfileHeader = ({
   }).length;
   const victoryRate = Math.floor((100 * victories) / numberOfGames);
   return (
-    <div className="flex w-full items-center">
-      <div className="relative my-2 ml-3 mr-2 flex shrink-0">
-        {typeof data?.user.avatar !== undefined && data?.user.avatar !== "" ? (
-          <img
-            src={data?.user.avatar}
-            alt="Player avatar"
-            className="h-28 w-28 border border-black"
-          />
-        ) : (
-          <UserIcon className="h-28 w-28 border border-black text-neutral-700" />
-        )}
-        {data.user.id === currentUserId ? (
-          <AddAvatarIcon
-            onClick={
-              data.user.id === currentUserId
-                ? () => {
-                    alert("JEREMY : Put here function to change avatar");
-                  }
-                : () => {
-                    return null; //remove this
-                  }
-            }
-            className="absolute -top-2 -right-2 h-6 w-6 border border-black bg-white p-px shadow-sm shadow-black hover:cursor-pointer"
-          />
-        ) : (
-          <></>
-        )}
-      </div>
-      <div className="mx-4 mt-4 flex grow flex-col self-start text-left">
-        <div>Matchs played : {numberOfGames} </div>
-        <div>Victories : {victories} </div>
-        <div>Victory rate : {victoryRate} %</div>
-      </div>
-      {/* TODO : put here achievements */}
-      <div className="mr-2 flex shrink-0 flex-col justify-end pt-2 ">
-        <div className="flex">
-          <img src={Achievement1Icon} className="mx-1 py-1 opacity-100" />
-          <img src={Achievement1Icon} className="mx-1 py-1 opacity-10" />
-          <img src={Achievement1Icon} className="mx-1 py-1 opacity-100" />
-          <img src={Achievement1Icon} className="mx-1 py-1 opacity-10" />
+    <div className="flex flex-col">
+      <div className="flex w-full items-center">
+        <div className="relative my-2 ml-3 mr-2 flex shrink-0">
+          {typeof data?.user.avatar !== undefined &&
+          data?.user.avatar !== "" ? (
+            <img
+              src={data?.user.avatar}
+              alt="Player avatar"
+              className="h-28 w-28 border border-black"
+            />
+          ) : (
+            <UserIcon className="h-28 w-28 border border-black text-neutral-700" />
+          )}
+          {/* {data.user.id === currentUserId ?  : <></>} */}
         </div>
-        <div className="flex">
-          <img src={Achievement1Icon} className="mx-1 py-1 opacity-10" />
-          <img src={Achievement1Icon} className="mx-1 py-1 opacity-10" />
-          <img src={Achievement1Icon} className="mx-1 py-1 opacity-10" />
-          <img src={Achievement1Icon} className="mx-1 py-1 opacity-10" />
+        <div className="mx-4 mt-4 flex grow flex-col self-start text-left">
+          <div>Matchs played : {numberOfGames} </div>
+          <div>Victories : {victories} </div>
+          <div>Victory rate : {victoryRate} %</div>
+        </div>
+        {/* TODO : put here achievements */}
+        <div className="mr-2 flex shrink-0 flex-col justify-end pt-2 ">
+          <div className="flex">
+            <img src={Achievement1Icon} className="mx-1 py-1 opacity-100" />
+            <img src={Achievement1Icon} className="mx-1 py-1 opacity-10" />
+            <img src={Achievement1Icon} className="mx-1 py-1 opacity-100" />
+            <img src={Achievement1Icon} className="mx-1 py-1 opacity-10" />
+          </div>
+          <div className="flex">
+            <img src={Achievement1Icon} className="mx-1 py-1 opacity-10" />
+            <img src={Achievement1Icon} className="mx-1 py-1 opacity-10" />
+            <img src={Achievement1Icon} className="mx-1 py-1 opacity-10" />
+            <img src={Achievement1Icon} className="mx-1 py-1 opacity-10" />
+          </div>
         </div>
       </div>
+      <FileUploadPage />
     </div>
   );
 };

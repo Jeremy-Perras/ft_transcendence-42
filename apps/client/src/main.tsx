@@ -5,7 +5,6 @@ import { GameRouter } from "./game/router";
 import SideBar from "./sidebar/sidebar";
 import queryClient from "./query";
 import { useAuthStore } from "./stores";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import "./index.css";
 
 let init = false;
@@ -31,7 +30,6 @@ const App = () => {
       <QueryClientProvider client={queryClient}>
         <GameRouter />
         {isLoggedIn ? <SideBar /> : null}
-        <ReactQueryDevtools initialIsOpen={false} />
       </QueryClientProvider>
     </div>
   );
