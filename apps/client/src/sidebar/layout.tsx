@@ -13,13 +13,12 @@ import * as Avatar from "@radix-ui/react-avatar";
 import {
   useSearchUsersChannelsQuery,
   useUserProfileHeaderQuery,
-  useGetChannelHeaderQuery,
   useInfoUsersQuery,
 } from "../graphql/generated";
 
 import { useSidebarStore } from "../stores";
 import CreateChannel from "./pages/createChannel";
-import ReactDOM, { createPortal } from "react-dom";
+import ReactDOM from "react-dom";
 import React from "react";
 
 //TODO : skeleton loader while loading
@@ -42,16 +41,15 @@ export function HeaderPortal({
     <div
       className={`${
         link != "" ? "hover:cursor-pointer" : ""
-      } flex w-full text-center`}
+      } flex grow text-center`}
     >
       <div
-        className="flex grow items-center justify-center text-center"
+        className="flex w-full grow items-center justify-center text-center"
         onClick={() => navigate(link)}
       >
         <div>{text}</div>
         {icon !== "" ? <img src={icon} className="mx-2" /> : <></>}
       </div>
-      <CurrentUserProfileLink />
     </div>,
     container
   );
@@ -72,12 +70,12 @@ const SearchBar = ({
   };
 
   return (
-    <div className="relative grow border-r-2">
+    <div className="relative flex w-full grow ">
       <input
         type="text"
         ref={input}
         spellCheck={false}
-        className="w-full py-1 px-2 text-lg focus:outline-none focus:ring-2 focus:ring-inset"
+        className="w-full grow py-1 px-2 text-lg focus:outline-none focus:ring-2 focus:ring-inset"
         placeholder="search"
         onChange={(e) => setSearch(e.target.value)}
         onKeyDown={(e) => {
@@ -128,40 +126,27 @@ const LeftButton = ({
   );
 };
 
-function CurrentUserProfileLink() {
-  const { isLoading, data, error, isFetching } = useUserProfileHeaderQuery(
-    {},
-    {
-      select({ user }) {
-        const res: {
-          id: number;
-          name: string;
-          avatar: string;
-          rank: number;
-        } = {
-          id: user.id,
-          name: user.name,
-          avatar: user.avatar,
-          rank: user.rank,
-        };
-        return res;
-      },
-    }
-  );
+const CurrentUserProfile = ({
+  link,
+  avatar,
+}: {
+  link: string;
+  avatar: string | undefined;
+}) => {
   const navigate = useNavigate();
   return (
     <div
-      className="flex w-10 shrink-0 justify-center border-l-2 transition-all hover:cursor-pointer hover:bg-slate-100"
-      onClick={() => navigate(`/profile/${data?.id}`)}
+      className="flex w-10 shrink-0 grow-0 justify-center  border-x-2 transition-all hover:cursor-pointer hover:bg-slate-100"
+      onClick={() => navigate(link)}
     >
       <img
-        className="right-1 top-1 h-8 w-8 self-center border border-black"
-        src={data?.avatar}
+        className="top-1 right-1 h-8 w-8 shrink-0 self-center border border-l-2 border-black"
+        src={avatar}
         alt="Current user avatar"
       />
     </div>
   );
-}
+};
 
 /******** MAIN HEADER COMPONENT ********/
 function Header({
@@ -180,9 +165,23 @@ function Header({
   const navigate = useNavigate();
   const closeSidebar = useSidebarStore((state) => state.close);
   const isSmallScreen = useMediaQuery("(max-width: 1536px)");
-
+  const { isLoading, data, error, isFetching } = useUserProfileHeaderQuery(
+    {},
+    {
+      select({ user }) {
+        const res: {
+          id: number;
+          avatar: string;
+        } = {
+          id: user.id,
+          avatar: user.avatar,
+        };
+        return res;
+      },
+    }
+  );
   return (
-    <div className="z-10 flex shadow-sm shadow-slate-400">
+    <div className="z-10 flex w-full shadow-sm shadow-slate-400">
       <AnimatePresence initial={false} exitBeforeEnter>
         {home ? (
           <>
@@ -208,13 +207,13 @@ function Header({
               showBottomElement={false}
               Icon={ArrowLeftBoxIcon}
             />
-            <div
-              key={4}
-              id="header"
-              className="relative flex w-full grow border-r-2  text-center text-lg"
-            />
           </>
         )}
+        <div key={4} id="header" className="flex grow" />
+        <CurrentUserProfile
+          avatar={data?.avatar}
+          link={`/profile/${data?.id}`}
+        />
       </AnimatePresence>
       {isSmallScreen ? (
         <button onClick={closeSidebar}>
@@ -222,90 +221,6 @@ function Header({
         </button>
       ) : null}
     </div>
-  );
-}
-
-/**************** USER HEADER ***************/
-function UserHeader({ userId }: { userId: number }) {
-  const { isLoading, data, error, isFetching } = useUserProfileHeaderQuery(
-    { userId: userId },
-    {
-      select({ user }) {
-        const res: {
-          id: number;
-          name: string;
-          avatar: string;
-          rank: number;
-        } = {
-          id: user.id,
-          name: user.name,
-          avatar: user.avatar,
-          rank: user.rank,
-        };
-        return res;
-      },
-    }
-  );
-  const navigate = useNavigate();
-  return (
-    <div
-      className="flex h-9 w-full items-center justify-center p-2 hover:cursor-pointer hover:bg-slate-100"
-      onClick={() => navigate(`/profile/${userId}`)}
-    >
-      <>
-        {typeof data?.avatar !== undefined && data?.avatar !== "" ? (
-          <img
-            className="mb-px h-7 w-7 border border-black"
-            src={data?.avatar}
-            alt="User avatar"
-          />
-        ) : (
-          <UserIcon className="h-7 w-7 border border-black text-neutral-700" />
-        )}
-
-        <span className="ml-2 mb-px h-full text-base font-bold">
-          {data?.name}
-        </span>
-      </>
-    </div>
-  );
-}
-
-/**************** CHANNEL HEADER ***************/
-
-function ChannelHeader({ channelId }: { channelId: number }) {
-  const { isLoading, data, error, isFetching } = useGetChannelHeaderQuery(
-    { channelId: channelId },
-    {
-      select({ channel }) {
-        const res: {
-          id: number;
-          name: string;
-          owner: { id: number; name: string; avatar: string };
-          password: boolean;
-          private: boolean;
-        } = {
-          id: channel.id,
-          name: channel.name,
-          owner: channel.owner,
-          password: channel.passwordProtected,
-          private: channel.private,
-        };
-        return res;
-      },
-    }
-  );
-  const navigate = useNavigate();
-
-  return (
-    <>
-      <span
-        className="w-full pt-1 text-center align-middle text-lg font-bold hover:cursor-pointer hover:bg-slate-100"
-        onClick={() => navigate(`/settings/channel/${channelId}`)}
-      >
-        {data?.name}
-      </span>
-    </>
   );
 }
 
