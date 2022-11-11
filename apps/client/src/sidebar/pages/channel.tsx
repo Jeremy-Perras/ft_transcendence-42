@@ -9,7 +9,7 @@ import {
 import { User } from "./chat";
 import { getDate, Error, Loading, Fetching } from "./home";
 import { ReactComponent as EmptyChatIcon } from "pixelarticons/svg/message-plus.svg";
-import { ModalHeader } from "../layout";
+import { HeaderPortal } from "../layout";
 
 const ReadBy = ({ users }: { users: User[] }) => {
   const navigate = useNavigate();
@@ -189,7 +189,7 @@ export default function Channel() {
   } else {
     return (
       <>
-        <ModalHeader
+        <HeaderPortal
           container={document.getElementById("header") as HTMLElement}
           text={data?.name}
           link={`/settings/channel/${channelId}`}
