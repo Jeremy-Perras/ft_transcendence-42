@@ -17,7 +17,7 @@ query InfoDirectMessages($userId: Int) {
       sentAt
       readAt
     }
-        blocked
+    blocked
     blocking
   }
 }

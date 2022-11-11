@@ -88,10 +88,6 @@ const UserProfileHeader = ({
         ) : (
           <UserIcon className="h-28 w-28 border border-black text-neutral-700" />
         )}
-        <img
-          src={RankIcon(data?.user.rank)}
-          className="absolute -right-4 top-2"
-        />
         {data.user.id === currentUserId ? (
           <AddAvatarIcon
             onClick={
@@ -103,14 +99,17 @@ const UserProfileHeader = ({
                     return null; //remove this
                   }
             }
-            className="absolute bottom-0 right-0 h-6 w-6 border border-black bg-white p-px hover:cursor-pointer"
+            className="absolute -top-2 -right-2 h-6 w-6 border border-black bg-white p-px shadow-sm shadow-black hover:cursor-pointer"
           />
         ) : (
           <></>
         )}
       </div>
       <div className="my-4 mx-4 flex grow flex-col text-left">
-        <div className="text-xl font-bold">{data?.user.name}</div>
+        <div className="flex items-end text-end text-xl font-bold ">
+          <div className="mr-2">{data?.user.name}</div>
+          <img src={RankIcon(data?.user.rank)} className="" />
+        </div>
         <div>Matchs played : {numberOfGames} </div>
         <div>Victories : {victories} </div>
         <div>Victory rate : {victoryRate} %</div>
