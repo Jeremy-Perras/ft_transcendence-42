@@ -3,7 +3,9 @@ import { useState } from "react";
 import { useCreateChanelMutation } from "../../graphql/generated";
 import { useForm } from "react-hook-form";
 import { ReactComponent as UsersIcon } from "pixelarticons/svg/users.svg";
-import { useNavigate } from "react-router-dom";
+import { ReactComponent as PrivateIcon } from "pixelarticons/svg/mail.svg";
+import { ReactComponent as PasswordIcon } from "pixelarticons/svg/lock.svg";
+import { ReactComponent as PublicIcon } from "pixelarticons/svg/lock-open.svg";
 
 export const ChannelTypeButton = ({
   text,
@@ -31,7 +33,14 @@ export const ChannelTypeButton = ({
         inactiveFn2(false);
       }}
     >
-      {text}
+      {text === "Public" ? (
+        <PublicIcon className="mx-2 mb-3 h-10 w-10" />
+      ) : text === "Private" ? (
+        <PrivateIcon className="mx-2 mb-2 h-10 w-10" />
+      ) : (
+        <PasswordIcon className="mx-2 mb-3 h-10 w-10" />
+      )}
+      <div>{text}</div>
     </div>
   );
 };
@@ -43,7 +52,6 @@ export default function CreateChannel({
   show: boolean;
   fn: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { register, handleSubmit, watch } = useForm();
   const createChannelMutation = useCreateChanelMutation({
