@@ -9,6 +9,7 @@ import {
 import { User } from "./chat";
 import { getDate, Error, Loading, Fetching } from "./home";
 import { ReactComponent as EmptyChatIcon } from "pixelarticons/svg/message-plus.svg";
+import { ModalHeader } from "../layout";
 
 const ReadBy = ({ users }: { users: User[] }) => {
   const navigate = useNavigate();
@@ -155,8 +156,7 @@ export default function Channel() {
       },
     }
   );
-  console.log(data);
-  // const infoSpeak = GetInfo(userId);
+
   const messageMutation = useSendChannelMessageMutation({
     onSuccess: () => {
       queryClient.invalidateQueries([]);
@@ -188,68 +188,75 @@ export default function Channel() {
     return <Error />;
   } else {
     return (
-      <div
-        onClick={() => {
-          data?.messages.forEach((message) => {
-            message.readBy
-              ? ""
-              : createChannelMessageRead.mutate({
-                  messageId: message.id,
-                  userId: data.userId,
-                });
-          });
-        }}
-        className="flex h-full flex-col"
-      >
-        <div className="mt-px flex w-full grow flex-col overflow-auto pr-2 pl-px">
-          {data?.messages.length === 0 ? (
-            <div className="mb-48 flex h-full flex-col items-center justify-center text-center text-slate-300">
-              <EmptyChatIcon className="w-96 text-slate-200" />
-              Seems a little bit too silent here... Send the first message !
-            </div>
-          ) : (
-            <></>
-          )}
-          {data?.messages?.map((message, index) => (
-            <ChannelMessage key={index} {...message} />
-          ))}
-          <div ref={endMessages} />
-        </div>
-        <div className="flex h-16 w-full border-t-2 bg-slate-50 p-2">
-          <textarea
-            disabled={banned || muted}
-            rows={1}
-            className={`${
-              banned || muted ? "hover:cursor-not-allowed" : ""
-            } h-10 w-11/12 resize-none overflow-visible rounded-lg px-3 pt-2`}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder={`${
-              banned === true
-                ? "Your are banned"
-                : muted === true
-                ? "You are muted"
-                : "Type your message here ..."
-            }`}
-            onKeyDown={(e) => {
-              if (e.code == "Enter" && !e.getModifierState("Shift")) {
-                messageMutation.mutate({
-                  message: content,
-                  recipientId: +channelId,
-                });
-                e.currentTarget.value = "";
-                e.preventDefault();
-                setContent("");
-              } else {
+      <>
+        <ModalHeader
+          container={document.getElementById("header") as HTMLElement}
+          text={data?.name}
+          link={`/settings/channel/${channelId}`}
+        />
+        <div
+          onClick={() => {
+            data?.messages.forEach((message) => {
+              message.readBy
+                ? ""
+                : createChannelMessageRead.mutate({
+                    messageId: message.id,
+                    userId: data.userId,
+                  });
+            });
+          }}
+          className="flex h-full flex-col"
+        >
+          <div className="mt-px flex w-full grow flex-col overflow-auto pr-2 pl-px">
+            {data?.messages.length === 0 ? (
+              <div className="mb-48 flex h-full flex-col items-center justify-center text-center text-slate-300">
+                <EmptyChatIcon className="w-96 text-slate-200" />
+                Seems a little bit too silent here... Send the first message !
+              </div>
+            ) : (
+              <></>
+            )}
+            {data?.messages?.map((message, index) => (
+              <ChannelMessage key={index} {...message} />
+            ))}
+            <div ref={endMessages} />
+          </div>
+          <div className="flex h-16 w-full border-t-2 bg-slate-50 p-2">
+            <textarea
+              disabled={banned || muted}
+              rows={1}
+              className={`${
+                banned || muted ? "hover:cursor-not-allowed" : ""
+              } h-10 w-11/12 resize-none overflow-visible rounded-lg px-3 pt-2`}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder={`${
+                banned === true
+                  ? "Your are banned"
+                  : muted === true
+                  ? "You are muted"
+                  : "Type your message here ..."
+              }`}
+              onKeyDown={(e) => {
                 if (e.code == "Enter" && !e.getModifierState("Shift")) {
+                  messageMutation.mutate({
+                    message: content,
+                    recipientId: +channelId,
+                  });
                   e.currentTarget.value = "";
                   e.preventDefault();
                   setContent("");
+                } else {
+                  if (e.code == "Enter" && !e.getModifierState("Shift")) {
+                    e.currentTarget.value = "";
+                    e.preventDefault();
+                    setContent("");
+                  }
                 }
-              }
-            }}
-          />
+              }}
+            />
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 }

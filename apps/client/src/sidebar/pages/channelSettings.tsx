@@ -29,6 +29,7 @@ import { useThrottledState } from "@react-hookz/web";
 import * as Avatar from "@radix-ui/react-avatar";
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { useForm } from "react-hook-form";
+import { ModalHeader } from "../layout";
 
 /*************************** WORKS AS INTENTED *************** */
 
@@ -663,127 +664,137 @@ export default function ChannelSettings() {
   }
   const owner = data?.user.id === data?.channel.owner.id;
   return (
-    <div className="relative flex h-full w-full flex-col ">
-      {confirmation ? (
-        <DeletePopUp
-          channelId={channelId}
-          confirmation={confirmation}
-          setConfirmation={setConfirmation}
-        />
-      ) : (
-        ""
-      )}
-      <div className={`${confirmation ? "blur-sm" : ""} `}>
-        {/* TODO : put this in a component */}
-        <div className="relative flex flex-col justify-center p-2">
-          {owner ? (
-            <div
-              className="absolute right-1 top-1 flex w-fit justify-center self-center p-3 text-center text-lg text-slate-500 hover:cursor-pointer hover:text-slate-700"
-              onClick={() => {
-                setConfirmation(true);
-              }}
-            >
-              <TrashIcon className="w-8 -translate-y-0.5" />
-            </div>
-          ) : (
-            <div></div>
-          )}
-          <div className="flex w-full grow items-center">
-            <div className="flex h-28 w-28 justify-center self-center border border-slate-400 bg-white">
-              <UsersIcon className="mt-2 h-20 w-20 self-center text-slate-700 " />
-            </div>
-            <div className="mx-4 flex h-full flex-col ">
-              <div className="text-left text-2xl font-bold">
-                Channel : {data?.channel.name}
+    <>
+      {" "}
+      <ModalHeader
+        container={document.getElementById("header") as HTMLElement}
+        text="Settings"
+        link=""
+      />
+      <div className="relative flex h-full w-full flex-col ">
+        {confirmation ? (
+          <DeletePopUp
+            channelId={channelId}
+            confirmation={confirmation}
+            setConfirmation={setConfirmation}
+          />
+        ) : (
+          ""
+        )}
+        <div className={`${confirmation ? "blur-sm" : ""} `}>
+          {/* TODO : put this in a component */}
+          <div className="relative flex flex-col justify-center p-2">
+            {owner ? (
+              <div
+                className="absolute right-1 top-1 flex w-fit justify-center self-center p-3 text-center text-lg text-slate-500 hover:cursor-pointer hover:text-slate-700"
+                onClick={() => {
+                  setConfirmation(true);
+                }}
+              >
+                <TrashIcon className="w-8 -translate-y-0.5" />
               </div>
-              <div className="mt-2 flex flex-row ">
-                <ChannelType
-                  idChannel={data?.channel.id ? data.channel.id : 0}
-                  activeMode={
-                    data?.channel.private
-                      ? "Private"
-                      : data?.channel.passwordProtected
-                      ? "Password protected"
-                      : "Public"
-                  }
-                  changesAuthorized={owner}
-                />
+            ) : (
+              <div></div>
+            )}
+            <div className="flex w-full grow items-center">
+              <div className="flex h-28 w-28 justify-center self-center border border-slate-400 bg-white">
+                <UsersIcon className="mt-2 h-20 w-20 self-center text-slate-700 " />
+              </div>
+              <div className="mx-4 flex h-full flex-col ">
+                <div className="text-left text-2xl font-bold">
+                  Channel : {data?.channel.name}
+                </div>
+                <div className="mt-2 flex flex-row ">
+                  <ChannelType
+                    idChannel={data?.channel.id ? data.channel.id : 0}
+                    activeMode={
+                      data?.channel.private
+                        ? "Private"
+                        : data?.channel.passwordProtected
+                        ? "Password protected"
+                        : "Public"
+                    }
+                    changesAuthorized={owner}
+                  />
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        {/* TODO : put this in a component */}
+          {/* TODO : put this in a component */}
 
-        <div className="ml-1 pt-5 text-left text-xl font-bold text-slate-700">
-          MEMBERS
-        </div>
-        <UserBanner
-          id={data?.channel.owner.id}
-          name={data?.channel.owner.name}
-          avatar={data?.channel.owner.avatar}
-          channelId={data?.channel.id}
-          admin={false}
-          owner={true}
-          changesAuthorized={false}
-          muted={false}
-          banned={false}
-        />
+          <div className="ml-1 pt-5 text-left text-xl font-bold text-slate-700">
+            MEMBERS
+          </div>
+          <UserBanner
+            id={data?.channel.owner.id}
+            name={data?.channel.owner.name}
+            avatar={data?.channel.owner.avatar}
+            channelId={data?.channel.id}
+            admin={false}
+            owner={true}
+            changesAuthorized={false}
+            muted={false}
+            banned={false}
+          />
 
-        {data?.channel.admins.map((user, index) => {
-          return !(user.id === data?.channel.owner.id) ? (
-            <UserBanner
-              key={index}
-              channelId={data?.channel.id}
-              id={user.id}
-              name={user.name}
-              avatar={user.avatar}
-              admin={true}
-              owner={false}
-              changesAuthorized={owner}
-              muted={false}
-              banned={false}
-            />
-          ) : null;
-        })}
-        {data?.channel.members.map((user, index) => {
-          return !data?.channel.admins.some((admin) => admin.id === user.id) ? (
-            <UserBanner
-              key={index}
-              channelId={data?.channel.id}
-              id={user.id}
-              name={user.name}
-              avatar={user.avatar}
-              admin={false}
-              owner={false}
-              changesAuthorized={
-                owner ||
-                data?.channel.admins.some((admin) => admin.id === user.id)
-              }
-              muted={data?.channel.muted.some((u) => u.id === user.id)}
-              banned={data?.channel.banned.some((u) => u.id === user.id)}
-            />
-          ) : null;
-        })}
-        {data?.channel.admins.some((admin) => admin.id === data?.user.id) ? (
-          <>
-            <div className="mt-5 flex flex-col">
-              <SearchBar search={search} setSearch={setSearch} />
-              {search.length === 0 ? (
-                ""
-              ) : (
-                <Search
-                  search={search}
-                  setSearch={setSearch}
-                  queryData={data}
-                  channelId={data.channel.id ? data.channel.id : 0}
-                />
-              )}
-            </div>
-          </>
-        ) : (
-          <></>
-        )}
+          {data?.channel.admins.map((user, index) => {
+            return !(user.id === data?.channel.owner.id) ? (
+              <UserBanner
+                key={index}
+                channelId={data?.channel.id}
+                id={user.id}
+                name={user.name}
+                avatar={user.avatar}
+                admin={true}
+                owner={false}
+                changesAuthorized={owner}
+                muted={false}
+                banned={false}
+              />
+            ) : null;
+          })}
+          {data?.channel.members.map((user, index) => {
+            return !data?.channel.admins.some(
+              (admin) => admin.id === user.id
+            ) ? (
+              <UserBanner
+                key={index}
+                channelId={data?.channel.id}
+                id={user.id}
+                name={user.name}
+                avatar={user.avatar}
+                admin={false}
+                owner={false}
+                changesAuthorized={
+                  owner ||
+                  data?.channel.admins.some((admin) => admin.id === user.id)
+                }
+                muted={data?.channel.muted.some((u) => u.id === user.id)}
+                banned={data?.channel.banned.some((u) => u.id === user.id)}
+              />
+            ) : null;
+          })}
+          {data?.channel.admins.some((admin) => admin.id === data?.user.id) ? (
+            <>
+              <div className="mt-5 flex flex-col">
+                <SearchBar search={search} setSearch={setSearch} />
+                {search.length === 0 ? (
+                  ""
+                ) : (
+                  <Search
+                    search={search}
+                    setSearch={setSearch}
+                    queryData={data}
+                    channelId={data.channel.id ? data.channel.id : 0}
+                  />
+                )}
+              </div>
+            </>
+          ) : (
+            <></>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
