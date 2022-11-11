@@ -19,6 +19,7 @@ dev.db
 dev.db-journal
 schema.gql
 generated.ts
+uploads/
 
 # IDEs and editors
 /.idea
