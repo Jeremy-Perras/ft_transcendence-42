@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import ReactDOM from "react-dom/client";
 import { QueryClientProvider } from "@tanstack/react-query";
-import Main from "./main/main";
+import { GameRouter } from "./game/router";
 import SideBar from "./sidebar/sidebar";
 import queryClient from "./query";
 import { useAuthStore } from "./stores";
@@ -28,7 +28,7 @@ const App = () => {
   return (
     <div className="relative flex h-screen w-screen overflow-hidden">
       <QueryClientProvider client={queryClient}>
-        <Main />
+        <GameRouter />
         {isLoggedIn ? <SideBar /> : null}
       </QueryClientProvider>
     </div>
