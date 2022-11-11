@@ -26,7 +26,7 @@ import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { ReactComponent as AddAvatarIcon } from "pixelarticons/svg/cloud-upload.svg";
 import { ReactComponent as AddFriendIcon } from "pixelarticons/svg/user-plus.svg";
 import { ReactComponent as PlayIcon } from "pixelarticons/svg/gamepad.svg";
-import React from "react";
+import React, { useState } from "react";
 import { createPortal } from "react-dom";
 import { HeaderPortal } from "../layout";
 import FileUploadPage from "./uploadAvatar";
@@ -69,6 +69,7 @@ const UserProfileHeader = ({
   data: UserProfileQuery;
   currentUserId: number | undefined;
 }) => {
+  const [showChangeAvatar, setShowChangeAvatar] = useState(false);
   const numberOfGames = data?.user.games.length;
   const victories = data?.user.games.filter((game) => {
     if (
@@ -95,7 +96,15 @@ const UserProfileHeader = ({
           ) : (
             <UserIcon className="h-28 w-28 border border-black text-neutral-700" />
           )}
-          {/* {data.user.id === currentUserId ?  : <></>} */}
+          {data.user.id === currentUserId ? (
+            <AddAvatarIcon
+              onClick={() => setShowChangeAvatar(!showChangeAvatar)}
+              // TODO : make this pretty
+              className="absolute -top-2 -right-2 h-6 w-6 border border-black bg-white p-px shadow-sm shadow-black hover:cursor-pointer"
+            />
+          ) : (
+            <></>
+          )}
         </div>
         <div className="mx-4 mt-4 flex grow flex-col self-start text-left">
           <div>Matchs played : {numberOfGames} </div>
@@ -118,7 +127,14 @@ const UserProfileHeader = ({
           </div>
         </div>
       </div>
-      <FileUploadPage />
+      {data.user.id === currentUserId && showChangeAvatar ? (
+        <FileUploadPage
+          open={showChangeAvatar}
+          setIsOpen={setShowChangeAvatar}
+        />
+      ) : (
+        <></>
+      )}
     </div>
   );
 };
