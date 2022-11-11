@@ -6,7 +6,6 @@ import queryClient from "../../query";
 import { ReactComponent as AddAvatarIcon } from "pixelarticons/svg/cloud-upload.svg";
 export default function FileUploadPage() {
   const [selectedFile, setSelectedFile] = useState();
-  const [isFilePicked, setIsFilePicked] = useState(false);
 
   useEffect(() => {
     focusManager.setFocused(false);
@@ -15,24 +14,29 @@ export default function FileUploadPage() {
 
   const changeHandler = (event) => {
     setSelectedFile(event);
-    setIsFilePicked(true);
   };
   return (
     <div className="flex flex-row">
       <input
         type="file"
-        onChange={(e) => changeHandler(e.currentTarget.files[0])}
+        onChange={(e) => {
+          if (e.currentTarget.files[0]) {
+            changeHandler(e.currentTarget.files[0]);
+          }
+        }}
       />
       <button
         onClick={() => {
-          const formData = new FormData();
-          formData.append("file", selectedFile);
-          fetch("/file/upload", {
-            method: "POST",
-            body: formData,
-          }).then(() => {
-            queryClient.invalidateQueries(useUserProfileQuery.getKey());
-          });
+          if (selectedFile != null) {
+            const formData = new FormData();
+            formData.append("file", selectedFile);
+            fetch("/file/upload", {
+              method: "POST",
+              body: formData,
+            }).then(() => {
+              queryClient.invalidateQueries(useUserProfileQuery.getKey());
+            });
+          }
         }}
         className="flex border-2 border-black bg-slate-100 hover:bg-slate-200"
       >
