@@ -120,7 +120,7 @@ function CurrentUserProfileLink() {
   return (
     <div
       className="flex w-10 justify-center border-r-2 transition-all hover:cursor-pointer hover:bg-slate-100"
-      onClick={() => navigate(`/profile/me`)}
+      onClick={() => navigate(`/profile/${data?.id}`)}
     >
       <img
         className="right-1 top-1 h-8 w-8 self-center border border-black"
@@ -148,6 +148,7 @@ function Header({
   const navigate = useNavigate();
   const closeSidebar = useSidebarStore((state) => state.close);
   const isSmallScreen = useMediaQuery("(max-width: 1536px)");
+
   // TODO : put this in corresponding component
 
   return (
@@ -155,11 +156,6 @@ function Header({
       <AnimatePresence initial={false} exitBeforeEnter>
         {home ? (
           <>
-            {/* <LeftButton
-              navigate={() => navigate("/create-channel")}
-              Icon={MessagePlusIcon}
-              key={1}
-            /> */}
             <LeftButton
               navigate={() => setFn(!showChannelCreation)}
               showBottomElement={true}
@@ -201,10 +197,6 @@ function Header({
               ) : location.pathname.substring(0, 9) === "/settings" ? (
                 <div className="mt-1 w-full text-center font-bold">
                   Settings
-                </div>
-              ) : location.pathname.substring(0, 11) === "/profile/me" ? (
-                <div className="mt-1 w-full text-center font-bold">
-                  My profile
                 </div>
               ) : location.pathname.substring(0, 9) === "/profile/" ? (
                 <div className="mt-1 w-full text-center font-bold">
@@ -317,7 +309,7 @@ const Highlight = ({
   content,
   search,
 }: {
-  content: string;
+  content: string | undefined;
   search: string;
 }) => {
   const index = content.toLowerCase().indexOf(search.toLowerCase());
@@ -375,22 +367,22 @@ const SearchResult = ({
       {data?.map((result) => (
         <li
           className="flex items-center p-2 even:bg-white hover:cursor-pointer hover:bg-blue-100"
-          key={`${result.id}_${result.__typename}`}
+          key={`${result?.id}_${result?.__typename}`}
           onClick={() => {
             navigate(
-              `${result.__typename === "Channel" ? "channel" : "profile"}/${
+              `${result?.__typename === "Channel" ? "channel" : "profile"}/${
                 result?.__typename === "Channel"
                   ? result.id
-                  : result.id === infoUser?.id
+                  : result?.id === infoUser?.id
                   ? "me"
-                  : result.id
+                  : result?.id
               }`
             );
 
             setSearch("");
           }}
         >
-          {result.__typename === "User" ? (
+          {result?.__typename === "User" ? (
             <Avatar.Root>
               <Avatar.Image
                 className="h-10 w-10 border border-black object-cover"
@@ -403,7 +395,7 @@ const SearchResult = ({
           ) : (
             <UsersIcon className="h-10 w-10 border border-black p-1 pt-2" />
           )}
-          <Highlight content={result.name} search={search} />
+          <Highlight content={result?.name} search={search} />
         </li>
       ))}
     </ul>
@@ -420,7 +412,7 @@ export const SidebarLayout = () => {
     <div className="relative flex h-full flex-col">
       <div
         className={`${
-          !showChannelCreation ? "blur-sm" : ""
+          showChannelCreation ? "blur-sm" : ""
         } flex h-full flex-col transition-all delay-200 duration-200`}
       >
         <Header
@@ -437,18 +429,15 @@ export const SidebarLayout = () => {
           )}
         </div>
       </div>
-
       {location.pathname === "/" ? (
         <div
           className={`${
-            showChannelCreation ? "translate-y-full" : ""
+            !showChannelCreation ? "translate-y-full" : ""
           } absolute top-0 flex h-full w-full flex-col justify-end transition-all duration-700`}
         >
           <div
-            className={`${
-              showChannelCreation ? "" : ""
-            } flex h-full grow bg-opacity-0 transition-all duration-700`}
-            onClick={() => setShowChannelCreation(!showChannelCreation)}
+            className="flex h-full grow bg-opacity-0 transition-all duration-700"
+            onClick={() => setShowChannelCreation(false)}
           ></div>
           <div className="flex h-full shadow-[10px_10px_15px_15px_rgba(0,0,0,0.2)]">
             <CreateChannel

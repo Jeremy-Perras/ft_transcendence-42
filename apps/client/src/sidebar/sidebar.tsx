@@ -46,14 +46,6 @@ const router = createMemoryRouter([
         element: <Profile />,
         loader: loader(queryClient),
       },
-      {
-        path: "/profile/me",
-        element: <CurrentUserProfile />,
-      },
-      {
-        path: "/profile/me",
-        element: <CurrentUserProfile />,
-      },
     ],
   },
 ]);

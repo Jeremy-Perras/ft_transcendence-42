@@ -5,13 +5,7 @@ import { ReactComponent as UsersIcon } from "pixelarticons/svg/users.svg";
 import { ReactComponent as GamePadIcon } from "pixelarticons/svg/gamepad.svg";
 import { ReactComponent as LoaderIcon } from "pixelarticons/svg/loader.svg";
 import { ReactComponent as AlertIcon } from "pixelarticons/svg/alert.svg";
-
-import {
-  useCreateChanelMutation,
-  useInfoUsersQuery,
-} from "../../graphql/generated";
-import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useInfoUsersQuery } from "../../graphql/generated";
 
 export function getDate(time: number) {
   const date = new Date(time);
@@ -32,7 +26,6 @@ const Empty = () => {
   );
 };
 
-//TODO : animate loader image
 export const Loading = () => {
   return (
     <div className="flex h-full select-none flex-col items-center justify-center text-slate-200">
@@ -119,8 +112,6 @@ const Chat = ({ __typename, name, avatar, id, messages }: Chat) => {
 };
 
 const Home = () => {
-  const queryClient = useQueryClient();
-  const [form, setForm] = useState(false);
   const { isLoading, data, error, isFetching } = useInfoUsersQuery(
     {},
     {
@@ -152,12 +143,6 @@ const Home = () => {
       },
     }
   );
-  const navigate = useNavigate();
-  const createChannelMutation = useCreateChanelMutation({
-    onSuccess: () => {
-      queryClient.invalidateQueries(["InfoUsers", {}]);
-    },
-  });
 
   if (isLoading) return <Loading />;
   if (isFetching) {

@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   useCreateChannelMessageReadMutation,
@@ -12,21 +12,20 @@ import { getDate, Error, Loading, Fetching } from "./home";
 
 const ReadBy = ({ users }: { users: User[] }) => {
   const navigate = useNavigate();
-
   return (
     <div className="ml-24 flex h-6 w-full items-end justify-start">
       <div className="mb-px mr-1 w-full text-end text-xs text-slate-300 ">
-        Seen by
+        {users.length !== 0 ? "Seen by" : ""}
       </div>
       {users.map(({ id, name, avatar }, index) => {
         const [showName, setShowName] = useState(false);
         return (
           <div
-            className="relative flex h-full w-8 flex-col justify-center"
+            className="relative flex h-full w-8 flex-col flex-wrap justify-center"
             key={index}
           >
             <img
-              className="m-px h-4 w-4 self-center rounded-full transition-all hover:h-5 hover:w-5 hover:cursor-pointer"
+              className="m-px h-4 w-4 self-center border border-black transition-all hover:h-5 hover:w-5 hover:cursor-pointer"
               key={index}
               src={avatar}
               alt="User avatar"
@@ -77,7 +76,7 @@ const ChannelMessage = ({
         <div className="flex w-9 shrink-0 justify-center">
           <div className="flex self-end">
             <img
-              className="h-6 w-6 rounded-full transition-all hover:h-7 hover:w-7 hover:cursor-pointer"
+              className="h-6 w-6 border border-black transition-all hover:h-7 hover:w-7 hover:cursor-pointer"
               src={author.avatar}
               alt="Message author avatar"
               onClick={() => navigate(`/profile/${author.id}`)}
@@ -160,6 +159,14 @@ export default function Channel() {
     },
   });
   const [content, setContent] = useState("");
+  const endMessages = useRef(null);
+  // const b = endMessages.current as unknown as HTMLElement;
+  // useEffect(() => {
+  //   // 👇️ scroll to bottom every time messages change
+  //   b?.scrollIntoView({
+  //     behavior: "smooth",
+  //   });
+  // }, [data?.messages]);
   if (isLoading) {
     return <Loading />;
   }
@@ -173,7 +180,6 @@ export default function Channel() {
       <div
         onClick={() => {
           data?.messages.forEach((message) => {
-            console.log(message);
             message.readBy
               ? ""
               : createChannelMessageRead.mutate({
@@ -195,6 +201,7 @@ export default function Channel() {
           {data?.messages?.map((message, index) => (
             <ChannelMessage key={index} {...message} />
           ))}
+          <div ref={endMessages} />
         </div>
         <div className="flex h-16 w-full border-t-2 bg-slate-50 p-2">
           <textarea
