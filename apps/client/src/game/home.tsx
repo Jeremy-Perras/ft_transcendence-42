@@ -38,17 +38,20 @@ const GameMode = ({
 
   useEffect(() => {
     if (gameModeIntervalId == -1) {
-      gameModeIntervalId = setInterval(() => {
-        setanimationIndex((animationIndex) => {
-          return animationIndex == imgs.length - 1 ? 0 : animationIndex + 1;
-        });
-      }, 50);
+      gameModeIntervalId = setInterval(
+        () => {
+          setanimationIndex((animationIndex) => {
+            return animationIndex == imgs.length - 1 ? 0 : animationIndex + 1;
+          });
+        },
+        isSelected ? 35 : 60
+      );
       return () => {
         clearInterval(gameModeIntervalId);
         gameModeIntervalId = -1;
       };
     }
-  }, []);
+  }, [isSelected]);
 
   const isNarrow = useMediaQuery("(max-width : 640px)");
   const isSmall = useMediaQuery("(max-height : 720px)");
