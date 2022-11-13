@@ -80,7 +80,7 @@ const GameMode = ({
       <div className="relative flex justify-center">
         {isSelected && !isSmall && !isNarrow && (
           <motion.img
-            className="absolute -top-5 left-1/2"
+            className="absolute -top-16 left-1/2"
             src={ArrowImage}
             initial={{ x: "-50%" }}
             animate={{ y: [0, 20, 0] }}
@@ -99,7 +99,7 @@ const GameMode = ({
       {/* TODO */}
       <motion.div
         className={`${
-          isSmall && !isNarrow ? "pl-10 pr-10" : ""
+          isSmall && !isNarrow ? "px-10" : !isNarrow ? "mt-5" : "mb-5"
         } ${textEffects} text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl 2xl:text-4xl`}
       >
         {name}
