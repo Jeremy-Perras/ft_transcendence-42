@@ -6,6 +6,7 @@ import {
   ChannelMessageResolver,
   ChannelResolver,
 } from "./channel.resolver";
+import { ChannelService } from "./channel.service";
 
 @Module({
   imports: [PrismaModule, AuthModule],
@@ -13,6 +14,7 @@ import {
     ChannelResolver,
     ChannelMessageResolver,
     ChannelMessageReadResolver,
+    ChannelService,
   ],
 })
 export class ChannelModule {}

@@ -14,6 +14,12 @@ import { CurrentUser } from "../auth/currentUser.decorator";
 import { PrismaService } from "../prisma/prisma.service";
 import { Restricted, RestrictedMember, User } from "../user/user.model";
 import { userType } from "../user/user.resolver";
+import {
+  AdminRoleGuard,
+  BanRoleGuard,
+  OwnerOrAdminRoleGuard,
+  OwnerRoleGuard,
+} from "./admin.role.guard";
 import { Channel, ChannelMessage, ChannelMessageRead } from "./channel.model";
 
 export type channelType = Omit<
@@ -25,7 +31,7 @@ type channelMessageReadType = Omit<ChannelMessageRead, "user">;
 type restrictedMemberType = userType & Restricted;
 
 @Resolver(Channel)
-@UseGuards(GqlAuthenticatedGuard)
+// @UseGuards(GqlAuthenticatedGuard)
 export class ChannelResolver {
   constructor(private prisma: PrismaService) {}
 
@@ -273,6 +279,8 @@ export class ChannelResolver {
   }
 
   @Mutation((returns) => RestrictedMember)
+  @UseGuards(BanRoleGuard)
+  @UseGuards(OwnerOrAdminRoleGuard)
   async createMuted(
     @Args("id", { type: () => Int }) id: number,
     @Args("channelId", { type: () => Int }) channelId: number,
@@ -296,6 +304,8 @@ export class ChannelResolver {
   }
 
   @Mutation((returns) => RestrictedMember)
+  @UseGuards(OwnerOrAdminRoleGuard)
+  @UseGuards(BanRoleGuard)
   async createBanned(
     @Args("id", { type: () => Int }) id: number,
     @Args("channelId", { type: () => Int }) channelId: number,
@@ -320,6 +330,8 @@ export class ChannelResolver {
   }
 
   @Mutation((returns) => Channel)
+  @UseGuards(OwnerRoleGuard)
+  @UseGuards(BanRoleGuard)
   async deleteChannel(
     @Args("channelId", { type: () => Int }) channelId: number
   ): Promise<channelType> {
@@ -336,6 +348,8 @@ export class ChannelResolver {
   }
 
   @Mutation((returns) => RestrictedMember)
+  @UseGuards(OwnerOrAdminRoleGuard)
+  @UseGuards(BanRoleGuard)
   async deleteMuted(
     @Args("channel", { type: () => Int }) channelId: number,
     @Args("userId", { type: () => Int }) userId: number
@@ -354,6 +368,8 @@ export class ChannelResolver {
   }
 
   @Mutation((returns) => RestrictedMember)
+  @UseGuards(OwnerRoleGuard)
+  @UseGuards(BanRoleGuard)
   async deleteBanned(
     @Args("channel", { type: () => Int }) channelId: number,
     @Args("userId", { type: () => Int }) userId: number
@@ -373,6 +389,8 @@ export class ChannelResolver {
 
   // UPDATE
   @Mutation((returns) => Channel)
+  @UseGuards(OwnerRoleGuard)
+  @UseGuards(BanRoleGuard)
   async updatePassword(
     @Args("password", { type: () => String, nullable: true }) password: string,
     @Args("idchannel", { type: () => Int }) idchannel: number
@@ -382,7 +400,6 @@ export class ChannelResolver {
       where: { id: idchannel },
       data: { password: password },
     });
-
     return {
       id: m.id,
       name: m.name,
@@ -392,6 +409,8 @@ export class ChannelResolver {
   }
 
   @Mutation((returns) => Channel)
+  @UseGuards(OwnerRoleGuard)
+  @UseGuards(BanRoleGuard)
   async updateRight(
     @Args("password", { type: () => String, nullable: true }) password: string,
     @Args("inviteOnly", { type: () => Boolean, nullable: true })
@@ -412,6 +431,8 @@ export class ChannelResolver {
   }
 
   @Mutation((returns) => Channel)
+  @UseGuards(OwnerOrAdminRoleGuard)
+  @UseGuards(BanRoleGuard)
   async updateMuted(
     @Args("channelId", { type: () => Int }) channelId: number,
     @Args("userId", { type: () => Int }) userId: number,
@@ -432,6 +453,8 @@ export class ChannelResolver {
   }
 
   @Mutation((returns) => Channel)
+  @UseGuards(OwnerRoleGuard)
+  @UseGuards(BanRoleGuard)
   async updateBanned(
     @Args("channelId", { type: () => Int }) channelId: number,
     @Args("userId", { type: () => Int }) userId: number,
@@ -452,6 +475,8 @@ export class ChannelResolver {
   }
 
   @Mutation((returns) => Channel)
+  @UseGuards(OwnerRoleGuard)
+  @UseGuards(BanRoleGuard)
   async updateAdmins(
     @Args("channelId", { type: () => Int }) channelId: number,
     @Args("userId", { type: () => Int }) user: number
@@ -483,6 +508,7 @@ export class ChannelResolver {
   }
 
   @Mutation((returns) => Channel)
+  @UseGuards(BanRoleGuard)
   async updateMembers(
     @Args("channelId", { type: () => Int }) channelId: number,
     @Args("userId", { type: () => Int }) user: number
@@ -560,6 +586,7 @@ export class ChannelMessageResolver {
   }
 
   @Mutation((returns) => ChannelMessage)
+  @UseGuards(BanRoleGuard)
   async sendChanelMessage(
     @Args("message", { type: () => String }) message: string,
     @Args("recipientId", { type: () => Int }) recipientId: number,
@@ -581,6 +608,8 @@ export class ChannelMessageResolver {
   }
 
   @Mutation((returns) => ChannelMessage)
+  @UseGuards(OwnerOrAdminRoleGuard)
+  @UseGuards(BanRoleGuard)
   async deleteChannelMessageContent(
     @Args("messageId", { type: () => Int }) messageId: number
   ): Promise<channelMessageType> {
