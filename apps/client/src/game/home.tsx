@@ -24,7 +24,7 @@ const Idle = ({ play }: { play: () => void }) => {
   );
 };
 
-let gameModeIntervalId = -1;
+let gameModeIntervalId = [-1, -1, -1];
 const GameMode = ({
   imgs,
   name,
@@ -35,10 +35,10 @@ const GameMode = ({
 }: GameModeType & { selectMode: () => void }) => {
   const [isSelected, setIsSelected] = useState(false);
   const [animationIndex, setanimationIndex] = useState(0);
-
+  const i = name === "classic" ? 0 : name === "fireball" ? 1 : 2; //TODO : find another trick to prevent rerendering ?
   useEffect(() => {
-    if (gameModeIntervalId == -1) {
-      gameModeIntervalId = setInterval(
+    if (gameModeIntervalId[i] == -1) {
+      gameModeIntervalId[i] = setInterval(
         () => {
           setanimationIndex((animationIndex) => {
             return animationIndex == imgs.length - 1 ? 0 : animationIndex + 1;
@@ -47,8 +47,8 @@ const GameMode = ({
         isSelected ? 40 : 60
       );
       return () => {
-        clearInterval(gameModeIntervalId);
-        gameModeIntervalId = -1;
+        clearInterval(gameModeIntervalId[i]);
+        gameModeIntervalId[i] = -1;
       };
     }
   }, [isSelected]);
