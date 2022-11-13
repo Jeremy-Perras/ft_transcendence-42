@@ -44,7 +44,7 @@ const GameMode = ({
             return animationIndex == imgs.length - 1 ? 0 : animationIndex + 1;
           });
         },
-        isSelected ? 35 : 60
+        isSelected ? 40 : 60
       );
       return () => {
         clearInterval(gameModeIntervalId);
