@@ -29,7 +29,7 @@ export default function FileUploadPage({
           onClick={() => setIsOpen(false)}
         />
 
-        <div className="relative flex w-full grow items-center justify-evenly text-clip border-2 bg-slate-50 p-4 shadow-md shadow-slate-800">
+        <div className="relative flex w-full grow items-center justify-evenly text-clip border bg-slate-50 p-4 shadow-md shadow-slate-800">
           <CloseIcon
             className="absolute right-1 top-1 h-7 w-7 hover:cursor-pointer"
             onClick={() => setIsOpen(false)}
@@ -56,7 +56,7 @@ export default function FileUploadPage({
               }
               setIsOpen(false);
             }}
-            className="flex h-fit shrink-0 rounded-sm border-2 border-neutral-200 bg-neutral-100 p-3 hover:bg-slate-200"
+            className="flex shrink-0 rounded-sm border border-neutral-500 bg-neutral-100 py-1 px-2 hover:bg-slate-200"
           >
             Submit
           </button>
