@@ -134,8 +134,12 @@ const Home = () => {
             rank: user.rank,
           },
           chats: [...user.friends, ...user.channels].sort((a, b) => {
-            const x = a.messages[a.messages.length - 1];
-            const y = b.messages[b.messages.length - 1];
+            const x = a.messages.sort((c, d) => {
+              return c.sentAt - d.sentAt;
+            })[a.messages.length - 1];
+            const y = b.messages.sort((c, d) => {
+              return c.sentAt - d.sentAt;
+            })[b.messages.length - 1];
             if (!x) return 1;
             if (!y) return -1;
             return y.sentAt - x.sentAt;
