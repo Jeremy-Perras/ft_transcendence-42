@@ -31,7 +31,6 @@ import { createPortal } from "react-dom";
 import { HeaderPortal } from "../layout";
 import FileUploadPage from "./uploadAvatar";
 
-//TODO: add scores equal
 export const RankIcon = (rank: number) => {
   return rank <= 10
     ? Rank1Icon
@@ -326,9 +325,10 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
       <HeaderPortal
         container={document.getElementById("header") as HTMLElement}
         text={
-          data.user.id === currentUserData?.user.id
-            ? "My profile"
-            : data.user.name
+          // data.user.id === currentUserData?.user.id
+          //   ? "My profile"
+          //   : data.user.name
+          data.user.name
         }
         link=""
         icon={RankIcon(data?.user.rank)}

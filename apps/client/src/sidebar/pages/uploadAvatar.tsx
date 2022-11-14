@@ -2,8 +2,8 @@ import { focusManager } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
 import { useUserProfileQuery } from "../../graphql/generated";
 import queryClient from "../../query";
+import { ReactComponent as CloseIcon } from "pixelarticons/svg/close.svg";
 
-import { ReactComponent as AddAvatarIcon } from "pixelarticons/svg/cloud-upload.svg";
 export default function FileUploadPage({
   open,
   setIsOpen,
@@ -22,38 +22,54 @@ export default function FileUploadPage({
     setSelectedFile(event);
   };
   return (
-    <div className="absolute z-10 flex h-40 flex-col items-center justify-center  border-2 bg-white">
-      <div className="flex border-2" onClick={() => setIsOpen(false)}>
-        Close
+    <div className={"absolute flex h-full w-full flex-col"}>
+      <div className="flex h-36 w-full text-base ">
+        <div
+          className=" basis-1/5 bg-black bg-opacity-40"
+          onClick={() => setIsOpen(false)}
+        />
+
+        <div className="relative flex w-full grow items-center justify-evenly text-clip border-2 bg-slate-50 p-4 shadow-md shadow-slate-800">
+          <CloseIcon
+            className="absolute right-1 top-1 h-7 w-7 hover:cursor-pointer"
+            onClick={() => setIsOpen(false)}
+          />
+          <input
+            type="file"
+            onChange={(e) => {
+              if (e.currentTarget.files[0]) {
+                changeHandler(e.currentTarget.files[0]);
+              }
+            }}
+          />
+          <button
+            onClick={() => {
+              if (selectedFile != null) {
+                const formData = new FormData();
+                formData.append("file", selectedFile);
+                fetch("/file/upload", {
+                  method: "POST",
+                  body: formData,
+                }).then(() => {
+                  queryClient.invalidateQueries(useUserProfileQuery.getKey());
+                });
+              }
+              setIsOpen(false);
+            }}
+            className="flex h-fit shrink-0 rounded-sm border-2 border-neutral-200 bg-neutral-100 p-3 hover:bg-slate-200"
+          >
+            Submit
+          </button>
+        </div>
+        <div
+          className="  basis-1/5 bg-black bg-opacity-40"
+          onClick={() => setIsOpen(false)}
+        />
       </div>
-      <input
-        type="file"
-        onChange={(e) => {
-          if (e.currentTarget.files[0]) {
-            changeHandler(e.currentTarget.files[0]);
-          }
-        }}
+      <div
+        className="flex h-full w-full bg-black bg-opacity-40"
+        onClick={() => setIsOpen(false)}
       />
-      <div className="flex">
-        <button
-          onClick={() => {
-            if (selectedFile != null) {
-              const formData = new FormData();
-              formData.append("file", selectedFile);
-              fetch("/file/upload", {
-                method: "POST",
-                body: formData,
-              }).then(() => {
-                queryClient.invalidateQueries(useUserProfileQuery.getKey());
-              });
-            }
-            setIsOpen(false);
-          }}
-          className=" flex h-fit border-2 border-black bg-slate-100 hover:bg-slate-200"
-        >
-          Submit
-        </button>
-      </div>
     </div>
   );
 }
