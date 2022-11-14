@@ -600,39 +600,55 @@ const DeletePopUp = ({
       ]);
     },
   });
+  //TODO : fix issue close when click on window
   return (
-    <div
-      className="absolute top-0 right-0 z-10 flex h-full w-full items-center justify-center bg-opacity-0"
-      onClick={() => setConfirmation(false)}
-    >
-      <div className="flex h-1/6 w-2/3 items-center justify-center border-2 bg-white ">
-        <div className="flex flex-col items-center">
-          <div className=" mt-4  text-center">
-            <p className="font-bold">Delete your Channel</p>
-            <p className="mt-1 text-sm text-gray-700">
-              This action cannot be undone.
-            </p>
-          </div>
+    <div className="absolute top-0 right-0 z-10 flex h-full w-full flex-col items-center justify-center bg-black bg-opacity-30">
+      <div
+        className="flex w-full grow"
+        onClick={() => setConfirmation(false)}
+      ></div>
+      <div className="flex h-48 w-full">
+        <div
+          className="flex h-full basis-1/5"
+          onClick={() => setConfirmation(false)}
+        />
+        <div className="flex h-full w-full grow items-center justify-center border-2 bg-slate-50 shadow-md shadow-neutral-700">
+          <div className="flex flex-col items-center">
+            <div className=" mt-4  text-center">
+              <p className="font-bold">Delete your Channel</p>
+              <p className="mt-1 text-sm text-gray-700">
+                This action cannot be undone.
+              </p>
+            </div>
 
-          <div className="mt-4 flex flex-row text-center">
-            <button
-              onClick={() => {
-                deleteChannel.mutate({ channelId: channelId });
-                navigate("/");
-              }}
-              className="block w-full border-2 border-slate-200 bg-slate-100 px-4 py-3 text-sm font-semibold text-red-700 hover:bg-slate-200 "
-            >
-              Delete
-            </button>
-            <button
-              onClick={() => setConfirmation(false)}
-              className="ml-2 block w-full border-2 border-slate-200 bg-slate-100 px-4 py-3 text-sm font-semibold  hover:bg-slate-200"
-            >
-              Cancel
-            </button>
+            <div className="mt-4 flex flex-row text-center">
+              <button
+                onClick={() => {
+                  deleteChannel.mutate({ channelId: channelId });
+                  navigate("/");
+                }}
+                className="block w-full border-2 border-slate-200 bg-slate-100 px-4 py-3 text-sm font-semibold text-red-700 hover:bg-slate-200 "
+              >
+                Delete
+              </button>
+              <button
+                onClick={() => setConfirmation(false)}
+                className="ml-2 block w-full border-2 border-slate-200 bg-slate-100 px-4 py-3 text-sm font-semibold  hover:bg-slate-200"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
+        <div
+          className="flex h-full basis-1/5"
+          onClick={() => setConfirmation(false)}
+        />
       </div>
+      <div
+        className="flex w-full grow"
+        onClick={() => setConfirmation(false)}
+      ></div>
     </div>
   );
 };

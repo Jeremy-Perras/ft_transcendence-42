@@ -48,7 +48,7 @@ export function HeaderPortal({
         onClick={() => navigate(link)}
       >
         <div>{text}</div>
-        {icon !== "" ? <img src={icon} className="mx-2" /> : <></>}
+        {icon !== "" ? <img src={icon} className="mx-2 w-7" /> : <></>}
       </div>
     </div>,
     container
@@ -213,6 +213,7 @@ function Header({
         <CurrentUserProfile
           avatar={data?.avatar}
           link={`/profile/${data?.id}`}
+          key={5}
         />
       </AnimatePresence>
       {isSmallScreen ? (
