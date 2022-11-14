@@ -229,11 +229,8 @@ const GameHistory = ({ data }: { data: UserProfileQuery }) => {
   );
 };
 
-const AddFriend = ({
-  currentUserId,
-}: {
-  currentUserId: number | undefined;
-}) => {
+const AddFriend = () => {
+  const params = useParams();
   const queryClient = useQueryClient();
   const askFriend = useUpdateFriendMutation({
     onSuccess: () => {
@@ -241,15 +238,14 @@ const AddFriend = ({
     },
   });
   return (
-    <div className="flex h-24 w-full items-center justify-center border-2 bg-slate-100 p-4 text-xl font-bold text-slate-400 transition-all hover:cursor-pointer hover:bg-slate-200 ">
+    <div
+      className="flex h-24 w-full items-center justify-center border-2 bg-slate-100 p-4 text-xl font-bold text-slate-400 transition-all hover:cursor-pointer hover:bg-slate-200 "
+      onClick={() => {
+        askFriend.mutate({ updateFriendId: +params.userId! });
+      }}
+    >
       <AddFriendIcon className="mx-4 mb-2 w-16 self-center " />
-      <span
-        onClick={() => {
-          askFriend.mutate({ updateFriendId: currentUserId! });
-          alert("BROKEN");
-        }}
-        className="flex items-center text-center text-2xl font-bold "
-      >
+      <span className="flex items-center text-center text-2xl font-bold ">
         Add Friend
       </span>
     </div>
@@ -263,6 +259,7 @@ const FriendButtons = ({
   data: UserProfileQuery;
   currentUserId: number;
 }) => {
+  const params = useParams();
   const queryClient = useQueryClient();
   const unFriend = useUpdateUnFriendMutation({
     onSuccess: () => {
@@ -291,8 +288,7 @@ const FriendButtons = ({
       </div>
       <div
         onClick={() => {
-          unFriend.mutate({ updateUnFriendId: currentUserId });
-          alert("BROKEN");
+          unFriend.mutate({ updateUnFriendId: +params.userId! });
         }}
         className="flex basis-1/3 items-center justify-center border-y-2 border-slate-300 bg-slate-200 text-center transition-all hover:cursor-pointer hover:bg-slate-300"
       >
@@ -342,7 +338,7 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
         ) ? (
         <FriendButtons data={data} currentUserId={currentUserData.user.id} />
       ) : (
-        <AddFriend currentUserId={currentUserData?.user.id} />
+        <AddFriend />
       )}
     </div>
   );
