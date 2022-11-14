@@ -117,9 +117,9 @@ const UserBanner = ({
   channelId,
 }: {
   channelId: number | undefined;
-  id: number | undefined; //TODO: CHECK IN BACK => should not be undefined
-  name: string | undefined; //TODO: CHECK IN BACK
-  avatar: string | undefined; //TODO: CHECK IN BACK
+  id: number | undefined;
+  name: string | undefined;
+  avatar: string | undefined;
   admin: boolean;
   owner: boolean;
   muted: boolean | undefined;
@@ -128,11 +128,11 @@ const UserBanner = ({
   changesAuthorizedAsOwner: boolean;
 }) => {
   const navigate = useNavigate();
-  const [showInfoAdmin, setShowInfoAdmin] = useState(false); //DON'T TOUCH
-  const [showInfoMute, setShowInfoMute] = useState(false); //DON'T TOUCH
-  const [showInfoBan, setShowInfoBan] = useState(false); //DON'T TOUCH
-  const [showTimeMute, setShowTimeMute] = useState(false); //DON'T TOUCH
-  const [showTimeBan, setShowTimeBan] = useState(false); //DON'T TOUCH
+  const [showInfoAdmin, setShowInfoAdmin] = useState(false);
+  const [showInfoMute, setShowInfoMute] = useState(false);
+  const [showInfoBan, setShowInfoBan] = useState(false);
+  const [showTimeMute, setShowTimeMute] = useState(false);
+  const [showTimeBan, setShowTimeBan] = useState(false);
   const queryClient = useQueryClient();
 
   const updateAdmins = useUpdateAdminsMutation({
@@ -182,11 +182,15 @@ const UserBanner = ({
           className="flex grow hover:cursor-pointer"
           onClick={() => navigate(`/profile/${id}`)}
         >
-          <img
-            src={avatar} //TODO : replace with default if not set
-            alt="User avatar"
-            className="m-1 h-12 w-12 border border-black "
-          />
+          {typeof avatar !== undefined && avatar !== "" ? (
+            <img
+              src={avatar}
+              alt="Player avatar"
+              className="mt-1 h-12 w-12 border border-black"
+            />
+          ) : (
+            <UserIcon className="mt-1 h-12 w-12 border border-black text-neutral-700" />
+          )}
           <div className="ml-2 flex flex-col justify-center text-xs">
             <div className="flex">
               <span className="truncate text-base font-bold ">{name}</span>
@@ -244,11 +248,13 @@ const UserBanner = ({
                 <div
                   className="hover:bg-slate-300"
                   onClick={() => {
-                    setShowTimeMute(false), //DONT TOUCH
+                    setShowTimeMute(false),
                       mutedSomeone.mutate({
                         channelId: channelId ? channelId : 0,
                         createMutedId: id ? id : 0,
-                        date: Math.floor(new Date()) + 60 * 60 * 2 * 1000,
+                        date:
+                          Math.floor(new Date() as unknown as number) +
+                          60 * 60 * 2 * 1000,
                       });
                   }}
                 >
@@ -257,11 +263,13 @@ const UserBanner = ({
                 <div
                   className="hover:bg-slate-300"
                   onClick={() => {
-                    setShowTimeMute(false), //DONT TOUCH
+                    setShowTimeMute(false),
                       mutedSomeone.mutate({
                         channelId: channelId ? channelId : 0,
                         createMutedId: id ? id : 0,
-                        date: Math.floor(new Date()) + 60 * 60 * 9 * 1000,
+                        date:
+                          Math.floor(new Date() as unknown as number) +
+                          60 * 60 * 9 * 1000,
                       });
                   }}
                 >
@@ -270,11 +278,13 @@ const UserBanner = ({
                 <div
                   className="hover:bg-slate-300"
                   onClick={() => {
-                    setShowTimeMute(false), //DONT TOUCH
+                    setShowTimeMute(false),
                       mutedSomeone.mutate({
                         channelId: channelId ? channelId : 0,
                         createMutedId: id ? id : 0,
-                        date: Math.floor(new Date()) + 60 * 60 * 25 * 1000,
+                        date:
+                          Math.floor(new Date() as unknown as number) +
+                          60 * 60 * 25 * 1000,
                       });
                   }}
                 >
@@ -297,7 +307,7 @@ const UserBanner = ({
               <div
                 className="flex flex-col items-center justify-center"
                 onClick={() => {
-                  !muted ? setShowTimeMute(true) : ""; //change setMute with mutation - dont touch set show time
+                  !muted ? setShowTimeMute(true) : "";
                 }}
               >
                 {" "}
@@ -321,7 +331,7 @@ const UserBanner = ({
                     onMouseOut={() => {
                       setShowInfoMute(false);
                     }}
-                    onClick={() => setShowTimeMute(true)} //DONT TOUCH
+                    onClick={() => setShowTimeMute(true)}
                     className="w-6 border-2 border-slate-300  text-neutral-600 hover:cursor-pointer hover:border-slate-700 hover:text-black"
                   />
                 )}
@@ -351,11 +361,13 @@ const UserBanner = ({
                 <div
                   className="hover:bg-slate-300"
                   onClick={() => {
-                    setShowTimeBan(false), //DONT TOUCH
+                    setShowTimeBan(false),
                       bannedSomeone.mutate({
                         channelId: channelId ? channelId : 0,
                         createMutedId: id ? id : 0,
-                        date: Math.floor(new Date()) + 60 * 60 * 1000 * 2,
+                        date:
+                          Math.floor(new Date() as unknown as number) +
+                          60 * 60 * 1000 * 2,
                       });
                   }}
                 >
@@ -364,11 +376,13 @@ const UserBanner = ({
                 <div
                   className="hover:bg-slate-300"
                   onClick={() => {
-                    setShowTimeBan(false), //don't touch
+                    setShowTimeBan(false),
                       bannedSomeone.mutate({
                         channelId: channelId ? channelId : 0,
                         createMutedId: id ? id : 0,
-                        date: Math.floor(new Date()) + 60 * 60 * 9 * 1000,
+                        date:
+                          Math.floor(new Date() as unknown as number) +
+                          60 * 60 * 9 * 1000,
                       });
                   }}
                 >
@@ -377,11 +391,13 @@ const UserBanner = ({
                 <div
                   className="hover:bg-slate-300"
                   onClick={() => {
-                    setShowTimeBan(false), //don't touch
+                    setShowTimeBan(false),
                       bannedSomeone.mutate({
                         channelId: channelId ? channelId : 0,
                         createMutedId: id ? id : 0,
-                        date: Math.floor(new Date()) + 60 * 60 * 25 * 1000,
+                        date:
+                          Math.floor(new Date() as unknown as number) +
+                          60 * 60 * 25 * 1000,
                       });
                   }}
                 >
@@ -390,7 +406,7 @@ const UserBanner = ({
                 <div
                   className="hover:bg-slate-300"
                   onClick={() => {
-                    setShowTimeBan(false), //don't touch
+                    setShowTimeBan(false),
                       bannedSomeone.mutate({
                         channelId: channelId ? channelId : 0,
                         createMutedId: id ? id : 0,
@@ -403,12 +419,7 @@ const UserBanner = ({
               </div>
               <div
                 className="flex flex-col items-center justify-center"
-                onClick={
-                  () =>
-                    !banned
-                      ? setShowTimeBan(true) //DONT TOUCH
-                      : "" //MUTATION
-                }
+                onClick={() => (!banned ? setShowTimeBan(true) : "")}
               >
                 {banned ? (
                   <UnbanIcon
@@ -533,10 +544,12 @@ const Search = ({
             <div
               className="flex items-center p-2 even:bg-white hover:cursor-pointer hover:bg-blue-100"
               onClick={() => {
-                updateMembers.mutate({
-                  channelId: channelId,
-                  userId: result?.id,
-                });
+                result?.id !== undefined
+                  ? updateMembers.mutate({
+                      channelId: channelId,
+                      userId: result?.id,
+                    })
+                  : "";
               }}
             >
               <>
@@ -549,7 +562,11 @@ const Search = ({
                     <UserIcon className="h-10 w-10" />
                   </Avatar.Fallback>
                 </Avatar.Root>
-                <Highlight content={result.name} search={search} />
+                {result?.name !== undefined ? (
+                  <Highlight content={result?.name} search={search} />
+                ) : (
+                  <></>
+                )}
               </>
             </div>
           ) : (
