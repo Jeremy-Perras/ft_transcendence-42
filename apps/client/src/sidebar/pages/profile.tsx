@@ -315,17 +315,11 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
     return data;
   }; //TODO : replace with better thing with current user
   const currentUserData = CurrentUserData();
-
   return (
     <div className="flex h-full w-full flex-col ">
       <HeaderPortal
         container={document.getElementById("header") as HTMLElement}
-        text={
-          // data.user.id === currentUserData?.user.id
-          //   ? "My profile"
-          //   : data.user.name
-          data.user.name
-        }
+        text={data.user.name}
         link=""
         icon={RankIcon(data?.user.rank)}
       />
