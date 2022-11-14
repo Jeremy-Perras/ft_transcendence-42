@@ -187,9 +187,9 @@ const AccessProtected = ({
         <form
           onSubmit={handleSubmit(() => {
             password?.password === watch("Password")
-              ? setAuth(false)
-              : setAuth(true);
-          })}
+              ? setAuth(true)
+              : setAuth(false);
+          })} //TODO:Error message if wrong password
           className="flex flex-col"
         >
           <div className="flex w-full px-4">
