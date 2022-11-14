@@ -296,7 +296,6 @@ export type QueryGamesArgs = {
 
 export type QueryPasswordArgs = {
   id: Scalars["Int"];
-  password: Scalars["String"];
 };
 
 export type QueryUserArgs = {
@@ -656,7 +655,6 @@ export type InfoDirectMessagesQuery = {
 
 export type PasswordQueryVariables = Exact<{
   passwordId: Scalars["Int"];
-  password: Scalars["String"];
 }>;
 
 export type PasswordQuery = { __typename?: "Query"; password: boolean };
@@ -1744,8 +1742,8 @@ useInfoDirectMessagesQuery.fetcher = (
     variables
   );
 export const PasswordDocument = `
-    query Password($passwordId: Int!, $password: String!) {
-  password(id: $passwordId, password: $password)
+    query password($passwordId: Int!) {
+  password(id: $passwordId)
 }
     `;
 export const usePasswordQuery = <TData = PasswordQuery, TError = unknown>(
@@ -1753,13 +1751,13 @@ export const usePasswordQuery = <TData = PasswordQuery, TError = unknown>(
   options?: UseQueryOptions<PasswordQuery, TError, TData>
 ) =>
   useQuery<PasswordQuery, TError, TData>(
-    ["Password", variables],
+    ["password", variables],
     fetcher<PasswordQuery, PasswordQueryVariables>(PasswordDocument, variables),
     options
   );
 
 usePasswordQuery.getKey = (variables: PasswordQueryVariables) => [
-  "Password",
+  "password",
   variables,
 ];
 usePasswordQuery.fetcher = (variables: PasswordQueryVariables) =>
