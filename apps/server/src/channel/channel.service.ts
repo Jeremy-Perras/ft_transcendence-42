@@ -20,7 +20,7 @@ export class ChannelService {
   async getChannelById(userId: number) {
     try {
       const user = await this.prismaService.channel.findFirst({
-        select: { admins: true, owner: true, banned: true },
+        select: { admins: true, owner: true, banned: true, password: true },
         where: { id: userId },
       });
 
