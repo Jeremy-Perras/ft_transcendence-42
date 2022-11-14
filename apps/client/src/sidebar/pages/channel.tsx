@@ -186,16 +186,11 @@ export default function Channel() {
   });
   const [content, setContent] = useState("");
   const endMessages = useRef(null);
-  // const b = endMessages.current as unknown as HTMLElement;
-  // useEffect(() => {
-  //   b?.scrollIntoView({
-  //     behavior: "smooth",
-  //   });
-  // }, [data?.messages]);
-  GetPassWord({ password: "wer", passwordId: 5 });
+
+  // GetPassWord({ password: "wer", passwordId: 5 });
   const banned = data?.banned.some((u) => u.id === data.userId);
   const muted = data?.muted.some((u) => u.id === data.userId);
-  const [password, setPassword] = useState(data?.password);
+  const [showPwPage, setShowPwPage] = useState(data?.password);
 
   if (isLoading) {
     return <Loading />;
@@ -214,97 +209,102 @@ export default function Channel() {
           link={`/settings/channel/${channelId}`}
           icon=""
         />
-
-        <div
-          onClick={() => {
-            data?.messages.forEach((message) => {
-              message.readBy
-                ? ""
-                : createChannelMessageRead.mutate({
-                    messageId: message.id,
-                    userId: data.userId,
-                  });
-            });
-          }}
-          className="flex h-full flex-col"
-        >
-          <div className="mt-px flex w-full grow flex-col overflow-auto pr-2 pl-px">
-            {data?.messages.length === 0 ? (
-              <div className="mb-48 flex h-full flex-col items-center justify-center text-center text-slate-300">
-                <EmptyChatIcon className="w-96 text-slate-200" />
-                Seems a little bit too silent here... Send the first message !
+        {showPwPage ? (
+          <form
+            onSubmit={handleSubmit(() => {
+              const { data } = usePasswordQuery({
+                password: "Password",
+                passwordId: +channelId,
+              });
+              console.log(data);
+            })}
+          >
+            <div className="flex w-full px-4">
+              <div className="flex flex-col justify-center text-center">
+                <label
+                  className="mt-4 text-xl text-slate-400"
+                  htmlFor="Password"
+                >
+                  Enter password
+                </label>
+                <input
+                  {...register("Password", {
+                    maxLength: 100,
+                  })}
+                  defaultValue=""
+                  className="my-4 h-10 w-64 self-center px-1 text-xl "
+                />
               </div>
-            ) : (
-              <></>
-            )}
-            {data?.messages?.map((message, index) => (
-              <ChannelMessage key={index} {...message} />
-            ))}
-            <div ref={endMessages} />
-          </div>
-          <div className="flex h-16 w-full border-t-2 bg-slate-50 p-2">
-            <textarea
-              disabled={banned || muted}
-              rows={1}
-              className={`${
-                banned || muted ? "hover:cursor-not-allowed" : ""
-              } h-10 w-11/12 resize-none overflow-visible rounded-lg px-3 pt-2`}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder={`${
-                banned === true
-                  ? "Your are banned"
-                  : muted === true
-                  ? "You are muted"
-                  : "Type your message here ..."
-              }`}
-              onKeyDown={(e) => {
-                if (e.code == "Enter" && !e.getModifierState("Shift")) {
-                  messageMutation.mutate({
-                    message: content,
-                    recipientId: +channelId,
-                  });
-                  e.currentTarget.value = "";
-                  e.preventDefault();
-                  setContent("");
-                } else {
+            </div>
+            <input
+              className="mt-4 flex w-36 justify-center self-center border-2 border-slate-300 bg-slate-200 px-2 py-4 text-center text-2xl font-bold hover:cursor-pointer hover:bg-slate-300"
+              type="submit"
+            />
+          </form>
+        ) : (
+          <div
+            onClick={() => {
+              data?.messages.forEach((message) => {
+                message.readBy
+                  ? ""
+                  : createChannelMessageRead.mutate({
+                      messageId: message.id,
+                      userId: data.userId,
+                    });
+              });
+            }}
+            className="flex h-full flex-col bg-slate-100"
+          >
+            <div className="mt-px flex w-full grow flex-col overflow-auto pr-2 pl-px">
+              {data?.messages.length === 0 ? (
+                <div className="mb-48 flex h-full flex-col items-center justify-center text-center text-slate-300">
+                  <EmptyChatIcon className="w-96 text-slate-200" />
+                  Seems a little bit too silent here... Send the first message !
+                </div>
+              ) : (
+                <></>
+              )}
+              {data?.messages?.map((message, index) => (
+                <ChannelMessage key={index} {...message} />
+              ))}
+              <div ref={endMessages} />
+            </div>
+            <div className="flex h-16 w-full border-t-2 bg-slate-50 p-2">
+              <textarea
+                disabled={banned || muted}
+                rows={1}
+                className={`${
+                  banned || muted ? "hover:cursor-not-allowed" : ""
+                } h-10 w-11/12 resize-none overflow-visible rounded-lg px-3 pt-2`}
+                onChange={(e) => setContent(e.target.value)}
+                placeholder={`${
+                  banned === true
+                    ? "Your are banned"
+                    : muted === true
+                    ? "You are muted"
+                    : "Type your message here ..."
+                }`}
+                onKeyDown={(e) => {
                   if (e.code == "Enter" && !e.getModifierState("Shift")) {
+                    messageMutation.mutate({
+                      message: content,
+                      recipientId: +channelId,
+                    });
                     e.currentTarget.value = "";
                     e.preventDefault();
                     setContent("");
+                  } else {
+                    if (e.code == "Enter" && !e.getModifierState("Shift")) {
+                      e.currentTarget.value = "";
+                      e.preventDefault();
+                      setContent("");
+                    }
                   }
-                }
-              }}
-            />
-          </div>
-        </div>
-
-        {/* <form
-          className={`${
-            password ? "flex h-full flex-col bg-slate-100" : "hidden"
-          }`}
-          onSubmit={handleSubmit(() => {
-            const boolean = GetPassWord({
-              password: watch("Password"),
-              passwordId: +channelId,
-            });
-            setPassword(boolean);
-          })}
-        >
-          <div className="flex w-full px-4">
-            <div className="flex flex-col justify-center text-center">
-              <label className="mt-4 text-xl text-slate-400" htmlFor="Password">
-                Enter password
-              </label>
-              <input
-                {...register("Password", {
-                  maxLength: 100,
-                })}
-                defaultValue=""
-                className="my-4 h-10 w-64 self-center px-1 text-xl "
+                }}
               />
             </div>
           </div>
-        </form> */}
+        )}
       </>
     );
   }
