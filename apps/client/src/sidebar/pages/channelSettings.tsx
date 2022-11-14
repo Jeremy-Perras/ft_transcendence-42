@@ -821,13 +821,15 @@ export default function ChannelSettings() {
                 <SearchBar search={search} setSearch={setSearch} />
                 {search.length === 0 ? (
                   ""
-                ) : (
+                ) : data ? (
                   <Search
                     search={search}
                     setSearch={setSearch}
                     queryData={data}
                     channelId={data?.channel.id ? data?.channel.id : 0}
                   />
+                ) : (
+                  <></>
                 )}
               </div>
             </>
