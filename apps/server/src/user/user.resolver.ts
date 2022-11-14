@@ -15,6 +15,7 @@ import { channelType } from "../channel/channel.resolver";
 import { gameType } from "../game/game.resolver";
 import { PrismaService } from "../prisma/prisma.service";
 import { DirectMessage, User } from "./user.model";
+import { UserRoleGuard } from "./user.role.guard";
 
 export type userType = Omit<
   User,
@@ -562,6 +563,7 @@ export class DirectMessageResolver {
   }
 
   @Mutation((returns) => DirectMessage)
+  @UseGuards(UserRoleGuard)
   async sendDirectMessage(
     @Args("message", { type: () => String }) message: string,
     @Args("recipientId", { type: () => Int }) recipientId: number,
