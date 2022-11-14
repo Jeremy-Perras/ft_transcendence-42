@@ -140,7 +140,7 @@ const CurrentUserProfile = ({
       onClick={() => navigate(link)}
     >
       <img
-        className="top-1 right-1 h-8 w-8 shrink-0 self-center border border-l-2 border-black"
+        className="top-1 right-1 h-8 w-8 shrink-0 self-center border border-black"
         src={avatar}
         alt="Current user avatar"
       />

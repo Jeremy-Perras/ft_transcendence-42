@@ -109,7 +109,7 @@ const UserProfileHeader = ({
         <div className="mx-4 mt-4 flex grow flex-col self-start text-left">
           <div>Matchs played : {numberOfGames} </div>
           <div>Victories : {victories} </div>
-          <div>Victory rate : {victoryRate} %</div>
+          <div>Victory rate : {numberOfGames ? `${victoryRate} %` : "-"}</div>
         </div>
         {/* TODO : put here achievements */}
         <div className="mr-2 flex shrink-0 flex-col justify-end pt-2 ">
