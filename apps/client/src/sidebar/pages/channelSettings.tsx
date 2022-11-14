@@ -112,7 +112,8 @@ const UserBanner = ({
   owner,
   muted,
   banned,
-  changesAuthorized,
+  changesAuthorizedAsAdmin,
+  changesAuthorizedAsOwner,
   channelId,
 }: {
   channelId: number | undefined;
@@ -123,7 +124,8 @@ const UserBanner = ({
   owner: boolean;
   muted: boolean | undefined;
   banned: boolean | undefined;
-  changesAuthorized: boolean;
+  changesAuthorizedAsAdmin: boolean;
+  changesAuthorizedAsOwner: boolean;
 }) => {
   const navigate = useNavigate();
   const [showInfoAdmin, setShowInfoAdmin] = useState(false); //DON'T TOUCH
@@ -199,7 +201,7 @@ const UserBanner = ({
           </div>
         </div>
         <div className="flex justify-center self-center">
-          {changesAuthorized && !admin && !owner ? (
+          {changesAuthorizedAsOwner && !admin && !owner ? (
             <div
               className="relative flex w-8 flex-col items-center justify-start"
               onClick={() => {
@@ -228,7 +230,8 @@ const UserBanner = ({
           ) : (
             <div></div>
           )}
-          {changesAuthorized ? (
+          {(admin && changesAuthorizedAsOwner) ||
+          (!admin && changesAuthorizedAsAdmin) ? (
             <div className="relative flex w-8 flex-col text-center transition-all hover:cursor-pointer">
               <div
                 onMouseLeave={() => setShowTimeMute(false)}
@@ -334,7 +337,8 @@ const UserBanner = ({
           ) : (
             <div></div>
           )}
-          {changesAuthorized ? (
+          {(admin && changesAuthorizedAsOwner) ||
+          (!admin && changesAuthorizedAsAdmin) ? (
             <div className="relative flex w-8 flex-col justify-end text-center transition-all hover:cursor-pointer">
               <div
                 onMouseLeave={() => setShowTimeBan(false)}
@@ -677,7 +681,12 @@ export default function ChannelSettings() {
   if (error) {
     return <div>Error</div>;
   }
-  const owner = data?.user.id === data?.channel.owner.id;
+  const isOwner = data?.user.id === data?.channel.owner.id;
+  const isAdmin = data?.channel.admins.some(
+    (admin) => admin.id === data.user.id
+  )
+    ? true
+    : false;
   return (
     <>
       {" "}
@@ -700,7 +709,7 @@ export default function ChannelSettings() {
         <div className={`${confirmation ? "blur-sm" : ""} `}>
           {/* TODO : put this in a component */}
           <div className="relative flex flex-col justify-center p-2">
-            {owner ? (
+            {isOwner ? (
               <div
                 className="absolute right-1 top-1 flex w-fit justify-center self-center p-3 text-center text-lg text-slate-500 hover:cursor-pointer hover:text-slate-700"
                 onClick={() => {
@@ -730,7 +739,7 @@ export default function ChannelSettings() {
                         ? "Password protected"
                         : "Public"
                     }
-                    changesAuthorized={owner}
+                    changesAuthorized={isOwner}
                   />
                 </div>
               </div>
@@ -748,11 +757,11 @@ export default function ChannelSettings() {
             channelId={data?.channel.id}
             admin={false}
             owner={true}
-            changesAuthorized={false}
+            changesAuthorizedAsAdmin={false}
+            changesAuthorizedAsOwner={false}
             muted={false}
             banned={false}
           />
-
           {data?.channel.admins.map((user, index) => {
             return !(user.id === data?.channel.owner.id) ? (
               <UserBanner
@@ -763,9 +772,10 @@ export default function ChannelSettings() {
                 avatar={user.avatar}
                 admin={true}
                 owner={false}
-                changesAuthorized={owner}
-                muted={false}
-                banned={false}
+                changesAuthorizedAsAdmin={isAdmin}
+                changesAuthorizedAsOwner={isOwner}
+                muted={data?.channel.muted.some((u) => u.id === user.id)}
+                banned={data?.channel.banned.some((u) => u.id === user.id)}
               />
             ) : null;
           })}
@@ -781,16 +791,14 @@ export default function ChannelSettings() {
                 avatar={user.avatar}
                 admin={false}
                 owner={false}
-                changesAuthorized={
-                  owner ||
-                  data?.channel.admins.some((admin) => admin.id === user.id)
-                }
+                changesAuthorizedAsAdmin={isAdmin}
+                changesAuthorizedAsOwner={isOwner}
                 muted={data?.channel.muted.some((u) => u.id === user.id)}
                 banned={data?.channel.banned.some((u) => u.id === user.id)}
               />
             ) : null;
           })}
-          {data?.channel.admins.some((admin) => admin.id === data?.user.id) ? (
+          {isOwner || isAdmin ? (
             <>
               <div className="mt-5 flex flex-col">
                 <SearchBar search={search} setSearch={setSearch} />
@@ -801,7 +809,7 @@ export default function ChannelSettings() {
                     search={search}
                     setSearch={setSearch}
                     queryData={data}
-                    channelId={data.channel.id ? data.channel.id : 0}
+                    channelId={data?.channel.id ? data?.channel.id : 0}
                   />
                 )}
               </div>
