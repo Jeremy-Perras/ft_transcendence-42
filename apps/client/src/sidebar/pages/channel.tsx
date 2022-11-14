@@ -2,6 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
+  usePasswordQuery,
   useCreateChannelMessageReadMutation,
   useInfoChannelQuery,
   useSendChannelMessageMutation,
@@ -10,6 +11,7 @@ import { User } from "./chat";
 import { getDate, Error, Loading, Fetching } from "./home";
 import { ReactComponent as EmptyChatIcon } from "pixelarticons/svg/message-plus.svg";
 import { HeaderPortal } from "../layout";
+import { useForm } from "react-hook-form";
 
 const ReadBy = ({ users }: { users: User[] }) => {
   const navigate = useNavigate();
@@ -124,11 +126,24 @@ const ChannelMessage = ({
 //   );
 //   return data;
 // };
+const GetPassWord = ({
+  password,
+  passwordId,
+}: {
+  password: string;
+  passwordId: number;
+}) => {
+  const { data } = usePasswordQuery({
+    password: password,
+    passwordId: passwordId,
+  });
+  return data;
+};
 
 export default function Channel() {
   const { channelId } = useParams();
   const queryClient = useQueryClient();
-
+  const { register, handleSubmit, watch } = useForm();
   if (!channelId) return <div>no channel id</div>;
   const { isLoading, isFetching, error, data } = useInfoChannelQuery(
     { channelId: +channelId, userId: null },
@@ -144,6 +159,7 @@ export default function Channel() {
             id: number;
           }[];
           muted: { __typename?: "RestrictedMember" | undefined; id: number }[];
+          password: boolean;
         } = {
           userId: user.id,
           name: channel.name,
@@ -151,6 +167,7 @@ export default function Channel() {
           owner: { id: channel.owner.id, name: channel.owner.name },
           banned: channel.banned,
           muted: channel.banned,
+          password: channel.passwordProtected,
         };
         return res;
       },
@@ -175,9 +192,11 @@ export default function Channel() {
   //     behavior: "smooth",
   //   });
   // }, [data?.messages]);
-
+  GetPassWord({ password: "wer", passwordId: 5 });
   const banned = data?.banned.some((u) => u.id === data.userId);
   const muted = data?.muted.some((u) => u.id === data.userId);
+  const [password, setPassword] = useState(data?.password);
+
   if (isLoading) {
     return <Loading />;
   }
@@ -195,6 +214,7 @@ export default function Channel() {
           link={`/settings/channel/${channelId}`}
           icon=""
         />
+
         <div
           onClick={() => {
             data?.messages.forEach((message) => {
@@ -257,6 +277,34 @@ export default function Channel() {
             />
           </div>
         </div>
+
+        {/* <form
+          className={`${
+            password ? "flex h-full flex-col bg-slate-100" : "hidden"
+          }`}
+          onSubmit={handleSubmit(() => {
+            const boolean = GetPassWord({
+              password: watch("Password"),
+              passwordId: +channelId,
+            });
+            setPassword(boolean);
+          })}
+        >
+          <div className="flex w-full px-4">
+            <div className="flex flex-col justify-center text-center">
+              <label className="mt-4 text-xl text-slate-400" htmlFor="Password">
+                Enter password
+              </label>
+              <input
+                {...register("Password", {
+                  maxLength: 100,
+                })}
+                defaultValue=""
+                className="my-4 h-10 w-64 self-center px-1 text-xl "
+              />
+            </div>
+          </div>
+        </form> */}
       </>
     );
   }

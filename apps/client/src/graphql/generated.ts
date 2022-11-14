@@ -126,8 +126,6 @@ export type Mutation = {
   updateRight: Channel;
   updateUnFriend: User;
   updateUnFriendBy: User;
-  userAvatar: User;
-  userName: User;
 };
 
 export type MutationBlockedByArgs = {
@@ -263,20 +261,13 @@ export type MutationUpdateUnFriendByArgs = {
   meId: Scalars["Int"];
 };
 
-export type MutationUserAvatarArgs = {
-  avatar: Scalars["String"];
-};
-
-export type MutationUserNameArgs = {
-  name: Scalars["String"];
-};
-
 export type Query = {
   __typename?: "Query";
   channel: Channel;
   channels: Array<Channel>;
   game: Game;
   games: Array<Game>;
+  password: Scalars["Boolean"];
   user: User;
   users: Array<Maybe<User>>;
 };
@@ -301,6 +292,11 @@ export type QueryGamesArgs = {
   gameMode?: InputMaybe<Scalars["Int"]>;
   id?: InputMaybe<Scalars["Int"]>;
   started?: InputMaybe<Scalars["Boolean"]>;
+};
+
+export type QueryPasswordArgs = {
+  id: Scalars["Int"];
+  password: Scalars["String"];
 };
 
 export type QueryUserArgs = {
@@ -657,6 +653,13 @@ export type InfoDirectMessagesQuery = {
     }>;
   };
 };
+
+export type PasswordQueryVariables = Exact<{
+  passwordId: Scalars["Int"];
+  password: Scalars["String"];
+}>;
+
+export type PasswordQuery = { __typename?: "Query"; password: boolean };
 
 export type InfoUserProfileQueryVariables = Exact<{
   userId?: InputMaybe<Scalars["Int"]>;
@@ -1740,6 +1743,27 @@ useInfoDirectMessagesQuery.fetcher = (
     InfoDirectMessagesDocument,
     variables
   );
+export const PasswordDocument = `
+    query Password($passwordId: Int!, $password: String!) {
+  password(id: $passwordId, password: $password)
+}
+    `;
+export const usePasswordQuery = <TData = PasswordQuery, TError = unknown>(
+  variables: PasswordQueryVariables,
+  options?: UseQueryOptions<PasswordQuery, TError, TData>
+) =>
+  useQuery<PasswordQuery, TError, TData>(
+    ["Password", variables],
+    fetcher<PasswordQuery, PasswordQueryVariables>(PasswordDocument, variables),
+    options
+  );
+
+usePasswordQuery.getKey = (variables: PasswordQueryVariables) => [
+  "Password",
+  variables,
+];
+usePasswordQuery.fetcher = (variables: PasswordQueryVariables) =>
+  fetcher<PasswordQuery, PasswordQueryVariables>(PasswordDocument, variables);
 export const InfoUserProfileDocument = `
     query InfoUserProfile($userId: Int) {
   user(id: $userId) {
