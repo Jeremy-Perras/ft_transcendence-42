@@ -186,7 +186,7 @@ const UserBanner = ({
             <img
               src={avatar}
               alt="Player avatar"
-              className="mt-1 h-12 w-12 border border-black"
+              className="ml-1 mt-1 h-12 w-12 border border-black"
             />
           ) : (
             <UserIcon className="mt-1 h-12 w-12 border border-black text-neutral-700" />
@@ -476,7 +476,7 @@ export const SearchBar = ({
   };
 
   return (
-    <div className="relative flex grow border-t-2 bg-slate-100">
+    <div className="relative flex w-full shrink-0 grow-0 self-end border-t-2 bg-slate-100">
       <AddMemberIcon className="flex h-full w-10 self-center border-r-2 text-slate-400 " />
       <input
         type="text"
@@ -493,13 +493,13 @@ export const SearchBar = ({
           }
         }}
       />
-      <div className="absolute inset-y-0 right-2 flex items-center">
+      <div className="absolute right-2 bottom-px">
         {search.length > 0 ? (
           <button onClick={resetSearch}>
             <CloseIcon className="h-6 text-slate-400" />
           </button>
         ) : (
-          <SearchIcon className="h-6 text-slate-400" />
+          <SearchIcon className="mb-1 h-6 text-slate-400" />
         )}
       </div>
     </div>
@@ -536,7 +536,7 @@ const Search = ({
     },
   });
   return (
-    <div className="relative flex flex-col divide-y divide-slate-200">
+    <div className="flex h-full flex-col justify-end divide-y divide-slate-200">
       {data?.map((result, index) => (
         <div key={index}>
           {!queryData.channel.members.some((u) => u.id === result?.id) &&
@@ -723,7 +723,11 @@ export default function ChannelSettings() {
         ) : (
           ""
         )}
-        <div className={`${confirmation ? "blur-sm" : ""} `}>
+        <div
+          className={`${
+            confirmation ? "blur-sm" : ""
+          } flex h-full w-full flex-col`}
+        >
           {/* TODO : put this in a component */}
           <div className="relative flex flex-col justify-center p-2">
             {isOwner ? (
@@ -816,23 +820,21 @@ export default function ChannelSettings() {
             ) : null;
           })}
           {isOwner || isAdmin ? (
-            <>
-              <div className="mt-5 flex flex-col">
-                <SearchBar search={search} setSearch={setSearch} />
-                {search.length === 0 ? (
-                  ""
-                ) : data ? (
-                  <Search
-                    search={search}
-                    setSearch={setSearch}
-                    queryData={data}
-                    channelId={data?.channel.id ? data?.channel.id : 0}
-                  />
-                ) : (
-                  <></>
-                )}
-              </div>
-            </>
+            <div className="mt-5 flex h-full w-full flex-col justify-end overflow-auto">
+              {search.length === 0 ? (
+                ""
+              ) : data ? (
+                <Search
+                  search={search}
+                  setSearch={setSearch}
+                  queryData={data}
+                  channelId={data?.channel.id ? data?.channel.id : 0}
+                />
+              ) : (
+                <></>
+              )}
+              <SearchBar search={search} setSearch={setSearch} />
+            </div>
           ) : (
             <></>
           )}

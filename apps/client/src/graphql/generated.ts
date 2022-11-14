@@ -267,7 +267,7 @@ export type Query = {
   channels: Array<Channel>;
   game: Game;
   games: Array<Game>;
-  password: Scalars["Boolean"];
+  password: Scalars["String"];
   user: User;
   users: Array<Maybe<User>>;
 };
@@ -296,7 +296,6 @@ export type QueryGamesArgs = {
 
 export type QueryPasswordArgs = {
   id: Scalars["Int"];
-  password: Scalars["String"];
 };
 
 export type QueryUserArgs = {
@@ -596,18 +595,8 @@ export type InfoChannelQuery = {
         user: { __typename?: "User"; id: number; name: string; avatar: string };
       }>;
     }>;
-    admins: Array<{
-      __typename?: "User";
-      id: number;
-      name: string;
-      avatar: string;
-    }>;
-    members: Array<{
-      __typename?: "User";
-      id: number;
-      name: string;
-      avatar: string;
-    }>;
+    admins: Array<{ __typename?: "User"; id: number }>;
+    members: Array<{ __typename?: "User"; id: number }>;
     banned: Array<{ __typename?: "RestrictedMember"; id: number }>;
     muted: Array<{ __typename?: "RestrictedMember"; id: number }>;
   };
@@ -656,10 +645,9 @@ export type InfoDirectMessagesQuery = {
 
 export type PasswordQueryVariables = Exact<{
   passwordId: Scalars["Int"];
-  password: Scalars["String"];
 }>;
 
-export type PasswordQuery = { __typename?: "Query"; password: boolean };
+export type PasswordQuery = { __typename?: "Query"; password: string };
 
 export type InfoUserProfileQueryVariables = Exact<{
   userId?: InputMaybe<Scalars["Int"]>;
@@ -1606,13 +1594,9 @@ export const InfoChannelDocument = `
     }
     admins {
       id
-      name
-      avatar
     }
     members {
       id
-      name
-      avatar
     }
     banned {
       id
@@ -1744,8 +1728,8 @@ useInfoDirectMessagesQuery.fetcher = (
     variables
   );
 export const PasswordDocument = `
-    query Password($passwordId: Int!, $password: String!) {
-  password(id: $passwordId, password: $password)
+    query password($passwordId: Int!) {
+  password(id: $passwordId)
 }
     `;
 export const usePasswordQuery = <TData = PasswordQuery, TError = unknown>(
@@ -1753,13 +1737,13 @@ export const usePasswordQuery = <TData = PasswordQuery, TError = unknown>(
   options?: UseQueryOptions<PasswordQuery, TError, TData>
 ) =>
   useQuery<PasswordQuery, TError, TData>(
-    ["Password", variables],
+    ["password", variables],
     fetcher<PasswordQuery, PasswordQueryVariables>(PasswordDocument, variables),
     options
   );
 
 usePasswordQuery.getKey = (variables: PasswordQueryVariables) => [
-  "Password",
+  "password",
   variables,
 ];
 usePasswordQuery.fetcher = (variables: PasswordQueryVariables) =>

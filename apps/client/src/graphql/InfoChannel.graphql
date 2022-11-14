@@ -27,13 +27,9 @@ query InfoChannel($channelId: Int!, $userId: Int) {
     }
     admins {
       id
-      name
-      avatar
     }
     members {
       id
-      name
-      avatar
     }
     banned {
       id

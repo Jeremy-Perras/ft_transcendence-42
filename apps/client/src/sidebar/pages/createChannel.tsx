@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useCreateChanelMutation } from "../../graphql/generated";
 import { useForm } from "react-hook-form";
 import { ReactComponent as UsersIcon } from "pixelarticons/svg/users.svg";
@@ -55,7 +55,14 @@ export default function CreateChannel({
   fn: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const queryClient = useQueryClient();
-  const { register, handleSubmit, watch } = useForm();
+  const {
+    register,
+    handleSubmit,
+    watch,
+    reset,
+    formState,
+    formState: { isSubmitSuccessful },
+  } = useForm();
   const createChannelMutation = useCreateChanelMutation({
     onSuccess: () => {
       queryClient.invalidateQueries(["InfoUsers", {}]);
@@ -64,6 +71,12 @@ export default function CreateChannel({
   const [passwordProtected, setPasswordProtected] = useState(false);
   const [publicMode, setPublicMode] = useState(true);
   const [privateMode, setPrivateMode] = useState(false);
+
+  useEffect(() => {
+    if (formState.isSubmitSuccessful) {
+      reset();
+    }
+  }, [formState, {}, reset]);
 
   return (
     <div className="z-20 flex h-full w-full flex-col border-t-2 bg-slate-100 opacity-100 transition-all">
@@ -100,6 +113,7 @@ export default function CreateChannel({
                   maxLength: 100,
                 })}
                 defaultValue=""
+                autoComplete="off"
               />
             </div>
           </div>
@@ -140,6 +154,8 @@ export default function CreateChannel({
                   required: passwordProtected,
                   maxLength: 100,
                 })}
+                type="Password"
+                autoComplete="off"
                 defaultValue=""
                 className="my-4 h-10 w-64 self-center px-1 text-xl "
               />

@@ -6,8 +6,6 @@ import { ReactComponent as GamePadIcon } from "pixelarticons/svg/gamepad.svg";
 import { ReactComponent as LoaderIcon } from "pixelarticons/svg/loader.svg";
 import { ReactComponent as AlertIcon } from "pixelarticons/svg/alert.svg";
 import { useInfoUsersQuery } from "../../graphql/generated";
-import { HeaderPortal } from "../layout";
-import Achievement1Icon from "/src/assets/images/Achievement1.svg";
 
 export function getDate(time: number) {
   const date = new Date(time);

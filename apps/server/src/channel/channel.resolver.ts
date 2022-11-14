@@ -58,19 +58,17 @@ export class ChannelResolver {
     };
   }
 
-  @Query((returns) => Boolean)
+  @Query((returns) => String)
   async password(
-    @Args("id", { type: () => Int }) id: number,
-    @Args("password", { type: () => String }) password: string
-  ): Promise<boolean> {
+    @Args("id", { type: () => Int }) id: number
+  ): Promise<string | undefined | null> {
     const channel = await this.prisma.channel.findUnique({
       select: {
         password: true,
       },
       where: { id: id },
     });
-
-    return channel?.password === password;
+    return channel?.password;
   }
 
   @Query((returns) => [Channel])
