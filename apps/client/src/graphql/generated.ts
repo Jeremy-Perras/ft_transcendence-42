@@ -126,8 +126,6 @@ export type Mutation = {
   updateRight: Channel;
   updateUnFriend: User;
   updateUnFriendBy: User;
-  userAvatar: User;
-  userName: User;
 };
 
 export type MutationBlockedByArgs = {
@@ -261,14 +259,6 @@ export type MutationUpdateUnFriendArgs = {
 export type MutationUpdateUnFriendByArgs = {
   id: Scalars["Int"];
   meId: Scalars["Int"];
-};
-
-export type MutationUserAvatarArgs = {
-  avatar: Scalars["String"];
-};
-
-export type MutationUserNameArgs = {
-  name: Scalars["String"];
 };
 
 export type Query = {
