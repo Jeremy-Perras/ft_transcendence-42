@@ -523,11 +523,10 @@ const Search = ({
   return (
     <div className="relative flex flex-col divide-y divide-slate-200">
       {data?.map((result, index) => (
-        <div>
+        <div key={index}>
           {!queryData.channel.members.some((u) => u.id === result?.id) &&
           !queryData.channel.admins.some((u) => u.id === result?.id) ? (
             <div
-              key={index}
               className="flex items-center p-2 even:bg-white hover:cursor-pointer hover:bg-blue-100"
               onClick={() => {
                 updateMembers.mutate({
