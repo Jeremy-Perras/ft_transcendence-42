@@ -14,7 +14,6 @@ import { ReactComponent as EmptyChatIcon } from "pixelarticons/svg/message-plus.
 import { ReactComponent as PasswordIcon } from "pixelarticons/svg/lock.svg";
 import { HeaderPortal } from "../layout";
 import { useForm } from "react-hook-form";
-import ReactDOM from "react-dom";
 
 const ReadBy = ({ users }: { users: User[] }) => {
   const navigate = useNavigate();
@@ -167,7 +166,6 @@ const AccessProtected = ({
   ownerName: string;
   ownerAvatar: string;
   setAuth: React.Dispatch<React.SetStateAction<boolean>>;
-  auth: boolean;
 }) => {
   const {
     register,
@@ -333,7 +331,6 @@ export default function Channel() {
             ownerAvatar={data.owner.avatar}
             ownerName={data.owner.name}
             setAuth={setAuth}
-            auth={auth}
           />
         ) : (
           <div
