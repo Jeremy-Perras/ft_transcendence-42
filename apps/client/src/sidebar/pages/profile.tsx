@@ -26,12 +26,12 @@ import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { ReactComponent as AddAvatarIcon } from "pixelarticons/svg/cloud-upload.svg";
 import { ReactComponent as AddFriendIcon } from "pixelarticons/svg/user-plus.svg";
 import { ReactComponent as PlayIcon } from "pixelarticons/svg/gamepad.svg";
-import React, { useState } from "react";
-import { createPortal } from "react-dom";
+import { useState } from "react";
 import { HeaderPortal } from "../layout";
 import FileUploadPage from "./uploadAvatar";
 
-export const RankIcon = (rank: number) => {
+export const RankIcon = (rank: number | undefined) => {
+  if (typeof rank === "undefined") return "";
   return rank <= 10
     ? Rank1Icon
     : rank <= 20
@@ -98,7 +98,6 @@ const UserProfileHeader = ({
           {data.user.id === currentUserId ? (
             <AddAvatarIcon
               onClick={() => setShowChangeAvatar(!showChangeAvatar)}
-              // TODO : make this pretty
               className="absolute -top-2 -right-2 h-6 w-6 border border-black bg-white p-px shadow-sm shadow-black hover:cursor-pointer"
             />
           ) : (
@@ -127,10 +126,7 @@ const UserProfileHeader = ({
         </div>
       </div>
       {data.user.id === currentUserId && showChangeAvatar ? (
-        <FileUploadPage
-          open={showChangeAvatar}
-          setIsOpen={setShowChangeAvatar}
-        />
+        <FileUploadPage setIsOpen={setShowChangeAvatar} />
       ) : (
         <></>
       )}
@@ -240,7 +236,9 @@ const AddFriend = () => {
     <div
       className="flex h-24 w-full items-center justify-center border-2 bg-slate-100 p-4 text-xl font-bold text-slate-400 transition-all hover:cursor-pointer hover:bg-slate-200 "
       onClick={() => {
-        askFriend.mutate({ updateFriendId: +params.userId! });
+        params.userId
+          ? askFriend.mutate({ updateFriendId: +params.userId })
+          : null;
       }}
     >
       <AddFriendIcon className="mx-4 mb-2 w-16 self-center " />
@@ -251,13 +249,7 @@ const AddFriend = () => {
   );
 };
 
-const FriendButtons = ({
-  data,
-  currentUserId,
-}: {
-  data: UserProfileQuery;
-  currentUserId: number;
-}) => {
+const FriendButtons = ({ data }: { data: UserProfileQuery }) => {
   const params = useParams();
   const queryClient = useQueryClient();
   const unFriend = useUpdateUnFriendMutation({
@@ -287,7 +279,9 @@ const FriendButtons = ({
       </div>
       <div
         onClick={() => {
-          unFriend.mutate({ updateUnFriendId: +params.userId! });
+          params.userId
+            ? unFriend.mutate({ updateUnFriendId: +params.userId })
+            : null;
         }}
         className="flex basis-1/3 items-center justify-center border-y-2 border-slate-300 bg-slate-200 text-center transition-all hover:cursor-pointer hover:bg-slate-300"
       >
@@ -295,9 +289,11 @@ const FriendButtons = ({
       </div>
       <div
         onClick={() => {
-          data?.user.blocked
-            ? unblockMutation.mutate({ unblockingUserId: +params.userId! })
-            : blockMutation.mutate({ blockingUserId: +params.userId! });
+          params.userId
+            ? data?.user.blocked
+              ? unblockMutation.mutate({ unblockingUserId: +params.userId })
+              : blockMutation.mutate({ blockingUserId: +params.userId })
+            : null;
         }}
         className="flex basis-1/3 items-center justify-center border-2 border-slate-300 bg-slate-200  text-center transition-all  hover:cursor-pointer hover:bg-slate-300"
       >
@@ -312,7 +308,7 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
   const CurrentUserData = () => {
     const { data } = useUserProfileQuery();
     return data;
-  }; //TODO : replace with better thing with current user
+  };
   const currentUserData = CurrentUserData();
   return (
     <div className="flex h-full w-full flex-col ">
@@ -329,7 +325,7 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
       ) : currentUserData?.user.friends.some(
           (friend) => friend.id == data.user.id
         ) ? (
-        <FriendButtons data={data} currentUserId={currentUserData.user.id} />
+        <FriendButtons data={data} />
       ) : (
         <AddFriend />
       )}

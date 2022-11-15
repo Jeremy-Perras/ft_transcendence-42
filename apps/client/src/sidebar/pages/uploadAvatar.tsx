@@ -5,10 +5,8 @@ import queryClient from "../../query";
 import { ReactComponent as CloseIcon } from "pixelarticons/svg/close.svg";
 
 export default function FileUploadPage({
-  open,
   setIsOpen,
 }: {
-  open: boolean;
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const [selectedFile, setSelectedFile] = useState();
@@ -18,7 +16,8 @@ export default function FileUploadPage({
     return () => focusManager.setFocused(undefined);
   }, []);
 
-  const changeHandler = (event) => {
+  //TODO : remove any
+  const changeHandler = (event: any) => {
     setSelectedFile(event);
   };
   return (
@@ -37,9 +36,11 @@ export default function FileUploadPage({
           <input
             type="file"
             onChange={(e) => {
-              if (e.currentTarget.files[0]) {
-                changeHandler(e.currentTarget.files[0]);
-              }
+              if (e.currentTarget?.files) {
+                if (e.currentTarget?.files[0]) {
+                  changeHandler(e.currentTarget.files[0]);
+                }
+              } else null;
             }}
           />
           <button

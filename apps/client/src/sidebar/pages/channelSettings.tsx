@@ -14,6 +14,7 @@ import {
   Exact,
   InputMaybe,
   MutedSomeoneChannelMutation,
+  BannedSomeoneChannelMutation,
 } from "../../graphql/generated";
 import { ReactComponent as UsersIcon } from "pixelarticons/svg/users.svg";
 import { ReactComponent as TrashIcon } from "pixelarticons/svg/trash.svg";
@@ -33,22 +34,47 @@ import * as Avatar from "@radix-ui/react-avatar";
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { useForm } from "react-hook-form";
 import { HeaderPortal } from "../layout";
-import { User } from "./chat";
 
 /********************************************************************/
 /*                               TYPES                              */
 /********************************************************************/
 type ChannelInfo = {
-  __typename?: string | undefined;
+  __typename?: "Channel";
   name: string;
   id: number;
   private: boolean;
   passwordProtected: boolean;
-  owner: User;
-  admins: User[];
-  members: User[];
-  banned: { id: number; endAt?: number | null | undefined }[] | undefined;
-  muted: { id: number; endAt?: number | null | undefined }[] | undefined;
+  owner: {
+    __typename?: "User";
+    id: number;
+    name: string;
+    avatar: string;
+    rank: number;
+  };
+  admins: {
+    __typename?: "User";
+    id: number;
+    name: string;
+    avatar: string;
+    rank: number;
+  }[];
+  members: {
+    __typename?: "User";
+    id: number;
+    name: string;
+    avatar: string;
+    rank: number;
+  }[];
+  banned: {
+    __typename?: "RestrictedMember";
+    id: number;
+    endAt?: number | null;
+  }[];
+  muted: {
+    __typename?: "RestrictedMember";
+    endAt?: number | null;
+    id: number;
+  }[];
 };
 
 type RestrictionTime = {
@@ -90,7 +116,7 @@ const SetRestrictionTimeButton = ({
 }: {
   setShowTime: React.Dispatch<React.SetStateAction<boolean>>;
   action: UseMutationResult<
-    MutedSomeoneChannelMutation,
+    MutedSomeoneChannelMutation | BannedSomeoneChannelMutation,
     unknown,
     Exact<{
       createMutedId: number;
@@ -99,6 +125,7 @@ const SetRestrictionTimeButton = ({
     }>,
     unknown
   >;
+
   channelId: number | undefined;
   id: number | undefined;
   date: number | undefined | null;
@@ -128,16 +155,27 @@ const ChooseTimeButton = ({
   showTime,
   setShowTime,
 }: {
-  action: UseMutationResult<
-    MutedSomeoneChannelMutation,
-    unknown,
-    Exact<{
-      createMutedId: number;
-      channelId: number;
-      date?: InputMaybe<number> | undefined;
-    }>,
-    unknown
-  >;
+  action:
+    | UseMutationResult<
+        MutedSomeoneChannelMutation,
+        unknown,
+        Exact<{
+          createMutedId: number;
+          channelId: number;
+          date?: InputMaybe<number> | undefined;
+        }>,
+        unknown
+      >
+    | UseMutationResult<
+        BannedSomeoneChannelMutation,
+        unknown,
+        Exact<{
+          createMutedId: number;
+          channelId: number;
+          date?: InputMaybe<number> | undefined;
+        }>,
+        unknown
+      >;
   channelId: number | undefined;
   id: number | undefined;
   showTime: boolean;
@@ -537,12 +575,10 @@ const SearchBar = ({
 
 const Search = ({
   search,
-  setSearch,
   queryData,
   channelId,
 }: {
   search: string;
-  setSearch: (value: string) => void;
   queryData: ChannelSettingsQuery;
   channelId: number;
 }) => {
@@ -551,7 +587,7 @@ const Search = ({
     { name: search },
     {
       select(data) {
-        const { users, channels } = data;
+        const { users } = data;
         const results: typeof users[number][] = [...users];
         return results;
       },
@@ -901,19 +937,39 @@ const MemberList = ({
 /********************************************************************/
 /*                        MAIN COMPONENT                            */
 /********************************************************************/
-//TODO : object destructuring
+
 export default function ChannelSettings() {
-  const [search, setSearch] = useThrottledState("", 500);
   const params = useParams();
 
+  const [search, setSearch] = useThrottledState("", 500);
   const [deleteConfirmation, setDeleteConfirmation] = useState(false);
 
   if (typeof params.channelId === "undefined") return <div></div>;
+
   const channelId = +params.channelId;
-  const { isLoading, data, error, isFetching } = useChannelSettingsQuery({
-    userId: null,
-    channelId: channelId,
-  });
+
+  const { isLoading, data, error, isFetching } = useChannelSettingsQuery(
+    {
+      userId: null,
+      channelId: channelId,
+    },
+    {
+      select({ user, channel }) {
+        const res: {
+          user: {
+            id: number;
+          };
+          channel: ChannelInfo;
+        } = {
+          user: {
+            id: user.id,
+          },
+          channel: channel,
+        };
+        return res;
+      },
+    }
+  );
 
   if (isLoading) return <div>Loading ...</div>;
   if (isFetching) {
@@ -934,8 +990,8 @@ export default function ChannelSettings() {
       {" "}
       <HeaderPortal
         container={document.getElementById("header") as HTMLElement}
-        text="Settings"
-        link=""
+        text="Go back to discussion"
+        link={`/channel/${channelId}`}
         icon=""
       />
       <div className="relative flex h-full w-full flex-col ">
@@ -973,7 +1029,6 @@ export default function ChannelSettings() {
               ) : data ? (
                 <Search
                   search={search}
-                  setSearch={setSearch}
                   queryData={data}
                   channelId={data?.channel.id ? data?.channel.id : 0}
                 />

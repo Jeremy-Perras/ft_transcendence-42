@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useCreateChanelMutation } from "../../graphql/generated";
 import { useForm } from "react-hook-form";
 import { ReactComponent as UsersIcon } from "pixelarticons/svg/users.svg";
@@ -12,13 +12,13 @@ import { ReactComponent as PublicIcon } from "pixelarticons/svg/lock-open.svg";
 const ChannelModeButton = ({
   text,
   active,
-  fn,
+  activeFn,
   inactiveFn1,
   inactiveFn2,
 }: {
   text: string;
   active: boolean;
-  fn: React.Dispatch<React.SetStateAction<boolean>>;
+  activeFn: React.Dispatch<React.SetStateAction<boolean>>;
   inactiveFn1: React.Dispatch<React.SetStateAction<boolean>>;
   inactiveFn2: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
@@ -30,7 +30,7 @@ const ChannelModeButton = ({
           : ` bg-slate-50 text-lg text-slate-400 ${"hover:cursor-pointer hover:bg-slate-200"}`
       } flex h-24 basis-1/3 items-center justify-center border-y-2 border-l-2 border-slate-300 text-center`}
       onClick={() => {
-        fn(!active);
+        activeFn(true);
         inactiveFn1(false);
         inactiveFn2(false);
       }}
@@ -55,14 +55,7 @@ export default function CreateChannel({
   fn: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const queryClient = useQueryClient();
-  const {
-    register,
-    handleSubmit,
-    watch,
-    reset,
-    formState,
-    formState: { isSubmitSuccessful },
-  } = useForm();
+  const { register, handleSubmit, watch, reset, formState } = useForm();
   const createChannelMutation = useCreateChanelMutation({
     onSuccess: () => {
       queryClient.invalidateQueries(["InfoUsers", {}]);
@@ -122,22 +115,22 @@ export default function CreateChannel({
         <div className="flex justify-evenly border-r-2 border-slate-300 bg-slate-100">
           <ChannelModeButton
             text="Public"
-            active={!privateMode && !passwordProtected}
-            fn={setPublicMode}
+            active={publicMode}
+            activeFn={setPublicMode}
             inactiveFn1={setPrivateMode}
             inactiveFn2={setPasswordProtected}
           />
           <ChannelModeButton
             text="Private"
             active={privateMode}
-            fn={setPrivateMode}
+            activeFn={setPrivateMode}
             inactiveFn1={setPublicMode}
             inactiveFn2={setPasswordProtected}
           />
           <ChannelModeButton
             text="Password"
             active={passwordProtected}
-            fn={setPasswordProtected}
+            activeFn={setPasswordProtected}
             inactiveFn1={setPrivateMode}
             inactiveFn2={setPublicMode}
           />
