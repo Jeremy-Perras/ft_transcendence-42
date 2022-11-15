@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   useInfoDirectMessagesQuery,
@@ -9,6 +9,7 @@ import { getDate } from "./home";
 import { ReactComponent as EmptyChatIcon } from "pixelarticons/svg/message-plus.svg";
 import { HeaderPortal } from "../layout";
 import { RankIcon } from "./profile";
+import React from "react";
 
 export type User = {
   __typename?: "User" | undefined;
@@ -126,8 +127,15 @@ export default function Chat() {
   // }
 
   // if (error) {
-  //   return <Error />;
-  // }
+  //   return <Error />;  // }
+  const messagesEndRef = useRef<null | HTMLDivElement>(null);
+  const scrollToBottom = () => {
+    messagesEndRef?.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [data?.messages]);
 
   return (
     <div className="flex h-full flex-col">
@@ -137,7 +145,7 @@ export default function Chat() {
         link={`/profile/${userId}`}
         icon={RankIcon(data?.rank)}
       />
-      <ul className="mt-4 flex h-fit w-full grow flex-col overflow-auto pr-2 pl-px">
+      <ul className="mt-4 flex h-fit w-full grow flex-col overflow-auto pr-2 pl-px ">
         {data?.messages.length === 0 ? (
           <div className="mb-48 flex h-full flex-col items-center justify-center text-center text-slate-300">
             <EmptyChatIcon className="w-96 text-slate-200" />
@@ -146,10 +154,13 @@ export default function Chat() {
         ) : (
           <></>
         )}
+
         {data?.messages.map((message, index) => (
           <DirectMessage key={index} userId={userId} {...message} />
         ))}
+        <div ref={messagesEndRef} />
       </ul>
+
       <div className="flex h-16 w-full border-t-2 bg-slate-50 p-2">
         <textarea
           disabled={data?.blocking == true || data?.blocked === true}
