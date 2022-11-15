@@ -9,11 +9,12 @@ import {
 } from "../../graphql/generated";
 import { User } from "./chat";
 import { getDate, Error, Loading, Fetching } from "./home";
-import { ReactComponent as ForbiddenIcon } from "pixelarticons/svg/close-box.svg";
+import { ReactComponent as ForbiddenIcon } from "pixelarticons/svg/alert.svg";
 import { ReactComponent as EmptyChatIcon } from "pixelarticons/svg/message-plus.svg";
 import { ReactComponent as PasswordIcon } from "pixelarticons/svg/lock.svg";
 import { HeaderPortal } from "../layout";
 import { useForm } from "react-hook-form";
+import BannedIcon from "/src/assets/images/Banned.svg";
 
 const ReadBy = ({ users }: { users: User[] }) => {
   const navigate = useNavigate();
@@ -104,6 +105,15 @@ const ChannelMessage = ({
         />
       </div>
     </>
+  );
+};
+
+const Banned = () => {
+  return (
+    <div className="flex h-full w-full flex-col items-center justify-center pb-60">
+      <img src={BannedIcon} className="w-96 text-slate-100 opacity-30" />
+      <div className="mt-10 text-3xl text-neutral-300">You are banned.</div>
+    </div>
   );
 };
 
@@ -305,6 +315,7 @@ export default function Channel() {
           container={document.getElementById("header") as HTMLElement}
           text={data?.name}
           link={
+            banned ||
             (data?.password && !auth) ||
             (data?.private &&
               !data.adminIds.some((admin) => admin.id === data.userId) &&
@@ -314,9 +325,11 @@ export default function Channel() {
           }
           icon=""
         />
-        {data?.private &&
-        !data.adminIds.some((admin) => admin.id === data.userId) &&
-        !data.memberIds.some((member) => member.id === data.userId) ? (
+        {banned ? (
+          <Banned />
+        ) : data?.private &&
+          !data.adminIds.some((admin) => admin.id === data.userId) &&
+          !data.memberIds.some((member) => member.id === data.userId) ? (
           <AccessForbidden
             ownerId={data?.owner.id}
             ownerAvatar={data.owner.avatar}
@@ -367,9 +380,7 @@ export default function Channel() {
                 } h-10 w-11/12 resize-none overflow-visible rounded-lg px-3 pt-2`}
                 onChange={(e) => setContent(e.target.value)}
                 placeholder={`${
-                  banned === true
-                    ? "Your are banned"
-                    : muted === true
+                  muted === true
                     ? "You are muted"
                     : "Type your message here ..."
                 }`}
