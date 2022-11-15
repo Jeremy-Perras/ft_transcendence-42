@@ -34,6 +34,7 @@ import * as Avatar from "@radix-ui/react-avatar";
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { useForm } from "react-hook-form";
 import { HeaderPortal } from "../layout";
+import { Fetching, Loading, Error } from "./home";
 
 /********************************************************************/
 /*                               TYPES                              */
@@ -971,13 +972,10 @@ export default function ChannelSettings() {
     }
   );
 
-  if (isLoading) return <div>Loading ...</div>;
-  if (isFetching) {
-    return <div>Fetching</div>;
-  }
-  if (error) {
-    return <div>Error</div>;
-  }
+  if (isLoading) return <Loading />;
+  if (isFetching) return <Fetching />;
+  if (error) return <Error />;
+
   if (typeof data === "undefined") return <></>;
   const isOwner = data?.user.id === data?.channel.owner.id;
   const isAdmin = data?.channel.admins.some(

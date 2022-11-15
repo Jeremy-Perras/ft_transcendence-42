@@ -20,6 +20,7 @@ import { useSidebarStore } from "../stores";
 import CreateChannel from "./pages/createChannel";
 import ReactDOM from "react-dom";
 import React from "react";
+import { Fetching, Loading, Error } from "./pages/home";
 
 //TODO : skeleton loader while loading
 // retry
@@ -180,6 +181,9 @@ function Header({
       },
     }
   );
+  if (isLoading) return <Loading />;
+  if (isFetching) return <Fetching />;
+  if (error) return <Error />;
   return (
     <div className="z-10 flex w-full shadow-sm shadow-slate-400">
       <AnimatePresence initial={false} exitBeforeEnter>
@@ -233,6 +237,7 @@ const Highlight = ({
   content: string | undefined;
   search: string;
 }) => {
+  if (typeof content === "undefined") return <></>;
   const index = content.toLowerCase().indexOf(search.toLowerCase());
   const before = content.slice(0, index);
   const match = content.slice(index, index + search.length);
