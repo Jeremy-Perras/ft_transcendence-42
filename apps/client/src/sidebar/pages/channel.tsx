@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   usePasswordQuery,
@@ -15,7 +15,6 @@ import { ReactComponent as PasswordIcon } from "pixelarticons/svg/lock.svg";
 import { HeaderPortal } from "../layout";
 import { useForm } from "react-hook-form";
 import BannedIcon from "/src/assets/images/Banned.svg";
-import { CookieSerializer } from "../../../../server/src/auth/auth.serializer";
 
 const ReadBy = ({ users }: { users: User[] }) => {
   const navigate = useNavigate();
@@ -300,24 +299,20 @@ export default function Channel() {
     },
   });
   const [content, setContent] = useState("");
-  const endMessages = useRef(null);
 
   const banned = data?.banned.some((u) => u.id === data.userId);
   const muted = data?.muted.some((u) => u.id === data.userId);
   const [auth, setAuth] = useState(false);
   const cookies = document.cookie;
+  const messagesEndRef = useRef<null | HTMLDivElement>(null);
+  const scrollToBottom = () => {
+    messagesEndRef?.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
-  // if (c.includes(`userId=${data?.userId}, channelId=${channelId}`))
-  //   setAuth(true);
-  // if (isLoading) {
-  //   return <Loading />;
-  // }
-  // if (isFetching) {
-  //   return <Fetching />;
-  // }
-  // if (error) {
-  //   return <Error />;
-  // }
+  useEffect(() => {
+    scrollToBottom();
+  }, [data?.messages]);
+
   return (
     <>
       <HeaderPortal
@@ -381,7 +376,7 @@ export default function Channel() {
             {data?.messages?.map((message, index) => (
               <ChannelMessage key={index} {...message} />
             ))}
-            <div ref={endMessages} />
+            <div ref={messagesEndRef} />
           </div>
           <div className="flex h-16 w-full border-t-2 bg-slate-50 p-2">
             <textarea
