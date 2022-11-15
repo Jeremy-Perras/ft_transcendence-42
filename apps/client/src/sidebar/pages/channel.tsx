@@ -64,7 +64,6 @@ type ChannelMessage = {
 };
 
 const ChannelMessage = ({
-  id,
   author,
   readBy,
   content,
@@ -108,13 +107,6 @@ const ChannelMessage = ({
   );
 };
 
-const GetPassWord = ({ passwordId }: { passwordId: number }) => {
-  const { data } = usePasswordQuery({
-    passwordId: passwordId,
-  });
-  return data;
-};
-
 const AccessForbidden = ({
   ownerId,
   ownerName,
@@ -153,7 +145,7 @@ const GetPassword = ({ passwordId }: { passwordId: number }) => {
   return data;
 };
 
-//TODO : Enter pw only at 1st connection to channel => set in back
+//TODO : Enter pw only at 1st connection to channel => cookie?
 const AccessProtected = ({
   channelId,
   ownerId,
@@ -294,7 +286,6 @@ export default function Channel() {
   const [content, setContent] = useState("");
   const endMessages = useRef(null);
 
-  // GetPassWord({ password: "wer", passwordId: 5 });
   const banned = data?.banned.some((u) => u.id === data.userId);
   const muted = data?.muted.some((u) => u.id === data.userId);
   const [auth, setAuth] = useState(false);
@@ -313,7 +304,14 @@ export default function Channel() {
         <HeaderPortal
           container={document.getElementById("header") as HTMLElement}
           text={data?.name}
-          link={`/settings/channel/${channelId}`}
+          link={
+            (data?.password && !auth) ||
+            (data?.private &&
+              !data.adminIds.some((admin) => admin.id === data.userId) &&
+              !data.memberIds.some((member) => member.id === data.userId))
+              ? ""
+              : `/settings/channel/${channelId}`
+          }
           icon=""
         />
         {data?.private &&
