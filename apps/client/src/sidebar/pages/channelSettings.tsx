@@ -11,6 +11,9 @@ import {
   useDeleteBannedMutation,
   useUpdateRightMutation,
   useUpdateMembersMutation,
+  Exact,
+  InputMaybe,
+  MutedSomeoneChannelMutation,
 } from "../../graphql/generated";
 import { ReactComponent as UsersIcon } from "pixelarticons/svg/users.svg";
 import { ReactComponent as TrashIcon } from "pixelarticons/svg/trash.svg";
@@ -23,31 +26,170 @@ import { ReactComponent as AdminIcon } from "pixelarticons/svg/briefcase-plus.sv
 import { ReactComponent as CloseIcon } from "pixelarticons/svg/close.svg";
 import { ReactComponent as SearchIcon } from "pixelarticons/svg/search.svg";
 import { useRef, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { UseMutationResult, useQueryClient } from "@tanstack/react-query";
 
 import { useThrottledState } from "@react-hookz/web";
 import * as Avatar from "@radix-ui/react-avatar";
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { useForm } from "react-hook-form";
 import { HeaderPortal } from "../layout";
-
-/*************************** WORKS AS INTENTED *************** */
+import { User } from "./chat";
 
 /********************************************************************/
-/*           CHANNEL TYPE / Password protected CHANGE               */
+/*                               TYPES                              */
 /********************************************************************/
-const ChannelType = ({
-  idChannel,
-  activeMode,
-  changesAuthorized,
+type ChannelInfo = {
+  __typename?: string | undefined;
+  name: string;
+  id: number;
+  private: boolean;
+  passwordProtected: boolean;
+  owner: User;
+  admins: User[];
+  members: User[];
+  banned: { id: number; endAt?: number | null | undefined }[] | undefined;
+  muted: { id: number; endAt?: number | null | undefined }[] | undefined;
+};
+
+type RestrictionTime = {
+  text: string;
+  date: number | null | undefined;
+};
+
+/********************************************************************/
+/*                            USER BANNERS                          */
+/********************************************************************/
+
+/* *********************** BAN / MUTE ELEMENTS ******************** */
+const restrictionTimeArray: RestrictionTime[] = [
+  {
+    text: "1h",
+    date: Math.floor(new Date() as unknown as number) + 60 * 60 * 2 * 1000,
+  },
+  {
+    text: "8h",
+    date: Math.floor(new Date() as unknown as number) + 60 * 60 * 9 * 1000,
+  },
+  {
+    text: "24h",
+    date: Math.floor(new Date() as unknown as number) + 60 * 60 * 25 * 1000,
+  },
+  {
+    text: "Forever",
+    date: null,
+  },
+];
+
+const SetRestrictionTimeButton = ({
+  setShowTime,
+  action,
+  channelId,
+  id,
+  date,
+  text,
 }: {
-  idChannel: number;
-  activeMode: string;
-  changesAuthorized: boolean;
+  setShowTime: React.Dispatch<React.SetStateAction<boolean>>;
+  action: UseMutationResult<
+    MutedSomeoneChannelMutation,
+    unknown,
+    Exact<{
+      createMutedId: number;
+      channelId: number;
+      date?: InputMaybe<number> | undefined;
+    }>,
+    unknown
+  >;
+  channelId: number | undefined;
+  id: number | undefined;
+  date: number | undefined | null;
+  text: string;
 }) => {
-  const queryClient = useQueryClient();
-  const { register, handleSubmit, watch } = useForm();
-  const updateRight = useUpdateRightMutation({
+  return (
+    <div
+      className="hover:bg-slate-300"
+      onClick={() => {
+        setShowTime(false),
+          action.mutate({
+            channelId: channelId ? channelId : 0,
+            createMutedId: id ? id : 0,
+            date: date,
+          });
+      }}
+    >
+      {text}
+    </div>
+  );
+};
+
+const ChooseTimeButton = ({
+  id,
+  channelId,
+  action,
+  showTime,
+  setShowTime,
+}: {
+  action: UseMutationResult<
+    MutedSomeoneChannelMutation,
+    unknown,
+    Exact<{
+      createMutedId: number;
+      channelId: number;
+      date?: InputMaybe<number> | undefined;
+    }>,
+    unknown
+  >;
+  channelId: number | undefined;
+  id: number | undefined;
+  showTime: boolean;
+  setShowTime: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
+  return (
+    <div
+      onMouseLeave={() => setShowTime(false)}
+      className={`${
+        showTime
+          ? "visible h-fit w-10 border-2 opacity-100"
+          : "hidden h-0 w-0 opacity-0"
+      } absolute -left-1 -top-5 z-10 flex-col border-slate-300 bg-slate-200 text-center text-xs text-slate-700 transition-all`}
+    >
+      {restrictionTimeArray.map((restrictionTime) => {
+        return (
+          <SetRestrictionTimeButton
+            key={restrictionTime.text}
+            setShowTime={setShowTime}
+            action={action}
+            channelId={channelId}
+            id={id}
+            {...restrictionTime}
+          />
+        );
+      })}
+    </div>
+  );
+};
+
+const MuteButton = ({
+  id,
+  channelId,
+  muted,
+}: {
+  id: number | undefined;
+  channelId: number | undefined;
+  muted: boolean | undefined;
+}) => {
+  const queryClient = useQueryClient(); // REMOVE
+  const [showInfoMute, setShowInfoMute] = useState(false);
+  const [showTimeMute, setShowTimeMute] = useState(false);
+  const mutedSomeone = useMutedSomeoneChannelMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries([
+        // "ChannelSettings",
+        // { userId: null, channelId: channelId },
+      ]);
+    },
+  });
+
+  const deleteMutedSomeone = useDeleteMutedMutation({
     onSuccess: () => {
       queryClient.invalidateQueries([
         // "ChannelSettings",
@@ -56,54 +198,236 @@ const ChannelType = ({
     },
   });
   return (
-    <div className="flex h-full flex-col">
-      <form
-        className="flex h-full flex-col"
-        onSubmit={handleSubmit(() => {
-          updateRight.mutate({
-            idchannel: idChannel,
-            inviteOnly: activeMode === "Private",
-            password:
-              activeMode === "Password protected" ? watch("Password") : "",
-          });
-        })}
+    <div className="relative flex w-8 flex-col text-center transition-all hover:cursor-pointer">
+      <div
+        onMouseLeave={() => setShowTimeMute(false)}
+        className={`${
+          showTimeMute
+            ? "visible h-fit w-10 border-2 opacity-100"
+            : "hidden h-0 w-0 opacity-0"
+        } absolute -left-1 -top-5 z-10 flex-col border-slate-300 bg-slate-200 text-center text-xs text-slate-700 transition-all`}
       >
-        <div className="mb-2 flex h-full ">Mode : {activeMode}</div>
-        <div className="flex h-full items-center justify-start">
-          {activeMode === "Password protected" && changesAuthorized ? (
-            <div className="flex items-center justify-start ">
-              <label
-                className="mr-2 self-end text-sm text-slate-400"
-                htmlFor="Password"
-              >
-                Enter new password :
-              </label>
-              <input
-                {...register("Password", {
-                  required: activeMode === "Password protected",
-                  maxLength: 100,
-                })}
-                defaultValue=""
-                className="h-6 w-40 self-center px-1 text-xs"
-              />
-              <input
-                className="ml-3 flex w-fit justify-center self-center border border-slate-300 bg-slate-200 px-1  text-center text-sm font-bold hover:cursor-pointer hover:bg-slate-300"
-                type="submit"
-              />
-            </div>
-          ) : (
-            <></>
-          )}
+        <ChooseTimeButton
+          setShowTime={setShowTimeMute}
+          action={mutedSomeone}
+          channelId={channelId}
+          id={id}
+          showTime={showTimeMute}
+        />
+      </div>
+      <div
+        className="flex flex-col items-center justify-center"
+        onClick={() => {
+          !muted ? setShowTimeMute(true) : "";
+        }}
+      >
+        {muted ? (
+          <UnmuteIcon
+            onMouseOver={() => setShowInfoMute(true)}
+            onMouseOut={() => {
+              setShowInfoMute(false);
+            }}
+            onClick={() => {
+              deleteMutedSomeone.mutate({
+                channel: channelId ? channelId : 0,
+                userId: id ? id : 0,
+              });
+            }}
+            className="w-6 border-2 border-slate-300  text-neutral-600 hover:cursor-pointer hover:border-slate-700 hover:text-black"
+          />
+        ) : (
+          <MuteIcon
+            onMouseOver={() => setShowInfoMute(true)}
+            onMouseOut={() => {
+              setShowInfoMute(false);
+            }}
+            onClick={() => setShowTimeMute(true)}
+            className="w-6 border-2 border-slate-300  text-neutral-600 hover:cursor-pointer hover:border-slate-700 hover:text-black"
+          />
+        )}
+        <div
+          className={`${
+            showInfoMute ? "opacity-100" : "opacity-0 "
+          } absolute top-6 w-24 text-center text-xs text-slate-400`}
+        >
+          {muted ? "Unmute" : "Mute"}
         </div>
-      </form>
+      </div>
     </div>
   );
 };
 
-/********************************************************************/
-/*                        USER BANNERS                              */
-/********************************************************************/
-//TODO :  simplify this horrific thing
+const BanButton = ({
+  id,
+  channelId,
+  banned,
+}: {
+  id: number | undefined;
+  channelId: number | undefined;
+  banned: boolean | undefined;
+}) => {
+  const [showInfoBan, setShowInfoBan] = useState(false);
+  const [showTimeBan, setShowTimeBan] = useState(false);
+  const queryClient = useQueryClient(); // REMOVE
+  const bannedSomeone = useBannedSomeoneChannelMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries([
+        // "ChannelSettings",
+        // { userId: null, channelId: channelId },
+      ]);
+    },
+  });
+
+  const deleteBannedSomeone = useDeleteBannedMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries([
+        // "ChannelSettings",
+        // { userId: null, channelId: channelId },
+      ]);
+    },
+  });
+  return (
+    <div className="relative flex w-8 flex-col justify-end text-center transition-all hover:cursor-pointer">
+      <ChooseTimeButton
+        setShowTime={setShowTimeBan}
+        action={bannedSomeone}
+        channelId={channelId}
+        id={id}
+        showTime={showTimeBan}
+      />
+      <div
+        className="flex flex-col items-center justify-center"
+        onClick={() => (!banned ? setShowTimeBan(true) : "")}
+      >
+        {banned ? (
+          <UnbanIcon
+            onMouseOver={() => setShowInfoBan(true)}
+            onMouseOut={() => setShowInfoBan(false)}
+            className="w-6 border-2 border-slate-300  text-neutral-600 hover:cursor-pointer hover:border-slate-700 hover:text-black"
+            onClick={() => {
+              deleteBannedSomeone.mutate({
+                channel: channelId ? channelId : 0,
+                userId: id ? id : 0,
+              });
+            }}
+          />
+        ) : (
+          <BanIcon
+            onMouseOver={() => setShowInfoBan(true)}
+            onMouseOut={() => setShowInfoBan(false)}
+            className="w-6 border-2 border-slate-300  text-neutral-600 hover:cursor-pointer hover:border-slate-700 hover:text-black"
+          />
+        )}
+        <div
+          className={`${
+            showInfoBan ? "opacity-100" : "opacity-0 "
+          } absolute top-6 w-8 text-center text-xs text-slate-400`}
+        >
+          {banned ? "Unban" : "Ban"}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* *********************** ADMIN ELEMENT ******************** */
+
+const SetAsAdminButton = ({
+  id,
+  channelId,
+}: {
+  id: number | undefined;
+  channelId: number | undefined;
+}) => {
+  const [showInfoAdmin, setShowInfoAdmin] = useState(false);
+  const queryClient = useQueryClient(); // MOVE
+  const updateAdmins = useUpdateAdminsMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries([
+        // "ChannelSettings",
+        // { userId: null, channelId: channelId },
+      ]);
+    },
+  });
+  return (
+    <div
+      className="relative flex w-8 flex-col items-center justify-start"
+      onClick={() => {
+        updateAdmins.mutate({
+          channelId: channelId ? channelId : 0,
+          userId: id ? id : 0,
+        });
+      }}
+    >
+      {" "}
+      <AdminIcon
+        onMouseOver={() => setShowInfoAdmin(true)}
+        onMouseOut={() => {
+          setShowInfoAdmin(false);
+        }}
+        className="w-6 border-2 border-slate-300 text-neutral-600 hover:cursor-pointer hover:border-slate-700 hover:text-black"
+      />
+      <div
+        className={`${
+          showInfoAdmin ? "opacity-100" : "opacity-0 "
+        } absolute top-6 w-24 text-center text-xs text-slate-400 `}
+      >
+        Set as admin
+      </div>
+    </div>
+  );
+};
+
+/* *********************** SHARED ELEMENT ******************** */
+const UserHeader = ({
+  id,
+  name,
+  avatar,
+  banned,
+  muted,
+  owner,
+  admin,
+}: {
+  id: number | undefined;
+  name: string | undefined;
+  avatar: string | undefined;
+  banned: boolean | undefined;
+  muted: boolean | undefined;
+  owner: boolean;
+  admin: boolean;
+}) => {
+  const navigate = useNavigate();
+  return (
+    <div
+      className="flex grow hover:cursor-pointer"
+      onClick={() => navigate(`/profile/${id}`)}
+    >
+      {typeof avatar !== undefined && avatar !== "" ? (
+        <img
+          src={avatar}
+          alt="Player avatar"
+          className="ml-1 mt-1 h-12 w-12 border border-black"
+        />
+      ) : (
+        <UserIcon className="mt-1 h-12 w-12 border border-black text-neutral-700" />
+      )}
+      <div className="ml-2 flex flex-col justify-center text-xs">
+        <div className="flex">
+          <span className="truncate text-base font-bold ">{name}</span>
+          <div className="mx-2 flex shrink-0">
+            {banned ? <BanIcon className="w-4 text-red-600" /> : null}
+            {muted ? <MuteIcon className="w-4 text-red-300" /> : null}
+          </div>
+        </div>
+        <div className="text-xs">
+          {owner ? "Owner" : admin ? "Admin" : "Member"}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* *********************** MAIN COMPONENT ******************** */
 const UserBanner = ({
   id,
   name,
@@ -127,328 +451,33 @@ const UserBanner = ({
   changesAuthorizedAsAdmin: boolean;
   changesAuthorizedAsOwner: boolean;
 }) => {
-  const navigate = useNavigate();
-  const [showInfoAdmin, setShowInfoAdmin] = useState(false);
-  const [showInfoMute, setShowInfoMute] = useState(false);
-  const [showInfoBan, setShowInfoBan] = useState(false);
-  const [showTimeMute, setShowTimeMute] = useState(false);
-  const [showTimeBan, setShowTimeBan] = useState(false);
-  const queryClient = useQueryClient();
-
-  const updateAdmins = useUpdateAdminsMutation({
-    onSuccess: () => {
-      queryClient.invalidateQueries([
-        // "ChannelSettings",
-        // { userId: null, channelId: channelId },
-      ]);
-    },
-  });
-  const bannedSomeone = useBannedSomeoneChannelMutation({
-    onSuccess: () => {
-      queryClient.invalidateQueries([
-        // "ChannelSettings",
-        // { userId: null, channelId: channelId },
-      ]);
-    },
-  });
-  const mutedSomeone = useMutedSomeoneChannelMutation({
-    onSuccess: () => {
-      queryClient.invalidateQueries([
-        // "ChannelSettings",
-        // { userId: null, channelId: channelId },
-      ]);
-    },
-  });
-  const deleteMutedSomeone = useDeleteMutedMutation({
-    onSuccess: () => {
-      queryClient.invalidateQueries([
-        // "ChannelSettings",
-        // { userId: null, channelId: channelId },
-      ]);
-    },
-  });
-  const deleteBannedSomeone = useDeleteBannedMutation({
-    onSuccess: () => {
-      queryClient.invalidateQueries([
-        // "ChannelSettings",
-        // { userId: null, channelId: channelId },
-      ]);
-    },
-  });
   return (
     <>
       <div className="flex w-full shrink-0 items-end justify-center pr-2 transition-all hover:bg-slate-100 ">
-        <div
-          className="flex grow hover:cursor-pointer"
-          onClick={() => navigate(`/profile/${id}`)}
-        >
-          {typeof avatar !== undefined && avatar !== "" ? (
-            <img
-              src={avatar}
-              alt="Player avatar"
-              className="ml-1 mt-1 h-12 w-12 border border-black"
-            />
-          ) : (
-            <UserIcon className="mt-1 h-12 w-12 border border-black text-neutral-700" />
-          )}
-          <div className="ml-2 flex flex-col justify-center text-xs">
-            <div className="flex">
-              <span className="truncate text-base font-bold ">{name}</span>
-              <div className="mx-2 flex shrink-0">
-                {banned ? <BanIcon className="w-4 text-red-600" /> : null}
-                {muted ? <MuteIcon className="w-4 text-red-300" /> : null}
-              </div>
-            </div>
-            <div className="text-xs">
-              {owner ? "Owner" : admin ? "Admin" : "Member"}
-            </div>
-          </div>
-        </div>
+        <UserHeader
+          id={id}
+          name={name}
+          avatar={avatar}
+          admin={admin}
+          owner={owner}
+          banned={banned}
+          muted={muted}
+        />
         <div className="flex justify-center self-center">
           {changesAuthorizedAsOwner && !admin && !owner ? (
-            <div
-              className="relative flex w-8 flex-col items-center justify-start"
-              onClick={() => {
-                updateAdmins.mutate({
-                  channelId: channelId ? channelId : 0,
-                  userId: id ? id : 0,
-                });
-              }}
-            >
-              {" "}
-              <AdminIcon
-                onMouseOver={() => setShowInfoAdmin(true)}
-                onMouseOut={() => {
-                  setShowInfoAdmin(false);
-                }}
-                className="w-6 border-2 border-slate-300 text-neutral-600 hover:cursor-pointer hover:border-slate-700 hover:text-black"
-              />
-              <div
-                className={`${
-                  showInfoAdmin ? "opacity-100" : "opacity-0 "
-                } absolute top-6 w-24 text-center text-xs text-slate-400 `}
-              >
-                Set as admin
-              </div>
-            </div>
+            <SetAsAdminButton id={id} channelId={channelId} />
           ) : (
             <div></div>
           )}
           {(admin && changesAuthorizedAsOwner) ||
           (!admin && changesAuthorizedAsAdmin) ? (
-            <div className="relative flex w-8 flex-col text-center transition-all hover:cursor-pointer">
-              <div
-                onMouseLeave={() => setShowTimeMute(false)}
-                className={`${
-                  showTimeMute
-                    ? "visible h-fit w-10 border-2 opacity-100"
-                    : "hidden h-0 w-0 opacity-0"
-                } absolute -left-1 -top-5 z-10 flex-col border-slate-300 bg-slate-200 text-center text-xs text-slate-700 transition-all`}
-              >
-                <div
-                  className="hover:bg-slate-300"
-                  onClick={() => {
-                    setShowTimeMute(false),
-                      mutedSomeone.mutate({
-                        channelId: channelId ? channelId : 0,
-                        createMutedId: id ? id : 0,
-                        date:
-                          Math.floor(new Date() as unknown as number) +
-                          60 * 60 * 2 * 1000,
-                      });
-                  }}
-                >
-                  1h
-                </div>
-                <div
-                  className="hover:bg-slate-300"
-                  onClick={() => {
-                    setShowTimeMute(false),
-                      mutedSomeone.mutate({
-                        channelId: channelId ? channelId : 0,
-                        createMutedId: id ? id : 0,
-                        date:
-                          Math.floor(new Date() as unknown as number) +
-                          60 * 60 * 9 * 1000,
-                      });
-                  }}
-                >
-                  8h
-                </div>
-                <div
-                  className="hover:bg-slate-300"
-                  onClick={() => {
-                    setShowTimeMute(false),
-                      mutedSomeone.mutate({
-                        channelId: channelId ? channelId : 0,
-                        createMutedId: id ? id : 0,
-                        date:
-                          Math.floor(new Date() as unknown as number) +
-                          60 * 60 * 25 * 1000,
-                      });
-                  }}
-                >
-                  24h
-                </div>
-                <div
-                  className="hover:bg-slate-300"
-                  onClick={() => {
-                    setShowTimeMute(false), //DONT TOUCH
-                      mutedSomeone.mutate({
-                        channelId: channelId ? channelId : 0,
-                        createMutedId: id ? id : 0,
-                        date: null,
-                      });
-                  }}
-                >
-                  Forever
-                </div>
-              </div>
-              <div
-                className="flex flex-col items-center justify-center"
-                onClick={() => {
-                  !muted ? setShowTimeMute(true) : "";
-                }}
-              >
-                {" "}
-                {muted ? (
-                  <UnmuteIcon
-                    onMouseOver={() => setShowInfoMute(true)}
-                    onMouseOut={() => {
-                      setShowInfoMute(false);
-                    }}
-                    onClick={() => {
-                      deleteMutedSomeone.mutate({
-                        channel: channelId ? channelId : 0,
-                        userId: id ? id : 0,
-                      });
-                    }}
-                    className="w-6 border-2 border-slate-300  text-neutral-600 hover:cursor-pointer hover:border-slate-700 hover:text-black"
-                  />
-                ) : (
-                  <MuteIcon
-                    onMouseOver={() => setShowInfoMute(true)}
-                    onMouseOut={() => {
-                      setShowInfoMute(false);
-                    }}
-                    onClick={() => setShowTimeMute(true)}
-                    className="w-6 border-2 border-slate-300  text-neutral-600 hover:cursor-pointer hover:border-slate-700 hover:text-black"
-                  />
-                )}
-                <div
-                  className={`${
-                    showInfoMute ? "opacity-100" : "opacity-0 "
-                  } absolute top-6 w-24 text-center text-xs text-slate-400`}
-                >
-                  {muted ? "Unmute" : "Mute"}
-                </div>
-              </div>
-            </div>
+            <MuteButton id={id} channelId={channelId} muted={muted} />
           ) : (
             <div></div>
           )}
           {(admin && changesAuthorizedAsOwner) ||
           (!admin && changesAuthorizedAsAdmin) ? (
-            <div className="relative flex w-8 flex-col justify-end text-center transition-all hover:cursor-pointer">
-              <div
-                onMouseLeave={() => setShowTimeBan(false)}
-                className={`${
-                  showTimeBan
-                    ? "visible h-fit w-10 border-2 opacity-100"
-                    : "hidden h-0 w-0 opacity-0"
-                } absolute -left-1 -top-5 z-10 flex-col border-slate-300 bg-slate-200 text-center text-xs text-slate-700 transition-all`}
-              >
-                <div
-                  className="hover:bg-slate-300"
-                  onClick={() => {
-                    setShowTimeBan(false),
-                      bannedSomeone.mutate({
-                        channelId: channelId ? channelId : 0,
-                        createMutedId: id ? id : 0,
-                        date:
-                          Math.floor(new Date() as unknown as number) +
-                          60 * 60 * 1000 * 2,
-                      });
-                  }}
-                >
-                  1h
-                </div>
-                <div
-                  className="hover:bg-slate-300"
-                  onClick={() => {
-                    setShowTimeBan(false),
-                      bannedSomeone.mutate({
-                        channelId: channelId ? channelId : 0,
-                        createMutedId: id ? id : 0,
-                        date:
-                          Math.floor(new Date() as unknown as number) +
-                          60 * 60 * 9 * 1000,
-                      });
-                  }}
-                >
-                  8h
-                </div>
-                <div
-                  className="hover:bg-slate-300"
-                  onClick={() => {
-                    setShowTimeBan(false),
-                      bannedSomeone.mutate({
-                        channelId: channelId ? channelId : 0,
-                        createMutedId: id ? id : 0,
-                        date:
-                          Math.floor(new Date() as unknown as number) +
-                          60 * 60 * 25 * 1000,
-                      });
-                  }}
-                >
-                  24h
-                </div>
-                <div
-                  className="hover:bg-slate-300"
-                  onClick={() => {
-                    setShowTimeBan(false),
-                      bannedSomeone.mutate({
-                        channelId: channelId ? channelId : 0,
-                        createMutedId: id ? id : 0,
-                        date: null,
-                      });
-                  }}
-                >
-                  Forever
-                </div>
-              </div>
-              <div
-                className="flex flex-col items-center justify-center"
-                onClick={() => (!banned ? setShowTimeBan(true) : "")}
-              >
-                {banned ? (
-                  <UnbanIcon
-                    onMouseOver={() => setShowInfoBan(true)}
-                    onMouseOut={() => setShowInfoBan(false)}
-                    className="w-6 border-2 border-slate-300  text-neutral-600 hover:cursor-pointer hover:border-slate-700 hover:text-black"
-                    onClick={() => {
-                      deleteBannedSomeone.mutate({
-                        channel: channelId ? channelId : 0,
-                        userId: id ? id : 0,
-                      });
-                    }}
-                  />
-                ) : (
-                  <BanIcon
-                    onMouseOver={() => setShowInfoBan(true)}
-                    onMouseOut={() => setShowInfoBan(false)}
-                    className="w-6 border-2 border-slate-300  text-neutral-600 hover:cursor-pointer hover:border-slate-700 hover:text-black"
-                  />
-                )}
-                <div
-                  className={`${
-                    showInfoBan ? "opacity-100" : "opacity-0 "
-                  } absolute top-6 w-8 text-center text-xs text-slate-400`}
-                >
-                  {banned ? "Unban" : "Ban"}
-                </div>
-              </div>
-            </div>
+            <BanButton id={id} channelId={channelId} banned={banned} />
           ) : (
             <div></div>
           )}
@@ -461,7 +490,7 @@ const UserBanner = ({
 /********************************************************************/
 /*                        SEARCH BAR                                */
 /********************************************************************/
-export const SearchBar = ({
+const SearchBar = ({
   search,
   setSearch,
 }: {
@@ -505,6 +534,7 @@ export const SearchBar = ({
     </div>
   );
 };
+
 const Search = ({
   search,
   setSearch,
@@ -577,6 +607,7 @@ const Search = ({
     </div>
   );
 };
+
 const Highlight = ({
   content,
   search,
@@ -599,15 +630,13 @@ const Highlight = ({
 };
 
 /********************************************************************/
-/*                                POPUP                             */
+/*                           DELETE POPUP                           */
 /********************************************************************/
 const DeletePopUp = ({
   channelId,
-  confirmation,
   setConfirmation,
 }: {
   channelId: number;
-  confirmation: boolean;
   setConfirmation: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   const navigate = useNavigate();
@@ -620,7 +649,6 @@ const DeletePopUp = ({
       ]);
     },
   });
-  //TODO : fix issue close when click on window
   return (
     <div className="absolute top-0 right-0 z-10 flex h-full w-full flex-col items-center justify-center bg-black bg-opacity-30">
       <div
@@ -674,6 +702,203 @@ const DeletePopUp = ({
 };
 
 /********************************************************************/
+/*                              HEADER                              */
+/********************************************************************/
+
+/********************************************************************/
+/*                           CHANNEL MODE                           */
+/********************************************************************/
+const ChannelMode = ({
+  idChannel,
+  activeMode,
+  changesAuthorized,
+}: {
+  idChannel: number;
+  activeMode: string;
+  changesAuthorized: boolean;
+}) => {
+  const queryClient = useQueryClient();
+  const { register, handleSubmit, watch } = useForm();
+  const updateRight = useUpdateRightMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries([
+        // "ChannelSettings",
+        // { userId: null, channelId: channelId },
+      ]);
+    },
+  });
+  return (
+    <div className="flex h-full flex-col">
+      <form
+        className="flex h-full flex-col"
+        onSubmit={handleSubmit(() => {
+          updateRight.mutate({
+            idchannel: idChannel,
+            inviteOnly: activeMode === "Private",
+            password:
+              activeMode === "Password protected" ? watch("Password") : "",
+          });
+        })}
+      >
+        <div className="mb-2 flex h-full ">Mode : {activeMode}</div>
+        <div className="flex h-full items-center justify-start">
+          {activeMode === "Password protected" && changesAuthorized ? (
+            <div className="flex items-center justify-start ">
+              <label
+                className="mr-2 self-end text-sm text-slate-400"
+                htmlFor="Password"
+              >
+                Enter new password :
+              </label>
+              <input
+                {...register("Password", {
+                  required: activeMode === "Password protected",
+                  maxLength: 100,
+                })}
+                type="Password"
+                autoComplete="off"
+                defaultValue=""
+                className="h-6 w-40 self-center px-1 text-xs"
+              />
+              <input
+                className="ml-3 flex w-fit justify-center self-center border border-slate-300 bg-slate-200 px-1  text-center text-sm font-bold hover:cursor-pointer hover:bg-slate-300"
+                type="submit"
+              />
+            </div>
+          ) : (
+            <></>
+          )}
+        </div>
+      </form>
+    </div>
+  );
+};
+
+const ChannelHeader = ({
+  isOwner,
+  channelId,
+  channelName,
+  privateMode,
+  passwordProtected,
+  setDeleteConfirmation,
+}: {
+  isOwner: boolean;
+  channelId: number | undefined;
+  channelName: string | undefined;
+  privateMode: boolean | undefined;
+  passwordProtected: boolean | undefined;
+  setDeleteConfirmation: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
+  return (
+    <div className="relative flex flex-col justify-center p-2">
+      {isOwner ? (
+        <div
+          className="absolute right-1 top-1 flex w-fit justify-center self-center p-3 text-center text-lg text-slate-500 hover:cursor-pointer hover:text-slate-700"
+          onClick={() => {
+            setDeleteConfirmation(true);
+          }}
+        >
+          <TrashIcon className="w-8 -translate-y-0.5" />
+        </div>
+      ) : (
+        <div></div>
+      )}
+      <div className="flex w-full grow items-center">
+        <div className="flex h-28 w-28 justify-center self-center border border-slate-400 bg-white">
+          <UsersIcon className="mt-2 h-20 w-20 self-center text-slate-700 " />
+        </div>
+        <div className="mx-4 flex h-full flex-col ">
+          <div className="text-left text-2xl font-bold">
+            Channel : {channelName}
+          </div>
+          <div className="mt-2 flex flex-row ">
+            <ChannelMode
+              idChannel={channelId ? channelId : 0}
+              activeMode={
+                privateMode
+                  ? "Private"
+                  : passwordProtected
+                  ? "Password protected"
+                  : "Public"
+              }
+              changesAuthorized={isOwner}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/********************************************************************/
+/*                               MEMBERS                            */
+/********************************************************************/
+
+const MemberList = ({
+  channel,
+  isAdmin,
+  isOwner,
+}: {
+  channel: ChannelInfo;
+  isAdmin: boolean;
+  isOwner: boolean;
+}) => {
+  return (
+    <div className="flex h-full w-full flex-col">
+      <div className="ml-1 pt-5 text-left text-xl font-bold text-slate-700">
+        MEMBERS
+      </div>
+      <UserBanner
+        id={channel.owner.id}
+        name={channel.owner.name}
+        avatar={channel.owner.avatar}
+        channelId={channel.id}
+        admin={false}
+        owner={true}
+        muted={false}
+        banned={false}
+        changesAuthorizedAsAdmin={false}
+        changesAuthorizedAsOwner={false}
+      />
+      {channel.admins.map((user, index) => {
+        return !(user.id === channel.owner.id) ? (
+          <UserBanner
+            key={index}
+            channelId={channel.id}
+            id={user.id}
+            name={user.name}
+            avatar={user.avatar}
+            admin={true}
+            owner={false}
+            muted={channel.muted?.some((u) => u.id === user.id)}
+            banned={channel.banned?.some((u) => u.id === user.id)}
+            changesAuthorizedAsAdmin={isAdmin}
+            changesAuthorizedAsOwner={isOwner}
+          />
+        ) : null;
+      })}
+      {channel.members.map((user, index) => {
+        return !channel.admins.some((admin) => admin.id === user.id) ? (
+          <UserBanner
+            key={index}
+            channelId={channel.id}
+            id={user.id}
+            name={user.name}
+            avatar={user.avatar}
+            admin={false}
+            owner={false}
+            changesAuthorizedAsAdmin={isAdmin}
+            changesAuthorizedAsOwner={isOwner}
+            muted={channel.muted?.some((u) => u.id === user.id)}
+            banned={channel.banned?.some((u) => u.id === user.id)}
+          />
+        ) : null;
+      })}
+    </div>
+  );
+};
+
+/********************************************************************/
 /*                        MAIN COMPONENT                            */
 /********************************************************************/
 //TODO : object destructuring
@@ -681,8 +906,7 @@ export default function ChannelSettings() {
   const [search, setSearch] = useThrottledState("", 500);
   const params = useParams();
 
-  const [confirmation, setConfirmation] = useState(false);
-  // TODO Slow to reload data when invalidate only the Queries
+  const [deleteConfirmation, setDeleteConfirmation] = useState(false);
 
   if (typeof params.channelId === "undefined") return <div></div>;
   const channelId = +params.channelId;
@@ -698,6 +922,7 @@ export default function ChannelSettings() {
   if (error) {
     return <div>Error</div>;
   }
+  if (typeof data === "undefined") return <></>;
   const isOwner = data?.user.id === data?.channel.owner.id;
   const isAdmin = data?.channel.admins.some(
     (admin) => admin.id === data.user.id
@@ -714,111 +939,33 @@ export default function ChannelSettings() {
         icon=""
       />
       <div className="relative flex h-full w-full flex-col ">
-        {confirmation ? (
+        {deleteConfirmation ? (
           <DeletePopUp
             channelId={channelId}
-            confirmation={confirmation}
-            setConfirmation={setConfirmation}
+            setConfirmation={setDeleteConfirmation}
           />
         ) : (
           ""
         )}
         <div
           className={`${
-            confirmation ? "blur-sm" : ""
+            deleteConfirmation ? "blur-sm" : ""
           } flex h-full w-full flex-col`}
         >
-          {/* TODO : put this in a component */}
-          <div className="relative flex flex-col justify-center p-2">
-            {isOwner ? (
-              <div
-                className="absolute right-1 top-1 flex w-fit justify-center self-center p-3 text-center text-lg text-slate-500 hover:cursor-pointer hover:text-slate-700"
-                onClick={() => {
-                  setConfirmation(true);
-                }}
-              >
-                <TrashIcon className="w-8 -translate-y-0.5" />
-              </div>
-            ) : (
-              <div></div>
-            )}
-            <div className="flex w-full grow items-center">
-              <div className="flex h-28 w-28 justify-center self-center border border-slate-400 bg-white">
-                <UsersIcon className="mt-2 h-20 w-20 self-center text-slate-700 " />
-              </div>
-              <div className="mx-4 flex h-full flex-col ">
-                <div className="text-left text-2xl font-bold">
-                  Channel : {data?.channel.name}
-                </div>
-                <div className="mt-2 flex flex-row ">
-                  <ChannelType
-                    idChannel={data?.channel.id ? data.channel.id : 0}
-                    activeMode={
-                      data?.channel.private
-                        ? "Private"
-                        : data?.channel.passwordProtected
-                        ? "Password protected"
-                        : "Public"
-                    }
-                    changesAuthorized={isOwner}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-          {/* TODO : put this in a component */}
-
-          <div className="ml-1 pt-5 text-left text-xl font-bold text-slate-700">
-            MEMBERS
-          </div>
-          <UserBanner
-            id={data?.channel.owner.id}
-            name={data?.channel.owner.name}
-            avatar={data?.channel.owner.avatar}
-            channelId={data?.channel.id}
-            admin={false}
-            owner={true}
-            changesAuthorizedAsAdmin={false}
-            changesAuthorizedAsOwner={false}
-            muted={false}
-            banned={false}
+          <ChannelHeader
+            isOwner={isOwner}
+            channelId={data.channel.id}
+            channelName={data.channel.name}
+            privateMode={data.channel.private}
+            passwordProtected={data.channel.passwordProtected}
+            setDeleteConfirmation={setDeleteConfirmation}
           />
-          {data?.channel.admins.map((user, index) => {
-            return !(user.id === data?.channel.owner.id) ? (
-              <UserBanner
-                key={index}
-                channelId={data?.channel.id}
-                id={user.id}
-                name={user.name}
-                avatar={user.avatar}
-                admin={true}
-                owner={false}
-                changesAuthorizedAsAdmin={isAdmin}
-                changesAuthorizedAsOwner={isOwner}
-                muted={data?.channel.muted.some((u) => u.id === user.id)}
-                banned={data?.channel.banned.some((u) => u.id === user.id)}
-              />
-            ) : null;
-          })}
-          {data?.channel.members.map((user, index) => {
-            return !data?.channel.admins.some(
-              (admin) => admin.id === user.id
-            ) ? (
-              <UserBanner
-                key={index}
-                channelId={data?.channel.id}
-                id={user.id}
-                name={user.name}
-                avatar={user.avatar}
-                admin={false}
-                owner={false}
-                changesAuthorizedAsAdmin={isAdmin}
-                changesAuthorizedAsOwner={isOwner}
-                muted={data?.channel.muted.some((u) => u.id === user.id)}
-                banned={data?.channel.banned.some((u) => u.id === user.id)}
-              />
-            ) : null;
-          })}
+
+          <MemberList
+            channel={data.channel}
+            isAdmin={isAdmin}
+            isOwner={isOwner}
+          />
           {isOwner || isAdmin ? (
             <div className="mt-5 flex h-full w-full flex-col justify-end overflow-auto">
               {search.length === 0 ? (

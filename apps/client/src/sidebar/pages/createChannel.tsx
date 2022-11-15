@@ -9,7 +9,7 @@ import { ReactComponent as PublicIcon } from "pixelarticons/svg/lock-open.svg";
 
 /*************************** WORKS AS INTENTED *************** */
 
-export const ChannelTypeButton = ({
+const ChannelModeButton = ({
   text,
   active,
   fn,
@@ -120,21 +120,21 @@ export default function CreateChannel({
         </div>
 
         <div className="flex justify-evenly border-r-2 border-slate-300 bg-slate-100">
-          <ChannelTypeButton
+          <ChannelModeButton
             text="Public"
             active={!privateMode && !passwordProtected}
             fn={setPublicMode}
             inactiveFn1={setPrivateMode}
             inactiveFn2={setPasswordProtected}
           />
-          <ChannelTypeButton
+          <ChannelModeButton
             text="Private"
             active={privateMode}
             fn={setPrivateMode}
             inactiveFn1={setPublicMode}
             inactiveFn2={setPasswordProtected}
           />
-          <ChannelTypeButton
+          <ChannelModeButton
             text="Password"
             active={passwordProtected}
             fn={setPasswordProtected}
