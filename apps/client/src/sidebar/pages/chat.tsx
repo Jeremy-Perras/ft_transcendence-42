@@ -160,9 +160,9 @@ export default function Chat() {
           } h-10 w-11/12 resize-none overflow-visible rounded-lg px-3 pt-2`}
           onChange={(e) => setContent(e.target.value)}
           placeholder={`${
-            data?.blocking === true
+            data?.blocked === true
               ? "This user is blocked"
-              : data?.blocked === true
+              : data?.blocking === true
               ? "You are blocked by this user"
               : "Type your message here ..."
           }`}

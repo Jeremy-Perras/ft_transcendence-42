@@ -14,6 +14,7 @@ import { ReactComponent as EmptyChatIcon } from "pixelarticons/svg/message-plus.
 import { ReactComponent as PasswordIcon } from "pixelarticons/svg/lock.svg";
 import { HeaderPortal } from "../layout";
 import { useForm } from "react-hook-form";
+import ReactDOM from "react-dom";
 
 const ReadBy = ({ users }: { users: User[] }) => {
   const navigate = useNavigate();
@@ -108,15 +109,8 @@ const ChannelMessage = ({
   );
 };
 
-const GetPassWord = ({
-  password,
-  passwordId,
-}: {
-  password: string;
-  passwordId: number;
-}) => {
+const GetPassWord = ({ passwordId }: { passwordId: number }) => {
   const { data } = usePasswordQuery({
-    password: password,
     passwordId: passwordId,
   });
   return data;
@@ -173,9 +167,15 @@ const AccessProtected = ({
   ownerName: string;
   ownerAvatar: string;
   setAuth: React.Dispatch<React.SetStateAction<boolean>>;
+  auth: boolean;
 }) => {
-  const { register, handleSubmit, watch } = useForm();
-  const password = GetPassword({ passwordId: +channelId });
+  const {
+    register,
+    formState: { errors },
+    handleSubmit,
+    watch,
+  } = useForm();
+  const pass = GetPassword({ passwordId: +channelId });
   const navigate = useNavigate();
   return (
     <div className="flex h-full w-full flex-col items-center justify-center pb-60">
@@ -186,10 +186,10 @@ const AccessProtected = ({
       <div className="flex w-full flex-col items-center justify-center">
         <form
           onSubmit={handleSubmit(() => {
-            password?.password === watch("Password")
+            pass?.password === watch("Password")
               ? setAuth(true)
               : setAuth(false);
-          })} //TODO:Error message if wrong password
+          })}
           className="flex flex-col"
         >
           <div className="flex w-full px-4">
@@ -200,6 +200,8 @@ const AccessProtected = ({
               <input
                 {...register("Password", {
                   maxLength: 100,
+                  required: true,
+                  validate: (value) => value === pass?.password,
                 })}
                 type="Password"
                 autoComplete="off"
@@ -208,6 +210,13 @@ const AccessProtected = ({
               />
             </div>
           </div>
+          <span className="flex items-center justify-center text-center">
+            {errors.Password && (
+              <p className=" text-red-300 before:content-['⚠']">
+                The password do not match
+              </p>
+            )}
+          </span>
           <input
             className="mt-4 flex justify-center self-center border-2 border-slate-300 bg-slate-200 px-6 py-3 text-center text-xl font-bold hover:cursor-pointer hover:bg-slate-300"
             type="submit"
@@ -324,6 +333,7 @@ export default function Channel() {
             ownerAvatar={data.owner.avatar}
             ownerName={data.owner.name}
             setAuth={setAuth}
+            auth={auth}
           />
         ) : (
           <div

@@ -296,9 +296,8 @@ const FriendButtons = ({
       <div
         onClick={() => {
           data?.user.blocked
-            ? unblockMutation.mutate({ unblockingUserId: currentUserId })
-            : blockMutation.mutate({ blockingUserId: currentUserId });
-          alert("BROKEN");
+            ? unblockMutation.mutate({ unblockingUserId: +params.userId! })
+            : blockMutation.mutate({ blockingUserId: +params.userId! });
         }}
         className="flex basis-1/3 items-center justify-center border-2 border-slate-300 bg-slate-200  text-center transition-all  hover:cursor-pointer hover:bg-slate-300"
       >
