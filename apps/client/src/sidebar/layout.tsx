@@ -20,7 +20,7 @@ import { useSidebarStore } from "../stores";
 import CreateChannel from "./pages/createChannel";
 import ReactDOM from "react-dom";
 import React from "react";
-import { Fetching, Loading, Error } from "./pages/home";
+import { Error } from "./pages/home";
 
 //TODO : skeleton loader while loading
 // retry
@@ -181,8 +181,10 @@ function Header({
       },
     }
   );
-  if (isLoading) return <Loading />;
-  if (isFetching) return <Fetching />;
+  if (isLoading)
+    return <div className="text-center text-base text-slate-200">Loading</div>;
+  if (isFetching)
+    <div className="text-center text-base text-slate-200">Fetching</div>;
   if (error) return <Error />;
   return (
     <div className="z-10 flex w-full shadow-sm shadow-slate-400">

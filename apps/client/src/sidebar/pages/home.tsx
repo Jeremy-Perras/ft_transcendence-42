@@ -3,7 +3,7 @@ import * as Avatar from "@radix-ui/react-avatar";
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { ReactComponent as UsersIcon } from "pixelarticons/svg/users.svg";
 import { ReactComponent as GamePadIcon } from "pixelarticons/svg/gamepad.svg";
-import { ReactComponent as LoaderIcon } from "pixelarticons/svg/loader.svg";
+import { ReactComponent as LoaderIcon } from "pixelarticons/svg/clock.svg";
 import { ReactComponent as AlertIcon } from "pixelarticons/svg/alert.svg";
 import { useInfoUsersQuery } from "../../graphql/generated";
 
@@ -26,24 +26,24 @@ const Empty = () => {
   );
 };
 
-export const Loading = () => {
-  return (
-    <div className="flex h-full select-none flex-col items-center justify-center text-slate-200">
-      <LoaderIcon className="-mt-10 w-32" />
-      <span className="mt-5 px-20 text-center text-4xl tracking-wide">
-        Loading...
-      </span>
-    </div>
-  );
-};
+// const LoadingSkeleton = ({ w1, w2 }: { w1: string; w2: string }) => {
+//   return (
+//     <div className="flex animate-pulse justify-center transition-all ">
+//       <div className="m-2 flex h-16 w-16 shrink-0 justify-center bg-slate-100 " />
+//       <div className="flex w-full grow flex-col justify-evenly bg-slate-50 p-2">
+//         <div className={`flex h-6 ${w1} bg-slate-100 `} />
+//         <div className={`flex h-6 ${w2} bg-slate-100 `} />
+//       </div>
+//     </div>
+//   );
+// };
 
-export const Fetching = () => {
+//DO NOT REMOVE : USE IN MAIN FILE WHEN LOADERS OK
+const Loading = () => {
   return (
-    <div className="flex h-full select-none flex-col items-center justify-center text-slate-200">
-      <LoaderIcon className="-mt-10 w-32" />
-      <span className="mt-5 px-20 text-center text-4xl tracking-wide">
-        Fetching...
-      </span>
+    <div className="flex h-full w-full animate-pulse flex-col items-center justify-center text-slate-200">
+      <LoaderIcon className="w-80" />
+      <div className="text-center text-4xl">Loading... </div>
     </div>
   );
 };
@@ -149,9 +149,7 @@ const Home = () => {
   );
 
   if (isLoading) return <Loading />;
-  if (isFetching) {
-    return <Fetching />;
-  }
+  if (isFetching) return <Loading />;
   if (error) {
     return <Error />;
   } else {

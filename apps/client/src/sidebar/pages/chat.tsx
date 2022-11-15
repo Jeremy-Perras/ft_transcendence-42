@@ -5,7 +5,7 @@ import {
   useInfoDirectMessagesQuery,
   useSendDirectMessageMutation,
 } from "../../graphql/generated";
-import { getDate, Fetching, Loading, Error } from "./home";
+import { getDate } from "./home";
 import { ReactComponent as EmptyChatIcon } from "pixelarticons/svg/message-plus.svg";
 import { HeaderPortal } from "../layout";
 import { RankIcon } from "./profile";
@@ -84,6 +84,7 @@ export default function Chat() {
   if (typeof params.userId === "undefined") return <div></div>;
   const userId = +params.userId;
   const [content, setContent] = useState("");
+  //TODO : loader
   const { isLoading, data, error, isFetching } = useInfoDirectMessagesQuery(
     { userId: userId },
     {
@@ -118,15 +119,15 @@ export default function Chat() {
       queryClient.invalidateQueries(["InfoDirectMessages", { userId: userId }]);
     },
   });
-  if (isLoading) return <Loading />;
+  // if (isLoading) return <Loading />;
 
-  if (isFetching) {
-    return <Fetching />;
-  }
+  // if (isFetching) {
+  //   return <Fetching />;
+  // }
 
-  if (error) {
-    return <Error />;
-  }
+  // if (error) {
+  //   return <Error />;
+  // }
 
   return (
     <div className="flex h-full flex-col">

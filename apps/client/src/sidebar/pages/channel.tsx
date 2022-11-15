@@ -8,13 +8,14 @@ import {
   useSendChannelMessageMutation,
 } from "../../graphql/generated";
 import { User } from "./chat";
-import { getDate, Error, Loading, Fetching } from "./home";
+import { getDate, Error } from "./home";
 import { ReactComponent as ForbiddenIcon } from "pixelarticons/svg/alert.svg";
 import { ReactComponent as EmptyChatIcon } from "pixelarticons/svg/message-plus.svg";
 import { ReactComponent as PasswordIcon } from "pixelarticons/svg/lock.svg";
 import { HeaderPortal } from "../layout";
 import { useForm } from "react-hook-form";
 import BannedIcon from "/src/assets/images/Banned.svg";
+import { CookieSerializer } from "../../../../server/src/auth/auth.serializer";
 
 const ReadBy = ({ users }: { users: User[] }) => {
   const navigate = useNavigate();
@@ -157,12 +158,14 @@ const GetPassword = ({ passwordId }: { passwordId: number }) => {
 
 //TODO : Enter pw only at 1st connection to channel => cookie?
 const AccessProtected = ({
+  userId,
   channelId,
   ownerId,
   ownerName,
   ownerAvatar,
   setAuth,
 }: {
+  userId: number;
   channelId: number;
   ownerId: number;
   ownerName: string;
@@ -187,7 +190,8 @@ const AccessProtected = ({
         <form
           onSubmit={handleSubmit(() => {
             pass?.password === watch("Password")
-              ? setAuth(true)
+              ? (setAuth(true),
+                (document.cookie = `userId=${userId}, channelId=${channelId}`))
               : setAuth(false);
           })}
           className="flex flex-col"
@@ -213,7 +217,7 @@ const AccessProtected = ({
           <span className="flex items-center justify-center text-center">
             {errors.Password && (
               <p className=" text-red-300 before:content-['⚠']">
-                The password do not match
+                Wrong password
               </p>
             )}
           </span>
@@ -243,7 +247,9 @@ const AccessProtected = ({
 export default function Channel() {
   const { channelId } = useParams();
   const queryClient = useQueryClient();
-  if (!channelId) return <div>no channel id</div>;
+
+  if (!channelId) return <div>Error - no channel id</div>;
+  //TODO:loader
   const { isLoading, isFetching, error, data } = useInfoChannelQuery(
     { channelId: +channelId, userId: null },
     {
@@ -299,113 +305,116 @@ export default function Channel() {
   const banned = data?.banned.some((u) => u.id === data.userId);
   const muted = data?.muted.some((u) => u.id === data.userId);
   const [auth, setAuth] = useState(false);
+  const cookies = document.cookie;
 
-  if (isLoading) {
-    return <Loading />;
-  }
-  if (isFetching) {
-    return <Fetching />;
-  }
-  if (error) {
-    return <Error />;
-  } else {
-    return (
-      <>
-        <HeaderPortal
-          container={document.getElementById("header") as HTMLElement}
-          text={data?.name}
-          link={
-            banned ||
-            (data?.password && !auth) ||
-            (data?.private &&
-              !data.adminIds.some((admin) => admin.id === data.userId) &&
-              !data.memberIds.some((member) => member.id === data.userId))
-              ? ""
-              : `/settings/channel/${channelId}`
-          }
-          icon=""
+  // if (c.includes(`userId=${data?.userId}, channelId=${channelId}`))
+  //   setAuth(true);
+  // if (isLoading) {
+  //   return <Loading />;
+  // }
+  // if (isFetching) {
+  //   return <Fetching />;
+  // }
+  // if (error) {
+  //   return <Error />;
+  // }
+  return (
+    <>
+      <HeaderPortal
+        container={document.getElementById("header") as HTMLElement}
+        text={data?.name}
+        link={
+          banned ||
+          (data?.password && !auth) ||
+          (data?.private &&
+            !data.adminIds.some((admin) => admin.id === data.userId) &&
+            !data.memberIds.some((member) => member.id === data.userId))
+            ? ""
+            : `/settings/channel/${channelId}`
+        }
+        icon=""
+      />
+      {banned ? (
+        <Banned />
+      ) : data?.private &&
+        !data.adminIds.some((admin) => admin.id === data.userId) &&
+        !data.memberIds.some((member) => member.id === data.userId) ? (
+        <AccessForbidden
+          ownerId={data?.owner.id}
+          ownerAvatar={data.owner.avatar}
+          ownerName={data.owner.name}
         />
-        {banned ? (
-          <Banned />
-        ) : data?.private &&
-          !data.adminIds.some((admin) => admin.id === data.userId) &&
-          !data.memberIds.some((member) => member.id === data.userId) ? (
-          <AccessForbidden
-            ownerId={data?.owner.id}
-            ownerAvatar={data.owner.avatar}
-            ownerName={data.owner.name}
-          />
-        ) : data?.password && !auth ? (
-          <AccessProtected
-            channelId={+channelId}
-            ownerId={data?.owner.id}
-            ownerAvatar={data.owner.avatar}
-            ownerName={data.owner.name}
-            setAuth={setAuth}
-          />
-        ) : (
-          <div
-            onClick={() => {
-              data?.messages.forEach((message) => {
-                message.readBy
-                  ? ""
-                  : createChannelMessageRead.mutate({
-                      messageId: message.id,
-                      userId: data.userId,
-                    });
-              });
-            }}
-            className="flex h-full flex-col bg-slate-100"
-          >
-            <div className="mt-px flex w-full grow flex-col overflow-auto pr-2 pl-px">
-              {data?.messages.length === 0 ? (
-                <div className="mb-48 flex h-full flex-col items-center justify-center text-center text-slate-300">
-                  <EmptyChatIcon className="w-96 text-slate-200" />
-                  Seems a little bit too silent here... Send the first message !
-                </div>
-              ) : (
-                <></>
-              )}
-              {data?.messages?.map((message, index) => (
-                <ChannelMessage key={index} {...message} />
-              ))}
-              <div ref={endMessages} />
-            </div>
-            <div className="flex h-16 w-full border-t-2 bg-slate-50 p-2">
-              <textarea
-                disabled={banned || muted}
-                rows={1}
-                className={`${
-                  banned || muted ? "hover:cursor-not-allowed" : ""
-                } h-10 w-11/12 resize-none overflow-visible rounded-lg px-3 pt-2`}
-                onChange={(e) => setContent(e.target.value)}
-                placeholder={`${
-                  muted === true
-                    ? "You are muted"
-                    : "Type your message here ..."
-                }`}
-                onKeyDown={(e) => {
+      ) : data?.password &&
+        !auth &&
+        !cookies.includes(`userId=${data?.userId}, channelId=${channelId}`) ? (
+        <AccessProtected
+          userId={data.userId}
+          channelId={+channelId}
+          ownerId={data?.owner.id}
+          ownerAvatar={data.owner.avatar}
+          ownerName={data.owner.name}
+          setAuth={setAuth}
+        />
+      ) : (
+        <div
+          onClick={() => {
+            data?.messages.forEach((message) => {
+              message.readBy
+                ? ""
+                : createChannelMessageRead.mutate({
+                    messageId: message.id,
+                    userId: data.userId,
+                  });
+            });
+          }}
+          className="flex h-full flex-col bg-slate-100"
+        >
+          <div className="mt-px flex w-full grow flex-col overflow-auto pr-2 pl-px">
+            {data?.messages.length === 0 ? (
+              <div className="mb-48 flex h-full flex-col items-center justify-center text-center text-slate-300">
+                <EmptyChatIcon className="w-96 text-slate-200" />
+                Seems a little bit too silent here... Send the first message !
+              </div>
+            ) : (
+              <></>
+            )}
+            {data?.messages?.map((message, index) => (
+              <ChannelMessage key={index} {...message} />
+            ))}
+            <div ref={endMessages} />
+          </div>
+          <div className="flex h-16 w-full border-t-2 bg-slate-50 p-2">
+            <textarea
+              disabled={banned || muted}
+              rows={1}
+              className={`${
+                banned || muted ? "hover:cursor-not-allowed" : ""
+              } h-10 w-11/12 resize-none overflow-visible rounded-lg px-3 pt-2`}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder={`${
+                muted === true ? "You are muted" : "Type your message here ..."
+              }`}
+              onKeyDown={(e) => {
+                if (e.code == "Enter" && !e.getModifierState("Shift")) {
+                  messageMutation.mutate({
+                    message: content,
+                    recipientId: +channelId,
+                  });
+                  e.currentTarget.value = "";
+                  e.preventDefault();
+                  setContent("");
+                } else {
                   if (e.code == "Enter" && !e.getModifierState("Shift")) {
-                    messageMutation.mutate({
-                      message: content,
-                      recipientId: +channelId,
-                    });
                     e.currentTarget.value = "";
                     e.preventDefault();
                     setContent("");
-                  } else {
-                    if (e.code == "Enter" && !e.getModifierState("Shift")) {
-                      e.currentTarget.value = "";
-                      e.preventDefault();
-                      setContent("");
-                    }
                   }
-                }}
-              />
-            </div>
+                }
+              }}
+            />
           </div>
-        )}
-      </>
-    );
-  }
+        </div>
+      )}
+    </>
+  );
 }
