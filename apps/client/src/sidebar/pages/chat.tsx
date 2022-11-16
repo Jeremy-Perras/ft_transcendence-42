@@ -1,7 +1,12 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
 import {
+  Params,
+  useLoaderData,
+  useNavigate,
+  useParams,
+} from "react-router-dom";
+import {
+  InfoDirectMessagesQuery,
   useInfoDirectMessagesQuery,
   useSendDirectMessageMutation,
 } from "../../graphql/generated";
@@ -10,6 +15,52 @@ import { ReactComponent as EmptyChatIcon } from "pixelarticons/svg/message-plus.
 import { HeaderPortal } from "../layout";
 import { RankIcon } from "./profile";
 import React from "react";
+import {
+  QueryClient,
+  useQuery,
+  useQueryClient,
+  UseQueryOptions,
+} from "@tanstack/react-query";
+
+const query = (
+  userId: number
+): UseQueryOptions<InfoDirectMessagesQuery, unknown, Chatquery> => {
+  return {
+    queryKey: useInfoDirectMessagesQuery.getKey({ userId }),
+    queryFn: useInfoDirectMessagesQuery.fetcher({ userId }),
+    select: (user) => ({
+      messages: user.user.messages.sort((a, b) => a.sentAt - b.sentAt),
+      name: user.user.name,
+      avatar: user.user.avatar,
+      rank: user.user.rank,
+      blocked: user.user.blocked,
+      blocking: user.user.blocking,
+    }),
+  };
+};
+
+export const chat =
+  (queryClient: QueryClient) =>
+  async ({ params }: { params: Params<"userId"> }) => {
+    if (params.userId) {
+      const userId = +params.userId;
+      return queryClient.fetchQuery(query(userId));
+    }
+  };
+
+type Chatquery = {
+  messages: {
+    content: string;
+    sentAt: number;
+    readAt?: number | null | undefined;
+    author: User;
+  }[];
+  name: string;
+  avatar: string;
+  rank: number;
+  blocked: boolean;
+  blocking: boolean;
+};
 
 export type User = {
   __typename?: "User" | undefined;
@@ -85,49 +136,16 @@ export default function Chat() {
   if (typeof params.userId === "undefined") return <div></div>;
   const userId = +params.userId;
   const [content, setContent] = useState("");
-  //TODO : loader
-  const { isLoading, data, error, isFetching } = useInfoDirectMessagesQuery(
-    { userId: userId },
-    {
-      select({ user }) {
-        const res: {
-          messages: {
-            content: string;
-            sentAt: number;
-            readAt?: number | null | undefined;
-            author: User;
-          }[];
-          name: string;
-          avatar: string;
-          rank: number;
-          blocked: boolean;
-          blocking: boolean;
-        } = {
-          messages: user.messages.sort((a, b) => a.sentAt - b.sentAt),
-          name: user.name,
-          avatar: user.avatar,
-          rank: user.rank,
-          blocked: user.blocked,
-          blocking: user.blocking,
-        };
-        return res;
-      },
-    }
-  );
-
+  const initialData = useLoaderData() as Awaited<
+    ReturnType<ReturnType<typeof chat>>
+  >;
+  const { data } = useQuery({ ...query(userId), initialData });
   const messageMutation = useSendDirectMessageMutation({
     onSuccess: () => {
       queryClient.invalidateQueries(["InfoDirectMessages", { userId: userId }]);
     },
   });
-  // if (isLoading) return <Loading />;
 
-  // if (isFetching) {
-  //   return <Fetching />;
-  // }
-
-  // if (error) {
-  //   return <Error />;  // }
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
   const scrollToBottom = () => {
     messagesEndRef?.current?.scrollIntoView({ behavior: "smooth" });

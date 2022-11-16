@@ -1,12 +1,57 @@
-import { useNavigate } from "react-router-dom";
+import { useLoaderData, useNavigate } from "react-router-dom";
 import * as Avatar from "@radix-ui/react-avatar";
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { ReactComponent as UsersIcon } from "pixelarticons/svg/users.svg";
 import { ReactComponent as GamePadIcon } from "pixelarticons/svg/gamepad.svg";
 import { ReactComponent as LoaderIcon } from "pixelarticons/svg/clock.svg";
 import { ReactComponent as AlertIcon } from "pixelarticons/svg/alert.svg";
-import { useInfoUsersQuery } from "../../graphql/generated";
+import { InfoUsersQuery, useInfoUsersQuery } from "../../graphql/generated";
+import {
+  QueryClient,
+  useQuery,
+  useQueryClient,
+  UseQueryOptions,
+} from "@tanstack/react-query";
 
+const query = (): UseQueryOptions<InfoUsersQuery, unknown, Homequery> => {
+  return {
+    queryKey: useInfoUsersQuery.getKey({}),
+    queryFn: useInfoUsersQuery.fetcher({}),
+    select: (users) => ({
+      currentUser: {
+        id: users.user.id,
+        name: users.user.name,
+        avatar: users.user.avatar,
+        rank: users.user.rank,
+      },
+      chats: [...users.user.friends, ...users.user.channels].sort((a, b) => {
+        const x = a.messages.sort((c, d) => {
+          return c.sentAt - d.sentAt;
+        })[a.messages.length - 1];
+        const y = b.messages.sort((c, d) => {
+          return c.sentAt - d.sentAt;
+        })[b.messages.length - 1];
+        if (!x) return 1;
+        if (!y) return -1;
+        return y.sentAt - x.sentAt;
+      }),
+    }),
+  };
+};
+
+export const home = (queryClient: QueryClient) => async () => {
+  return queryClient.fetchQuery(query());
+};
+
+type Homequery = {
+  currentUser: {
+    id: number;
+    name: string;
+    avatar?: string;
+    rank: number;
+  };
+  chats: Chat[];
+};
 export function getDate(time: number) {
   const date = new Date(time);
   return (
@@ -112,58 +157,21 @@ const Chat = ({ __typename, name, avatar, id, messages }: Chat) => {
 };
 
 const Home = () => {
-  const { isLoading, data, error, isFetching } = useInfoUsersQuery(
-    {},
-    {
-      select({ user }) {
-        const res: {
-          currentUser: {
-            id: number;
-            name: string;
-            avatar?: string;
-            rank: number;
-          };
-          chats: Chat[];
-        } = {
-          currentUser: {
-            id: user.id,
-            name: user.name,
-            avatar: user.avatar,
-            rank: user.rank,
-          },
-          chats: [...user.friends, ...user.channels].sort((a, b) => {
-            const x = a.messages.sort((c, d) => {
-              return c.sentAt - d.sentAt;
-            })[a.messages.length - 1];
-            const y = b.messages.sort((c, d) => {
-              return c.sentAt - d.sentAt;
-            })[b.messages.length - 1];
-            if (!x) return 1;
-            if (!y) return -1;
-            return y.sentAt - x.sentAt;
-          }),
-        };
-        return res;
-      },
-    }
-  );
+  const initialData = useLoaderData() as Awaited<
+    ReturnType<ReturnType<typeof home>>
+  >;
+  const { data } = useQuery({ ...query(), initialData });
 
-  if (isLoading) return <Loading />;
-  if (isFetching) return <Loading />;
-  if (error) {
-    return <Error />;
-  } else {
-    return (
+  return (
+    <>
       <>
-        <>
-          {data?.chats.map((chat, index) => (
-            <Chat key={index} {...chat} />
-          ))}
-          {data?.chats.length === 0 ? <Empty /> : null}
-        </>
+        {data?.chats.map((chat, index) => (
+          <Chat key={index} {...chat} />
+        ))}
+        {data?.chats.length === 0 ? <Empty /> : null}
       </>
-    );
-  }
+    </>
+  );
 };
 
 export default Home;

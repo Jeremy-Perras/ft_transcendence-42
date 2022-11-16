@@ -5,15 +5,15 @@ import { SidebarLayout } from "./layout";
 import { motion, useAnimationControls } from "framer-motion";
 import { ReactComponent as BackBurgerIcon } from "pixelarticons/svg/backburger.svg";
 import * as Dialog from "@radix-ui/react-dialog";
-import Home from "./pages/home";
-import ChannelSettings from "./pages/channelSettings";
-import Channel from "./pages/channel";
-import Chat from "./pages/chat";
-import Profile, { loader } from "./pages/profile";
+import Home, { home } from "./pages/home";
+import ChannelSettings, { channelset } from "./pages/channelSettings";
+import Channel, { channel } from "./pages/channel";
+import Chat, { chat } from "./pages/chat";
 import { QueryClientProvider } from "@tanstack/react-query";
 import queryClient from "../query";
 import { ErrorBoundary } from "react-error-boundary";
 import { useSidebarStore } from "../stores";
+import Profile, { profile } from "./pages/profile";
 
 const router = createMemoryRouter([
   {
@@ -22,23 +22,27 @@ const router = createMemoryRouter([
       {
         path: "/",
         element: <Home />,
+        loader: home(queryClient),
       },
       {
         path: "/channel/:channelId",
         element: <Channel />,
+        loader: channel(queryClient),
       },
       {
         path: "/settings/channel/:channelId",
         element: <ChannelSettings />,
+        loader: channelset(queryClient),
       },
       {
         path: "/chat/:userId",
         element: <Chat />,
+        loader: chat(queryClient),
       },
       {
         path: "/profile/:userId",
         element: <Profile />,
-        loader: loader(queryClient),
+        loader: profile(queryClient),
       },
     ],
   },

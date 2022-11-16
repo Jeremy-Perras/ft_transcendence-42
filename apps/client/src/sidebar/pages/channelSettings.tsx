@@ -1,4 +1,4 @@
-import { useNavigate, useParams } from "react-router-dom";
+import { Params, useNavigate, useParams } from "react-router-dom";
 import {
   ChannelSettingsQuery,
   useBannedSomeoneChannelMutation,
@@ -27,14 +27,56 @@ import { ReactComponent as AdminIcon } from "pixelarticons/svg/briefcase-plus.sv
 import { ReactComponent as CloseIcon } from "pixelarticons/svg/close.svg";
 import { ReactComponent as SearchIcon } from "pixelarticons/svg/search.svg";
 import { useRef, useState } from "react";
-import { UseMutationResult, useQueryClient } from "@tanstack/react-query";
-
 import { useThrottledState } from "@react-hookz/web";
 import * as Avatar from "@radix-ui/react-avatar";
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { useForm } from "react-hook-form";
 import { HeaderPortal } from "../layout";
+import { User } from "./chat";
+import {
+  QueryClient,
+  useQuery,
+  useQueryClient,
+  UseQueryOptions,
+  UseMutationResult,
+} from "@tanstack/react-query";
 
+const query = (
+  channelId: number
+): UseQueryOptions<ChannelSettingsQuery, unknown, Channelsetquery> => {
+  return {
+    queryKey: useChannelSettingsQuery.getKey({
+      userId: null,
+      channelId: channelId,
+    }),
+    queryFn: useChannelSettingsQuery.fetcher({
+      userId: null,
+      channelId: channelId,
+    }),
+    select: (channel) => ({
+      user: {
+        id: channel.user.id,
+      },
+      channel: channel.channel,
+    }),
+  };
+};
+
+export const channelset =
+  (queryClient: QueryClient) =>
+  async ({ params }: { params: Params<"channelId"> }) => {
+    if (params.channelId) {
+      const channelId = +params.channelId;
+      return queryClient.fetchQuery(query(channelId));
+    }
+  };
+
+type Channelsetquery = {
+  user: {
+    id: number;
+  };
+  channel: ChannelInfo;
+};
 /********************************************************************/
 /*                               TYPES                              */
 /********************************************************************/
