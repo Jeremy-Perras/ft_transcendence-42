@@ -329,7 +329,6 @@ export class ChannelResolver {
       },
       data: { endAt: date, channelId: channelId, userId: id },
     });
-    console.log(m);
     return {
       avatar: m.user.avatar,
       id: m.user.id,

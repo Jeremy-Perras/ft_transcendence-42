@@ -11,7 +11,6 @@ export class UserService {
         select: { blockedBy: true },
         where: { id: userId },
       });
-      console.log(user);
       return user;
     } catch (error) {
       console.error(error);

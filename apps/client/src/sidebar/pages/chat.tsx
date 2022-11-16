@@ -21,6 +21,7 @@ import {
   useQueryClient,
   UseQueryOptions,
 } from "@tanstack/react-query";
+import io, { Socket } from "socket.io-client";
 
 const query = (
   userId: number
@@ -133,6 +134,29 @@ const DirectMessage = ({
 export default function Chat() {
   const queryClient = useQueryClient();
   const params = useParams();
+  const socket = io("http://localhost:8080");
+  // const [socket, setSocket] = useState<Socket>();
+  const [messages, setMessages] = useState<string[]>([]);
+  const send = (value: string) => {
+    socket?.emit("message", value);
+  };
+
+  // useEffect(() => {
+  //   const newsocket = io("http://localhost:8080");
+  //   setSocket(newsocket);
+  // }, [setSocket]);
+
+  const messageListenner = (message: string) => {
+    setMessages([...messages, message]);
+  };
+
+  useEffect(() => {
+    socket?.on("message", messageListenner);
+    return () => {
+      socket?.off("message", messageListenner);
+    };
+  }, [messageListenner]);
+
   if (typeof params.userId === "undefined") return <div></div>;
   const userId = +params.userId;
   const [content, setContent] = useState("");
@@ -154,7 +178,7 @@ export default function Chat() {
   useEffect(() => {
     scrollToBottom();
   }, [data?.messages]);
-
+  console.log(messages);
   return (
     <div className="flex h-full flex-col">
       <HeaderPortal
@@ -199,6 +223,7 @@ export default function Chat() {
           onKeyDown={(e) => {
             if (data?.blocking === false && data?.blocked === false) {
               if (e.code == "Enter" && !e.getModifierState("Shift")) {
+                send(content);
                 messageMutation.mutate({
                   message: content,
                   recipientId: userId,
