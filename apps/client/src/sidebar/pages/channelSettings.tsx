@@ -1,4 +1,9 @@
-import { Params, useNavigate, useParams } from "react-router-dom";
+import {
+  Params,
+  useLoaderData,
+  useNavigate,
+  useParams,
+} from "react-router-dom";
 import {
   ChannelSettingsQuery,
   useBannedSomeoneChannelMutation,
@@ -982,42 +987,14 @@ const MemberList = ({
 
 export default function ChannelSettings() {
   const params = useParams();
-
-  const [search, setSearch] = useThrottledState("", 500);
   const [deleteConfirmation, setDeleteConfirmation] = useState(false);
-
   if (typeof params.channelId === "undefined") return <div></div>;
 
   const channelId = +params.channelId;
-
-  //TODO : loader
-  const { isLoading, data, error, isFetching } = useChannelSettingsQuery(
-    {
-      userId: null,
-      channelId: channelId,
-    },
-    {
-      select({ user, channel }) {
-        const res: {
-          user: {
-            id: number;
-          };
-          channel: ChannelInfo;
-        } = {
-          user: {
-            id: user.id,
-          },
-          channel: channel,
-        };
-        return res;
-      },
-    }
-  );
-
-  // if (isLoading) return <Loading />;
-  // if (isFetching) return <Fetching />;
-  // if (error) return <Error />;
-
+  const initialData = useLoaderData() as Awaited<
+    ReturnType<ReturnType<typeof channelset>>
+  >;
+  const { data } = useQuery({ ...query(channelId), initialData });
   if (typeof data === "undefined") return <></>;
   const isOwner = data?.user.id === data?.channel.owner.id;
   const isAdmin = data?.channel.admins.some(

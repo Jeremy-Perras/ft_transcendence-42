@@ -1,4 +1,4 @@
-import { useLoaderData, useNavigate } from "react-router-dom";
+import { Params, useLoaderData, useNavigate } from "react-router-dom";
 import * as Avatar from "@radix-ui/react-avatar";
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { ReactComponent as UsersIcon } from "pixelarticons/svg/users.svg";
@@ -42,7 +42,6 @@ const query = (): UseQueryOptions<InfoUsersQuery, unknown, Homequery> => {
 export const home = (queryClient: QueryClient) => async () => {
   return queryClient.fetchQuery(query());
 };
-
 type Homequery = {
   currentUser: {
     id: number;
@@ -52,6 +51,7 @@ type Homequery = {
   };
   chats: Chat[];
 };
+
 export function getDate(time: number) {
   const date = new Date(time);
   return (
@@ -161,7 +161,6 @@ const Home = () => {
     ReturnType<ReturnType<typeof home>>
   >;
   const { data } = useQuery({ ...query(), initialData });
-
   return (
     <>
       <>
