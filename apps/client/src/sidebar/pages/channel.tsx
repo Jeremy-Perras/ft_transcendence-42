@@ -1,21 +1,87 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import {
+  Params,
+  useLoaderData,
+  useNavigate,
+  useParams,
+} from "react-router-dom";
 import {
   usePasswordQuery,
   useCreateChannelMessageReadMutation,
   useInfoChannelQuery,
   useSendChannelMessageMutation,
+  InfoChannelQuery,
 } from "../../graphql/generated";
 import { User } from "./chat";
-import { getDate, Error } from "./home";
-import { ReactComponent as ForbiddenIcon } from "pixelarticons/svg/alert.svg";
+import { getDate } from "./home";
+import { ReactComponent as ForbiddenIcon } from "pixelarticons/svg/close-box.svg";
 import { ReactComponent as EmptyChatIcon } from "pixelarticons/svg/message-plus.svg";
 import { ReactComponent as PasswordIcon } from "pixelarticons/svg/lock.svg";
 import { HeaderPortal } from "../layout";
 import { useForm } from "react-hook-form";
 import BannedIcon from "/src/assets/images/Banned.svg";
+import {
+  QueryClient,
+  useQuery,
+  useQueryClient,
+  UseQueryOptions,
+} from "@tanstack/react-query";
 
+const query = (
+  channelId: number
+): UseQueryOptions<InfoChannelQuery, unknown, Channelquery> => {
+  return {
+    queryKey: useInfoChannelQuery.getKey({
+      channelId: +channelId,
+      userId: null,
+    }),
+    queryFn: useInfoChannelQuery.fetcher({
+      channelId: +channelId,
+      userId: null,
+    }),
+    select: (channels) => ({
+      userId: channels.user.id,
+      name: channels.channel.name,
+      messages: channels.channel.messages,
+      owner: {
+        id: channels.channel.owner.id,
+        name: channels.channel.owner.name,
+        avatar: channels.channel.owner.avatar,
+      },
+      adminIds: channels.channel.admins,
+      memberIds: channels.channel.members,
+      banned: channels.channel.banned,
+      muted: channels.channel.banned,
+      password: channels.channel.passwordProtected,
+      private: channels.channel.private,
+    }),
+  };
+};
+
+export const channel =
+  (queryClient: QueryClient) =>
+  async ({ params }: { params: Params<"userId"> }) => {
+    if (params.userId) {
+      const userId = +params.userId;
+      return queryClient.fetchQuery(query(userId));
+    }
+  };
+
+type Channelquery = {
+  userId: number;
+  name: string;
+  messages: ChannelMessage[];
+  owner: { id: number; name: string; avatar: string };
+  adminIds: { id: number }[];
+  memberIds: { id: number }[];
+  banned: {
+    __typename?: "RestrictedMember" | undefined;
+    id: number;
+  }[];
+  muted: { __typename?: "RestrictedMember" | undefined; id: number }[];
+  password: boolean;
+  private: boolean;
+};
 const ReadBy = ({ users }: { users: User[] }) => {
   const navigate = useNavigate();
   return (
@@ -246,48 +312,12 @@ const AccessProtected = ({
 export default function Channel() {
   const { channelId } = useParams();
   const queryClient = useQueryClient();
+  if (!channelId) return <div>no channel id</div>;
 
-  if (!channelId) return <div>Error - no channel id</div>;
-  //TODO:loader
-  const { isLoading, isFetching, error, data } = useInfoChannelQuery(
-    { channelId: +channelId, userId: null },
-    {
-      select({ channel, user }) {
-        const res: {
-          userId: number;
-          name: string;
-          messages: ChannelMessage[];
-          owner: { id: number; name: string; avatar: string };
-          adminIds: { id: number }[];
-          memberIds: { id: number }[];
-          banned: {
-            __typename?: "RestrictedMember" | undefined;
-            id: number;
-          }[];
-          muted: { __typename?: "RestrictedMember" | undefined; id: number }[];
-          password: boolean;
-          private: boolean;
-        } = {
-          userId: user.id,
-          name: channel.name,
-          messages: channel.messages,
-          owner: {
-            id: channel.owner.id,
-            name: channel.owner.name,
-            avatar: channel.owner.avatar,
-          },
-          adminIds: channel.admins,
-          memberIds: channel.members,
-          banned: channel.banned,
-          muted: channel.banned,
-          password: channel.passwordProtected,
-          private: channel.private,
-        };
-        return res;
-      },
-    }
-  );
-
+  const initialData = useLoaderData() as Awaited<
+    ReturnType<ReturnType<typeof channel>>
+  >;
+  const { data } = useQuery({ ...query(+channelId), initialData });
   const messageMutation = useSendChannelMessageMutation({
     onSuccess: () => {
       queryClient.invalidateQueries([]);

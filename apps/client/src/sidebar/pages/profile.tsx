@@ -52,7 +52,7 @@ const query = (
   };
 };
 
-export const loader =
+export const profile =
   (queryClient: QueryClient) =>
   async ({ params }: { params: Params<"userId"> }) => {
     if (params.userId) {
@@ -338,7 +338,7 @@ export default function Profile() {
   if (typeof params.userId === "undefined") return <div></div>;
   const userId = +params.userId;
   const initialData = useLoaderData() as Awaited<
-    ReturnType<ReturnType<typeof loader>>
+    ReturnType<ReturnType<typeof profile>>
   >;
   const { data } = useQuery({ ...query(userId), initialData });
   if (typeof data === "undefined") {
