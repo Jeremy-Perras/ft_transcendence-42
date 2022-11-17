@@ -133,6 +133,7 @@ export class GameResolver {
       name: u.player1.name,
       avatar: u.player1.avatar,
       rank: u.player1.rank,
+      socket: u.player1.socket ? u.player1.socket : undefined,
     };
   }
 
@@ -152,6 +153,7 @@ export class GameResolver {
           name: u.player2.name,
           avatar: u.player2.avatar,
           rank: u.player2.rank,
+          socket: u.player2.socket ? u.player2.socket : undefined,
         }
       : null;
   }

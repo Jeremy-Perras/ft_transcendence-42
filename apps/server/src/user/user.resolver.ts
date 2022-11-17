@@ -41,6 +41,7 @@ export class UserResolver {
         name: true,
         avatar: true,
         rank: true,
+        socket: true,
       },
       where: { id: id !== null ? id : currentUserId },
     });
@@ -54,6 +55,7 @@ export class UserResolver {
       name: user.name,
       avatar: user.avatar,
       rank: user.rank,
+      socket: user.socket ? user.socket : undefined,
     };
   }
 
@@ -72,6 +74,7 @@ export class UserResolver {
         name: true,
         avatar: true,
         rank: true,
+        socket: true,
       },
       where: { name: { contains: name !== null ? name : undefined } },
     });
@@ -82,6 +85,7 @@ export class UserResolver {
       name: user.name,
       avatar: user.avatar,
       rank: user.rank,
+      socket: user.socket ? user.socket : undefined,
     }));
   }
 
@@ -99,6 +103,7 @@ export class UserResolver {
           name: user.name,
           avatar: user.avatar,
           rank: user.rank,
+          socket: user.socket ? user.socket : undefined,
         }))
       : [];
   }
@@ -283,6 +288,7 @@ export class UserResolver {
         name: true,
         rank: true,
         blockedBy: true,
+        socket: true,
       },
       where: {
         id: currentUserId,
@@ -296,7 +302,13 @@ export class UserResolver {
       },
     });
     this.blockedBy(currentUserId, id);
-    return { avatar: m.avatar, id: m.id, name: m.name, rank: m.rank };
+    return {
+      avatar: m.avatar,
+      id: m.id,
+      name: m.name,
+      rank: m.rank,
+      socket: m.socket ? m.socket : undefined,
+    };
   }
 
   @Mutation((returns) => User)
@@ -311,6 +323,7 @@ export class UserResolver {
         name: true,
         rank: true,
         blockedBy: true,
+        socket: true,
       },
       where: {
         id: myId,
@@ -323,7 +336,13 @@ export class UserResolver {
         },
       },
     });
-    return { avatar: m.avatar, id: m.id, name: m.name, rank: m.rank };
+    return {
+      avatar: m.avatar,
+      id: m.id,
+      name: m.name,
+      rank: m.rank,
+      socket: m.socket ? m.socket : undefined,
+    };
   }
 
   @Mutation((returns) => User)
@@ -338,6 +357,7 @@ export class UserResolver {
         name: true,
         rank: true,
         blockedBy: true,
+        socket: true,
       },
       where: {
         id: currentUserId,
@@ -347,7 +367,13 @@ export class UserResolver {
       },
     });
     this.unblockedBy(currentUserId, id);
-    return { avatar: m.avatar, id: m.id, name: m.name, rank: m.rank };
+    return {
+      avatar: m.avatar,
+      id: m.id,
+      name: m.name,
+      rank: m.rank,
+      socket: m.socket ? m.socket : undefined,
+    };
   }
 
   @Mutation((returns) => User)
@@ -362,6 +388,7 @@ export class UserResolver {
         name: true,
         rank: true,
         blockedBy: true,
+        socket: true,
       },
       where: {
         id: myId,
@@ -374,7 +401,13 @@ export class UserResolver {
         },
       },
     });
-    return { avatar: m.avatar, id: m.id, name: m.name, rank: m.rank };
+    return {
+      avatar: m.avatar,
+      id: m.id,
+      name: m.name,
+      rank: m.rank,
+      socket: m.socket ? m.socket : undefined,
+    };
   }
 
   @Mutation((returns) => User)
@@ -413,6 +446,7 @@ export class UserResolver {
         name: true,
         rank: true,
         blockedBy: true,
+        socket: true,
       },
       where: {
         id: id,
@@ -422,7 +456,13 @@ export class UserResolver {
       },
     });
 
-    return { avatar: m.avatar, id: m.id, name: m.name, rank: m.rank };
+    return {
+      avatar: m.avatar,
+      id: m.id,
+      name: m.name,
+      rank: m.rank,
+      socket: m.socket ? m.socket : undefined,
+    };
   }
 
   @Mutation((returns) => User)
@@ -437,6 +477,7 @@ export class UserResolver {
         name: true,
         rank: true,
         blockedBy: true,
+        socket: true,
       },
       where: {
         id: currentUserId,
@@ -446,7 +487,13 @@ export class UserResolver {
       },
     });
     this.updateUnFriendBy(currentUserId, id);
-    return { avatar: m.avatar, id: m.id, name: m.name, rank: m.rank };
+    return {
+      avatar: m.avatar,
+      id: m.id,
+      name: m.name,
+      rank: m.rank,
+      socket: m.socket ? m.socket : undefined,
+    };
   }
 
   @Mutation((returns) => User)
@@ -461,6 +508,7 @@ export class UserResolver {
         name: true,
         rank: true,
         blockedBy: true,
+        socket: true,
       },
       where: {
         id: id,
@@ -470,7 +518,13 @@ export class UserResolver {
       },
     });
 
-    return { avatar: m.avatar, id: m.id, name: m.name, rank: m.rank };
+    return {
+      avatar: m.avatar,
+      id: m.id,
+      name: m.name,
+      rank: m.rank,
+      socket: m.socket ? m.socket : undefined,
+    };
   }
 }
 
@@ -494,6 +548,7 @@ export class DirectMessageResolver {
       name: m.author.name,
       avatar: m.author.avatar,
       rank: m.author.rank,
+      socket: m.author.socket ? m.author.socket : undefined,
     };
   }
 
@@ -512,6 +567,7 @@ export class DirectMessageResolver {
       name: m.recipient.name,
       avatar: m.recipient.avatar,
       rank: m.recipient.rank,
+      socket: m.recipient.socket ? m.recipient.socket : undefined,
     };
   }
 

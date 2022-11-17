@@ -7,9 +7,11 @@ import {
   WebSocketServer,
 } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
+import { UserService } from "./user.service";
 
 @WebSocketGateway(8080, { cors: "*" })
 export class MyGateway implements OnModuleInit {
+  constructor(private userService: UserService) {}
   @WebSocketServer()
   server: Server;
 
@@ -20,10 +22,10 @@ export class MyGateway implements OnModuleInit {
     });
   }
 
-  @SubscribeMessage("newMessage")
-  onNewMessage(@MessageBody() body: any) {
+  @SubscribeMessage("message")
+  onNewMessage(@MessageBody() body: string) {
     console.log(body);
-    this.server.emit("onMessage", {
+    this.server.emit("message", {
       msg: "New Message",
       content: body,
     });

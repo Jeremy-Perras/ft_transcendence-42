@@ -140,6 +140,7 @@ export class ChannelResolver {
       name: owner.name,
       avatar: owner.avatar,
       rank: owner.rank,
+      socket: owner.socket ? owner.socket : undefined,
     };
   }
 
@@ -157,6 +158,7 @@ export class ChannelResolver {
           name: admin.user.name,
           avatar: admin.user.avatar,
           rank: admin.user.rank,
+          socket: admin.user.socket ? admin.user.socket : undefined,
         }))
       : [];
   }
@@ -175,6 +177,7 @@ export class ChannelResolver {
           name: member.user.name,
           avatar: member.user.avatar,
           rank: member.user.rank,
+          socket: member.user.socket ? member.user.socket : undefined,
         }))
       : [];
   }
@@ -194,6 +197,7 @@ export class ChannelResolver {
           avatar: member.user.avatar,
           rank: member.user.rank,
           endAt: member.endAt,
+          socket: member.user.socket ? member.user.socket : undefined,
         }))
       : [];
   }
@@ -213,6 +217,7 @@ export class ChannelResolver {
           avatar: member.user.avatar,
           rank: member.user.rank,
           endAt: member.endAt,
+          socket: member.user.socket ? member.user.socket : undefined,
         }))
       : [];
   }
@@ -311,6 +316,7 @@ export class ChannelResolver {
       name: m.user.name,
       rank: m.user.rank,
       endAt: m.endAt,
+      socket: m.user.socket ? m.user.socket : undefined,
     };
   }
 
@@ -335,6 +341,7 @@ export class ChannelResolver {
       name: m.user.name,
       rank: m.user.rank,
       endAt: m.endAt,
+      socket: m.user.socket ? m.user.socket : undefined,
     };
   }
 
@@ -371,6 +378,7 @@ export class ChannelResolver {
       id: m.user.id,
       name: m.user.name,
       rank: m.user.rank,
+      socket: m.user.socket ? m.user.socket : undefined,
     };
   }
 
@@ -390,6 +398,7 @@ export class ChannelResolver {
       id: m.user.id,
       name: m.user.name,
       rank: m.user.rank,
+      socket: m.user.socket ? m.user.socket : undefined,
     };
   }
 
@@ -560,6 +569,7 @@ export class ChannelMessageResolver {
       name: message.author.name,
       rank: message.author.rank,
       avatar: message.author.avatar,
+      socket: message.author.socket ? message.author.socket : undefined,
     };
   }
 
@@ -648,6 +658,7 @@ export class ChannelMessageReadResolver {
       avatar: message.user.avatar,
       name: message.user.name,
       rank: message.user.rank,
+      socket: message.user.socket ? message.user.socket : undefined,
     };
   }
 

@@ -28,7 +28,7 @@ async function main() {
         id: i,
         name: faker.name.fullName(),
         avatar: faker.image.avatar(),
-
+        socket: null,
         rank: Math.floor(Math.random() * 100),
       },
     });

@@ -12,6 +12,9 @@ export class User {
   @Field()
   name: string;
 
+  @Field((type) => String, { nullable: true })
+  socket?: string;
+
   @Field((type) => String)
   avatar: string;
 

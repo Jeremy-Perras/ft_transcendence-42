@@ -144,7 +144,6 @@ export default function Chat() {
   // const [socket, setSocket] = useState<Socket>();
   // const [messages, setMessages] = useState<string[]>([]);
   const send = (value: string) => {
-    console.log(value);
     socket?.emit("message", value);
   };
   // FindGame();
@@ -230,7 +229,7 @@ export default function Chat() {
           onKeyDown={(e) => {
             if (data?.blocking === false && data?.blocked === false) {
               if (e.code == "Enter" && !e.getModifierState("Shift")) {
-                send(userId);
+                send(content);
                 messageMutation.mutate({
                   message: content,
                   recipientId: userId,
