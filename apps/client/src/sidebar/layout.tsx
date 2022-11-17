@@ -254,7 +254,7 @@ const Highlight = ({
   );
 };
 
-const myInfo = () => {
+export const myInfo = () => {
   const { data } = useInfoUsersQuery(
     { userId: null },
     {

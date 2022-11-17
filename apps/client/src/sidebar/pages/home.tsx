@@ -12,6 +12,9 @@ import {
   useQueryClient,
   UseQueryOptions,
 } from "@tanstack/react-query";
+import { socket } from "../../main";
+import { useState } from "react";
+import { myInfo } from "../layout";
 
 const query = (): UseQueryOptions<InfoUsersQuery, unknown, Homequery> => {
   return {
@@ -116,22 +119,38 @@ type Chat = {
   }[];
 };
 
-const Chat = ({ __typename, name, avatar, id, messages }: Chat) => {
+const Chat = ({ currentUser, chat }: { currentUser: number; chat: Chat }) => {
+  const myId = myInfo()?.id; //change this
   const navigate = useNavigate();
-  const lastMessage = messages[messages.length - 1];
+  const lastMessage = chat.messages[chat.messages.length - 1];
+  const [newMessage, setNewMessage] = useState(false);
+  socket?.on("NewChannelMessage", (arg) => {
+    // console.log("New message on channel" + arg);
+    arg == chat.id && chat.__typename === "Channel"
+      ? setNewMessage(true)
+      : setNewMessage(false);
+  });
+  socket?.on("NewDirectMessage", (arg) => {
+    console.log("New message to user " + arg[0] + " from " + arg[1]);
+    chat.__typename === "User" && arg[1] == chat.id && arg[0] == myId //change this with right back thing
+      ? setNewMessage(true)
+      : setNewMessage(false);
+  });
   return (
     <div
       onClick={() =>
-        navigate(`/${__typename == "User" ? "chat" : "channel"}/${id}`)
+        navigate(
+          `/${chat.__typename == "User" ? "chat" : "channel"}/${chat.id}`
+        )
       }
       className="flex justify-center transition-all hover:cursor-pointer  hover:bg-slate-100"
     >
-      <div className="m-2 flex h-16 w-16 shrink-0 justify-center   text-white">
-        {__typename == "User" ? (
+      <div className="relative m-2 flex h-16 w-16 shrink-0 justify-center   text-white">
+        {chat.__typename == "User" ? (
           <Avatar.Root>
             <Avatar.Image
               className="h-16 w-16 border border-black object-cover"
-              src={avatar}
+              src={chat.avatar}
             />
             <Avatar.Fallback delayMs={0}>
               <UserIcon className="h-16 w-16 border border-black bg-slate-50 p-1 text-neutral-700" />
@@ -140,10 +159,16 @@ const Chat = ({ __typename, name, avatar, id, messages }: Chat) => {
         ) : (
           <UsersIcon className="h-16 w-16 border border-black bg-slate-50 p-1 pt-2 text-neutral-700" />
         )}
+        {newMessage ? (
+          <span className="absolute top-0 right-0 flex h-2 w-2">
+            <span className="absolute inline-flex h-full w-full animate-ping bg-red-400 opacity-75"></span>
+            <span className="relative inline-flex h-2 w-2 bg-red-500"></span>
+          </span>
+        ) : null}
       </div>
       <div className="flex grow flex-col justify-center px-2">
         <div className="flex justify-between">
-          <span className="pb-px font-bold">{name}</span>
+          <span className="pb-px font-bold">{chat.name}</span>
           <span className="mt-1 text-xs text-slate-400">
             {lastMessage?.sentAt ? getDate(+lastMessage.sentAt) : ""}
           </span>
@@ -161,11 +186,12 @@ const Home = () => {
     ReturnType<ReturnType<typeof home>>
   >;
   const { data } = useQuery({ ...query(), initialData });
+
   return (
     <>
       <>
         {data?.chats.map((chat, index) => (
-          <Chat key={index} {...chat} />
+          <Chat key={index} currentUser={data?.currentUser.id} chat={chat} />
         ))}
         {data?.chats.length === 0 ? <Empty /> : null}
       </>

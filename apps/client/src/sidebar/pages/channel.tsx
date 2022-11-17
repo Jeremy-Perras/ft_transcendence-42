@@ -20,6 +20,7 @@ import { ReactComponent as PasswordIcon } from "pixelarticons/svg/lock.svg";
 import { HeaderPortal } from "../layout";
 import { useForm } from "react-hook-form";
 import BannedIcon from "/src/assets/images/Banned.svg";
+import { socket } from "../../main";
 import {
   QueryClient,
   useQuery,
@@ -421,6 +422,7 @@ export default function Channel() {
               }`}
               onKeyDown={(e) => {
                 if (e.code == "Enter" && !e.getModifierState("Shift")) {
+                  socket?.emit("newChannelMessageSent", channelId);
                   messageMutation.mutate({
                     message: content,
                     recipientId: +channelId,

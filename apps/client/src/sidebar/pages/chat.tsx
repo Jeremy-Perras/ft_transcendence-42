@@ -12,7 +12,7 @@ import {
 } from "../../graphql/generated";
 import { getDate } from "./home";
 import { ReactComponent as EmptyChatIcon } from "pixelarticons/svg/message-plus.svg";
-import { HeaderPortal } from "../layout";
+import { HeaderPortal, myInfo } from "../layout";
 import { RankIcon } from "./profile";
 import React from "react";
 import {
@@ -21,8 +21,6 @@ import {
   useQueryClient,
   UseQueryOptions,
 } from "@tanstack/react-query";
-import io, { Socket } from "socket.io-client";
-import { FindGame } from "../../game/game";
 import { socket } from "../../main";
 
 const query = (
@@ -134,34 +132,12 @@ const DirectMessage = ({
 };
 
 export default function Chat() {
-  const queryClient = useQueryClient();
+  const queryClient = useQueryClient(); //WHY?
   const params = useParams();
   let test = false;
   if (!test) {
     test = true;
-    // const socket = io("http://localhost:8080");
   }
-  // const [socket, setSocket] = useState<Socket>();
-  // const [messages, setMessages] = useState<string[]>([]);
-  const send = (value: string) => {
-    socket?.emit("message", value);
-  };
-  // FindGame();
-  // useEffect(() => {
-  //   const newsocket = io("http://localhost:8080");
-  //   setSocket(newsocket);
-  // }, [setSocket]);
-
-  // const messageListenner = (message: string) => {
-  //   setMessages([...messages, message]);
-  // };
-
-  // useEffect(() => {
-  //   socket?.on("message", messageListenner);
-  //   // return () => {
-  //   //   socket?.off("message", messageListenner);
-  //   // };
-  // }, [messageListenner]);
 
   if (typeof params.userId === "undefined") return <div></div>;
   const userId = +params.userId;
@@ -170,6 +146,7 @@ export default function Chat() {
     ReturnType<ReturnType<typeof chat>>
   >;
   const { data } = useQuery({ ...query(userId), initialData });
+  const currentUserId = myInfo()?.id;
   const messageMutation = useSendDirectMessageMutation({
     onSuccess: () => {
       queryClient.invalidateQueries(["InfoDirectMessages", { userId: userId }]);
@@ -229,7 +206,7 @@ export default function Chat() {
           onKeyDown={(e) => {
             if (data?.blocking === false && data?.blocked === false) {
               if (e.code == "Enter" && !e.getModifierState("Shift")) {
-                send(content);
+                socket?.emit("newDirectMessageSent", [userId, currentUserId]);
                 messageMutation.mutate({
                   message: content,
                   recipientId: userId,

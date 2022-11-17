@@ -319,6 +319,7 @@ export type RestrictedMember = {
   messages: Array<DirectMessage>;
   name: Scalars["String"];
   rank: Scalars["Int"];
+  socket?: Maybe<Scalars["String"]>;
 };
 
 export type User = {
@@ -333,6 +334,7 @@ export type User = {
   messages: Array<DirectMessage>;
   name: Scalars["String"];
   rank: Scalars["Int"];
+  socket?: Maybe<Scalars["String"]>;
 };
 
 export type UserGamesArgs = {

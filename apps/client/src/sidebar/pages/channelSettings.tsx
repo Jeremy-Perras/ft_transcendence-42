@@ -987,6 +987,7 @@ const MemberList = ({
 
 export default function ChannelSettings() {
   const params = useParams();
+  const [search, setSearch] = useThrottledState("", 500);
   const [deleteConfirmation, setDeleteConfirmation] = useState(false);
   if (typeof params.channelId === "undefined") return <div></div>;
 

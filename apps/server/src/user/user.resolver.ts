@@ -526,6 +526,37 @@ export class UserResolver {
       socket: m.socket ? m.socket : undefined,
     };
   }
+
+  // @Mutation((returns) => User)
+  // async setWebSocket(
+  //   @Args("currentUserId", { type: () => Int }) currentUserId: number,
+  //   @Args("socketId", { type: () => String }) socketId: string
+  // ): Promise<userType> {
+  //   const m = await this.prisma.user.update({
+  //     select: {
+  //       avatar: true,
+  //       id: true,
+  //       name: true,
+  //       rank: true,
+  //       blockedBy: true,
+  //       socket: true,
+  //     },
+  //     where: {
+  //       id: currentUserId,
+  //     },
+  //     data: {
+  //       socket: socketId,
+  //     },
+  //   });
+
+  //   return {
+  //     avatar: m.avatar,
+  //     id: m.id,
+  //     name: m.name,
+  //     rank: m.rank,
+  //     socket: m.socket ? m.socket : undefined,
+  //   };
+  // }
 }
 
 @Resolver(DirectMessage)

@@ -6,9 +6,11 @@ import SideBar from "./sidebar/sidebar";
 import queryClient from "./query";
 import { useAuthStore } from "./stores";
 import "./index.css";
-import { io } from "socket.io-client";
+import { io, Socket } from "socket.io-client";
+import { useInfoUserProfileQuery } from "./graphql/generated";
+import { DefaultEventsMap } from "@socket.io/component-emitter";
 let init = false;
-export let socket;
+export let socket: Socket<DefaultEventsMap, DefaultEventsMap>; //TODO : mutation to set socket ? shared table with connected clients?
 const App = () => {
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
 
