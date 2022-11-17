@@ -6,8 +6,9 @@ import SideBar from "./sidebar/sidebar";
 import queryClient from "./query";
 import { useAuthStore } from "./stores";
 import "./index.css";
-
+import { io } from "socket.io-client";
 let init = false;
+export let socket;
 const App = () => {
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
 
@@ -19,6 +20,7 @@ const App = () => {
           const data = await res.text();
           if (data === "ok") {
             useAuthStore.getState().login();
+            socket = io("http://localhost:8080");
           }
         }
       });

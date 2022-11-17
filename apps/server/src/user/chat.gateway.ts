@@ -1,6 +1,7 @@
 import { OnModuleInit } from "@nestjs/common";
 import {
   MessageBody,
+  OnGatewayInit,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
@@ -8,12 +9,23 @@ import {
 import { Server, Socket } from "socket.io";
 
 @WebSocketGateway(8080, { cors: "*" })
-export class ChatGateway {
+export class MyGateway implements OnModuleInit {
   @WebSocketServer()
   server: Server;
-  @SubscribeMessage("message")
-  handleMessage(@MessageBody() message: string): void {
-    console.log(message);
-    this.server.emit("message", message);
+
+  onModuleInit() {
+    this.server.on("connection", (socket) => {
+      console.log(socket.id);
+      console.log("Connected");
+    });
+  }
+
+  @SubscribeMessage("newMessage")
+  onNewMessage(@MessageBody() body: any) {
+    console.log(body);
+    this.server.emit("onMessage", {
+      msg: "New Message",
+      content: body,
+    });
   }
 }

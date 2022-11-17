@@ -192,14 +192,15 @@ export class GameResolver {
     @Args("id", { type: () => Int })
     id: number
   ): Promise<gameType> {
+    console.log(id, currentUserId);
     const m = await this.prisma.game.update({
       select: {
         player2: true,
-        startedAt: true,
         player2Id: true,
         id: true,
         player1Score: true,
         player2Score: true,
+        startedAt: true,
         gameModeId: true,
       },
       where: {
