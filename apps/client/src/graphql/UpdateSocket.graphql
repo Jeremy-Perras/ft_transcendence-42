@@ -1,0 +1,10 @@
+
+mutation UpdateSocket($socket: String!) {
+  updateSocket(socket: $socket) {
+    rank
+    socket
+    name
+    id
+    avatar
+  }
+}

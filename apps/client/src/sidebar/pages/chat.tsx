@@ -145,6 +145,7 @@ export default function Chat() {
   // const [messages, setMessages] = useState<string[]>([]);
   const send = (value: string) => {
     socket?.emit("message", value);
+    // console.log(socket.id());
   };
   // FindGame();
   // useEffect(() => {

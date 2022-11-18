@@ -1,14 +1,16 @@
 import React, { useEffect } from "react";
 import ReactDOM from "react-dom/client";
-import { QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import { GameRouter } from "./game/router";
 import SideBar from "./sidebar/sidebar";
 import queryClient from "./query";
 import { useAuthStore } from "./stores";
 import "./index.css";
 import { io } from "socket.io-client";
+import { useUpdateSocketMutation } from "./graphql/generated";
 let init = false;
 export let socket;
+
 const App = () => {
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
 
@@ -18,6 +20,7 @@ const App = () => {
       fetch("/auth/session").then(async (res) => {
         if (res.status === 200) {
           const data = await res.text();
+
           if (data === "ok") {
             useAuthStore.getState().login();
             socket = io("http://localhost:8080");

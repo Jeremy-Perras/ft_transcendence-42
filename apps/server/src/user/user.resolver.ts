@@ -9,6 +9,7 @@ import {
   Mutation,
 } from "@nestjs/graphql";
 import { Prisma } from "@prisma/client";
+import { Socket } from "socket.io";
 import { GqlAuthenticatedGuard } from "../auth/authenticated.guard";
 import { CurrentUser } from "../auth/currentUser.decorator";
 import { channelType } from "../channel/channel.resolver";
@@ -274,6 +275,35 @@ export class UserResolver {
             readAt: message.readAt ?? undefined,
           }))
       : [];
+  }
+
+  @Mutation((returns) => User)
+  async updateSocket(
+    @CurrentUser() currentUserId: number,
+    @Args("socket", { type: () => String }) socket: string
+  ): Promise<userType> {
+    const m = await this.prisma.user.update({
+      select: {
+        avatar: true,
+        id: true,
+        name: true,
+        rank: true,
+        blockedBy: true,
+        socket: true,
+      },
+      where: {
+        id: currentUserId,
+      },
+      data: { socket: socket },
+    });
+    console.log(m);
+    return {
+      avatar: m.avatar,
+      id: m.id,
+      name: m.name,
+      rank: m.rank,
+      socket: m.socket ? m.socket : undefined,
+    };
   }
 
   @Mutation((returns) => User)
