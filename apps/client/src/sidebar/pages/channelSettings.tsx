@@ -37,12 +37,10 @@ import * as Avatar from "@radix-ui/react-avatar";
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { useForm } from "react-hook-form";
 import { HeaderPortal } from "../layout";
-import { User } from "./chat";
 import queryClient from "../../query";
 import {
   QueryClient,
   useQuery,
-  useQueryClient,
   UseQueryOptions,
   UseMutationResult,
 } from "@tanstack/react-query";

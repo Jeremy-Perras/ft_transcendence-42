@@ -97,12 +97,14 @@ const Chat = ({
 
   const newChatMessage =
     chat.__typename === "User" &&
+    chat.messages.length != 0 &&
     chat.messages.some((message) => {
       message.readAt === null && message.author.id === chat.id;
     });
 
   const newChannelMessage =
     chat.__typename === "Channel" &&
+    chat.messages.length != 0 &&
     !(lastMessage?.author.id === currentUserId) &&
     (lastMessage?.readBy === null ||
       typeof lastMessage?.readBy === undefined ||

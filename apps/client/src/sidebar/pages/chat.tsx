@@ -16,12 +16,7 @@ import { ReactComponent as EmptyChatIcon } from "pixelarticons/svg/message-plus.
 import { HeaderPortal, myInfo } from "../layout";
 import { RankIcon } from "./profile";
 import React from "react";
-import {
-  QueryClient,
-  useQuery,
-  useQueryClient,
-  UseQueryOptions,
-} from "@tanstack/react-query";
+import { QueryClient, useQuery, UseQueryOptions } from "@tanstack/react-query";
 import { socket } from "../../main";
 import queryClient from "../../query";
 
