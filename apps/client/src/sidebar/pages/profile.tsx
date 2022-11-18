@@ -12,6 +12,7 @@ import {
   useUnblockingUserMutation,
   useUpdateFriendMutation,
   useUpdateUnFriendMutation,
+  useCreateGameMutation,
 } from "../../graphql/generated";
 import Rank1Icon from "/src/assets/images/Rank1.svg";
 import Rank2Icon from "/src/assets/images/Rank2.svg";
@@ -29,6 +30,8 @@ import { ReactComponent as PlayIcon } from "pixelarticons/svg/gamepad.svg";
 import { useState } from "react";
 import { HeaderPortal } from "../layout";
 import FileUploadPage from "./uploadAvatar";
+import { socket } from "../../main";
+import { useForm } from "react-hook-form";
 
 export const RankIcon = (rank: number | undefined) => {
   if (typeof rank === "undefined") return "";
@@ -227,6 +230,7 @@ const GameHistory = ({ data }: { data: UserProfileQuery }) => {
 const AddFriend = () => {
   const params = useParams();
   const queryClient = useQueryClient();
+
   const askFriend = useUpdateFriendMutation({
     onSuccess: () => {
       queryClient.invalidateQueries([]);
@@ -252,6 +256,13 @@ const AddFriend = () => {
 const FriendButtons = ({ data }: { data: UserProfileQuery }) => {
   const params = useParams();
   const queryClient = useQueryClient();
+  const { register, handleSubmit, watch } = useForm();
+  const createGameMutation = useCreateGameMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries([]);
+    },
+  });
+
   const unFriend = useUpdateUnFriendMutation({
     onSuccess: () => {
       queryClient.invalidateQueries([]);
@@ -269,14 +280,35 @@ const FriendButtons = ({ data }: { data: UserProfileQuery }) => {
   });
   return (
     <div className="flex h-24 bg-slate-100 text-xl font-bold">
-      <div
-        onClick={() => {
-          alert("Launch Game invitation");
-        }}
-        className="flex basis-1/3 items-center justify-center border-2 border-slate-300 bg-slate-200 text-center transition-all hover:cursor-pointer hover:bg-slate-300"
+      <form
+        className="flex basis-1/3 flex-col items-center justify-center border-2 border-slate-300 bg-slate-200 text-center transition-all hover:cursor-pointer hover:bg-slate-300"
+        onSubmit={handleSubmit(() => {
+          params.userId
+            ? createGameMutation.mutate({
+                mode: +watch("gameMode"),
+                player2Id: +params.userId,
+              })
+            : null;
+          params.userId
+            ? socket?.emit("sendingInvitation", +params.userId)
+            : null;
+        })}
       >
-        Play !
-      </div>
+        <div className="flex items-center justify-start ">
+          <label className="mr-1" htmlFor="gameMode">
+            <span>Play</span>
+          </label>
+          <select {...register("gameMode")}>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+          </select>
+        </div>
+        <input
+          className="ml-3 flex w-fit justify-center self-center border border-slate-300 bg-slate-200 px-1  text-center text-sm font-bold hover:cursor-pointer hover:bg-slate-300"
+          type="submit"
+        />
+      </form>
       <div
         onClick={() => {
           params.userId

@@ -127,6 +127,7 @@ const Chat = ({ currentUser, chat }: { currentUser: number; chat: Chat }) => {
   const navigate = useNavigate();
   const lastMessage = chat.messages[chat.messages.length - 1];
   const [newMessage, setNewMessage] = useState(false);
+  const [newInvitation, setNewInvitation] = useState(false);
   socket?.on("NewChannelMessage", (arg) => {
     // console.log("New message on channel" + arg);
     arg == chat.id && chat.__typename === "Channel"
@@ -140,6 +141,12 @@ const Chat = ({ currentUser, chat }: { currentUser: number; chat: Chat }) => {
         setNewMessage(true)
       : setNewMessage(false);
   });
+  // socket?.on("Invitattion", (arg) => {
+  //   // console.log("New message on channel" + arg);
+  //   arg == chat.id && chat.__typename === "Channel"
+  //     ? setNewInvitation(true)
+  //     : setNewInvitation(false);
+  // });
   return (
     <div
       onClick={() =>

@@ -1,6 +1,8 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { socket } from "../main";
 import {
+  useCreateGameMutation,
   useSearchGamesQuery,
   useUpdateGameJoiningPlayerMutation,
 } from "../graphql/generated";
@@ -16,7 +18,6 @@ export const FindGame = ({ gameMode }: { gameMode: number }) => {
           gamesId: games.map((game) => game.id),
         };
         return res;
-        s;
       },
     }
   );
@@ -26,16 +27,20 @@ export const FindGame = ({ gameMode }: { gameMode: number }) => {
 
 export const Game = ({ gameMode }: { gameMode: number }) => {
   const queryClient = useQueryClient();
-  const gameMutation = useUpdateGameJoiningPlayerMutation({
+
+  const updateGameMutation = useUpdateGameJoiningPlayerMutation({
     onSuccess: () => {
       queryClient.invalidateQueries(["updateGame"]);
     },
   });
+
+  const createGameMutation = useCreateGameMutation();
+
   const gameIds = FindGame({ gameMode: gameMode });
   if (gameIds?.gamesId.length) {
-    gameMutation.mutate({
+    updateGameMutation.mutate({
       updateGameId: gameIds.gamesId[0]!,
     });
-  }
+  } else createGameMutation.mutate({ mode: gameMode });
   return <div>game</div>;
 };

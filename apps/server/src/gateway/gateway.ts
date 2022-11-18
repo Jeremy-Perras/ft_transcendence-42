@@ -77,18 +77,14 @@ export class MyGateway implements OnModuleInit {
   }
 
   @SubscribeMessage("sendingInvitation")
-  async onNewSendingMessage(@MessageBody() body: string) {
-    console.log("New channel message on channel" + body);
-    const channel = await this.gatewayService.getChannel(+body);
-    const users = await this.gatewayService.getUsers();
+  async onSendingInvitation(@MessageBody() body: number) {
+    console.log("Invitation to " + body);
+    const u = await this.gatewayService.getUserById(body);
     ConnectedUsers.forEach((userSocket) => {
       console.log(userSocket.id);
-      channel?.members.forEach(async (user) => {
-        const u = await this.gatewayService.getUserById(user.userId);
-        if (u?.socket === userSocket.id) {
-          userSocket.emit("NewChannelMessage", body);
-        }
-      });
+      if (u?.socket === userSocket.id) {
+        userSocket.emit("sendingInvitation", body);
+      }
     });
   }
 }
