@@ -1,7 +1,0 @@
-
-mutation UpdateDateMuted($channelId: Int!, $userId: Int!, $date: Timestamp) {
-  updateMuted(channelId: $channelId, userId: $userId, date: $date) {
-    id
-    name
-  }
-}

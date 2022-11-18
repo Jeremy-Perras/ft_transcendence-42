@@ -3,18 +3,19 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev:client": "npm run dev -w apps/client",
-    "dev:server": "npm run dev -w apps/server",
-    "dev:prisma": "npm run prisma:watch -w apps/server",
-    "dev:seed": "npm run prisma:seed -w apps/server",
-    "build:client": "npm run build -w apps/client",
-    "build:server": "npm run build -w apps/server",
+    "dev:client": "npm run dev -w client",
+    "dev:server": "npm run dev -w server",
+    "dev:prisma": "npm run prisma:watch -w server",
+    "dev:seed": "npm run prisma:seed -w server",
+    "build:client": "npm run build -w client",
+    "build:server": "npm run build -w server",
     "build:all": "npm run build:client && npm run build:server",
-    "db:deploy": "npm run prisma:push -w apps/server && npm run prisma:generate -w apps/server",
-    "deploy": "npm run db:deploy && npm run build:all && node apps/server/dist/main"
+    "db:deploy": "npm run prisma:push -w server && npm run prisma:generate -w server",
+    "deploy": "npm run db:deploy && npm run build:all && NODE_ENV=production node server/dist/main"
   },
   "workspaces": [
-    "./apps/*"
+    "./client",
+    "./server"
   ],
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.40.0",

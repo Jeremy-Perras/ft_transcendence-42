@@ -1,6 +1,0 @@
-mutation DeleteMuted($channel: Int!, $userId: Int!) {
-  deleteMuted(channel: $channel, userId: $userId) {
-    id
-    name
-  }
-}

@@ -19,6 +19,6 @@
     "composite": true,
     "esModuleInterop": true
   },
-  "references": [{ "path": "./apps/*" }],
+  "references": [{ "path": "./client" }, { "path": "./server" }],
   "exclude": ["node_modules"]
 }

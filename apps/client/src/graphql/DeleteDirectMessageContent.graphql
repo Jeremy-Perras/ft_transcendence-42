@@ -1,6 +1,0 @@
-mutation deleteDirectMessageContent($messageId: Int!) {
-  deleteDirectMessageContent(messageId: $messageId) {
-    id
-    content
-  }
-}
