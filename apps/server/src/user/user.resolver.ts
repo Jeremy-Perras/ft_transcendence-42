@@ -638,4 +638,19 @@ export class DirectMessageResolver {
       sentAt: m.sentAt,
     };
   }
+
+  @Mutation((returns) => DirectMessage)
+  async updateDirectMessageRead(
+    @Args("messageId", { type: () => Int }) messageId: number
+  ): Promise<directMessageType> {
+    const m = await this.prisma.directMessage.update({
+      select: { id: true, content: true, sentAt: true },
+      where: {
+        id: messageId,
+      },
+      data: { readAt: new Date() },
+    });
+    console.log(m);
+    return { id: m.id, content: m.content, sentAt: m.sentAt };
+  }
 }

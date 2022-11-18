@@ -1,9 +1,8 @@
-query InfoUsers($userId: Int) {
+query HomepageUser($userId: Int) {
   user(id: $userId) {
     id
     __typename
     name
-
     avatar
     rank
     channels {
@@ -12,17 +11,30 @@ query InfoUsers($userId: Int) {
       id
       messages {
         id
+        author {
+          id
+        }
         content
         sentAt
+        readBy {
+          user {
+            id
+          }
+        }
       }
+        
     }
     friends {
       __typename
       name
       avatar
       messages {
+        author {
+          id
+        }     
         content
         sentAt
+        readAt
       }
       id
     }

@@ -21,6 +21,7 @@ import { HeaderPortal } from "../layout";
 import { useForm } from "react-hook-form";
 import BannedIcon from "/src/assets/images/Banned.svg";
 import { socket } from "../../main";
+import { CurrentUser } from "../../../../server/src/auth/currentUser.decorator";
 import {
   QueryClient,
   useQuery,
@@ -30,7 +31,7 @@ import {
 
 const query = (
   channelId: number
-): UseQueryOptions<InfoChannelQuery, unknown, Channelquery> => {
+): UseQueryOptions<InfoChannelQuery, unknown, ChannelQuery> => {
   return {
     queryKey: useInfoChannelQuery.getKey({
       channelId: +channelId,
@@ -68,7 +69,7 @@ export const channel =
     }
   };
 
-type Channelquery = {
+type ChannelQuery = {
   userId: number;
   name: string;
   messages: ChannelMessage[];
@@ -83,6 +84,7 @@ type Channelquery = {
   password: boolean;
   private: boolean;
 };
+
 const ReadBy = ({ users }: { users: User[] }) => {
   const navigate = useNavigate();
   return (
@@ -132,41 +134,60 @@ type ChannelMessage = {
 };
 
 const ChannelMessage = ({
-  author,
-  readBy,
-  content,
-  sentAt,
-}: ChannelMessage) => {
+  message,
+  currentUserId,
+}: {
+  message: ChannelMessage;
+  currentUserId: number;
+}) => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const createChannelMessageRead = useCreateChannelMessageReadMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries([]);
+    },
+  });
+  useEffect(() => {
+    if (
+      !message.readBy.some((message) => {
+        message.user.id === currentUserId;
+      })
+    ) {
+      createChannelMessageRead.mutate({
+        userId: currentUserId,
+        messageId: message.id,
+      });
+    } else "";
+  }, []);
 
   return (
     <>
       <div className="mt-6 text-center text-xs text-slate-300">
-        {getDate(+sentAt)}
+        {getDate(+message.sentAt)}
       </div>
       <div className="flex w-full">
         <div className="flex w-9 shrink-0 justify-center">
           <div className="flex self-end">
             <img
               className="h-6 w-6 border border-black transition-all hover:h-7 hover:w-7 hover:cursor-pointer"
-              src={author.avatar}
+              src={message.author.avatar}
               alt="Message author avatar"
-              onClick={() => navigate(`/profile/${author.id}`)}
+              onClick={() => navigate(`/profile/${message.author.id}`)}
             />
           </div>
         </div>
         <div className="flex flex-col">
           <div className="text-left text-xs tracking-wide text-slate-400">
-            <span>{author.name} </span>
+            <span>{message.author.name} </span>
           </div>
           <div className="rounded-md bg-slate-200 px-4 py-2 text-left tracking-wide">
-            {content}
+            {message.content}
           </div>
         </div>
       </div>
       <div className="flex">
         <ReadBy
-          users={readBy.map((Users) => {
+          users={message.readBy.map((Users) => {
             return Users.user;
           })}
         />
@@ -310,31 +331,21 @@ const AccessProtected = ({
   );
 };
 
-export default function Channel() {
-  const { channelId } = useParams();
-  const queryClient = useQueryClient();
-  if (!channelId) return <div>no channel id</div>;
-
-  const initialData = useLoaderData() as Awaited<
-    ReturnType<ReturnType<typeof channel>>
-  >;
-  const { data } = useQuery({ ...query(+channelId), initialData });
+const ChannelMessagesDisplay = ({
+  data,
+  channelId,
+}: {
+  data: ChannelQuery;
+  channelId: number;
+}) => {
   const messageMutation = useSendChannelMessageMutation({
     onSuccess: () => {
       queryClient.invalidateQueries([]);
     },
   });
-  const createChannelMessageRead = useCreateChannelMessageReadMutation({
-    onSuccess: () => {
-      queryClient.invalidateQueries([]);
-    },
-  });
+  const queryClient = useQueryClient();
   const [content, setContent] = useState("");
 
-  const banned = data?.banned.some((u) => u.id === data.userId);
-  const muted = data?.muted.some((u) => u.id === data.userId);
-  const [auth, setAuth] = useState(false);
-  const cookies = document.cookie;
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
   const scrollToBottom = () => {
     messagesEndRef?.current?.scrollIntoView({ behavior: "smooth" });
@@ -344,6 +355,73 @@ export default function Channel() {
     scrollToBottom();
   }, [data?.messages]);
 
+  const muted = data?.muted?.some((u) => u.id === data.userId);
+  return (
+    <div className="flex h-full flex-col bg-slate-100">
+      <div className="mt-px flex w-full grow flex-col overflow-auto pr-2 pl-px">
+        {data?.messages.length === 0 ? (
+          <div className="mb-48 flex h-full flex-col items-center justify-center text-center text-slate-300">
+            <EmptyChatIcon className="w-96 text-slate-200" />
+            Seems a little bit too silent here... Send the first message !
+          </div>
+        ) : (
+          <></>
+        )}
+        {data?.messages?.map((message, index) => (
+          <ChannelMessage
+            key={index}
+            message={message}
+            currentUserId={data.userId}
+          />
+        ))}
+        <div ref={messagesEndRef} />
+      </div>
+      <div className="flex h-16 w-full border-t-2 bg-slate-50 p-2">
+        <textarea
+          disabled={muted}
+          rows={1}
+          className={`${
+            muted ? "hover:cursor-not-allowed" : ""
+          } h-10 w-11/12 resize-none overflow-visible rounded-lg px-3 pt-2`}
+          onChange={(e) => setContent(e.target.value)}
+          placeholder={`${
+            muted === true ? "You are muted" : "Type your message here ..."
+          }`}
+          onKeyDown={(e) => {
+            if (e.code == "Enter" && !e.getModifierState("Shift")) {
+              socket?.emit("newChannelMessageSent", channelId);
+              messageMutation.mutate({
+                message: content,
+                recipientId: channelId,
+              });
+              e.currentTarget.value = "";
+              e.preventDefault();
+              setContent("");
+            } else {
+              if (e.code == "Enter" && !e.getModifierState("Shift")) {
+                e.currentTarget.value = "";
+                e.preventDefault();
+                setContent("");
+              }
+            }
+          }}
+        />
+      </div>
+    </div>
+  );
+};
+
+export default function Channel() {
+  const { channelId } = useParams();
+  if (!channelId) return <div>no channel id</div>;
+  const initialData = useLoaderData() as Awaited<
+    ReturnType<ReturnType<typeof channel>>
+  >;
+  const { data } = useQuery({ ...query(+channelId), initialData });
+  const banned = data?.banned.some((u) => u.id === data.userId);
+  const [auth, setAuth] = useState(false);
+  const cookies = document.cookie;
+  console.log(data);
   return (
     <>
       <HeaderPortal
@@ -381,66 +459,10 @@ export default function Channel() {
           ownerName={data.owner.name}
           setAuth={setAuth}
         />
+      ) : typeof data === "undefined" ? (
+        <></>
       ) : (
-        <div
-          onClick={() => {
-            data?.messages.forEach((message) => {
-              message.readBy
-                ? ""
-                : createChannelMessageRead.mutate({
-                    messageId: message.id,
-                    userId: data.userId,
-                  });
-            });
-          }}
-          className="flex h-full flex-col bg-slate-100"
-        >
-          <div className="mt-px flex w-full grow flex-col overflow-auto pr-2 pl-px">
-            {data?.messages.length === 0 ? (
-              <div className="mb-48 flex h-full flex-col items-center justify-center text-center text-slate-300">
-                <EmptyChatIcon className="w-96 text-slate-200" />
-                Seems a little bit too silent here... Send the first message !
-              </div>
-            ) : (
-              <></>
-            )}
-            {data?.messages?.map((message, index) => (
-              <ChannelMessage key={index} {...message} />
-            ))}
-            <div ref={messagesEndRef} />
-          </div>
-          <div className="flex h-16 w-full border-t-2 bg-slate-50 p-2">
-            <textarea
-              disabled={banned || muted}
-              rows={1}
-              className={`${
-                banned || muted ? "hover:cursor-not-allowed" : ""
-              } h-10 w-11/12 resize-none overflow-visible rounded-lg px-3 pt-2`}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder={`${
-                muted === true ? "You are muted" : "Type your message here ..."
-              }`}
-              onKeyDown={(e) => {
-                if (e.code == "Enter" && !e.getModifierState("Shift")) {
-                  socket?.emit("newChannelMessageSent", channelId);
-                  messageMutation.mutate({
-                    message: content,
-                    recipientId: +channelId,
-                  });
-                  e.currentTarget.value = "";
-                  e.preventDefault();
-                  setContent("");
-                } else {
-                  if (e.code == "Enter" && !e.getModifierState("Shift")) {
-                    e.currentTarget.value = "";
-                    e.preventDefault();
-                    setContent("");
-                  }
-                }
-              }}
-            />
-          </div>
-        </div>
+        <ChannelMessagesDisplay data={data} channelId={+channelId} />
       )}
     </>
   );

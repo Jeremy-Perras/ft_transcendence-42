@@ -58,7 +58,7 @@ export default function CreateChannel({
   const { register, handleSubmit, watch, reset, formState } = useForm();
   const createChannelMutation = useCreateChanelMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries(["InfoUsers", {}]);
+      queryClient.invalidateQueries(["HomepageUser", {}]);
     },
   });
   const [passwordProtected, setPasswordProtected] = useState(false);

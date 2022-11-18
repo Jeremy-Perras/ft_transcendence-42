@@ -9,22 +9,44 @@ import { ReactComponent as BackBurgerIcon } from "pixelarticons/svg/backburger.s
 import { ReactComponent as MessagePlusIcon } from "pixelarticons/svg/message-plus.svg";
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { ReactComponent as UsersIcon } from "pixelarticons/svg/users.svg";
+import { ReactComponent as LoaderIcon } from "pixelarticons/svg/clock.svg";
+import { ReactComponent as AlertIcon } from "pixelarticons/svg/alert.svg";
 import * as Avatar from "@radix-ui/react-avatar";
 import {
   useSearchUsersChannelsQuery,
   useUserProfileHeaderQuery,
-  useInfoUsersQuery,
+  useHomepageUserQuery,
 } from "../graphql/generated";
 
 import { useSidebarStore } from "../stores";
 import CreateChannel from "./pages/createChannel";
 import ReactDOM from "react-dom";
 import React from "react";
-import { Error } from "./pages/home";
 
 //TODO : skeleton loader while loading
 // retry
-// route loaders
+
+//TODO : put these in the right place
+const Error = () => {
+  return (
+    <div className="flex h-full select-none flex-col items-center justify-center text-slate-200">
+      <AlertIcon className="-mt-10 w-72" />
+      <span className="mt-10 px-20 text-center text-4xl tracking-wide">
+        Error while loading data
+      </span>
+    </div>
+  );
+};
+
+const Loading = () => {
+  return (
+    <div className="flex h-full w-full animate-pulse flex-col items-center justify-center text-slate-200">
+      <LoaderIcon className="w-80" />
+      <div className="text-center text-4xl">Loading... </div>
+    </div>
+  );
+};
+/* ****** */
 
 export function HeaderPortal({
   container,
@@ -255,7 +277,7 @@ const Highlight = ({
 };
 
 export const myInfo = () => {
-  const { data } = useInfoUsersQuery(
+  const { data } = useHomepageUserQuery(
     { userId: null },
     {
       select({ user }) {

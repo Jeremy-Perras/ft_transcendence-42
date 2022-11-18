@@ -1,29 +1,21 @@
-import { Params, useLoaderData, useNavigate } from "react-router-dom";
+import { useLoaderData, useNavigate } from "react-router-dom";
 import * as Avatar from "@radix-ui/react-avatar";
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { ReactComponent as UsersIcon } from "pixelarticons/svg/users.svg";
 import { ReactComponent as GamePadIcon } from "pixelarticons/svg/gamepad.svg";
-import { ReactComponent as LoaderIcon } from "pixelarticons/svg/clock.svg";
-import { ReactComponent as AlertIcon } from "pixelarticons/svg/alert.svg";
 import {
-  InfoUsersQuery,
-  useInfoUsersQuery,
+  HomepageUserQuery,
+  useHomepageUserQuery,
   useUpdateSocketMutation,
 } from "../../graphql/generated";
-import {
-  QueryClient,
-  useQuery,
-  useQueryClient,
-  UseQueryOptions,
-} from "@tanstack/react-query";
+import { QueryClient, useQuery, UseQueryOptions } from "@tanstack/react-query";
 import { socket } from "../../main";
-import { useState } from "react";
-import { myInfo } from "../layout";
+import { useEffect, useState } from "react";
 
-const query = (): UseQueryOptions<InfoUsersQuery, unknown, Homequery> => {
+const query = (): UseQueryOptions<HomepageUserQuery, unknown, Homequery> => {
   return {
-    queryKey: useInfoUsersQuery.getKey({}),
-    queryFn: useInfoUsersQuery.fetcher({}),
+    queryKey: useHomepageUserQuery.getKey({}),
+    queryFn: useHomepageUserQuery.fetcher({}),
     select: (users) => ({
       currentUser: {
         id: users.user.id,
@@ -78,39 +70,6 @@ const Empty = () => {
   );
 };
 
-// const LoadingSkeleton = ({ w1, w2 }: { w1: string; w2: string }) => {
-//   return (
-//     <div className="flex animate-pulse justify-center transition-all ">
-//       <div className="m-2 flex h-16 w-16 shrink-0 justify-center bg-slate-100 " />
-//       <div className="flex w-full grow flex-col justify-evenly bg-slate-50 p-2">
-//         <div className={`flex h-6 ${w1} bg-slate-100 `} />
-//         <div className={`flex h-6 ${w2} bg-slate-100 `} />
-//       </div>
-//     </div>
-//   );
-// };
-
-//DO NOT REMOVE : USE IN MAIN FILE WHEN LOADERS OK
-const Loading = () => {
-  return (
-    <div className="flex h-full w-full animate-pulse flex-col items-center justify-center text-slate-200">
-      <LoaderIcon className="w-80" />
-      <div className="text-center text-4xl">Loading... </div>
-    </div>
-  );
-};
-
-export const Error = () => {
-  return (
-    <div className="flex h-full select-none flex-col items-center justify-center text-slate-200">
-      <AlertIcon className="-mt-10 w-72" />
-      <span className="mt-10 px-20 text-center text-4xl tracking-wide">
-        Error while loading data
-      </span>
-    </div>
-  );
-};
-
 type Chat = {
   __typename: "User" | "Channel";
   name: string;
@@ -118,28 +77,40 @@ type Chat = {
   id: number;
   messages: {
     __typename?: "DirectMessage" | "ChannelMessage" | undefined;
+    author: { id: number };
     content: string;
     sentAt: number;
+    readAt?: number | null | undefined;
+    readBy?: { user: { id: number } }[];
   }[];
 };
 
-const Chat = ({ currentUser, chat }: { currentUser: number; chat: Chat }) => {
+const Chat = ({
+  currentUserId,
+  chat,
+}: {
+  currentUserId: number;
+  chat: Chat;
+}) => {
   const navigate = useNavigate();
   const lastMessage = chat.messages[chat.messages.length - 1];
-  const [newMessage, setNewMessage] = useState(false);
-  socket?.on("NewChannelMessage", (arg) => {
-    // console.log("New message on channel" + arg);
-    arg == chat.id && chat.__typename === "Channel"
-      ? setNewMessage(true)
-      : setNewMessage(false);
-  });
-  socket?.on("NewDirectMessage", (arg) => {
-    console.log("New message to user " + arg[0] + " from " + arg[1]);
-    chat.__typename === "User" && arg[1] == chat.id
-      ? //change this with right back thing
-        setNewMessage(true)
-      : setNewMessage(false);
-  });
+
+  const newChatMessage =
+    chat.__typename === "User" &&
+    chat.messages.some((message) => {
+      message.readAt === null && message.author.id === chat.id;
+    });
+
+  const newChannelMessage =
+    chat.__typename === "Channel" &&
+    !(lastMessage?.author.id === currentUserId) &&
+    (lastMessage?.readBy === null ||
+      typeof lastMessage?.readBy === undefined ||
+      !lastMessage?.readBy?.some((user) => {
+        console.log(user.user.id);
+        return user.user.id === currentUserId;
+      }));
+
   return (
     <div
       onClick={() =>
@@ -163,7 +134,7 @@ const Chat = ({ currentUser, chat }: { currentUser: number; chat: Chat }) => {
         ) : (
           <UsersIcon className="h-16 w-16 border border-black bg-slate-50 p-1 pt-2 text-neutral-700" />
         )}
-        {newMessage ? (
+        {newChatMessage || newChannelMessage ? (
           <span className="absolute top-0 right-0 flex h-2 w-2">
             <span className="absolute inline-flex h-full w-full animate-ping bg-red-400 opacity-75"></span>
             <span className="relative inline-flex h-2 w-2 bg-red-500"></span>
@@ -185,6 +156,8 @@ const Chat = ({ currentUser, chat }: { currentUser: number; chat: Chat }) => {
   );
 };
 
+//TODO : front button to disconnect
+//TODO: update only when window focused
 const Home = () => {
   const initialData = useLoaderData() as Awaited<
     ReturnType<ReturnType<typeof home>>
@@ -196,13 +169,27 @@ const Home = () => {
     socketMutation.mutate({ socket: tes ? tes : "" });
     setTest(true);
   }
+  const [newMessage, setNewMessage] = useState(false);
   const { data } = useQuery({ ...query(), initialData });
+  useEffect(() => {
+    socket?.on("NewDirectMessage", (arg) => {
+      console.log("New message from " + arg[1]);
+      setNewMessage(true);
+    });
+  }, [newMessage]);
 
+  // const [newMessage, setNewMessage] = useState(false);
+  // socket?.on("NewChannelMessage", (arg) => {
+  //   // console.log("New message on channel" + arg);
+  //   arg == chat.id && chat.__typename === "Channel"
+  //     ? setNewMessage(true)
+  //     : setNewMessage(false);
+  // });
   return (
     <>
       <>
         {data?.chats.map((chat, index) => (
-          <Chat key={index} currentUser={data?.currentUser.id} chat={chat} />
+          <Chat key={index} currentUserId={data.currentUser.id} chat={chat} />
         ))}
         {data?.chats.length === 0 ? <Empty /> : null}
       </>

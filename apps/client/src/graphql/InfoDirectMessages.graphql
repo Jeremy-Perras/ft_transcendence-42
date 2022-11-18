@@ -4,6 +4,7 @@ query InfoDirectMessages($userId: Int) {
     avatar
     rank
     messages {
+      id
       recipient {
         id
         name

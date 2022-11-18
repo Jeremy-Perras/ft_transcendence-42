@@ -117,6 +117,7 @@ export type Mutation = {
   unblockingUser: User;
   updateAdmins: Channel;
   updateBanned: Channel;
+  updateDirectMessageRead: DirectMessage;
   updateFriend: User;
   updateFriendBy: User;
   updateGame: Game;
@@ -216,6 +217,10 @@ export type MutationUpdateBannedArgs = {
   channelId: Scalars["Int"];
   date?: InputMaybe<Scalars["Timestamp"]>;
   userId: Scalars["Int"];
+};
+
+export type MutationUpdateDirectMessageReadArgs = {
+  messageId: Scalars["Int"];
 };
 
 export type MutationUpdateFriendArgs = {
@@ -578,6 +583,50 @@ export type DeleteMutedMutation = {
   deleteMuted: { __typename?: "RestrictedMember"; id: number; name: string };
 };
 
+export type HomepageUserQueryVariables = Exact<{
+  userId?: InputMaybe<Scalars["Int"]>;
+}>;
+
+export type HomepageUserQuery = {
+  __typename?: "Query";
+  user: {
+    __typename: "User";
+    id: number;
+    name: string;
+    avatar: string;
+    rank: number;
+    channels: Array<{
+      __typename: "Channel";
+      name: string;
+      id: number;
+      messages: Array<{
+        __typename?: "ChannelMessage";
+        id: number;
+        content: string;
+        sentAt: number;
+        author: { __typename?: "User"; id: number };
+        readBy: Array<{
+          __typename?: "ChannelMessageRead";
+          user: { __typename?: "User"; id: number };
+        }>;
+      }>;
+    }>;
+    friends: Array<{
+      __typename: "User";
+      name: string;
+      avatar: string;
+      id: number;
+      messages: Array<{
+        __typename?: "DirectMessage";
+        content: string;
+        sentAt: number;
+        readAt?: number | null;
+        author: { __typename?: "User"; id: number };
+      }>;
+    }>;
+  };
+};
+
 export type InfoChannelQueryVariables = Exact<{
   channelId: Scalars["Int"];
   userId?: InputMaybe<Scalars["Int"]>;
@@ -636,6 +685,7 @@ export type InfoDirectMessagesQuery = {
     blocking: boolean;
     messages: Array<{
       __typename?: "DirectMessage";
+      id: number;
       content: string;
       sentAt: number;
       readAt?: number | null;
@@ -668,43 +718,6 @@ export type InfoUserProfileQuery = {
     name: string;
     avatar: string;
     rank: number;
-  };
-};
-
-export type InfoUsersQueryVariables = Exact<{
-  userId?: InputMaybe<Scalars["Int"]>;
-}>;
-
-export type InfoUsersQuery = {
-  __typename?: "Query";
-  user: {
-    __typename: "User";
-    id: number;
-    name: string;
-    avatar: string;
-    rank: number;
-    channels: Array<{
-      __typename: "Channel";
-      name: string;
-      id: number;
-      messages: Array<{
-        __typename?: "ChannelMessage";
-        id: number;
-        content: string;
-        sentAt: number;
-      }>;
-    }>;
-    friends: Array<{
-      __typename: "User";
-      name: string;
-      avatar: string;
-      id: number;
-      messages: Array<{
-        __typename?: "DirectMessage";
-        content: string;
-        sentAt: number;
-      }>;
-    }>;
   };
 };
 
@@ -856,6 +869,20 @@ export type UpdateDateMutedMutationVariables = Exact<{
 export type UpdateDateMutedMutation = {
   __typename?: "Mutation";
   updateMuted: { __typename?: "Channel"; id: number; name: string };
+};
+
+export type UpdateDirectMessageReadMutationVariables = Exact<{
+  messageId: Scalars["Int"];
+}>;
+
+export type UpdateDirectMessageReadMutation = {
+  __typename?: "Mutation";
+  updateDirectMessageRead: {
+    __typename?: "DirectMessage";
+    id: number;
+    content: string;
+    readAt?: number | null;
+  };
 };
 
 export type UpdateFriendMutationVariables = Exact<{
@@ -1587,6 +1614,72 @@ useDeleteMutedMutation.fetcher = (variables: DeleteMutedMutationVariables) =>
     DeleteMutedDocument,
     variables
   );
+export const HomepageUserDocument = `
+    query HomepageUser($userId: Int) {
+  user(id: $userId) {
+    id
+    __typename
+    name
+    avatar
+    rank
+    channels {
+      __typename
+      name
+      id
+      messages {
+        id
+        author {
+          id
+        }
+        content
+        sentAt
+        readBy {
+          user {
+            id
+          }
+        }
+      }
+    }
+    friends {
+      __typename
+      name
+      avatar
+      messages {
+        author {
+          id
+        }
+        content
+        sentAt
+        readAt
+      }
+      id
+    }
+  }
+}
+    `;
+export const useHomepageUserQuery = <
+  TData = HomepageUserQuery,
+  TError = unknown
+>(
+  variables?: HomepageUserQueryVariables,
+  options?: UseQueryOptions<HomepageUserQuery, TError, TData>
+) =>
+  useQuery<HomepageUserQuery, TError, TData>(
+    variables === undefined ? ["HomepageUser"] : ["HomepageUser", variables],
+    fetcher<HomepageUserQuery, HomepageUserQueryVariables>(
+      HomepageUserDocument,
+      variables
+    ),
+    options
+  );
+
+useHomepageUserQuery.getKey = (variables?: HomepageUserQueryVariables) =>
+  variables === undefined ? ["HomepageUser"] : ["HomepageUser", variables];
+useHomepageUserQuery.fetcher = (variables?: HomepageUserQueryVariables) =>
+  fetcher<HomepageUserQuery, HomepageUserQueryVariables>(
+    HomepageUserDocument,
+    variables
+  );
 export const InfoChannelDocument = `
     query InfoChannel($channelId: Int!, $userId: Int) {
   channel(id: $channelId) {
@@ -1700,6 +1793,7 @@ export const InfoDirectMessagesDocument = `
     avatar
     rank
     messages {
+      id
       recipient {
         id
         name
@@ -1806,57 +1900,6 @@ useInfoUserProfileQuery.getKey = (variables?: InfoUserProfileQueryVariables) =>
 useInfoUserProfileQuery.fetcher = (variables?: InfoUserProfileQueryVariables) =>
   fetcher<InfoUserProfileQuery, InfoUserProfileQueryVariables>(
     InfoUserProfileDocument,
-    variables
-  );
-export const InfoUsersDocument = `
-    query InfoUsers($userId: Int) {
-  user(id: $userId) {
-    id
-    __typename
-    name
-    avatar
-    rank
-    channels {
-      __typename
-      name
-      id
-      messages {
-        id
-        content
-        sentAt
-      }
-    }
-    friends {
-      __typename
-      name
-      avatar
-      messages {
-        content
-        sentAt
-      }
-      id
-    }
-  }
-}
-    `;
-export const useInfoUsersQuery = <TData = InfoUsersQuery, TError = unknown>(
-  variables?: InfoUsersQueryVariables,
-  options?: UseQueryOptions<InfoUsersQuery, TError, TData>
-) =>
-  useQuery<InfoUsersQuery, TError, TData>(
-    variables === undefined ? ["InfoUsers"] : ["InfoUsers", variables],
-    fetcher<InfoUsersQuery, InfoUsersQueryVariables>(
-      InfoUsersDocument,
-      variables
-    ),
-    options
-  );
-
-useInfoUsersQuery.getKey = (variables?: InfoUsersQueryVariables) =>
-  variables === undefined ? ["InfoUsers"] : ["InfoUsers", variables];
-useInfoUsersQuery.fetcher = (variables?: InfoUsersQueryVariables) =>
-  fetcher<InfoUsersQuery, InfoUsersQueryVariables>(
-    InfoUsersDocument,
     variables
   );
 export const MutedSomeoneChannelDocument = `
@@ -2239,6 +2282,47 @@ useUpdateDateMutedMutation.fetcher = (
     UpdateDateMutedDocument,
     variables
   );
+export const UpdateDirectMessageReadDocument = `
+    mutation updateDirectMessageRead($messageId: Int!) {
+  updateDirectMessageRead(messageId: $messageId) {
+    id
+    content
+    readAt
+  }
+}
+    `;
+export const useUpdateDirectMessageReadMutation = <
+  TError = unknown,
+  TContext = unknown
+>(
+  options?: UseMutationOptions<
+    UpdateDirectMessageReadMutation,
+    TError,
+    UpdateDirectMessageReadMutationVariables,
+    TContext
+  >
+) =>
+  useMutation<
+    UpdateDirectMessageReadMutation,
+    TError,
+    UpdateDirectMessageReadMutationVariables,
+    TContext
+  >(
+    ["updateDirectMessageRead"],
+    (variables?: UpdateDirectMessageReadMutationVariables) =>
+      fetcher<
+        UpdateDirectMessageReadMutation,
+        UpdateDirectMessageReadMutationVariables
+      >(UpdateDirectMessageReadDocument, variables)(),
+    options
+  );
+useUpdateDirectMessageReadMutation.fetcher = (
+  variables: UpdateDirectMessageReadMutationVariables
+) =>
+  fetcher<
+    UpdateDirectMessageReadMutation,
+    UpdateDirectMessageReadMutationVariables
+  >(UpdateDirectMessageReadDocument, variables);
 export const UpdateFriendDocument = `
     mutation UpdateFriend($updateFriendId: Int!) {
   updateFriend(id: $updateFriendId) {

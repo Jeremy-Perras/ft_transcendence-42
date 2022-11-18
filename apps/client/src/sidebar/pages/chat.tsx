@@ -9,6 +9,7 @@ import {
   InfoDirectMessagesQuery,
   useInfoDirectMessagesQuery,
   useSendDirectMessageMutation,
+  useUpdateDirectMessageReadMutation,
 } from "../../graphql/generated";
 import { getDate } from "./home";
 import { ReactComponent as EmptyChatIcon } from "pixelarticons/svg/message-plus.svg";
@@ -51,6 +52,7 @@ export const chat =
 
 type Chatquery = {
   messages: {
+    id: number;
     content: string;
     sentAt: number;
     readAt?: number | null | undefined;
@@ -71,6 +73,7 @@ export type User = {
 };
 
 type DirectMessage = {
+  id: number;
   userId: number;
   content: string;
   sentAt: number;
@@ -79,6 +82,7 @@ type DirectMessage = {
 };
 
 const DirectMessage = ({
+  id,
   userId,
   content,
   sentAt,
@@ -86,6 +90,20 @@ const DirectMessage = ({
   author,
 }: DirectMessage) => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient(); //TODO:WHY?
+  const updateDirectMessageRead = useUpdateDirectMessageReadMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries([]);
+    },
+  });
+  useEffect(() => {
+    if (readAt === null && author.id === userId)
+      updateDirectMessageRead.mutate({
+        messageId: id,
+      });
+    else "";
+  }, []);
+
   return (
     <li className="mx-2 mb-5 flex flex-col ">
       <div className="mb-2 text-center text-xs text-slate-300">
@@ -132,7 +150,7 @@ const DirectMessage = ({
 };
 
 export default function Chat() {
-  const queryClient = useQueryClient(); //WHY?
+  const queryClient = useQueryClient(); //TODO:WHY?
   const params = useParams();
   let test = false;
   if (!test) {
@@ -157,11 +175,11 @@ export default function Chat() {
   const scrollToBottom = () => {
     messagesEndRef?.current?.scrollIntoView({ behavior: "smooth" });
   };
-  // console.log(socket);
+
   useEffect(() => {
     scrollToBottom();
   }, [data?.messages]);
-  // console.log(messages);
+
   return (
     <div className="flex h-full flex-col">
       <HeaderPortal
@@ -179,10 +197,9 @@ export default function Chat() {
         ) : (
           <></>
         )}
-
-        {data?.messages.map((message, index) => (
-          <DirectMessage key={index} userId={userId} {...message} />
-        ))}
+        {data?.messages.map((message, index) => {
+          return <DirectMessage key={index} userId={userId} {...message} />;
+        })}
         <div ref={messagesEndRef} />
       </ul>
 

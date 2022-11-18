@@ -1,0 +1,7 @@
+mutation updateDirectMessageRead($messageId: Int!) {
+  updateDirectMessageRead(messageId: $messageId) {
+    id
+    content
+    readAt
+  }
+}
