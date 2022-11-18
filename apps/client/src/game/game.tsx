@@ -5,10 +5,9 @@ import {
   useUpdateGameJoiningPlayerMutation,
 } from "../graphql/generated";
 
-export const FindGame = () => {
-  const [test, setTest] = useState(false);
+export const FindGame = ({ gameMode }: { gameMode: number }) => {
   const { data } = useSearchGamesQuery(
-    { started: false, gameMode: 2 },
+    { started: false, gameMode: gameMode },
     {
       select({ games }) {
         const res: {
@@ -17,24 +16,26 @@ export const FindGame = () => {
           gamesId: games.map((game) => game.id),
         };
         return res;
+        s;
       },
     }
   );
-  console.log(data);
+
+  return data;
+};
+
+export const Game = ({ gameMode }: { gameMode: number }) => {
   const queryClient = useQueryClient();
   const gameMutation = useUpdateGameJoiningPlayerMutation({
     onSuccess: () => {
       queryClient.invalidateQueries(["updateGame"]);
     },
   });
-
-  if (test == false) {
-    gameMutation.mutate({ updateGameId: data?.gamesId[0] });
-    setTest(true);
+  const gameIds = FindGame({ gameMode: gameMode });
+  if (gameIds?.gamesId.length) {
+    gameMutation.mutate({
+      updateGameId: gameIds.gamesId[0]!,
+    });
   }
-  return;
-};
-
-export const Game = () => {
   return <div>game</div>;
 };

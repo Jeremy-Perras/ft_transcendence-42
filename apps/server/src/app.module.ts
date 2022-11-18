@@ -9,6 +9,7 @@ import { ChannelModule } from "./channel/channel.module";
 import { GameModule } from "./game/game.module";
 import { AuthModule } from "./auth/auth.module";
 import { FileModule } from "./file/file.module";
+import { GatewayModule } from "./gateway/gateway.module";
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { FileModule } from "./file/file.module";
     }),
 
     AuthModule,
+    GatewayModule,
     UserModule,
     GameModule,
     ChannelModule,
