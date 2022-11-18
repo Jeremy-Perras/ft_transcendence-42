@@ -124,7 +124,6 @@ type Chat = {
 };
 
 const Chat = ({ currentUser, chat }: { currentUser: number; chat: Chat }) => {
-  const myId = myInfo()?.id; //change this
   const navigate = useNavigate();
   const lastMessage = chat.messages[chat.messages.length - 1];
   const [newMessage, setNewMessage] = useState(false);
@@ -136,8 +135,9 @@ const Chat = ({ currentUser, chat }: { currentUser: number; chat: Chat }) => {
   });
   socket?.on("NewDirectMessage", (arg) => {
     console.log("New message to user " + arg[0] + " from " + arg[1]);
-    chat.__typename === "User" && arg[1] == chat.id && arg[0] == myId //change this with right back thing
-      ? setNewMessage(true)
+    chat.__typename === "User" && arg[1] == chat.id
+      ? //change this with right back thing
+        setNewMessage(true)
       : setNewMessage(false);
   });
   return (

@@ -8,7 +8,7 @@ export class UserService {
   async getUserById(userId: number) {
     try {
       const user = await this.prismaService.user.findFirst({
-        select: { blockedBy: true },
+        select: { blockedBy: true, socket: true },
         where: { id: userId },
       });
       return user;

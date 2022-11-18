@@ -5,6 +5,7 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from "@nestjs/websockets";
+import { use } from "passport";
 import { Server, Socket } from "socket.io";
 import { DefaultEventsMap } from "socket.io/dist/typed-events";
 import { UserService } from "./user.service";
@@ -37,23 +38,26 @@ export class MyGateway implements OnModuleInit {
 
   // body : [`dest`,`author`]
   @SubscribeMessage("newDirectMessageSent")
-  onNewDirectMessage(@MessageBody() body: string) {
+  async onNewDirectMessage(@MessageBody() body: string) {
     console.log(`New direct message to ${body[0]} from ${body[1]}`);
+    const user = await this.userService.getUserById(+body[0]!);
     ConnectedUsers.forEach((userSocket) => {
-      console.log(userSocket.id);
       //TO DO: emit only to socket corresponding to recipient
-      userSocket.emit("NewDirectMessage", body);
+      if (userSocket.id === user?.socket) {
+        console.log(user?.socket, userSocket.id);
+        userSocket.emit("NewDirectMessage", body);
+      }
     });
   }
 
   // body : `channelId`
-  @SubscribeMessage("newChannelMessageSent")
-  onNewChannelMessage(@MessageBody() body: string) {
-    console.log("New channel message on channel" + body);
-    ConnectedUsers.forEach((userSocket) => {
-      console.log(userSocket.id);
-      //TO DO: emit only to users in corresponding channel
-      userSocket.emit("NewChannelMessage", body);
-    });
-  }
+  // @SubscribeMessage("newChannelMessageSent")
+  // onNewChannelMessage(@MessageBody() body: string) {
+  //   console.log("New channel message on channel" + body);
+  //   ConnectedUsers.forEach((userSocket) => {
+  //     console.log(userSocket.id);
+  //     //TO DO: emit only to users in corresponding channel
+  //     userSocket.emit("NewChannelMessage", body);
+  //   });
+  // }
 }
