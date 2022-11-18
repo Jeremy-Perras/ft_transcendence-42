@@ -26,12 +26,20 @@ export class MyGateway implements OnModuleInit {
     this.server.on("connection", (socket) => {
       ConnectedUsers.push(socket);
       console.log("Connected");
-      socket.on("disconnect", (reason) => {
+
+      socket.on("disconnect", async (reason) => {
         console.log(socket.id + " disconnected :" + reason);
         const indexOfSocket = ConnectedUsers.findIndex((object) => {
           return object.id === socket.id;
         });
         ConnectedUsers.splice(indexOfSocket, 1);
+        const users = await this.userService.getUsers();
+        users?.forEach(async (user) => {
+          if (user.socket === socket.id && user.socket) {
+            console.log(user.socket, socket.id);
+            await this.userService.updateSocket(user.id);
+          }
+        });
       });
     });
   }
@@ -50,14 +58,21 @@ export class MyGateway implements OnModuleInit {
     });
   }
 
-  // body : `channelId`
-  // @SubscribeMessage("newChannelMessageSent")
-  // onNewChannelMessage(@MessageBody() body: string) {
-  //   console.log("New channel message on channel" + body);
-  //   ConnectedUsers.forEach((userSocket) => {
-  //     console.log(userSocket.id);
-  //     //TO DO: emit only to users in corresponding channel
-  //     userSocket.emit("NewChannelMessage", body);
-  //   });
-  // }
+  // body: `channelId`;
+  @SubscribeMessage("newChannelMessageSent")
+  async onNewChannelMessage(@MessageBody() body: string) {
+    console.log("New channel message on channel" + body);
+    const channel = await this.userService.getChannel(+body);
+    const users = await this.userService.getUsers();
+    console.log(channel);
+    ConnectedUsers.forEach((userSocket) => {
+      console.log(userSocket.id);
+      channel?.members.forEach(async (user) => {
+        const u = await this.userService.getUserById(user.userId);
+        if (u?.socket === userSocket.id) {
+          userSocket.emit("NewChannelMessage", body);
+        }
+      });
+    });
+  }
 }

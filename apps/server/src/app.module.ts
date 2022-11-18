@@ -9,7 +9,6 @@ import { ChannelModule } from "./channel/channel.module";
 import { GameModule } from "./game/game.module";
 import { AuthModule } from "./auth/auth.module";
 import { FileModule } from "./file/file.module";
-import { SocketModule } from "./socket/socket.module";
 
 @Module({
   imports: [
