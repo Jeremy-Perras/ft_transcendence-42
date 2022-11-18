@@ -1,8 +1,0 @@
-query UserProfileHeader($userId: Int) {
-  user(id: $userId) {
-    id
-    name
-    avatar
-    rank
-  }
-}

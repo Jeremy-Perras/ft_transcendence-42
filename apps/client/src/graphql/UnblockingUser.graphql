@@ -1,7 +1,0 @@
-mutation UnblockingUser($unblockingUserId: Int!) {
-  unblockingUser(id: $unblockingUserId) {
-    avatar
-    rank
-    name
-  }
-}

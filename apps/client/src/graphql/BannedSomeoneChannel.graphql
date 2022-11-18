@@ -1,9 +1,0 @@
-mutation BannedSomeoneChannel($createMutedId: Int!, $channelId: Int!, $date: Timestamp) {
-  createBanned(id: $createMutedId, channelId: $channelId, date: $date) {
-    endAt
-    id
-    name
-    avatar
-    rank
-  }
-}

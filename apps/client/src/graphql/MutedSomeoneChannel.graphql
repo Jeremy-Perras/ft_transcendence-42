@@ -1,9 +1,0 @@
-mutation MutedSomeoneChannel($createMutedId: Int!, $channelId: Int!, $date: Timestamp) {
-  createMuted(id: $createMutedId, channelId: $channelId, date: $date) {
-    endAt
-    id
-    name
-    avatar
-    rank
-  }
-}

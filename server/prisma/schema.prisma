@@ -1,0 +1,190 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id Int @id @unique
+
+  name        String
+  avatar      String  @default("default_avatar.png")
+  twoFASecret String?
+
+  rank Int @default(0)
+
+  friendedBy User[] @relation("UserFriends")
+  friends    User[] @relation("UserFriends")
+
+  blockedBy User[] @relation("UserBlocking")
+  blocking  User[] @relation("UserBlocking")
+
+  channels      ChannelMember[]
+  ownedChannels Channel[]
+  channelsBan   BannedMember[]
+  channelsMute  MutedMember[]
+
+  channelMessages     ChannelMessage[]
+  channelMessageReads ChannelMessageRead[]
+
+  messageSent     DirectMessage[] @relation("MessageSent")
+  messageReceived DirectMessage[] @relation("MessageReceived")
+
+  gamesAsPlayer1 Game[] @relation("GamePlayer1")
+  gamesAsPlayer2 Game[] @relation("GamePlayer2")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model DirectMessage {
+  id Int @id @default(autoincrement())
+
+  author   User @relation("MessageSent", fields: [authorId], references: [id], onDelete: Cascade)
+  authorId Int
+
+  recipient   User @relation("MessageReceived", fields: [recipientId], references: [id], onDelete: Cascade)
+  recipientId Int
+
+  content String
+  sentAt  DateTime
+  readAt  DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model GameMode {
+  id Int @id @default(autoincrement())
+
+  name String @unique
+
+  Game Game[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Game {
+  id Int @id @default(autoincrement())
+
+  mode       GameMode @relation(fields: [gameModeId], references: [id])
+  gameModeId Int
+
+  startedAt  DateTime
+  finishedAt DateTime?
+
+  player1   User @relation("GamePlayer1", fields: [player1Id], references: [id], onDelete: Cascade)
+  player1Id Int
+  player2   User @relation("GamePlayer2", fields: [player2Id], references: [id], onDelete: Cascade)
+  player2Id Int
+
+  player1Score Int
+  player2Score Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ChannelMember {
+  channel   Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  channelId Int
+
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
+
+  isAdministrator Boolean @default(false)
+  isOwner         Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@id([channelId, userId])
+}
+
+model MutedMember {
+  channel   Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  channelId Int
+
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
+
+  endAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@id([channelId, userId])
+}
+
+model BannedMember {
+  channel   Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  channelId Int
+
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
+
+  endAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@id([channelId, userId])
+}
+
+model ChannelMessageRead {
+  channelMessage   ChannelMessage @relation(fields: [channelMessageId], references: [id], onDelete: Cascade)
+  channelMessageId Int
+
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
+
+  readAt DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@id([channelMessageId, userId])
+}
+
+model ChannelMessage {
+  id Int @id @default(autoincrement())
+
+  author   User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId Int
+
+  channel   Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  channelId Int
+
+  content String
+  sentAt  DateTime
+  readBy  ChannelMessageRead[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Channel {
+  id Int @id @default(autoincrement())
+
+  name String
+
+  inviteOnly Boolean
+  password   String?
+
+  channelMessages ChannelMessage[]
+
+  owner   User @relation(fields: [ownerId], references: [id], onDelete: Restrict)
+  ownerId Int
+
+  members ChannelMember[]
+
+  banned BannedMember[]
+  muted  MutedMember[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
