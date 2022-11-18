@@ -159,7 +159,7 @@ const Chat = ({
 };
 
 //TODO : button to disconnect
-//TODO: update only when window focused
+//TODO: issue : update only when window focused
 const Home = () => {
   const initialData = useLoaderData() as Awaited<
     ReturnType<ReturnType<typeof home>>

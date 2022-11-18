@@ -161,8 +161,7 @@ const GameHistory = ({ data }: { data: UserProfileQuery }) => {
         return (
           <div
             key={index}
-            className="mt-1 flex h-12 w-full
-     items-center border border-slate-700 bg-slate-200 "
+            className="mt-1 flex h-12 w-full items-center border border-slate-700 bg-slate-200 "
           >
             <div className="flex w-full ">
               <img

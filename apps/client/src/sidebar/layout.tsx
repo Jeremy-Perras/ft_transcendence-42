@@ -23,9 +23,6 @@ import CreateChannel from "./pages/createChannel";
 import ReactDOM from "react-dom";
 import React from "react";
 
-//TODO : skeleton loader while loading
-// retry
-
 //TODO : put these in the right place
 const Error = () => {
   return (

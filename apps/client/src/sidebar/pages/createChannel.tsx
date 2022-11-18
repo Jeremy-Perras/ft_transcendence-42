@@ -7,8 +7,6 @@ import { ReactComponent as PasswordIcon } from "pixelarticons/svg/lock.svg";
 import { ReactComponent as PublicIcon } from "pixelarticons/svg/lock-open.svg";
 import queryClient from "../../query";
 
-/*************************** WORKS AS INTENTED *************** */
-
 const ChannelModeButton = ({
   text,
   active,
@@ -89,7 +87,6 @@ export default function CreateChannel({
           </div>
           <div className="flex w-full px-4">
             <UsersIcon className="mt-5 h-24 w-24 self-center text-slate-600" />
-
             <div className="mt-6 ml-8 flex w-full flex-col items-start text-xl ">
               <label
                 className="text-center text-xl text-slate-400"

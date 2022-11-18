@@ -15,7 +15,6 @@ import { getDate } from "./home";
 import { ReactComponent as EmptyChatIcon } from "pixelarticons/svg/message-plus.svg";
 import { HeaderPortal, myInfo } from "../layout";
 import { RankIcon } from "./profile";
-import React from "react";
 import { QueryClient, useQuery, UseQueryOptions } from "@tanstack/react-query";
 import { socket } from "../../main";
 import queryClient from "../../query";
@@ -144,36 +143,111 @@ const DirectMessage = ({
   );
 };
 
-export default function Chat() {
-  const params = useParams();
-  let test = false;
-  if (!test) {
-    test = true;
-  }
-
-  if (typeof params.userId === "undefined") return <div></div>;
-  const userId = +params.userId;
+const MessageTextArea = ({
+  blocking,
+  blocked,
+  userId,
+}: {
+  blocking: boolean | undefined;
+  blocked: boolean | undefined;
+  userId: number;
+}) => {
   const [content, setContent] = useState("");
-  const initialData = useLoaderData() as Awaited<
-    ReturnType<ReturnType<typeof chat>>
-  >;
-  const { data } = useQuery({ ...query(userId), initialData });
   const currentUserId = myInfo()?.id;
   const messageMutation = useSendDirectMessageMutation({
     onSuccess: () => {
       queryClient.invalidateQueries(["InfoDirectMessages", { userId: userId }]);
     },
   });
+  return (
+    <div className="flex h-16 w-full border-t-2 bg-slate-50 p-2">
+      <textarea
+        disabled={blocking == true || blocked === true}
+        rows={1}
+        className={`${
+          blocking == true || blocked === true ? "hover:cursor-not-allowed" : ""
+        } h-10 w-11/12 resize-none overflow-visible rounded-lg px-3 pt-2`}
+        onChange={(e) => setContent(e.target.value)}
+        placeholder={`${
+          blocked === true
+            ? "This user is blocked"
+            : blocking === true
+            ? "You are blocked by this user"
+            : "Type your message here ..."
+        }`}
+        onKeyDown={(e) => {
+          if (blocking === false && blocked === false) {
+            if (e.code == "Enter" && !e.getModifierState("Shift")) {
+              socket?.emit("newDirectMessageSent", [userId, currentUserId]);
+              messageMutation.mutate({
+                message: content,
+                recipientId: userId,
+              });
+              e.currentTarget.value = "";
+              e.preventDefault();
+              setContent("");
+            }
+          } else {
+            if (e.code == "Enter" && !e.getModifierState("Shift")) {
+              e.currentTarget.value = "";
+              e.preventDefault();
+              setContent("");
+            }
+          }
+        }}
+      />
+    </div>
+  );
+};
 
+const DisplayMessages = ({
+  messages,
+  userId,
+}: {
+  messages:
+    | {
+        id: number;
+        content: string;
+        sentAt: number;
+        readAt?: number | null | undefined;
+        author: User;
+      }[]
+    | undefined;
+  userId: number;
+}) => {
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
   const scrollToBottom = () => {
     messagesEndRef?.current?.scrollIntoView({ behavior: "smooth" });
   };
-
   useEffect(() => {
     scrollToBottom();
-  }, [data?.messages]);
+  }, [messages]);
+  return (
+    <ul className="mt-4 flex h-fit w-full grow flex-col overflow-auto pr-2 pl-px ">
+      {messages?.length === 0 ? (
+        <div className="mb-48 flex h-full flex-col items-center justify-center text-center text-slate-300">
+          <EmptyChatIcon className="w-96 text-slate-200" />
+          Seems a little bit too silent here... Send the first message !
+        </div>
+      ) : (
+        <></>
+      )}
+      {messages?.map((message, index) => {
+        return <DirectMessage key={index} userId={userId} {...message} />;
+      })}
+      <div ref={messagesEndRef} />
+    </ul>
+  );
+};
 
+export default function Chat() {
+  const params = useParams();
+  if (typeof params.userId === "undefined") return <div></div>;
+  const userId = +params.userId;
+  const initialData = useLoaderData() as Awaited<
+    ReturnType<ReturnType<typeof chat>>
+  >;
+  const { data } = useQuery({ ...query(userId), initialData });
   return (
     <div className="flex h-full flex-col">
       <HeaderPortal
@@ -182,60 +256,13 @@ export default function Chat() {
         link={`/profile/${userId}`}
         icon={RankIcon(data?.rank)}
       />
-      <ul className="mt-4 flex h-fit w-full grow flex-col overflow-auto pr-2 pl-px ">
-        {data?.messages.length === 0 ? (
-          <div className="mb-48 flex h-full flex-col items-center justify-center text-center text-slate-300">
-            <EmptyChatIcon className="w-96 text-slate-200" />
-            Seems a little bit too silent here... Send the first message !
-          </div>
-        ) : (
-          <></>
-        )}
-        {data?.messages.map((message, index) => {
-          return <DirectMessage key={index} userId={userId} {...message} />;
-        })}
-        <div ref={messagesEndRef} />
-      </ul>
+      <DisplayMessages messages={data?.messages} userId={userId} />
 
-      <div className="flex h-16 w-full border-t-2 bg-slate-50 p-2">
-        <textarea
-          disabled={data?.blocking == true || data?.blocked === true}
-          rows={1}
-          className={`${
-            data?.blocking == true || data?.blocked === true
-              ? "hover:cursor-not-allowed"
-              : ""
-          } h-10 w-11/12 resize-none overflow-visible rounded-lg px-3 pt-2`}
-          onChange={(e) => setContent(e.target.value)}
-          placeholder={`${
-            data?.blocked === true
-              ? "This user is blocked"
-              : data?.blocking === true
-              ? "You are blocked by this user"
-              : "Type your message here ..."
-          }`}
-          onKeyDown={(e) => {
-            if (data?.blocking === false && data?.blocked === false) {
-              if (e.code == "Enter" && !e.getModifierState("Shift")) {
-                socket?.emit("newDirectMessageSent", [userId, currentUserId]);
-                messageMutation.mutate({
-                  message: content,
-                  recipientId: userId,
-                });
-                e.currentTarget.value = "";
-                e.preventDefault();
-                setContent("");
-              }
-            } else {
-              if (e.code == "Enter" && !e.getModifierState("Shift")) {
-                e.currentTarget.value = "";
-                e.preventDefault();
-                setContent("");
-              }
-            }
-          }}
-        />
-      </div>
+      <MessageTextArea
+        blocked={data?.blocked}
+        blocking={data?.blocking}
+        userId={userId}
+      />
     </div>
   );
 }
