@@ -1,15 +1,12 @@
 import { OnModuleInit } from "@nestjs/common";
 import {
   MessageBody,
-  OnGatewayInit,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
 } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
 import { DefaultEventsMap } from "socket.io/dist/typed-events";
-import { CurrentUser } from "../auth/currentUser.decorator";
-import { Channel } from "../channel/channel.model";
 import { UserService } from "./user.service";
 
 const ConnectedUsers: Socket<
@@ -28,12 +25,19 @@ export class MyGateway implements OnModuleInit {
     this.server.on("connection", (socket) => {
       ConnectedUsers.push(socket);
       console.log("Connected");
+      socket.on("disconnect", (reason) => {
+        console.log(socket.id + " disconnected :" + reason);
+        const indexOfSocket = ConnectedUsers.findIndex((object) => {
+          return object.id === socket.id;
+        });
+        ConnectedUsers.splice(indexOfSocket, 1);
+      });
     });
   }
 
+  // body : [`dest`,`author`]
   @SubscribeMessage("newDirectMessageSent")
   onNewDirectMessage(@MessageBody() body: string) {
-    // const splitted = body.split(",", 2);
     console.log(`New direct message to ${body[0]} from ${body[1]}`);
     ConnectedUsers.forEach((userSocket) => {
       console.log(userSocket.id);
@@ -42,12 +46,13 @@ export class MyGateway implements OnModuleInit {
     });
   }
 
+  // body : `channelId`
   @SubscribeMessage("newChannelMessageSent")
   onNewChannelMessage(@MessageBody() body: string) {
     console.log("New channel message on channel" + body);
     ConnectedUsers.forEach((userSocket) => {
       console.log(userSocket.id);
-      //TO DO: emit only to users in corresponding channel ?
+      //TO DO: emit only to users in corresponding channel
       userSocket.emit("NewChannelMessage", body);
     });
   }

@@ -124,6 +124,7 @@ export type Mutation = {
   updateMuted: Channel;
   updatePassword: Channel;
   updateRight: Channel;
+  updateSocket: User;
   updateUnFriend: User;
   updateUnFriendBy: User;
 };
@@ -250,6 +251,10 @@ export type MutationUpdateRightArgs = {
   idchannel: Scalars["Int"];
   inviteOnly?: InputMaybe<Scalars["Boolean"]>;
   password?: InputMaybe<Scalars["String"]>;
+};
+
+export type MutationUpdateSocketArgs = {
+  socket: Scalars["String"];
 };
 
 export type MutationUpdateUnFriendArgs = {
@@ -918,6 +923,22 @@ export type UpdateRightMutationVariables = Exact<{
 export type UpdateRightMutation = {
   __typename?: "Mutation";
   updateRight: { __typename?: "Channel"; id: number; name: string };
+};
+
+export type UpdateSocketMutationVariables = Exact<{
+  socket: Scalars["String"];
+}>;
+
+export type UpdateSocketMutation = {
+  __typename?: "Mutation";
+  updateSocket: {
+    __typename?: "User";
+    rank: number;
+    socket?: string | null;
+    name: string;
+    id: number;
+    avatar: string;
+  };
 };
 
 export type UpdateUnFriendMutationVariables = Exact<{
@@ -2381,6 +2402,44 @@ export const useUpdateRightMutation = <TError = unknown, TContext = unknown>(
 useUpdateRightMutation.fetcher = (variables: UpdateRightMutationVariables) =>
   fetcher<UpdateRightMutation, UpdateRightMutationVariables>(
     UpdateRightDocument,
+    variables
+  );
+export const UpdateSocketDocument = `
+    mutation UpdateSocket($socket: String!) {
+  updateSocket(socket: $socket) {
+    rank
+    socket
+    name
+    id
+    avatar
+  }
+}
+    `;
+export const useUpdateSocketMutation = <TError = unknown, TContext = unknown>(
+  options?: UseMutationOptions<
+    UpdateSocketMutation,
+    TError,
+    UpdateSocketMutationVariables,
+    TContext
+  >
+) =>
+  useMutation<
+    UpdateSocketMutation,
+    TError,
+    UpdateSocketMutationVariables,
+    TContext
+  >(
+    ["UpdateSocket"],
+    (variables?: UpdateSocketMutationVariables) =>
+      fetcher<UpdateSocketMutation, UpdateSocketMutationVariables>(
+        UpdateSocketDocument,
+        variables
+      )(),
+    options
+  );
+useUpdateSocketMutation.fetcher = (variables: UpdateSocketMutationVariables) =>
+  fetcher<UpdateSocketMutation, UpdateSocketMutationVariables>(
+    UpdateSocketDocument,
     variables
   );
 export const UpdateUnFriendDocument = `

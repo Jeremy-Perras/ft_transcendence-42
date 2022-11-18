@@ -5,7 +5,11 @@ import { ReactComponent as UsersIcon } from "pixelarticons/svg/users.svg";
 import { ReactComponent as GamePadIcon } from "pixelarticons/svg/gamepad.svg";
 import { ReactComponent as LoaderIcon } from "pixelarticons/svg/clock.svg";
 import { ReactComponent as AlertIcon } from "pixelarticons/svg/alert.svg";
-import { InfoUsersQuery, useInfoUsersQuery } from "../../graphql/generated";
+import {
+  InfoUsersQuery,
+  useInfoUsersQuery,
+  useUpdateSocketMutation,
+} from "../../graphql/generated";
 import {
   QueryClient,
   useQuery,
@@ -185,6 +189,13 @@ const Home = () => {
   const initialData = useLoaderData() as Awaited<
     ReturnType<ReturnType<typeof home>>
   >;
+  const tes = socket.id;
+  const [test, setTest] = useState(false);
+  const socketMutation = useUpdateSocketMutation({});
+  if (socket.id && !test) {
+    socketMutation.mutate({ socket: tes ? tes : "" });
+    setTest(true);
+  }
   const { data } = useQuery({ ...query(), initialData });
 
   return (
