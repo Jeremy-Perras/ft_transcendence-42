@@ -47,7 +47,7 @@ import {
 
 const query = (
   channelId: number
-): UseQueryOptions<ChannelSettingsQuery, unknown, Channelsetquery> => {
+): UseQueryOptions<ChannelSettingsQuery, unknown, ChannelSetQuery> => {
   return {
     queryKey: useChannelSettingsQuery.getKey({
       userId: null,
@@ -66,7 +66,7 @@ const query = (
   };
 };
 
-export const channelset =
+export const channelSet =
   (queryClient: QueryClient) =>
   async ({ params }: { params: Params<"channelId"> }) => {
     if (params.channelId) {
@@ -75,7 +75,7 @@ export const channelset =
     }
   };
 
-type Channelsetquery = {
+type ChannelSetQuery = {
   user: {
     id: number;
   };
@@ -355,6 +355,7 @@ const BanButton = ({
   const bannedSomeone = useBannedSomeoneChannelMutation({
     onSuccess: () => {
       queryClient.invalidateQueries([
+        // TODO: jeremy
         // "ChannelSettings",
         // { userId: null, channelId: channelId },
       ]);
@@ -989,7 +990,7 @@ export default function ChannelSettings() {
 
   const channelId = +params.channelId;
   const initialData = useLoaderData() as Awaited<
-    ReturnType<ReturnType<typeof channelset>>
+    ReturnType<ReturnType<typeof channelSet>>
   >;
   const { data } = useQuery({ ...query(channelId), initialData });
   if (typeof data === "undefined") return <></>;

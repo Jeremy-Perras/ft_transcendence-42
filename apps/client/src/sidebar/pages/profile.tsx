@@ -158,7 +158,7 @@ const GameHistory = ({ data }: { data: UserProfileQuery }) => {
             game.player1score === game.player2score) ||
           (game.player2?.id === data?.user.id &&
             game.player2score === game.player1score);
-        return (
+        return game.finishedAt ? (
           <div
             key={index}
             className="mt-1 flex h-12 w-full items-center border border-slate-700 bg-slate-200 "
@@ -213,6 +213,8 @@ const GameHistory = ({ data }: { data: UserProfileQuery }) => {
               />
             </div>
           </div>
+        ) : (
+          <></>
         );
       })}
     </div>
@@ -296,7 +298,6 @@ const FriendButtons = ({ data }: { data: UserProfileQuery }) => {
   );
 };
 
-//TODO : object destructuring
 const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
   const CurrentUserData = () => {
     const { data } = useUserProfileQuery();

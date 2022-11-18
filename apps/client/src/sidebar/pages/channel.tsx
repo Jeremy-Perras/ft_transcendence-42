@@ -129,51 +129,6 @@ type ChannelMessage = {
   sentAt: number;
 };
 
-const ChannelMessage = ({
-  message,
-  currentUserId,
-}: {
-  message: ChannelMessage;
-  currentUserId: number;
-}) => {
-  const navigate = useNavigate();
-
-  return (
-    <>
-      <div className="mt-6 text-center text-xs text-slate-300">
-        {getDate(+message.sentAt)}
-      </div>
-      <div className="flex w-full">
-        <div className="flex w-9 shrink-0 justify-center">
-          <div className="flex self-end">
-            <img
-              className="h-6 w-6 border border-black transition-all hover:h-7 hover:w-7 hover:cursor-pointer"
-              src={message.author.avatar}
-              alt="Message author avatar"
-              onClick={() => navigate(`/profile/${message.author.id}`)}
-            />
-          </div>
-        </div>
-        <div className="flex flex-col">
-          <div className="text-left text-xs tracking-wide text-slate-400">
-            <span>{message.author.name} </span>
-          </div>
-          <div className="rounded-md bg-slate-200 px-4 py-2 text-left tracking-wide">
-            {message.content}
-          </div>
-        </div>
-      </div>
-      <div className="flex">
-        <ReadBy
-          users={message.readBy.map((Users) => {
-            return Users.user;
-          })}
-        />
-      </div>
-    </>
-  );
-};
-
 const Banned = () => {
   return (
     <div className="flex h-full w-full flex-col items-center justify-center pb-60">
@@ -221,7 +176,6 @@ const GetPassword = ({ passwordId }: { passwordId: number }) => {
   return data;
 };
 
-//TODO : Enter pw only at 1st connection to channel => cookie?
 const AccessProtected = ({
   userId,
   channelId,
@@ -309,11 +263,11 @@ const AccessProtected = ({
   );
 };
 
-const ChannelMessagesDisplay = ({
-  data,
+const ChannelMessageTextArea = ({
+  muted,
   channelId,
 }: {
-  data: ChannelQuery;
+  muted: boolean;
   channelId: number;
 }) => {
   const messageMutation = useSendChannelMessageMutation({
@@ -322,36 +276,121 @@ const ChannelMessagesDisplay = ({
     },
   });
   const [content, setContent] = useState("");
+  return (
+    <div className="flex h-16 w-full border-t-2 bg-slate-50 p-2">
+      <textarea
+        disabled={muted}
+        rows={1}
+        className={`${
+          muted ? "hover:cursor-not-allowed" : ""
+        } h-10 w-11/12 resize-none overflow-visible rounded-lg px-3 pt-2`}
+        onChange={(e) => setContent(e.target.value)}
+        placeholder={`${
+          muted === true ? "You are muted" : "Type your message here ..."
+        }`}
+        onKeyDown={(e) => {
+          if (e.code == "Enter" && !e.getModifierState("Shift")) {
+            socket?.emit("newChannelMessageSent", channelId);
+            messageMutation.mutate({
+              message: content,
+              recipientId: channelId,
+            });
+            e.currentTarget.value = "";
+            e.preventDefault();
+            setContent("");
+          } else {
+            if (e.code == "Enter" && !e.getModifierState("Shift")) {
+              e.currentTarget.value = "";
+              e.preventDefault();
+              setContent("");
+            }
+          }
+        }}
+      />
+    </div>
+  );
+};
 
-  const messagesEndRef = useRef<null | HTMLDivElement>(null);
-  const scrollToBottom = () => {
-    messagesEndRef?.current?.scrollIntoView({ behavior: "smooth" });
-  };
+const ChannelMessage = ({
+  message,
+  currentUserId,
+}: {
+  message: ChannelMessage;
+  currentUserId: number;
+}) => {
+  const navigate = useNavigate();
+  return (
+    <>
+      <div className="mt-6 text-center text-xs text-slate-300">
+        {getDate(+message.sentAt)}
+      </div>
+      <div className="flex w-full">
+        <div className="flex w-9 shrink-0 justify-center">
+          <div className="flex self-end">
+            <img
+              className="h-6 w-6 border border-black transition-all hover:h-7 hover:w-7 hover:cursor-pointer"
+              src={message.author.avatar}
+              alt="Message author avatar"
+              onClick={() => navigate(`/profile/${message.author.id}`)}
+            />
+          </div>
+        </div>
+        <div className="flex flex-col">
+          <div className="text-left text-xs tracking-wide text-slate-400">
+            <span>{message.author.name} </span>
+          </div>
+          <div className="rounded-md bg-slate-200 px-4 py-2 text-left tracking-wide">
+            {message.content}
+          </div>
+        </div>
+      </div>
+      <div className="flex">
+        <ReadBy
+          users={message.readBy.map((Users) => {
+            return Users.user;
+          })}
+        />
+      </div>
+    </>
+  );
+};
 
+const ChannelMessagesDisplay = ({
+  data,
+  channelId,
+}: {
+  data: ChannelQuery;
+  channelId: number;
+}) => {
   useEffect(() => {
     scrollToBottom();
   }, [data?.messages]);
-
+  const messagesEndRef = useRef<null | HTMLDivElement>(null);
+  const scrollToBottom = () => {
+    messagesEndRef?.current?.scrollIntoView();
+  };
   const createChannelMessageRead = useCreateChannelMessageReadMutation({
     onSuccess: () => {
       queryClient.invalidateQueries([]);
     },
-  }); //TO DO: does not work
-
-  // data.messages.map((message) => {
-  //   if (
-  //     !message.readBy.some((message) => {
-  //       message.user.id === data.userId;
-  //     })
-  //   ) {
-  //     createChannelMessageRead.mutate({
-  //       userId: data.userId,
-  //       messageId: message.id,
-  //     });
-  //   } else "";
+  });
+  //TO DO : does not work - infinite loop
+  // data.messages.forEach((message) => console.log(message.readBy));
+  // useEffect(() => {
+  //   data.messages.forEach((message) => {
+  //     if (
+  //       !message.readBy.some((message) => {
+  //         message.user.id === data.userId;
+  //       })
+  //     ) {
+  //       createChannelMessageRead.mutate({
+  //         userId: data.userId,
+  //         messageId: message.id,
+  //       });
+  //     } else null;
+  //   }),
+  //     [data.messages.length];
   // });
-
-  const muted = data?.muted?.some((u) => u.id === data.userId);
   return (
     <div className="flex h-full flex-col bg-slate-100">
       <div className="mt-px flex w-full grow flex-col overflow-auto pr-2 pl-px">
@@ -372,37 +411,10 @@ const ChannelMessagesDisplay = ({
         ))}
         <div ref={messagesEndRef} />
       </div>
-      <div className="flex h-16 w-full border-t-2 bg-slate-50 p-2">
-        <textarea
-          disabled={muted}
-          rows={1}
-          className={`${
-            muted ? "hover:cursor-not-allowed" : ""
-          } h-10 w-11/12 resize-none overflow-visible rounded-lg px-3 pt-2`}
-          onChange={(e) => setContent(e.target.value)}
-          placeholder={`${
-            muted === true ? "You are muted" : "Type your message here ..."
-          }`}
-          onKeyDown={(e) => {
-            if (e.code == "Enter" && !e.getModifierState("Shift")) {
-              socket?.emit("newChannelMessageSent", channelId);
-              messageMutation.mutate({
-                message: content,
-                recipientId: channelId,
-              });
-              e.currentTarget.value = "";
-              e.preventDefault();
-              setContent("");
-            } else {
-              if (e.code == "Enter" && !e.getModifierState("Shift")) {
-                e.currentTarget.value = "";
-                e.preventDefault();
-                setContent("");
-              }
-            }
-          }}
-        />
-      </div>
+      <ChannelMessageTextArea
+        muted={data?.muted?.some((u) => u.id === data.userId)}
+        channelId={channelId}
+      />
     </div>
   );
 };
@@ -417,7 +429,6 @@ export default function Channel() {
   const banned = data?.banned.some((u) => u.id === data.userId);
   const [auth, setAuth] = useState(false);
   const cookies = document.cookie;
-  console.log(data);
   return (
     <>
       <HeaderPortal

@@ -6,7 +6,7 @@ import { motion, useAnimationControls } from "framer-motion";
 import { ReactComponent as BackBurgerIcon } from "pixelarticons/svg/backburger.svg";
 import * as Dialog from "@radix-ui/react-dialog";
 import Home, { home } from "./pages/home";
-import ChannelSettings, { channelset } from "./pages/channelSettings";
+import ChannelSettings, { channelSet } from "./pages/channelSettings";
 import Channel, { channel } from "./pages/channel";
 import Chat, { chat } from "./pages/chat";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -32,7 +32,7 @@ const router = createMemoryRouter([
       {
         path: "/settings/channel/:channelId",
         element: <ChannelSettings />,
-        loader: channelset(queryClient),
+        loader: channelSet(queryClient),
       },
       {
         path: "/chat/:userId",

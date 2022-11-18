@@ -95,7 +95,6 @@ const DirectMessage = ({
       updateDirectMessageRead.mutate({
         messageId: id,
       });
-    else "";
   }, []);
 
   return (
@@ -217,7 +216,7 @@ const DisplayMessages = ({
 }) => {
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
   const scrollToBottom = () => {
-    messagesEndRef?.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef?.current?.scrollIntoView();
   };
   useEffect(() => {
     scrollToBottom();
