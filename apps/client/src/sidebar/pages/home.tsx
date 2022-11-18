@@ -10,7 +10,7 @@ import {
 } from "../../graphql/generated";
 import { QueryClient, useQuery, UseQueryOptions } from "@tanstack/react-query";
 import { socket } from "../../main";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 const query = (): UseQueryOptions<HomepageUserQuery, unknown, Homequery> => {
   return {
@@ -156,7 +156,7 @@ const Chat = ({
   );
 };
 
-//TODO : front button to disconnect
+//TODO : button to disconnect
 //TODO: update only when window focused
 const Home = () => {
   const initialData = useLoaderData() as Awaited<
@@ -169,22 +169,7 @@ const Home = () => {
     socketMutation.mutate({ socket: tes ? tes : "" });
     setTest(true);
   }
-  const [newMessage, setNewMessage] = useState(false);
   const { data } = useQuery({ ...query(), initialData });
-  useEffect(() => {
-    socket?.on("NewDirectMessage", (arg) => {
-      console.log("New message from " + arg[1]);
-      setNewMessage(true);
-    });
-  }, [newMessage]);
-
-  // const [newMessage, setNewMessage] = useState(false);
-  // socket?.on("NewChannelMessage", (arg) => {
-  //   // console.log("New message on channel" + arg);
-  //   arg == chat.id && chat.__typename === "Channel"
-  //     ? setNewMessage(true)
-  //     : setNewMessage(false);
-  // });
   return (
     <>
       <>

@@ -21,13 +21,9 @@ import { HeaderPortal } from "../layout";
 import { useForm } from "react-hook-form";
 import BannedIcon from "/src/assets/images/Banned.svg";
 import { socket } from "../../main";
-import { CurrentUser } from "../../../../server/src/auth/currentUser.decorator";
-import {
-  QueryClient,
-  useQuery,
-  useQueryClient,
-  UseQueryOptions,
-} from "@tanstack/react-query";
+
+import queryClient from "../../query";
+import { QueryClient, useQuery, UseQueryOptions } from "@tanstack/react-query";
 
 const query = (
   channelId: number
@@ -141,24 +137,6 @@ const ChannelMessage = ({
   currentUserId: number;
 }) => {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const createChannelMessageRead = useCreateChannelMessageReadMutation({
-    onSuccess: () => {
-      queryClient.invalidateQueries([]);
-    },
-  });
-  useEffect(() => {
-    if (
-      !message.readBy.some((message) => {
-        message.user.id === currentUserId;
-      })
-    ) {
-      createChannelMessageRead.mutate({
-        userId: currentUserId,
-        messageId: message.id,
-      });
-    } else "";
-  }, []);
 
   return (
     <>
@@ -343,7 +321,6 @@ const ChannelMessagesDisplay = ({
       queryClient.invalidateQueries([]);
     },
   });
-  const queryClient = useQueryClient();
   const [content, setContent] = useState("");
 
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
@@ -354,6 +331,25 @@ const ChannelMessagesDisplay = ({
   useEffect(() => {
     scrollToBottom();
   }, [data?.messages]);
+
+  const createChannelMessageRead = useCreateChannelMessageReadMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries([]);
+    },
+  }); //TO DO: does not work
+
+  // data.messages.map((message) => {
+  //   if (
+  //     !message.readBy.some((message) => {
+  //       message.user.id === data.userId;
+  //     })
+  //   ) {
+  //     createChannelMessageRead.mutate({
+  //       userId: data.userId,
+  //       messageId: message.id,
+  //     });
+  //   } else "";
+  // });
 
   const muted = data?.muted?.some((u) => u.id === data.userId);
   return (

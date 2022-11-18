@@ -29,6 +29,7 @@ import { ReactComponent as PlayIcon } from "pixelarticons/svg/gamepad.svg";
 import { useState } from "react";
 import { HeaderPortal } from "../layout";
 import FileUploadPage from "./uploadAvatar";
+import queryClient from "../../query";
 
 export const RankIcon = (rank: number | undefined) => {
   if (typeof rank === "undefined") return "";
@@ -226,7 +227,6 @@ const GameHistory = ({ data }: { data: UserProfileQuery }) => {
 
 const AddFriend = () => {
   const params = useParams();
-  const queryClient = useQueryClient();
   const askFriend = useUpdateFriendMutation({
     onSuccess: () => {
       queryClient.invalidateQueries([]);
@@ -251,7 +251,6 @@ const AddFriend = () => {
 
 const FriendButtons = ({ data }: { data: UserProfileQuery }) => {
   const params = useParams();
-  const queryClient = useQueryClient();
   const unFriend = useUpdateUnFriendMutation({
     onSuccess: () => {
       queryClient.invalidateQueries([]);

@@ -38,6 +38,7 @@ import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { useForm } from "react-hook-form";
 import { HeaderPortal } from "../layout";
 import { User } from "./chat";
+import queryClient from "../../query";
 import {
   QueryClient,
   useQuery,
@@ -262,7 +263,6 @@ const MuteButton = ({
   channelId: number | undefined;
   muted: boolean | undefined;
 }) => {
-  const queryClient = useQueryClient(); // REMOVE
   const [showInfoMute, setShowInfoMute] = useState(false);
   const [showTimeMute, setShowTimeMute] = useState(false);
   const mutedSomeone = useMutedSomeoneChannelMutation({
@@ -353,7 +353,7 @@ const BanButton = ({
 }) => {
   const [showInfoBan, setShowInfoBan] = useState(false);
   const [showTimeBan, setShowTimeBan] = useState(false);
-  const queryClient = useQueryClient(); // REMOVE
+
   const bannedSomeone = useBannedSomeoneChannelMutation({
     onSuccess: () => {
       queryClient.invalidateQueries([
@@ -425,7 +425,7 @@ const SetAsAdminButton = ({
   channelId: number | undefined;
 }) => {
   const [showInfoAdmin, setShowInfoAdmin] = useState(false);
-  const queryClient = useQueryClient(); // MOVE
+
   const updateAdmins = useUpdateAdminsMutation({
     onSuccess: () => {
       queryClient.invalidateQueries([
@@ -629,7 +629,6 @@ const Search = ({
   queryData: ChannelSettingsQuery;
   channelId: number;
 }) => {
-  const queryClient = useQueryClient();
   const { data } = useSearchUsersChannelsQuery(
     { name: search },
     {
@@ -723,7 +722,7 @@ const DeletePopUp = ({
   setConfirmation: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
+
   const deleteChannel = useDeleteChannelMutation({
     onSuccess: () => {
       queryClient.invalidateQueries([
@@ -800,7 +799,6 @@ const ChannelMode = ({
   activeMode: string;
   changesAuthorized: boolean;
 }) => {
-  const queryClient = useQueryClient();
   const { register, handleSubmit, watch } = useForm();
   const updateRight = useUpdateRightMutation({
     onSuccess: () => {

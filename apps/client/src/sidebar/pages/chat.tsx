@@ -23,6 +23,7 @@ import {
   UseQueryOptions,
 } from "@tanstack/react-query";
 import { socket } from "../../main";
+import queryClient from "../../query";
 
 const query = (
   userId: number
@@ -90,7 +91,6 @@ const DirectMessage = ({
   author,
 }: DirectMessage) => {
   const navigate = useNavigate();
-  const queryClient = useQueryClient(); //TODO:WHY?
   const updateDirectMessageRead = useUpdateDirectMessageReadMutation({
     onSuccess: () => {
       queryClient.invalidateQueries([]);
@@ -150,7 +150,6 @@ const DirectMessage = ({
 };
 
 export default function Chat() {
-  const queryClient = useQueryClient(); //TODO:WHY?
   const params = useParams();
   let test = false;
   if (!test) {

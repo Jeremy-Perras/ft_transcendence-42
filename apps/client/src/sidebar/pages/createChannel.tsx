@@ -54,7 +54,6 @@ export default function CreateChannel({
   show: boolean;
   fn: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
-  const queryClient = useQueryClient();
   const { register, handleSubmit, watch, reset, formState } = useForm();
   const createChannelMutation = useCreateChanelMutation({
     onSuccess: () => {
