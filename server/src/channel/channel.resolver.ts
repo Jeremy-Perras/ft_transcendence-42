@@ -640,6 +640,7 @@ export class ChannelResolver {
   }
 
   @UseGuards(ExistingChannelGuard)
+  @UseGuards(OwnerGuard)
   @RoleGuard(Role.Admin)
   @Mutation((returns) => Boolean)
   async inviteUser(
