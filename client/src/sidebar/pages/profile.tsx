@@ -4,7 +4,12 @@ import {
   useQueryClient,
   UseQueryOptions,
 } from "@tanstack/react-query";
-import { Params, useLoaderData, useParams } from "react-router-dom";
+import {
+  LoaderFunctionArgs,
+  Params,
+  useLoaderData,
+  useParams,
+} from "react-router-dom";
 import {
   useUserProfileQuery,
   UserProfileQuery,
@@ -29,6 +34,7 @@ import { ReactComponent as PlayIcon } from "pixelarticons/svg/gamepad.svg";
 import { useState } from "react";
 import { HeaderPortal } from "../layout";
 import FileUploadPage from "./uploadAvatar";
+import queryClient from "src/query";
 
 export const RankIcon = (rank: number | undefined) => {
   if (typeof rank === "undefined") return "";
@@ -52,14 +58,15 @@ const query = (
   };
 };
 
-export const profile =
-  (queryClient: QueryClient) =>
-  async ({ params }: { params: Params<"userId"> }) => {
-    if (params.userId) {
-      const userId = +params.userId;
-      return queryClient.fetchQuery(query(userId));
-    }
-  };
+export const profileLoader = async (
+  queryClient: QueryClient,
+  { params }: LoaderFunctionArgs
+) => {
+  if (params.userId) {
+    const userId = +params.userId;
+    return queryClient.fetchQuery(query(userId));
+  }
+};
 
 const UserProfileHeader = ({
   data,

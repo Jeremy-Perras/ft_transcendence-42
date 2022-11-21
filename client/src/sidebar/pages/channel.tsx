@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import {
+  LoaderFunctionArgs,
   Params,
   useLoaderData,
   useNavigate,
@@ -58,14 +59,15 @@ const query = (
   };
 };
 
-export const channel =
-  (queryClient: QueryClient) =>
-  async ({ params }: { params: Params<"userId"> }) => {
-    if (params.userId) {
-      const userId = +params.userId;
-      return queryClient.fetchQuery(query(userId));
-    }
-  };
+export const channelLoader = async (
+  queryClient: QueryClient,
+  { params }: LoaderFunctionArgs
+) => {
+  if (params.userId) {
+    const userId = +params.userId;
+    return queryClient.fetchQuery(query(userId));
+  }
+};
 
 type Channelquery = {
   userId: number;

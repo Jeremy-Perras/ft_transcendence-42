@@ -1,13 +1,30 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { useCreateChanelMutation } from "../../graphql/generated";
 import { useForm } from "react-hook-form";
 import { ReactComponent as UsersIcon } from "pixelarticons/svg/users.svg";
 import { ReactComponent as PrivateIcon } from "pixelarticons/svg/mail.svg";
 import { ReactComponent as PasswordIcon } from "pixelarticons/svg/lock.svg";
 import { ReactComponent as PublicIcon } from "pixelarticons/svg/lock-open.svg";
+import { ReactComponent as MessagePlusIcon } from "pixelarticons/svg/message-plus.svg";
+import {
+  useCreateChannelMutation,
+  useUserChatsAndFriendsQuery,
+} from "../../graphql/generated";
 
-/*************************** WORKS AS INTENTED *************** */
+export const CreateChannelBtn = ({
+  setShowChannelCreation,
+}: {
+  setShowChannelCreation: (showChannelCreation: boolean) => void;
+}) => {
+  return (
+    <MessagePlusIcon
+      onClick={() => {
+        setShowChannelCreation(true);
+      }}
+      className="h-9 cursor-pointer"
+    />
+  );
+};
 
 const ChannelModeButton = ({
   text,
@@ -48,19 +65,19 @@ const ChannelModeButton = ({
 };
 
 export default function CreateChannel({
-  show,
-  fn,
+  setShowChannelCreation,
 }: {
-  show: boolean;
-  fn: React.Dispatch<React.SetStateAction<boolean>>;
+  setShowChannelCreation: (showChannelCreation: boolean) => void;
 }) {
-  const queryClient = useQueryClient();
   const { register, handleSubmit, watch, reset, formState } = useForm();
-  const createChannelMutation = useCreateChanelMutation({
+
+  const queryClient = useQueryClient();
+  const createChannelMutation = useCreateChannelMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries(["InfoUsers", {}]);
+      queryClient.invalidateQueries(useUserChatsAndFriendsQuery.getKey({}));
     },
   });
+
   const [passwordProtected, setPasswordProtected] = useState(false);
   const [publicMode, setPublicMode] = useState(true);
   const [privateMode, setPrivateMode] = useState(false);
@@ -69,10 +86,10 @@ export default function CreateChannel({
     if (formState.isSubmitSuccessful) {
       reset();
     }
-  }, [formState, {}, reset]);
+  }, [formState, reset]);
 
   return (
-    <div className="z-20 flex h-full w-full flex-col border-t-2 bg-slate-100 opacity-100 transition-all">
+    <div className="z-20 flex h-full w-full flex-col border-t-2 bg-slate-100 pb-8 opacity-100 transition-all">
       <form
         className="flex h-full flex-col bg-slate-100"
         onSubmit={handleSubmit(() => {
@@ -81,7 +98,7 @@ export default function CreateChannel({
             name: watch("Name"),
             password: passwordProtected ? watch("Password") : "",
           }),
-            fn(!show);
+            setShowChannelCreation(false);
         })}
       >
         <div className="flex flex-col bg-slate-100">

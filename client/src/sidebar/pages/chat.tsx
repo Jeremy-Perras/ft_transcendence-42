@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import {
+  LoaderFunctionArgs,
   Params,
   useLoaderData,
   useNavigate,
@@ -39,14 +40,15 @@ const query = (
   };
 };
 
-export const chat =
-  (queryClient: QueryClient) =>
-  async ({ params }: { params: Params<"userId"> }) => {
-    if (params.userId) {
-      const userId = +params.userId;
-      return queryClient.fetchQuery(query(userId));
-    }
-  };
+export const chatLoader = async (
+  queryClient: QueryClient,
+  { params }: LoaderFunctionArgs
+) => {
+  if (params.userId) {
+    const userId = +params.userId;
+    return queryClient.fetchQuery(query(userId));
+  }
+};
 
 type Chatquery = {
   messages: {

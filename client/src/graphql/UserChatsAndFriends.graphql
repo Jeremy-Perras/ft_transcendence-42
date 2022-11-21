@@ -1,0 +1,25 @@
+query UserChatsAndFriends {
+  user {
+    channels {
+      __typename
+      id
+      name
+      messages {
+        __typename
+        content
+        sentAt
+      }
+    }
+    friends {
+      __typename
+      id
+      name
+      avatar
+      messages {
+        __typename
+        content
+        sentAt
+      }
+    }
+  }
+}

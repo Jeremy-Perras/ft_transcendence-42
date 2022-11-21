@@ -1,4 +1,5 @@
 import {
+  LoaderFunctionArgs,
   Params,
   useLoaderData,
   useNavigate,
@@ -45,6 +46,7 @@ import {
   UseQueryOptions,
   UseMutationResult,
 } from "@tanstack/react-query";
+import queryClient from "src/query";
 
 const query = (
   channelId: number
@@ -67,14 +69,15 @@ const query = (
   };
 };
 
-export const channelset =
-  (queryClient: QueryClient) =>
-  async ({ params }: { params: Params<"channelId"> }) => {
-    if (params.channelId) {
-      const channelId = +params.channelId;
-      return queryClient.fetchQuery(query(channelId));
-    }
-  };
+export const channelSettingsLoader = async (
+  queryClient: QueryClient,
+  { params }: LoaderFunctionArgs
+) => {
+  if (params.channelId) {
+    const channelId = +params.channelId;
+    return queryClient.fetchQuery(query(channelId));
+  }
+};
 
 type Channelsetquery = {
   user: {

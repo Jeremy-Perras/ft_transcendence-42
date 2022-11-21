@@ -1,108 +1,19 @@
-import { Params, useLoaderData, useNavigate } from "react-router-dom";
-import * as Avatar from "@radix-ui/react-avatar";
+import { QueryClient, useQuery, UseQueryOptions } from "@tanstack/react-query";
+import { useState } from "react";
+import { ReactComponent as GamePadIcon } from "pixelarticons/svg/gamepad.svg";
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { ReactComponent as UsersIcon } from "pixelarticons/svg/users.svg";
-import { ReactComponent as GamePadIcon } from "pixelarticons/svg/gamepad.svg";
-import { ReactComponent as LoaderIcon } from "pixelarticons/svg/clock.svg";
-import { ReactComponent as AlertIcon } from "pixelarticons/svg/alert.svg";
-import { InfoUsersQuery, useInfoUsersQuery } from "../../graphql/generated";
+import { useLoaderData, useNavigate } from "react-router-dom";
+import * as Avatar from "@radix-ui/react-avatar";
+import * as Dialog from "@radix-ui/react-dialog";
 import {
-  QueryClient,
-  useQuery,
-  useQueryClient,
-  UseQueryOptions,
-} from "@tanstack/react-query";
-
-const query = (): UseQueryOptions<InfoUsersQuery, unknown, Homequery> => {
-  return {
-    queryKey: useInfoUsersQuery.getKey({}),
-    queryFn: useInfoUsersQuery.fetcher({}),
-    select: (users) => ({
-      currentUser: {
-        id: users.user.id,
-        name: users.user.name,
-        avatar: users.user.avatar,
-        rank: users.user.rank,
-      },
-      chats: [...users.user.friends, ...users.user.channels].sort((a, b) => {
-        const x = a.messages.sort((c, d) => {
-          return c.sentAt - d.sentAt;
-        })[a.messages.length - 1];
-        const y = b.messages.sort((c, d) => {
-          return c.sentAt - d.sentAt;
-        })[b.messages.length - 1];
-        if (!x) return 1;
-        if (!y) return -1;
-        return y.sentAt - x.sentAt;
-      }),
-    }),
-  };
-};
-
-export const home = (queryClient: QueryClient) => async () => {
-  return queryClient.fetchQuery(query());
-};
-type Homequery = {
-  currentUser: {
-    id: number;
-    name: string;
-    avatar?: string;
-    rank: number;
-  };
-  chats: Chat[];
-};
-
-export function getDate(time: number) {
-  const date = new Date(time);
-  return (
-    date.toISOString().substring(0, 10) +
-    " at " +
-    date.toISOString().substring(11, 16)
-  );
-}
-const Empty = () => {
-  return (
-    <div className="flex h-full select-none flex-col items-center justify-center text-slate-200">
-      <GamePadIcon className="-mt-2 w-96" />
-      <span className="-mt-10 px-20 text-center text-2xl">
-        Add your friends to play with them!
-      </span>
-    </div>
-  );
-};
-
-// const LoadingSkeleton = ({ w1, w2 }: { w1: string; w2: string }) => {
-//   return (
-//     <div className="flex animate-pulse justify-center transition-all ">
-//       <div className="m-2 flex h-16 w-16 shrink-0 justify-center bg-slate-100 " />
-//       <div className="flex w-full grow flex-col justify-evenly bg-slate-50 p-2">
-//         <div className={`flex h-6 ${w1} bg-slate-100 `} />
-//         <div className={`flex h-6 ${w2} bg-slate-100 `} />
-//       </div>
-//     </div>
-//   );
-// };
-
-//DO NOT REMOVE : USE IN MAIN FILE WHEN LOADERS OK
-const Loading = () => {
-  return (
-    <div className="flex h-full w-full animate-pulse flex-col items-center justify-center text-slate-200">
-      <LoaderIcon className="w-80" />
-      <div className="text-center text-4xl">Loading... </div>
-    </div>
-  );
-};
-
-export const Error = () => {
-  return (
-    <div className="flex h-full select-none flex-col items-center justify-center text-slate-200">
-      <AlertIcon className="-mt-10 w-72" />
-      <span className="mt-10 px-20 text-center text-4xl tracking-wide">
-        Error while loading data
-      </span>
-    </div>
-  );
-};
+  UserChatsAndFriendsQuery,
+  useUserChatsAndFriendsQuery,
+} from "../../graphql/generated";
+import CreateChannel, { CreateChannelBtn } from "../components/createChannel";
+import { SearchBar, SearchResults } from "../components/search";
+import { AnimatePresence, motion } from "framer-motion";
+import { Header } from "../components/header";
 
 type Chat = {
   __typename: "User" | "Channel";
@@ -116,9 +27,47 @@ type Chat = {
   }[];
 };
 
+const query = (): UseQueryOptions<
+  UserChatsAndFriendsQuery,
+  unknown,
+  Chat[]
+> => {
+  return {
+    queryKey: useUserChatsAndFriendsQuery.getKey({}),
+    queryFn: useUserChatsAndFriendsQuery.fetcher({}),
+    select: (data) => {
+      return [...data.user.friends, ...data.user.channels].sort((a, b) => {
+        const x = a.messages.sort((c, d) => {
+          return c.sentAt - d.sentAt;
+        })[a.messages.length - 1];
+        const y = b.messages.sort((c, d) => {
+          return c.sentAt - d.sentAt;
+        })[b.messages.length - 1];
+        if (!x) return 1;
+        if (!y) return -1;
+        return y.sentAt - x.sentAt;
+      });
+    },
+  };
+};
+
+export const homeLoader = async (queryClient: QueryClient) => {
+  return queryClient.fetchQuery(query());
+};
+
 const Chat = ({ __typename, name, avatar, id, messages }: Chat) => {
   const navigate = useNavigate();
   const lastMessage = messages[messages.length - 1];
+
+  const getDate = (time: number) => {
+    const date = new Date(time);
+    return (
+      date.toISOString().substring(0, 10) +
+      " at " +
+      date.toISOString().substring(11, 16)
+    );
+  };
+
   return (
     <div
       onClick={() =>
@@ -156,21 +105,82 @@ const Chat = ({ __typename, name, avatar, id, messages }: Chat) => {
   );
 };
 
-const Home = () => {
-  const initialData = useLoaderData() as Awaited<
-    ReturnType<ReturnType<typeof home>>
-  >;
-  const { data } = useQuery({ ...query(), initialData });
+const Empty = () => {
   return (
-    <>
-      <>
-        {data?.chats.map((chat, index) => (
-          <Chat key={index} {...chat} />
-        ))}
-        {data?.chats.length === 0 ? <Empty /> : null}
-      </>
-    </>
+    <div className="flex h-full select-none flex-col items-center justify-center text-slate-200">
+      <GamePadIcon className="-mt-2 w-96" />
+      <span className="-mt-10 px-20 text-center text-2xl">
+        Add your friends to play with them!
+      </span>
+    </div>
   );
 };
 
-export default Home;
+export const Home = () => {
+  const initialData = useLoaderData() as Awaited<ReturnType<typeof homeLoader>>;
+  const { data } = useQuery({ ...query(), initialData });
+
+  const [searchInput, setSearchInput] = useState("");
+  const [showChannelCreation, setShowChannelCreation] = useState(false);
+
+  return (
+    <div className="relative flex h-full flex-col">
+      <Header>
+        <>
+          <CreateChannelBtn setShowChannelCreation={setShowChannelCreation} />
+          <SearchBar
+            searchInput={searchInput}
+            setSearchInput={setSearchInput}
+          />
+        </>
+      </Header>
+      <div className="h-full overflow-y-auto">
+        <Dialog.Root open={showChannelCreation} modal={false}>
+          <Dialog.Content
+            forceMount
+            onEscapeKeyDown={(e) => {
+              e.preventDefault();
+              setShowChannelCreation(false);
+            }}
+            onInteractOutside={(e) => {
+              e.preventDefault();
+              setShowChannelCreation(false);
+            }}
+          >
+            <AnimatePresence>
+              {showChannelCreation ? (
+                <>
+                  <div
+                    onClick={() => setShowChannelCreation(false)}
+                    className="absolute h-screen w-screen backdrop-blur"
+                  ></div>
+                  <motion.div
+                    className="absolute bottom-0 w-full shadow-[10px_10px_15px_15px_rgba(0,0,0,0.2)]"
+                    initial={{ y: "100%" }}
+                    exit={{ y: "100%" }}
+                    animate={{ y: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <CreateChannel
+                      setShowChannelCreation={setShowChannelCreation}
+                    />
+                  </motion.div>
+                </>
+              ) : null}
+            </AnimatePresence>
+          </Dialog.Content>
+        </Dialog.Root>
+        {searchInput ? (
+          <SearchResults
+            searchInput={searchInput}
+            setSearchInput={setSearchInput}
+          />
+        ) : data?.length === 0 ? (
+          <Empty />
+        ) : (
+          data?.map((chat, index) => <Chat key={index} {...chat} />)
+        )}
+      </div>
+    </div>
+  );
+};

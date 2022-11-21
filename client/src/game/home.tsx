@@ -24,7 +24,7 @@ const Idle = ({ play }: { play: () => void }) => {
   );
 };
 
-let gameModeIntervalId = [-1, -1, -1];
+const gameModeIntervalId = [-1, -1, -1];
 const GameMode = ({
   imgs,
   name,

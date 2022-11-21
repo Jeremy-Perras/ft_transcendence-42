@@ -8,7 +8,7 @@ const queryClient = new QueryClient({
     },
   },
   queryCache: new QueryCache({
-    onError: (error, query) => {
+    onError: () => {
       useAuthStore.setState({ isLoggedIn: false });
     },
   }),
