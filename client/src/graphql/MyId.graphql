@@ -1,0 +1,6 @@
+query MyId($userId: Int) {
+  user(id: $userId) {
+    id
+  }
+}
+#remove when id get from auth

@@ -1,0 +1,43 @@
+query ChannelDiscussion($channelId: Int!, $userId: Int) {
+  channel(id: $channelId) {
+    banned {
+      id
+    }
+    muted {
+      id
+    }
+    private
+    passwordProtected
+    name
+    id
+    messages {
+      readBy {
+        user {
+          id
+        }
+      }
+      author {
+        id
+        name
+        avatar
+      }
+      content
+      sentAt
+      id
+    }
+    owner {
+      id
+      name
+      avatar
+    }
+    members {
+      id
+    }
+    admins {
+      id
+    }
+  }
+  user(id: $userId) {
+    id
+  }
+}

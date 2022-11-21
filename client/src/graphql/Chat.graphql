@@ -1,0 +1,26 @@
+query Chat($userId: Int) {
+  user(id: $userId) {
+    rank
+    name
+    avatar
+    messages {
+      id
+      content
+      readAt
+      sentAt
+      recipient {
+        id
+        name
+        avatar
+      }
+      author {
+        id
+        avatar
+        name
+      }
+     
+    }
+    blocked
+    blocking
+  }
+}

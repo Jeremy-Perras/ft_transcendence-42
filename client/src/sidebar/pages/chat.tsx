@@ -6,35 +6,30 @@ import {
   useParams,
 } from "react-router-dom";
 import {
-  InfoDirectMessagesQuery,
-  useInfoDirectMessagesQuery,
+  ChatQuery,
+  useChatQuery,
   useSendDirectMessageMutation,
 } from "../../graphql/generated";
 import { getDate } from "./home";
 import { ReactComponent as EmptyChatIcon } from "pixelarticons/svg/message-plus.svg";
 import { HeaderPortal } from "../layout";
 import { RankIcon } from "./profile";
-import React from "react";
-import {
-  QueryClient,
-  useQuery,
-  useQueryClient,
-  UseQueryOptions,
-} from "@tanstack/react-query";
+import queryClient from "../../query";
+import { QueryClient, useQuery, UseQueryOptions } from "@tanstack/react-query";
 
 const query = (
   userId: number
-): UseQueryOptions<InfoDirectMessagesQuery, unknown, Chatquery> => {
+): UseQueryOptions<ChatQuery, unknown, Chatquery> => {
   return {
-    queryKey: useInfoDirectMessagesQuery.getKey({ userId }),
-    queryFn: useInfoDirectMessagesQuery.fetcher({ userId }),
-    select: (user) => ({
-      messages: user.user.messages.sort((a, b) => a.sentAt - b.sentAt),
-      name: user.user.name,
-      avatar: user.user.avatar,
-      rank: user.user.rank,
-      blocked: user.user.blocked,
-      blocking: user.user.blocking,
+    queryKey: useChatQuery.getKey({ userId }),
+    queryFn: useChatQuery.fetcher({ userId }),
+    select: (data) => ({
+      messages: data.user.messages.sort((a, b) => a.sentAt - b.sentAt),
+      name: data.user.name,
+      avatar: data.user.avatar,
+      rank: data.user.rank,
+      blocked: data.user.blocked,
+      blocking: data.user.blocking,
     }),
   };
 };
@@ -131,15 +126,16 @@ const DirectMessage = ({
 };
 
 export default function Chat() {
-  const queryClient = useQueryClient();
   const params = useParams();
-  if (typeof params.userId === "undefined") return <div></div>;
+  if (typeof params.userId === "undefined") return <div>No user Id</div>;
   const userId = +params.userId;
+
   const [content, setContent] = useState("");
   const initialData = useLoaderData() as Awaited<
     ReturnType<ReturnType<typeof chat>>
   >;
   const { data } = useQuery({ ...query(userId), initialData });
+
   const messageMutation = useSendDirectMessageMutation({
     onSuccess: () => {
       queryClient.invalidateQueries(["InfoDirectMessages", { userId: userId }]);
@@ -150,7 +146,6 @@ export default function Chat() {
   const scrollToBottom = () => {
     messagesEndRef?.current?.scrollIntoView({ behavior: "smooth" });
   };
-
   useEffect(() => {
     scrollToBottom();
   }, [data?.messages]);
@@ -161,18 +156,17 @@ export default function Chat() {
         container={document.getElementById("header") as HTMLElement}
         text={data?.name}
         link={`/profile/${userId}`}
-        icon={RankIcon(data?.rank)}
+        icon={typeof data?.rank !== "undefined" ? RankIcon(data?.rank) : ""}
       />
       <ul className="mt-4 flex h-fit w-full grow flex-col overflow-auto pr-2 pl-px ">
         {data?.messages.length === 0 ? (
-          <div className="mb-48 flex h-full flex-col items-center justify-center text-center text-slate-300">
+          <div className="mb-48 flex h-full flex-col items-center justify-center text-center">
             <EmptyChatIcon className="w-96 text-slate-200" />
             Seems a little bit too silent here... Send the first message !
           </div>
         ) : (
           <></>
         )}
-
         {data?.messages.map((message, index) => (
           <DirectMessage key={index} userId={userId} {...message} />
         ))}
@@ -201,7 +195,7 @@ export default function Chat() {
               if (e.code == "Enter" && !e.getModifierState("Shift")) {
                 messageMutation.mutate({
                   message: content,
-                  recipientId: userId,
+                  userId: userId,
                 });
                 e.currentTarget.value = "";
                 e.preventDefault();
@@ -213,6 +207,8 @@ export default function Chat() {
                 e.preventDefault();
                 setContent("");
               }
+              // JP : what is this for ?
+              //TODO : test removing this
             }
           }}
         />

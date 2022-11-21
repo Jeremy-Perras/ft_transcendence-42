@@ -1,0 +1,8 @@
+query UserHeader($userId: Int) {
+  user(id: $userId) {
+    id
+    rank
+    name
+    avatar
+  }
+}

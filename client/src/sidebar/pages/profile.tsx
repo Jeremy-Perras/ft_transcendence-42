@@ -24,7 +24,7 @@ import { ReactComponent as PlayIcon } from "pixelarticons/svg/gamepad.svg";
 import { useState } from "react";
 import { HeaderPortal } from "../layout";
 import FileUploadPage from "./uploadAvatar";
-import queryClient from "src/query";
+import queryClient from "../../query";
 
 export const RankIcon = (rank: number) => {
   return rank <= 10

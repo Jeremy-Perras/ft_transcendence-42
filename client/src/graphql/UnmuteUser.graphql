@@ -1,0 +1,3 @@
+mutation UnmuteUser($channelId: Int!, $userId: Int!) {
+  unmuteUser(channelId: $channelId, userId: $userId)
+}

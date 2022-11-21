@@ -788,7 +788,7 @@ export class ChannelMessageResolver {
   @UseGuards(ExistingChannelGuard)
   @RoleGuard(Role.Member)
   @Mutation((returns) => Boolean)
-  async sendChanelMessage(
+  async sendChannelMessage(
     @Args("message", { type: () => String }) message: string,
     @Args("channelId", { type: () => Int }) channelId: number,
     @CurrentUser() currentUserId: number

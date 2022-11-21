@@ -1,4 +1,3 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useCreateChannelMutation } from "../../graphql/generated";
 import { useForm } from "react-hook-form";
@@ -6,7 +5,7 @@ import { ReactComponent as UsersIcon } from "pixelarticons/svg/users.svg";
 import { ReactComponent as PrivateIcon } from "pixelarticons/svg/mail.svg";
 import { ReactComponent as PasswordIcon } from "pixelarticons/svg/lock.svg";
 import { ReactComponent as PublicIcon } from "pixelarticons/svg/lock-open.svg";
-import queryClient from "src/query";
+import queryClient from "../../query";
 
 const ChannelModeButton = ({
   text,

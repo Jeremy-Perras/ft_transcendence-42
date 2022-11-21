@@ -1,0 +1,3 @@
+mutation CreateChannelMessageRead($messageId: Int!) {
+  createChannelMessageRead(messageId: $messageId)
+}

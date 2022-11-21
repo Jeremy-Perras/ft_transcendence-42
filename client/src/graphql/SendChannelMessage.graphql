@@ -1,0 +1,3 @@
+mutation SendChannelMessage($message: String!, $channelId: Int!) {
+  sendChannelMessage(message: $message, channelId: $channelId)
+}

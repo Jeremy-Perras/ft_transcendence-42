@@ -6,11 +6,9 @@ import {
   useParams,
 } from "react-router-dom";
 import {
-  usePasswordQuery,
-  useCreateChannelMessageReadMutation,
-  useInfoChannelQuery,
+  useChannelDiscussionQuery,
   useSendChannelMessageMutation,
-  InfoChannelQuery,
+  useCreateChannelMessageReadMutation,
 } from "../../graphql/generated";
 import { User } from "./chat";
 import { getDate } from "./home";
@@ -26,34 +24,20 @@ import {
   useQueryClient,
   UseQueryOptions,
 } from "@tanstack/react-query";
+import { ChannelDiscussionQuery } from "../../graphql/generated";
+import queryClient from "src/query";
 
 const query = (
   channelId: number
-): UseQueryOptions<InfoChannelQuery, unknown, Channelquery> => {
+): UseQueryOptions<ChannelDiscussionQuery, unknown, Channelquery> => {
   return {
-    queryKey: useInfoChannelQuery.getKey({
+    queryKey: useChannelDiscussionQuery.getKey({
       channelId: +channelId,
       userId: null,
     }),
-    queryFn: useInfoChannelQuery.fetcher({
+    queryFn: useChannelDiscussionQuery.fetcher({
       channelId: +channelId,
       userId: null,
-    }),
-    select: (channels) => ({
-      userId: channels.user.id,
-      name: channels.channel.name,
-      messages: channels.channel.messages,
-      owner: {
-        id: channels.channel.owner.id,
-        name: channels.channel.owner.name,
-        avatar: channels.channel.owner.avatar,
-      },
-      adminIds: channels.channel.admins,
-      memberIds: channels.channel.members,
-      banned: channels.channel.banned,
-      muted: channels.channel.banned,
-      password: channels.channel.passwordProtected,
-      private: channels.channel.private,
     }),
   };
 };
@@ -68,12 +52,13 @@ export const channel =
   };
 
 type Channelquery = {
-  userId: number;
+  user: { id: number }; //TODO : remove when auth-store id done
+  id: number;
   name: string;
   messages: ChannelMessage[];
   owner: { id: number; name: string; avatar: string };
-  adminIds: { id: number }[];
-  memberIds: { id: number }[];
+  admins: { id: number }[];
+  members: { id: number }[];
   banned: {
     __typename?: "RestrictedMember" | undefined;
     id: number;
@@ -82,6 +67,7 @@ type Channelquery = {
   password: boolean;
   private: boolean;
 };
+
 const ReadBy = ({ users }: { users: User[] }) => {
   const navigate = useNavigate();
   return (
@@ -93,7 +79,7 @@ const ReadBy = ({ users }: { users: User[] }) => {
         const [showName, setShowName] = useState(false);
         return (
           <div
-            className="relative flex h-full w-8 flex-col flex-wrap justify-center"
+            className="relative flex h-full w-8 shrink-0 grow-0 flex-col flex-wrap justify-center"
             key={index}
           >
             <img
@@ -213,15 +199,6 @@ const AccessForbidden = ({
   );
 };
 
-//TODO : change
-const GetPassword = ({ passwordId }: { passwordId: number }) => {
-  const { data } = usePasswordQuery({
-    passwordId: passwordId,
-  });
-  return data;
-};
-
-//TODO : Enter pw only at 1st connection to channel => cookie?
 const AccessProtected = ({
   userId,
   channelId,
@@ -243,7 +220,7 @@ const AccessProtected = ({
     handleSubmit,
     watch,
   } = useForm();
-  const pass = GetPassword({ passwordId: +channelId });
+
   const navigate = useNavigate();
   return (
     <div className="flex h-full w-full flex-col items-center justify-center pb-60">
@@ -254,7 +231,7 @@ const AccessProtected = ({
       <div className="flex w-full flex-col items-center justify-center">
         <form
           onSubmit={handleSubmit(() => {
-            pass?.password === watch("Password")
+            watch("Password") //TODO : pwd check
               ? (setAuth(true),
                 (document.cookie = `userId=${userId}, channelId=${channelId}`))
               : setAuth(false);
@@ -270,7 +247,7 @@ const AccessProtected = ({
                 {...register("Password", {
                   maxLength: 100,
                   required: true,
-                  validate: (value) => value === pass?.password,
+                  validate: (value) => true, //TODO : put pwd check here
                 })}
                 type="Password"
                 autoComplete="off"
@@ -311,7 +288,7 @@ const AccessProtected = ({
 
 export default function Channel() {
   const { channelId } = useParams();
-  const queryClient = useQueryClient();
+
   if (!channelId) return <div>no channel id</div>;
 
   const initialData = useLoaderData() as Awaited<
@@ -320,7 +297,7 @@ export default function Channel() {
   const { data } = useQuery({ ...query(+channelId), initialData });
   const messageMutation = useSendChannelMessageMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries([]);
+      queryClient.invalidateQueries([]); //TODO : leave empty ?
     },
   });
   const createChannelMessageRead = useCreateChannelMessageReadMutation({
@@ -330,15 +307,16 @@ export default function Channel() {
   });
   const [content, setContent] = useState("");
 
-  const banned = data?.banned.some((u) => u.id === data.userId);
-  const muted = data?.muted.some((u) => u.id === data.userId);
+  const banned = data?.banned.some((u) => u.id === data.user.id);
+  const muted = data?.muted.some((u) => u.id === data.user.id);
+
   const [auth, setAuth] = useState(false);
   const cookies = document.cookie;
+
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
   const scrollToBottom = () => {
     messagesEndRef?.current?.scrollIntoView({ behavior: "smooth" });
   };
-
   useEffect(() => {
     scrollToBottom();
   }, [data?.messages]);
@@ -352,8 +330,8 @@ export default function Channel() {
           banned ||
           (data?.password && !auth) ||
           (data?.private &&
-            !data.adminIds.some((admin) => admin.id === data.userId) &&
-            !data.memberIds.some((member) => member.id === data.userId))
+            !data.admins.some((admin) => admin.id === data.user.id) &&
+            !data.members.some((member) => member.id === data.user.id))
             ? ""
             : `/settings/channel/${channelId}`
         }
@@ -362,8 +340,8 @@ export default function Channel() {
       {banned ? (
         <Banned />
       ) : data?.private &&
-        !data.adminIds.some((admin) => admin.id === data.userId) &&
-        !data.memberIds.some((member) => member.id === data.userId) ? (
+        !data.admins.some((admin) => admin.id === data.user.id) &&
+        !data.members.some((member) => member.id === data.user.id) ? (
         <AccessForbidden
           ownerId={data?.owner.id}
           ownerAvatar={data.owner.avatar}
@@ -371,9 +349,9 @@ export default function Channel() {
         />
       ) : data?.password &&
         !auth &&
-        !cookies.includes(`userId=${data?.userId}, channelId=${channelId}`) ? (
+        !cookies.includes(`userId=${data?.user.id}, channelId=${channelId}`) ? (
         <AccessProtected
-          userId={data.userId}
+          userId={data.user.id}
           channelId={+channelId}
           ownerId={data?.owner.id}
           ownerAvatar={data.owner.avatar}
@@ -388,7 +366,6 @@ export default function Channel() {
                 ? ""
                 : createChannelMessageRead.mutate({
                     messageId: message.id,
-                    userId: data.userId,
                   });
             });
           }}
@@ -423,18 +400,19 @@ export default function Channel() {
                 if (e.code == "Enter" && !e.getModifierState("Shift")) {
                   messageMutation.mutate({
                     message: content,
-                    recipientId: +channelId,
+                    channelId: +channelId,
                   });
                   e.currentTarget.value = "";
                   e.preventDefault();
                   setContent("");
-                } else {
-                  if (e.code == "Enter" && !e.getModifierState("Shift")) {
-                    e.currentTarget.value = "";
-                    e.preventDefault();
-                    setContent("");
-                  }
                 }
+                // else {
+                //   if (e.code == "Enter" && !e.getModifierState("Shift")) {
+                //     e.currentTarget.value = "";
+                //     e.preventDefault();
+                //     setContent("");
+                //   }
+                // }
               }}
             />
           </div>

@@ -11,9 +11,9 @@ import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { ReactComponent as UsersIcon } from "pixelarticons/svg/users.svg";
 import * as Avatar from "@radix-ui/react-avatar";
 import {
-  useSearchUsersChannelsQuery,
-  useUserProfileHeaderQuery,
-  useInfoUsersQuery,
+  useUsersAndChannelsSearchQuery,
+  useUserHeaderQuery,
+  useMyIdQuery,
 } from "../graphql/generated";
 
 import { useSidebarStore } from "../stores";
@@ -166,7 +166,7 @@ function Header({
   const navigate = useNavigate();
   const closeSidebar = useSidebarStore((state) => state.close);
   const isSmallScreen = useMediaQuery("(max-width: 1536px)");
-  const { isLoading, data, error, isFetching } = useUserProfileHeaderQuery(
+  const { isLoading, data, error, isFetching } = useUserHeaderQuery(
     {},
     {
       select({ user }) {
@@ -254,8 +254,9 @@ const Highlight = ({
   );
 };
 
+//TODO : remove when auth id ok
 const myInfo = () => {
-  const { data } = useInfoUsersQuery(
+  const { data } = useMyIdQuery(
     { userId: null },
     {
       select({ user }) {
@@ -276,7 +277,7 @@ const SearchResult = ({
 }) => {
   const navigate = useNavigate();
 
-  const { data } = useSearchUsersChannelsQuery(
+  const { data } = useUsersAndChannelsSearchQuery(
     { name: search },
     {
       select(data) {
@@ -369,7 +370,7 @@ export const SidebarLayout = () => {
           <div className="flex h-full shadow-[10px_10px_15px_15px_rgba(0,0,0,0.2)]">
             <CreateChannel
               show={showChannelCreation}
-              fn={setShowChannelCreation}
+              setShow={setShowChannelCreation}
             />
           </div>
         </div>
