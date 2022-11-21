@@ -27,7 +27,6 @@ import {
   channelType,
   restrictedMemberType,
 } from "./channel.model";
-import { ChannelService } from "./channel.service";
 import { Role, RoleGuard, RolesGuard } from "./channel.roles";
 import { ExistingChannelGuard, OwnerGuard } from "./channel.guards";
 
@@ -35,10 +34,7 @@ import { ExistingChannelGuard, OwnerGuard } from "./channel.guards";
 @UseGuards(RolesGuard)
 @UseGuards(GqlAuthenticatedGuard)
 export class ChannelResolver {
-  constructor(
-    private prisma: PrismaService,
-    private channelService: ChannelService
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   @Query((returns) => Channel)
   async channel(
@@ -56,7 +52,12 @@ export class ChannelResolver {
     if (!channel) {
       throw new NotFoundException("Channel not found");
     }
-    return this.channelService.returnChannel(channel);
+    return {
+      id: channel.id,
+      name: channel.name,
+      passwordProtected: !!channel.password,
+      private: channel.inviteOnly,
+    };
   }
 
   @Query((returns) => [Channel])
