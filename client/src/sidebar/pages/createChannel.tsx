@@ -1,13 +1,12 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { useCreateChanelMutation } from "../../graphql/generated";
+import { useCreateChannelMutation } from "../../graphql/generated";
 import { useForm } from "react-hook-form";
 import { ReactComponent as UsersIcon } from "pixelarticons/svg/users.svg";
 import { ReactComponent as PrivateIcon } from "pixelarticons/svg/mail.svg";
 import { ReactComponent as PasswordIcon } from "pixelarticons/svg/lock.svg";
 import { ReactComponent as PublicIcon } from "pixelarticons/svg/lock-open.svg";
-
-/*************************** WORKS AS INTENTED *************** */
+import queryClient from "src/query";
 
 const ChannelModeButton = ({
   text,
@@ -49,58 +48,75 @@ const ChannelModeButton = ({
 
 export default function CreateChannel({
   show,
-  fn,
+  setShow,
 }: {
   show: boolean;
-  fn: React.Dispatch<React.SetStateAction<boolean>>;
+  setShow: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
-  const queryClient = useQueryClient();
-  const { register, handleSubmit, watch, reset, formState } = useForm();
-  const createChannelMutation = useCreateChanelMutation({
+  const createChannelMutation = useCreateChannelMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries(["InfoUsers", {}]);
+      queryClient.invalidateQueries(["Homepage", {}]);
     },
   });
+
   const [passwordProtected, setPasswordProtected] = useState(false);
   const [publicMode, setPublicMode] = useState(true);
   const [privateMode, setPrivateMode] = useState(false);
 
+  const { register, handleSubmit, watch, reset, formState } = useForm();
   useEffect(() => {
     if (formState.isSubmitSuccessful) {
       reset();
     }
   }, [formState, {}, reset]);
 
+  const [pwNotProvided, setPwNotProvided] = useState(false);
+  const [nameNotProvided, setNameNotProvided] = useState(false);
+
   return (
-    <div className="z-20 flex h-full w-full flex-col border-t-2 bg-slate-100 opacity-100 transition-all">
+    <div className="z-20 flex h-full w-full flex-col border-t-2 bg-slate-100 transition-all">
       <form
-        className="flex h-full flex-col bg-slate-100"
+        className="flex h-full flex-col"
         onSubmit={handleSubmit(() => {
+          const nameCheck = watch("Name");
+          const pwdCheck = watch("Password");
+          if (passwordProtected) {
+            if (pwdCheck === "") {
+              setPwNotProvided(true);
+              return;
+            }
+          }
+          if (nameCheck === "") {
+            setNameNotProvided(true);
+            return;
+          }
           createChannelMutation.mutate({
             inviteOnly: privateMode,
             name: watch("Name"),
-            password: passwordProtected ? watch("Password") : "",
+            password: passwordProtected ? watch("Password") : null,
           }),
-            fn(!show);
+            setShow(!show);
         })}
       >
-        <div className="flex flex-col bg-slate-100">
+        <div className="flex flex-col">
           <div className="mt-6 mb-4 self-center text-2xl text-slate-600">
             Create your own Channel !
           </div>
-          <div className="flex w-full px-4">
+          <div className="flex w-full px-4 text-xl">
             <UsersIcon className="mt-5 h-24 w-24 self-center text-slate-600" />
-
             <div className="mt-6 ml-8 flex w-full flex-col items-start text-xl ">
-              <label
-                className="text-center text-xl text-slate-400"
-                htmlFor="name"
-              >
-                {" "}
+              <label className="text-center text-slate-400" htmlFor="name">
                 Channel name
               </label>
+              <div
+                className={`${
+                  nameNotProvided ? "opacity-100" : "opacity-0"
+                } text-sm text-red-600`}
+              >
+                Channel name cannot be empty
+              </div>
               <input
-                className="mt-2 mb-4 h-8 w-64 px-1 text-xl"
+                className="mt-2 mb-4 h-8 w-64 px-1 "
                 {...register("Name", {
                   required: true,
                   maxLength: 100,
@@ -152,6 +168,13 @@ export default function CreateChannel({
                 defaultValue=""
                 className="my-4 h-10 w-64 self-center px-1 text-xl "
               />
+              <div
+                className={`${
+                  nameNotProvided ? "opacity-100" : "opacity-0"
+                } text-sm text-red-600`}
+              >
+                Password cannot be empty
+              </div>
             </div>
           ) : (
             <></>

@@ -224,7 +224,7 @@ const AddFriend = () => {
   const params = useParams();
   const askFriend = useFriendMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries([]);
+      queryClient.invalidateQueries([]); //TODO : leave empty ?!
     },
   });
   return (
@@ -246,17 +246,17 @@ const FriendButtons = ({ data }: { data: UserProfileQuery }) => {
   const params = useParams();
   const unfriend = useUnfriendMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries([]);
+      queryClient.invalidateQueries([]); //TODO : leave empty ?!
     },
   });
   const blockMutation = useBlockUserMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries([]);
+      queryClient.invalidateQueries([]); //TODO : leave empty ?!
     },
   });
   const unblockMutation = useUnblockUserMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries([]);
+      queryClient.invalidateQueries([]); //TODO : leave empty ?!
     },
   });
   return (

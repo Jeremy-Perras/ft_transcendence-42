@@ -1,30 +1,20 @@
-import { Params, useLoaderData, useNavigate } from "react-router-dom";
+import { useLoaderData, useNavigate } from "react-router-dom";
 import * as Avatar from "@radix-ui/react-avatar";
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { ReactComponent as UsersIcon } from "pixelarticons/svg/users.svg";
 import { ReactComponent as GamePadIcon } from "pixelarticons/svg/gamepad.svg";
 import { ReactComponent as LoaderIcon } from "pixelarticons/svg/clock.svg";
 import { ReactComponent as AlertIcon } from "pixelarticons/svg/alert.svg";
-import { InfoUsersQuery, useInfoUsersQuery } from "../../graphql/generated";
-import {
-  QueryClient,
-  useQuery,
-  useQueryClient,
-  UseQueryOptions,
-} from "@tanstack/react-query";
+import { HomepageQuery, useHomepageQuery } from "../../graphql/generated";
+import { QueryClient, useQuery, UseQueryOptions } from "@tanstack/react-query";
 
-const query = (): UseQueryOptions<InfoUsersQuery, unknown, Homequery> => {
+const query = (): UseQueryOptions<HomepageQuery, unknown, Homequery> => {
   return {
-    queryKey: useInfoUsersQuery.getKey({}),
-    queryFn: useInfoUsersQuery.fetcher({}),
-    select: (users) => ({
-      currentUser: {
-        id: users.user.id,
-        name: users.user.name,
-        avatar: users.user.avatar,
-        rank: users.user.rank,
-      },
-      chats: [...users.user.friends, ...users.user.channels].sort((a, b) => {
+    queryKey: useHomepageQuery.getKey({}),
+    queryFn: useHomepageQuery.fetcher({}),
+    select: (data) => ({
+      currentUserId: data.user.id,
+      chats: [...data.user.friends, ...data.user.channels].sort((a, b) => {
         const x = a.messages.sort((c, d) => {
           return c.sentAt - d.sentAt;
         })[a.messages.length - 1];
@@ -42,13 +32,21 @@ const query = (): UseQueryOptions<InfoUsersQuery, unknown, Homequery> => {
 export const home = (queryClient: QueryClient) => async () => {
   return queryClient.fetchQuery(query());
 };
+
+type Chat = {
+  __typename?: "User" | "Channel" | undefined;
+  name: string;
+  avatar?: string | undefined;
+  id: number;
+  messages: {
+    __typename?: "DirectMessage" | "ChannelMessage" | undefined;
+    content: string;
+    sentAt: number;
+  }[];
+};
+
 type Homequery = {
-  currentUser: {
-    id: number;
-    name: string;
-    avatar?: string;
-    rank: number;
-  };
+  currentUserId: number;
   chats: Chat[];
 };
 
@@ -60,6 +58,7 @@ export function getDate(time: number) {
     date.toISOString().substring(11, 16)
   );
 }
+
 const Empty = () => {
   return (
     <div className="flex h-full select-none flex-col items-center justify-center text-slate-200">
@@ -84,7 +83,7 @@ const Empty = () => {
 // };
 
 //DO NOT REMOVE : USE IN MAIN FILE WHEN LOADERS OK
-const Loading = () => {
+export const Loading = () => {
   return (
     <div className="flex h-full w-full animate-pulse flex-col items-center justify-center text-slate-200">
       <LoaderIcon className="w-80" />
@@ -104,18 +103,6 @@ export const Error = () => {
   );
 };
 
-type Chat = {
-  __typename: "User" | "Channel";
-  name: string;
-  avatar?: string | undefined;
-  id: number;
-  messages: {
-    __typename?: "DirectMessage" | "ChannelMessage" | undefined;
-    content: string;
-    sentAt: number;
-  }[];
-};
-
 const Chat = ({ __typename, name, avatar, id, messages }: Chat) => {
   const navigate = useNavigate();
   const lastMessage = messages[messages.length - 1];
@@ -126,7 +113,7 @@ const Chat = ({ __typename, name, avatar, id, messages }: Chat) => {
       }
       className="flex justify-center transition-all hover:cursor-pointer  hover:bg-slate-100"
     >
-      <div className="m-2 flex h-16 w-16 shrink-0 justify-center   text-white">
+      <div className="m-2 flex h-16 w-16 shrink-0 justify-center text-white">
         {__typename == "User" ? (
           <Avatar.Root>
             <Avatar.Image

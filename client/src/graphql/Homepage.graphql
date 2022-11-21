@@ -1,0 +1,28 @@
+query Homepage($userId: Int) {
+  user(id: $userId) {
+    id
+    channels {
+      id
+      messages {
+        sentAt
+        readBy {
+          user {
+            id
+          }
+        }
+        content
+      }
+      name
+    }
+    friends {
+      id
+      avatar
+      messages {
+        content
+        readAt
+        sentAt
+      }
+      name
+    }    
+  }
+}
