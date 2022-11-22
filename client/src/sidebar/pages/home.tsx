@@ -13,7 +13,11 @@ import {
 import CreateChannel, { CreateChannelBtn } from "../components/createChannel";
 import { SearchBar, SearchResults } from "../components/search";
 import { AnimatePresence, motion } from "framer-motion";
-import { Header } from "../components/header";
+import {
+  Header,
+  HeaderCenterContent,
+  HeaderLeftBtn,
+} from "../components/header";
 
 type Chat = {
   __typename: "User" | "Channel";
@@ -80,7 +84,7 @@ const Chat = ({ __typename, name, avatar, id, messages }: Chat) => {
           <Avatar.Root>
             <Avatar.Image
               className="h-16 w-16 border border-black object-cover"
-              src={avatar}
+              src={`/uploads/avatars/${avatar}`}
             />
             <Avatar.Fallback delayMs={0}>
               <UserIcon className="h-16 w-16 border border-black bg-slate-50 p-1 text-neutral-700" />
@@ -127,11 +131,15 @@ export const Home = () => {
     <div className="relative flex h-full flex-col">
       <Header>
         <>
-          <CreateChannelBtn setShowChannelCreation={setShowChannelCreation} />
-          <SearchBar
-            searchInput={searchInput}
-            setSearchInput={setSearchInput}
-          />
+          <HeaderLeftBtn>
+            <CreateChannelBtn setShowChannelCreation={setShowChannelCreation} />
+          </HeaderLeftBtn>
+          <HeaderCenterContent>
+            <SearchBar
+              searchInput={searchInput}
+              setSearchInput={setSearchInput}
+            />
+          </HeaderCenterContent>
         </>
       </Header>
       <div className="h-full overflow-y-auto">

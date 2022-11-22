@@ -18,10 +18,10 @@ export const CreateChannelBtn = ({
 }) => {
   return (
     <MessagePlusIcon
+      className="h-9 cursor-pointer transition-colors duration-200 hover:text-slate-500"
       onClick={() => {
         setShowChannelCreation(true);
       }}
-      className="h-9 cursor-pointer"
     />
   );
 };

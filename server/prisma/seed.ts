@@ -1,5 +1,8 @@
 import { faker } from "@faker-js/faker";
 import { PrismaClient } from "@prisma/client";
+import { createWriteStream } from "fs";
+import { resolve } from "path";
+import { get } from "https";
 
 const prisma = new PrismaClient();
 
@@ -23,12 +26,17 @@ async function main() {
 
   // users
   for (let i = 1; i <= 10; i++) {
+    const avatar = faker.image.avatar();
+    get(avatar, (res) => {
+      const path = resolve(__dirname, "../uploads/avatars", `${i}.png`);
+      console.log(avatar, path);
+      res.pipe(createWriteStream(path));
+    });
     await prisma.user.create({
       data: {
         id: i,
         name: faker.name.fullName(),
-        avatar: faker.image.avatar(),
-
+        avatar: `${i}.png`,
         rank: Math.floor(Math.random() * 100),
       },
     });

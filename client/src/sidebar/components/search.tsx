@@ -22,7 +22,7 @@ export const SearchBar = ({
   };
 
   return (
-    <div className="relative flex w-full grow ">
+    <>
       <input
         type="text"
         ref={input}
@@ -48,7 +48,7 @@ export const SearchBar = ({
           <SearchIcon className="h-6 text-slate-400" />
         )}
       </div>
-    </div>
+    </>
   );
 };
 
