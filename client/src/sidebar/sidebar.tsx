@@ -135,7 +135,7 @@ export default function SideBar() {
           }`}
         >
           <motion.div animate={controls}>
-            <RouterProvider router={router} />;
+            <RouterProvider router={router} />
           </motion.div>
         </Dialog.Content>
       </Dialog.Root>

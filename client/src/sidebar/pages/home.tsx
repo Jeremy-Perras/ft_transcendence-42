@@ -5,14 +5,12 @@ import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { ReactComponent as UsersIcon } from "pixelarticons/svg/users.svg";
 import { useLoaderData, useNavigate } from "react-router-dom";
 import * as Avatar from "@radix-ui/react-avatar";
-import * as Dialog from "@radix-ui/react-dialog";
 import {
   UserChatsAndFriendsQuery,
   useUserChatsAndFriendsQuery,
 } from "../../graphql/generated";
 import CreateChannel, { CreateChannelBtn } from "../components/createChannel";
 import { SearchBar, SearchResults } from "../components/search";
-import { AnimatePresence, motion } from "framer-motion";
 import {
   Header,
   HeaderCenterContent,
@@ -129,7 +127,7 @@ export const Home = () => {
 
   return (
     <div className="relative flex h-full flex-col">
-      <Header>
+      <Header className={showChannelCreation ? "pointer-events-none" : ""}>
         <>
           <HeaderLeftBtn>
             <CreateChannelBtn setShowChannelCreation={setShowChannelCreation} />
@@ -143,41 +141,10 @@ export const Home = () => {
         </>
       </Header>
       <div className="h-full overflow-y-auto">
-        <Dialog.Root open={showChannelCreation} modal={false}>
-          <Dialog.Content
-            forceMount
-            onEscapeKeyDown={(e) => {
-              e.preventDefault();
-              setShowChannelCreation(false);
-            }}
-            onInteractOutside={(e) => {
-              e.preventDefault();
-              setShowChannelCreation(false);
-            }}
-          >
-            <AnimatePresence>
-              {showChannelCreation ? (
-                <>
-                  <div
-                    onClick={() => setShowChannelCreation(false)}
-                    className="absolute h-screen w-screen backdrop-blur"
-                  ></div>
-                  <motion.div
-                    className="absolute bottom-0 w-full shadow-[10px_10px_15px_15px_rgba(0,0,0,0.2)]"
-                    initial={{ y: "100%" }}
-                    exit={{ y: "100%" }}
-                    animate={{ y: 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <CreateChannel
-                      setShowChannelCreation={setShowChannelCreation}
-                    />
-                  </motion.div>
-                </>
-              ) : null}
-            </AnimatePresence>
-          </Dialog.Content>
-        </Dialog.Root>
+        <CreateChannel
+          showChannelCreation={showChannelCreation}
+          setShowChannelCreation={setShowChannelCreation}
+        />
         {searchInput ? (
           <SearchResults
             searchInput={searchInput}

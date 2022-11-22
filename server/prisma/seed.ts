@@ -28,7 +28,7 @@ async function main() {
   for (let i = 1; i <= 10; i++) {
     const avatar = faker.image.avatar();
     get(avatar, (res) => {
-      const path = resolve(__dirname, "../uploads/avatars", `${i}.png`);
+      const path = resolve(__dirname, "../uploads/avatars", `${i}.jpg`);
       console.log(avatar, path);
       res.pipe(createWriteStream(path));
     });

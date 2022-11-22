@@ -32,17 +32,14 @@ const CurrentUserProfile = () => {
 };
 
 const CloseSidebar = () => {
-  const isSmallScreen = useMediaQuery("(max-width: 1536px)");
   const closeSidebar = useSidebarStore((state) => state.close);
 
   return (
     <div className="flex w-10 shrink-0 grow-0 cursor-pointer flex-col justify-center border-x-2">
-      {isSmallScreen ? (
-        <BackBurgerIcon
-          onClick={closeSidebar}
-          className="h-9 rotate-180 cursor-pointer transition-colors duration-200 hover:text-slate-500"
-        />
-      ) : null}
+      <BackBurgerIcon
+        onClick={closeSidebar}
+        className="h-9 rotate-180 cursor-pointer transition-colors duration-200 hover:text-slate-500"
+      />
     </div>
   );
 };
@@ -67,12 +64,19 @@ export const HeaderLeftBtn = ({ children }: { children: JSX.Element }) => {
   );
 };
 
-export const Header = ({ children }: { children: JSX.Element }) => {
+export const Header = ({
+  className,
+  children,
+}: {
+  className: string | undefined;
+  children: JSX.Element;
+}) => {
+  const isSmallScreen = useMediaQuery("(max-width: 1536px)");
   return (
-    <div className="z-10 flex w-full shadow-sm shadow-slate-400">
+    <div className={`${className} z-10 flex w-full shadow-sm shadow-slate-400`}>
       {children}
       <CurrentUserProfile />
-      <CloseSidebar />
+      {isSmallScreen ? <CloseSidebar /> : null}
     </div>
   );
 };

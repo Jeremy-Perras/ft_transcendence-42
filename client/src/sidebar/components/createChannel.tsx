@@ -1,6 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { FieldValues, useForm, UseFormRegister } from "react-hook-form";
 import { ReactComponent as UsersIcon } from "pixelarticons/svg/users.svg";
 import { ReactComponent as PrivateIcon } from "pixelarticons/svg/mail.svg";
 import { ReactComponent as PasswordIcon } from "pixelarticons/svg/lock.svg";
@@ -10,6 +9,8 @@ import {
   useCreateChannelMutation,
   useUserChatsAndFriendsQuery,
 } from "../../graphql/generated";
+import * as Dialog from "@radix-ui/react-dialog";
+import { AnimatePresence, motion } from "framer-motion";
 
 export const CreateChannelBtn = ({
   setShowChannelCreation,
@@ -28,48 +29,47 @@ export const CreateChannelBtn = ({
 
 const ChannelModeButton = ({
   text,
-  active,
-  activeFn,
-  inactiveFn1,
-  inactiveFn2,
+  reg,
 }: {
   text: string;
-  active: boolean;
-  activeFn: React.Dispatch<React.SetStateAction<boolean>>;
-  inactiveFn1: React.Dispatch<React.SetStateAction<boolean>>;
-  inactiveFn2: React.Dispatch<React.SetStateAction<boolean>>;
+  reg: UseFormRegister<FieldValues>;
 }) => {
   return (
-    <div
-      className={`${
-        active
-          ? ` bg-slate-200 text-xl font-bold text-black ${"hover:cursor-pointer hover:bg-slate-300"}`
-          : ` bg-slate-50 text-lg text-slate-400 ${"hover:cursor-pointer hover:bg-slate-200"}`
-      } flex h-24 basis-1/3 items-center justify-center border-y-2 border-l-2 border-slate-300 text-center`}
-      onClick={() => {
-        activeFn(true);
-        inactiveFn1(false);
-        inactiveFn2(false);
-      }}
-    >
-      {text === "Public" ? (
-        <PublicIcon className="mx-2 mb-3 h-10 w-10" />
-      ) : text === "Private" ? (
-        <PrivateIcon className="mx-2 mb-2 h-10 w-10" />
-      ) : (
-        <PasswordIcon className="mx-2 mb-3 h-10 w-10" />
-      )}
-      <div>{text}</div>
+    <div className="flex h-24 basis-1/3 items-center justify-center border-2 bg-slate-50 text-center  text-lg text-slate-400 first:border-r-0 last:border-l-0 hover:cursor-pointer">
+      <input
+        type="radio"
+        className="peer appearance-none "
+        id={text}
+        value={text}
+        {...reg("type", {
+          required: true,
+        })}
+      />
+      <label
+        htmlFor={text}
+        className="flex h-full w-full flex-col items-center justify-center peer-checked:bg-slate-200 peer-checked:text-xl peer-checked:font-bold peer-checked:text-black peer-focus:z-10 peer-focus:ring"
+      >
+        {text === "Public" ? (
+          <PublicIcon className="mx-2 mb-3 h-10 w-10" />
+        ) : text === "Private" ? (
+          <PrivateIcon className="mx-2 mb-2 h-10 w-10" />
+        ) : (
+          <PasswordIcon className="mx-2 mb-3 h-10 w-10" />
+        )}
+        {text}
+      </label>
     </div>
   );
 };
 
 export default function CreateChannel({
+  showChannelCreation,
   setShowChannelCreation,
 }: {
+  showChannelCreation: boolean;
   setShowChannelCreation: (showChannelCreation: boolean) => void;
 }) {
-  const { register, handleSubmit, watch, reset, formState } = useForm();
+  const { register, handleSubmit, setFocus, watch } = useForm();
 
   const queryClient = useQueryClient();
   const createChannelMutation = useCreateChannelMutation({
@@ -78,107 +78,120 @@ export default function CreateChannel({
     },
   });
 
-  const [passwordProtected, setPasswordProtected] = useState(false);
-  const [publicMode, setPublicMode] = useState(true);
-  const [privateMode, setPrivateMode] = useState(false);
-
-  useEffect(() => {
-    if (formState.isSubmitSuccessful) {
-      reset();
-    }
-  }, [formState, reset]);
+  // const [passwordProtected, setPasswordProtected] = useState(false);
+  // const [publicMode, setPublicMode] = useState(true);
+  // const [privateMode, setPrivateMode] = useState(false);
 
   return (
-    <div className="z-20 flex h-full w-full flex-col border-t-2 bg-slate-100 pb-8 opacity-100 transition-all">
-      <form
-        className="flex h-full flex-col bg-slate-100"
-        onSubmit={handleSubmit(() => {
-          createChannelMutation.mutate({
-            inviteOnly: privateMode,
-            name: watch("Name"),
-            password: passwordProtected ? watch("Password") : "",
-          }),
-            setShowChannelCreation(false);
-        })}
+    <Dialog.Root open={showChannelCreation} modal={false}>
+      <Dialog.Content
+        forceMount
+        onEscapeKeyDown={(e) => {
+          e.preventDefault();
+          setShowChannelCreation(false);
+        }}
+        onInteractOutside={(e) => {
+          e.preventDefault();
+          setShowChannelCreation(false);
+        }}
       >
-        <div className="flex flex-col bg-slate-100">
-          <div className="mt-6 mb-4 self-center text-2xl text-slate-600">
-            Create your own Channel !
-          </div>
-          <div className="flex w-full px-4">
-            <UsersIcon className="mt-5 h-24 w-24 self-center text-slate-600" />
-
-            <div className="mt-6 ml-8 flex w-full flex-col items-start text-xl ">
-              <label
-                className="text-center text-xl text-slate-400"
-                htmlFor="name"
+        <AnimatePresence>
+          {showChannelCreation ? (
+            <>
+              <div
+                key="modal"
+                onClick={() => setShowChannelCreation(false)}
+                className="absolute h-screen w-screen backdrop-blur"
+              ></div>
+              <motion.div
+                key="content"
+                className="absolute bottom-0 w-full shadow-[10px_10px_15px_15px_rgba(0,0,0,0.2)]"
+                initial={{ y: "100%" }}
+                exit={{ y: "100%" }}
+                animate={{ y: 0 }}
+                transition={{ duration: 0.2 }}
+                onAnimationComplete={(definition) => {
+                  const val = definition as { y: number | string };
+                  val.y === 0 && setFocus("name");
+                }}
               >
-                {" "}
-                Channel name
-              </label>
-              <input
-                className="mt-2 mb-4 h-8 w-64 px-1 text-xl"
-                {...register("Name", {
-                  required: true,
-                  maxLength: 100,
-                })}
-                defaultValue=""
-                autoComplete="off"
-              />
-            </div>
-          </div>
-        </div>
+                <div className="z-20 flex h-full w-full flex-col bg-slate-100 pb-8 opacity-100 transition-all">
+                  <form
+                    className="flex h-full flex-col bg-slate-100"
+                    onSubmit={handleSubmit((data) => {
+                      console.log(data);
+                    })}
+                  >
+                    <div className="flex flex-col bg-slate-100">
+                      <div className="mt-6 mb-2 self-center text-2xl text-slate-600">
+                        Create your own Channel !
+                      </div>
+                      <div className="flex w-full px-4">
+                        <UsersIcon className="mt-3 h-24 w-24 self-center text-slate-600" />
+                        <div className="mt-4 ml-8 flex w-full flex-col items-start text-xl ">
+                          <label
+                            className="text-center text-xl text-slate-400"
+                            htmlFor="name"
+                          >
+                            Channel name
+                          </label>
+                          <input
+                            className="mt-2 mb-4 h-8 w-64 px-1 text-xl"
+                            {...register("name", {
+                              required: true,
+                              maxLength: 100,
+                            })}
+                            defaultValue=""
+                            autoComplete="off"
+                          />
+                        </div>
+                      </div>
+                    </div>
 
-        <div className="flex justify-evenly border-r-2 border-slate-300 bg-slate-100">
-          <ChannelModeButton
-            text="Public"
-            active={publicMode}
-            activeFn={setPublicMode}
-            inactiveFn1={setPrivateMode}
-            inactiveFn2={setPasswordProtected}
-          />
-          <ChannelModeButton
-            text="Private"
-            active={privateMode}
-            activeFn={setPrivateMode}
-            inactiveFn1={setPublicMode}
-            inactiveFn2={setPasswordProtected}
-          />
-          <ChannelModeButton
-            text="Password"
-            active={passwordProtected}
-            activeFn={setPasswordProtected}
-            inactiveFn1={setPrivateMode}
-            inactiveFn2={setPublicMode}
-          />
-        </div>
+                    <fieldset
+                      role="radiogroup"
+                      className="flex justify-evenly  bg-slate-100 px-4"
+                    >
+                      <ChannelModeButton text="Public" reg={register} />
+                      <ChannelModeButton text="Private" reg={register} />
+                      <ChannelModeButton text="Password" reg={register} />
+                    </fieldset>
 
-        <div className="h-32">
-          {passwordProtected ? (
-            <div className="flex flex-col justify-center text-center">
-              <label className="mt-4 text-xl text-slate-400" htmlFor="Password">
-                Enter password
-              </label>
-              <input
-                {...register("Password", {
-                  required: passwordProtected,
-                  maxLength: 100,
-                })}
-                type="Password"
-                autoComplete="off"
-                defaultValue=""
-                className="my-4 h-10 w-64 self-center px-1 text-xl "
-              />
-            </div>
-          ) : (
-            <></>
-          )}
-        </div>
-        <input
-          className="mt-4 flex w-36 justify-center self-center border-2 border-slate-300 bg-slate-200 px-2 py-4 text-center text-2xl font-bold hover:cursor-pointer hover:bg-slate-300"
-          type="submit"
-        />
-      </form>
-    </div>
+                    <div className="h-32">
+                      {watch("type") === "Password" ? (
+                        <div className="flex flex-col justify-center text-center">
+                          <label
+                            className="mt-4 text-xl text-slate-400"
+                            htmlFor="password"
+                          >
+                            Enter password
+                          </label>
+                          <input
+                            {...register("password", {
+                              required: true,
+                              maxLength: 100,
+                            })}
+                            type="password"
+                            autoComplete="off"
+                            defaultValue=""
+                            className="my-2 h-10 w-64 self-center px-1 text-xl "
+                          />
+                        </div>
+                      ) : (
+                        <></>
+                      )}
+                    </div>
+                    <input
+                      className="flex w-36 justify-center self-center border-2 border-slate-300 bg-slate-200 px-2 py-4 text-center text-2xl font-bold hover:cursor-pointer hover:bg-slate-300"
+                      type="submit"
+                    />
+                  </form>
+                </div>
+              </motion.div>
+            </>
+          ) : null}
+        </AnimatePresence>
+      </Dialog.Content>
+    </Dialog.Root>
   );
 }
