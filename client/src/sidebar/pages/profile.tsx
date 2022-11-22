@@ -11,18 +11,13 @@ import {
   useParams,
 } from "react-router-dom";
 import {
-  useUserProfileQuery,
+  useBlockUserMutation,
+  useFriendUserMutation,
   UserProfileQuery,
-  useBlockSomeoneMutation,
-  useUnblockingUserMutation,
-  useUpdateFriendMutation,
-  useUpdateUnFriendMutation,
+  useUnblockUserMutation,
+  useUserProfileQuery,
 } from "../../graphql/generated";
-import Rank1Icon from "/src/assets/images/Rank1.svg";
-import Rank2Icon from "/src/assets/images/Rank2.svg";
-import Rank3Icon from "/src/assets/images/Rank3.svg";
-import Rank4Icon from "/src/assets/images/Rank4.svg";
-import Rank5Icon from "/src/assets/images/Rank5.svg";
+
 import ClassicIcon from "/src/assets/images/ClassicIcon.svg";
 import BonusIcon from "/src/assets/images/BonusIcon.svg";
 import FireIcon from "/src/assets/images/FireIcon.svg";
@@ -32,22 +27,15 @@ import { ReactComponent as AddAvatarIcon } from "pixelarticons/svg/cloud-upload.
 import { ReactComponent as AddFriendIcon } from "pixelarticons/svg/user-plus.svg";
 import { ReactComponent as PlayIcon } from "pixelarticons/svg/gamepad.svg";
 import { useState } from "react";
-import { HeaderPortal } from "../layout";
-import FileUploadPage from "./uploadAvatar";
-import queryClient from "src/query";
 
-export const RankIcon = (rank: number | undefined) => {
-  if (typeof rank === "undefined") return "";
-  return rank <= 10
-    ? Rank1Icon
-    : rank <= 20
-    ? Rank2Icon
-    : rank <= 30
-    ? Rank3Icon
-    : rank <= 40
-    ? Rank4Icon
-    : Rank5Icon;
-};
+import FileUploadPage from "./uploadAvatar";
+import {
+  Header,
+  HeaderCenterContent,
+  HeaderLeftBtn,
+  HeaderNavigateBack,
+} from "../components/header";
+import { RankIcon } from "../utils/rankIcon";
 
 const query = (
   userId: number
@@ -79,10 +67,10 @@ const UserProfileHeader = ({
   const numberOfGames = data?.user.games.length;
   const victories = data?.user.games.filter((game) => {
     if (
-      (game.player1.id === data?.user.id &&
-        game.player1score > game.player2score) ||
-      (game.player2?.id === data?.user.id &&
-        game.player2score > game.player1score)
+      (game.players.player1.id === data?.user.id &&
+        game.score.player1Score > game.score.player2Score) ||
+      (game.players.player2?.id === data?.user.id &&
+        game.score.player2Score > game.score.player1Score)
     )
       return true;
     else return false;
@@ -95,7 +83,7 @@ const UserProfileHeader = ({
           {typeof data?.user.avatar !== undefined &&
           data?.user.avatar !== "" ? (
             <img
-              src={data?.user.avatar}
+              src={`/uploads/avatars/${data?.user.avatar}`}
               alt="Player avatar"
               className="h-28 w-28 border border-black"
             />
@@ -160,39 +148,38 @@ const GameHistory = ({ data }: { data: UserProfileQuery }) => {
       )}
       {data?.user.games.map((game, index) => {
         const victory =
-          (game.player1.id === data?.user.id &&
-            game.player1score > game.player2score) ||
-          (game.player2?.id === data?.user.id &&
-            game.player2score > game.player1score);
+          (game.players.player1.id === data?.user.id &&
+            game.score.player1Score > game.score.player2Score) ||
+          (game.players.player2?.id === data?.user.id &&
+            game.score.player2Score > game.score.player1Score);
         const equal =
-          (game.player1.id === data?.user.id &&
-            game.player1score === game.player2score) ||
-          (game.player2?.id === data?.user.id &&
-            game.player2score === game.player1score);
+          (game.players.player1.id === data?.user.id &&
+            game.score.player1Score === game.score.player2Score) ||
+          (game.players.player2?.id === data?.user.id &&
+            game.score.player2Score === game.score.player1Score);
         return (
           <div
             key={index}
-            className="mt-1 flex h-12 w-full
-     items-center border border-slate-700 bg-slate-200 "
+            className="mt-1 flex h-12 w-full items-center border border-slate-700 bg-slate-200 "
           >
             <div className="flex w-full ">
               <img
                 className="ml-1 h-10 w-10 border border-black object-cover "
-                src={game.player1.avatar}
+                src={`/uploads/avatars/${game.players.player1.avatar}`}
                 alt="Player 1 avatar"
               />
               <div className="text-ellipsistext-left ml-2 w-32 self-center">
-                {game.player1.name}
+                {game.players.player1.name}
               </div>
               <div className="grow select-none self-center text-center text-lg font-bold ">
                 VS
               </div>
               <div className="mr-2 flex w-32 justify-end self-center text-ellipsis text-right">
-                {game.player2?.name}
+                {game.players.player2?.name}
               </div>
               <img
                 className="h-10 w-10 justify-end border border-black object-cover"
-                src={game.player2?.avatar}
+                src={`/uploads/avatars/${game.players.player2.avatar}`}
                 alt="Player 2 avatar"
               />
             </div>
@@ -209,7 +196,7 @@ const GameHistory = ({ data }: { data: UserProfileQuery }) => {
                 <div>DEFEAT</div>
               )}
               <div>
-                {game.player1score} - {game.player2score}
+                {game.score.player1Score} - {game.score.player2Score}
               </div>
             </div>
             <div className="flex justify-center">
@@ -234,7 +221,7 @@ const GameHistory = ({ data }: { data: UserProfileQuery }) => {
 const AddFriend = () => {
   const params = useParams();
   const queryClient = useQueryClient();
-  const askFriend = useUpdateFriendMutation({
+  const askFriend = useFriendUserMutation({
     onSuccess: () => {
       queryClient.invalidateQueries([]);
     },
@@ -243,9 +230,7 @@ const AddFriend = () => {
     <div
       className="flex h-24 w-full items-center justify-center border-2 bg-slate-100 p-4 text-xl font-bold text-slate-400 transition-all hover:cursor-pointer hover:bg-slate-200 "
       onClick={() => {
-        params.userId
-          ? askFriend.mutate({ updateFriendId: +params.userId })
-          : null;
+        params.userId ? askFriend.mutate({ userId: +params.userId }) : null;
       }}
     >
       <AddFriendIcon className="mx-4 mb-2 w-16 self-center " />
@@ -258,22 +243,26 @@ const AddFriend = () => {
 
 const FriendButtons = ({ data }: { data: UserProfileQuery }) => {
   const params = useParams();
+
   const queryClient = useQueryClient();
-  const unFriend = useUpdateUnFriendMutation({
+
+  //TODO : fix this mutation
+  // const unfriend = useFriendUserMutation({
+  //   onSuccess: () => {
+  //     queryClient.invalidateQueries([]);
+  //   },
+  // });
+  const blockMutation = useBlockUserMutation({
     onSuccess: () => {
       queryClient.invalidateQueries([]);
     },
   });
-  const blockMutation = useBlockSomeoneMutation({
+  const unblockMutation = useUnblockUserMutation({
     onSuccess: () => {
       queryClient.invalidateQueries([]);
     },
   });
-  const unblockMutation = useUnblockingUserMutation({
-    onSuccess: () => {
-      queryClient.invalidateQueries([]);
-    },
-  });
+
   return (
     <div className="flex h-24 bg-slate-100 text-xl font-bold">
       <div
@@ -285,11 +274,9 @@ const FriendButtons = ({ data }: { data: UserProfileQuery }) => {
         Play !
       </div>
       <div
-        onClick={() => {
-          params.userId
-            ? unFriend.mutate({ updateUnFriendId: +params.userId })
-            : null;
-        }}
+        // onClick={() => {
+        //   params.userId ? unfriend.mutate({ userId: +params.userId }) : null;
+        // }}
         className="flex basis-1/3 items-center justify-center border-y-2 border-slate-300 bg-slate-200 text-center transition-all hover:cursor-pointer hover:bg-slate-300"
       >
         Unfriend
@@ -298,8 +285,8 @@ const FriendButtons = ({ data }: { data: UserProfileQuery }) => {
         onClick={() => {
           params.userId
             ? data?.user.blocked
-              ? unblockMutation.mutate({ unblockingUserId: +params.userId })
-              : blockMutation.mutate({ blockingUserId: +params.userId })
+              ? unblockMutation.mutate({ userId: +params.userId })
+              : blockMutation.mutate({ userId: +params.userId })
             : null;
         }}
         className="flex basis-1/3 items-center justify-center border-2 border-slate-300 bg-slate-200  text-center transition-all  hover:cursor-pointer hover:bg-slate-300"
@@ -310,7 +297,6 @@ const FriendButtons = ({ data }: { data: UserProfileQuery }) => {
   );
 };
 
-//TODO : object destructuring
 const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
   const CurrentUserData = () => {
     const { data } = useUserProfileQuery();
@@ -319,12 +305,28 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
   const currentUserData = CurrentUserData();
   return (
     <div className="flex h-full w-full flex-col ">
-      <HeaderPortal
-        container={document.getElementById("header") as HTMLElement}
-        text={data.user.name}
-        link=""
-        icon={RankIcon(data?.user.rank)}
-      />
+      <Header>
+        <>
+          <HeaderLeftBtn>
+            <HeaderNavigateBack />
+          </HeaderLeftBtn>
+          <HeaderCenterContent>
+            <div className="flex h-full items-center justify-center hover:cursor-pointer hover:bg-slate-100">
+              <img
+                className="h-8 w-8 border border-black"
+                src={`/uploads/avatars/${data?.user.avatar}`}
+              />
+              <div className="relative h-8 w-8">
+                <img
+                  className="absolute top-0 -left-2 h-4"
+                  src={RankIcon(data?.user.rank)}
+                />
+              </div>
+              <div>{data?.user.name}</div>
+            </div>
+          </HeaderCenterContent>
+        </>
+      </Header>
       <UserProfileHeader data={data} currentUserId={currentUserData?.user.id} />
       <GameHistory data={data} />
       {currentUserData?.user.id === data.user.id ? (
@@ -345,7 +347,7 @@ export default function Profile() {
   if (typeof params.userId === "undefined") return <div></div>;
   const userId = +params.userId;
   const initialData = useLoaderData() as Awaited<
-    ReturnType<ReturnType<typeof profile>>
+    ReturnType<typeof profileLoader>
   >;
   const { data } = useQuery({ ...query(userId), initialData });
   if (typeof data === "undefined") {

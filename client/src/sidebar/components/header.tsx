@@ -1,6 +1,7 @@
 import { useMediaQuery } from "@react-hookz/web";
 import { useNavigate } from "react-router-dom";
 import { ReactComponent as BackBurgerIcon } from "pixelarticons/svg/backburger.svg";
+import { ReactComponent as ArrowLeftIcon } from "pixelarticons/svg/arrow-left-box.svg";
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { useSidebarStore } from "../../stores";
 import { useUserProfileHeaderQuery } from "../../graphql/generated";
@@ -44,6 +45,17 @@ const CloseSidebar = () => {
   );
 };
 
+export const HeaderNavigateBack = () => {
+  const navigate = useNavigate();
+  return (
+    <ArrowLeftIcon
+      className="h-9 cursor-pointer transition-colors duration-200 hover:text-slate-500"
+      onClick={() => {
+        navigate(-1);
+      }}
+    />
+  );
+};
 export const HeaderCenterContent = ({
   children,
 }: {
@@ -68,7 +80,7 @@ export const Header = ({
   className,
   children,
 }: {
-  className: string | undefined;
+  className?: string;
   children: JSX.Element;
 }) => {
   const isSmallScreen = useMediaQuery("(max-width: 1536px)");

@@ -16,6 +16,7 @@ import {
   HeaderCenterContent,
   HeaderLeftBtn,
 } from "../components/header";
+import { getDate } from "../utils/getDate";
 
 type Chat = {
   __typename: "User" | "Channel";
@@ -61,15 +62,6 @@ const Chat = ({ __typename, name, avatar, id, messages }: Chat) => {
   const navigate = useNavigate();
   const lastMessage = messages[messages.length - 1];
 
-  const getDate = (time: number) => {
-    const date = new Date(time);
-    return (
-      date.toISOString().substring(0, 10) +
-      " at " +
-      date.toISOString().substring(11, 16)
-    );
-  };
-
   return (
     <div
       onClick={() =>
@@ -99,7 +91,7 @@ const Chat = ({ __typename, name, avatar, id, messages }: Chat) => {
             {lastMessage?.sentAt ? getDate(+lastMessage.sentAt) : ""}
           </span>
         </div>
-        <span className="flex max-h-5 overflow-hidden text-clip text-sm text-slate-400">
+        <span className="flex max-h-5 max-w-sm overflow-hidden text-clip text-sm text-slate-400">
           {lastMessage?.content}
         </span>
       </div>

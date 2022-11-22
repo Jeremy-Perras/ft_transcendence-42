@@ -12,6 +12,8 @@ import {
 import { QueryClient } from "@tanstack/react-query";
 import queryClient from "../query";
 import { Home, homeLoader } from "./pages/home";
+import Chat, { chatLoader } from "./pages/chat";
+import Profile, { profileLoader } from "./pages/profile";
 
 const loaderFn = (
   fn: (queryClient: QueryClient, args: LoaderFunctionArgs) => unknown
@@ -35,16 +37,16 @@ const router = createMemoryRouter([
   //   element: <ChannelSettings />,
   //   loader: loaderFn(channelSettingsLoader),
   // },
-  // {
-  //   path: "/chat/:userId",
-  //   element: <Chat />,
-  //   loader: loaderFn(chatLoader),
-  // },
-  // {
-  //   path: "/profile/:userId",
-  //   element: <Profile />,
-  //   loader: loaderFn(profileLoader),
-  // },
+  {
+    path: "/chat/:userId",
+    element: <Chat />,
+    loader: loaderFn(chatLoader),
+  },
+  {
+    path: "/profile/:userId",
+    element: <Profile />,
+    loader: loaderFn(profileLoader),
+  },
 ]);
 
 const SidebarOpenBtn = () => {

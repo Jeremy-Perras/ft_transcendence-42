@@ -1,34 +1,62 @@
+import {
+  QueryClient,
+  useQueryClient,
+  UseQueryOptions,
+} from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import {
   LoaderFunctionArgs,
-  Params,
   useLoaderData,
   useNavigate,
   useParams,
 } from "react-router-dom";
 import {
-  InfoDirectMessagesQuery,
-  useInfoDirectMessagesQuery,
+  DirectMessagesQuery,
+  useDirectMessagesQuery,
   useSendDirectMessageMutation,
 } from "../../graphql/generated";
-import { getDate } from "./home";
+import { User } from "../types/user";
+import { getDate } from "../utils/getDate";
+import { useQuery } from "@tanstack/react-query";
 import { ReactComponent as EmptyChatIcon } from "pixelarticons/svg/message-plus.svg";
-import { HeaderPortal } from "../layout";
-import { RankIcon } from "./profile";
-import React from "react";
+import { HeaderNavigateBack } from "../components/header";
 import {
-  QueryClient,
-  useQuery,
-  useQueryClient,
-  UseQueryOptions,
-} from "@tanstack/react-query";
+  Header,
+  HeaderCenterContent,
+  HeaderLeftBtn,
+} from "../components/header";
+import { RankIcon } from "../utils/rankIcon";
+
+type ChatQuery = {
+  messages: {
+    id: number;
+    content: string;
+    sentAt: number;
+    readAt?: number | null | undefined;
+    author: User;
+  }[];
+  name: string;
+  avatar: string;
+  rank: number;
+  blocked: boolean;
+  blocking: boolean;
+};
+
+type DirectMessage = {
+  userId: number;
+  id: number;
+  content: string;
+  sentAt: number;
+  readAt?: number | null | undefined;
+  author: User;
+};
 
 const query = (
   userId: number
-): UseQueryOptions<InfoDirectMessagesQuery, unknown, Chatquery> => {
+): UseQueryOptions<DirectMessagesQuery, unknown, ChatQuery> => {
   return {
-    queryKey: useInfoDirectMessagesQuery.getKey({ userId }),
-    queryFn: useInfoDirectMessagesQuery.fetcher({ userId }),
+    queryKey: useDirectMessagesQuery.getKey({ userId }),
+    queryFn: useDirectMessagesQuery.fetcher({ userId }),
     select: (user) => ({
       messages: user.user.messages.sort((a, b) => a.sentAt - b.sentAt),
       name: user.user.name,
@@ -50,35 +78,6 @@ export const chatLoader = async (
   }
 };
 
-type Chatquery = {
-  messages: {
-    content: string;
-    sentAt: number;
-    readAt?: number | null | undefined;
-    author: User;
-  }[];
-  name: string;
-  avatar: string;
-  rank: number;
-  blocked: boolean;
-  blocking: boolean;
-};
-
-export type User = {
-  __typename?: "User" | undefined;
-  id: number;
-  name: string;
-  avatar: string;
-};
-
-type DirectMessage = {
-  userId: number;
-  content: string;
-  sentAt: number;
-  readAt?: number | null | undefined;
-  author: User;
-};
-
 const DirectMessage = ({
   userId,
   content,
@@ -87,6 +86,21 @@ const DirectMessage = ({
   author,
 }: DirectMessage) => {
   const navigate = useNavigate();
+
+  const queryClient = useQueryClient();
+  // TODO : mutation to set `readAt`
+  // const directMessageRead = useDirectMessageReadMutation({
+  //   onSuccess: () => {
+  //     queryClient.invalidateQueries(["DirectMessages", { userId: userId }]);
+  //   },
+  // });
+  // useEffect(() => {
+  //   if (readAt === null && author.id === userId)
+  //     updateDirectMessageRead.mutate({
+  //       messageId: id,
+  //     });
+  // }, []);
+
   return (
     <li className="mx-2 mb-5 flex flex-col ">
       <div className="mb-2 text-center text-xs text-slate-300">
@@ -104,14 +118,14 @@ const DirectMessage = ({
         >
           <img
             className="flex h-6 w-6 border border-black hover:h-7 hover:w-7 hover:cursor-pointer"
-            src={author.avatar}
+            src={`/uploads/avatars/${author.avatar}`}
             alt="Message author avatar"
             onClick={() => navigate(`/profile/${author.id}`)}
           />
         </div>
         <div>
           <div
-            className={`px-4 py-2 tracking-wide ${
+            className={`max-w-sm break-words px-4 py-2 tracking-wide ${
               author.id === userId
                 ? "rounded-md bg-slate-300"
                 : "rounded-md bg-slate-200"
@@ -134,17 +148,21 @@ const DirectMessage = ({
 
 export default function Chat() {
   const queryClient = useQueryClient();
+
   const params = useParams();
   if (typeof params.userId === "undefined") return <div></div>;
   const userId = +params.userId;
+
+  const navigate = useNavigate();
+
   const [content, setContent] = useState("");
-  const initialData = useLoaderData() as Awaited<
-    ReturnType<ReturnType<typeof chat>>
-  >;
+
+  const initialData = useLoaderData() as Awaited<ReturnType<typeof chatLoader>>;
   const { data } = useQuery({ ...query(userId), initialData });
-  const messageMutation = useSendDirectMessageMutation({
+
+  const sendMessageMutation = useSendDirectMessageMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries(["InfoDirectMessages", { userId: userId }]);
+      queryClient.invalidateQueries(["DirectMessages", { userId: userId }]);
     },
   });
 
@@ -152,19 +170,39 @@ export default function Chat() {
   const scrollToBottom = () => {
     messagesEndRef?.current?.scrollIntoView({ behavior: "smooth" });
   };
-
   useEffect(() => {
     scrollToBottom();
   }, [data?.messages]);
 
   return (
-    <div className="flex h-full flex-col">
-      <HeaderPortal
-        container={document.getElementById("header") as HTMLElement}
-        text={data?.name}
-        link={`/profile/${userId}`}
-        icon={RankIcon(data?.rank)}
-      />
+    <div className="0 flex h-full flex-col">
+      <Header>
+        <>
+          <HeaderLeftBtn>
+            <HeaderNavigateBack />
+          </HeaderLeftBtn>
+          <HeaderCenterContent>
+            <div
+              className="flex h-full items-center justify-center hover:cursor-pointer hover:bg-slate-100"
+              onClick={() => {
+                navigate(`/profile/${params.userId}`);
+              }}
+            >
+              <img
+                className="h-8 w-8 border border-black"
+                src={`/uploads/avatars/${data?.avatar}`}
+              />
+              <div className="relative h-8 w-8">
+                <img
+                  className="absolute top-0 -left-2 h-4"
+                  src={RankIcon(data?.rank)}
+                />
+              </div>
+              <div>{data?.name}</div>
+            </div>
+          </HeaderCenterContent>
+        </>
+      </Header>
       <ul className="mt-4 flex h-fit w-full grow flex-col overflow-auto pr-2 pl-px ">
         {data?.messages.length === 0 ? (
           <div className="mb-48 flex h-full flex-col items-center justify-center text-center text-slate-300">
@@ -181,15 +219,16 @@ export default function Chat() {
         <div ref={messagesEndRef} />
       </ul>
 
-      <div className="flex h-16 w-full border-t-2 bg-slate-50 p-2">
+      <div className="flex w-full bg-white px-[2px] ">
         <textarea
+          autoFocus={true}
           disabled={data?.blocking == true || data?.blocked === true}
-          rows={1}
+          rows={2}
           className={`${
             data?.blocking == true || data?.blocked === true
               ? "hover:cursor-not-allowed"
               : ""
-          } h-10 w-11/12 resize-none overflow-visible rounded-lg px-3 pt-2`}
+          }  w-full resize-none border-x-2 border-b-8 border-white px-2 pt-4 pb-2 `}
           onChange={(e) => setContent(e.target.value)}
           placeholder={`${
             data?.blocked === true
@@ -201,16 +240,10 @@ export default function Chat() {
           onKeyDown={(e) => {
             if (data?.blocking === false && data?.blocked === false) {
               if (e.code == "Enter" && !e.getModifierState("Shift")) {
-                messageMutation.mutate({
+                sendMessageMutation.mutate({
                   message: content,
-                  recipientId: userId,
+                  userId: userId,
                 });
-                e.currentTarget.value = "";
-                e.preventDefault();
-                setContent("");
-              }
-            } else {
-              if (e.code == "Enter" && !e.getModifierState("Shift")) {
                 e.currentTarget.value = "";
                 e.preventDefault();
                 setContent("");
