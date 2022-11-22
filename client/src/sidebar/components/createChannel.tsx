@@ -12,6 +12,12 @@ import {
 import * as Dialog from "@radix-ui/react-dialog";
 import { AnimatePresence, motion } from "framer-motion";
 
+type formData = {
+  name: string;
+  password?: string;
+  type: "Private" | "Password" | "Public";
+};
+
 export const CreateChannelBtn = ({
   setShowChannelCreation,
 }: {
@@ -30,9 +36,11 @@ export const CreateChannelBtn = ({
 const ChannelModeButton = ({
   text,
   reg,
+  checked,
 }: {
   text: string;
-  reg: UseFormRegister<FieldValues>;
+  reg: UseFormRegister<formData>;
+  checked?: boolean;
 }) => {
   return (
     <div className="flex h-24 basis-1/3 items-center justify-center border-2 bg-slate-50 text-center  text-lg text-slate-400 first:border-r-0 last:border-l-0 hover:cursor-pointer">
@@ -44,6 +52,7 @@ const ChannelModeButton = ({
         {...reg("type", {
           required: true,
         })}
+        defaultChecked={checked}
       />
       <label
         htmlFor={text}
@@ -69,7 +78,13 @@ export default function CreateChannel({
   showChannelCreation: boolean;
   setShowChannelCreation: (showChannelCreation: boolean) => void;
 }) {
-  const { register, handleSubmit, setFocus, watch } = useForm();
+  const {
+    register,
+    handleSubmit,
+    setFocus,
+    watch,
+    formState: { errors },
+  } = useForm<formData>();
 
   const queryClient = useQueryClient();
   const createChannelMutation = useCreateChannelMutation({
@@ -77,10 +92,6 @@ export default function CreateChannel({
       queryClient.invalidateQueries(useUserChatsAndFriendsQuery.getKey({}));
     },
   });
-
-  // const [passwordProtected, setPasswordProtected] = useState(false);
-  // const [publicMode, setPublicMode] = useState(true);
-  // const [privateMode, setPrivateMode] = useState(false);
 
   return (
     <Dialog.Root open={showChannelCreation} modal={false}>
@@ -119,7 +130,12 @@ export default function CreateChannel({
                   <form
                     className="flex h-full flex-col bg-slate-100"
                     onSubmit={handleSubmit((data) => {
-                      console.log(data);
+                      createChannelMutation.mutate({
+                        inviteOnly: data.type === "Private",
+                        name: data.name,
+                        password: data.password,
+                      });
+                      setShowChannelCreation(false);
                     })}
                   >
                     <div className="flex flex-col bg-slate-100">
@@ -135,15 +151,27 @@ export default function CreateChannel({
                           >
                             Channel name
                           </label>
-                          <input
-                            className="mt-2 mb-4 h-8 w-64 px-1 text-xl"
-                            {...register("name", {
-                              required: true,
-                              maxLength: 100,
-                            })}
-                            defaultValue=""
-                            autoComplete="off"
-                          />
+                          <div className="mt-2 mb-4 flex h-8 w-64 flex-col">
+                            <input
+                              className={`${
+                                errors.name ? "ring-1 ring-red-500" : ""
+                              } " px-1 text-xl`}
+                              {...register("name", {
+                                required: true,
+                                maxLength: 100,
+                              })}
+                              defaultValue=""
+                              autoComplete="off"
+                            />
+                            {errors.name && (
+                              <span
+                                className="text-center text-sm text-red-600"
+                                role="alert"
+                              >
+                                You must set a name for a channel
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -152,7 +180,11 @@ export default function CreateChannel({
                       role="radiogroup"
                       className="flex justify-evenly  bg-slate-100 px-4"
                     >
-                      <ChannelModeButton text="Public" reg={register} />
+                      <ChannelModeButton
+                        text="Public"
+                        reg={register}
+                        checked={true}
+                      />
                       <ChannelModeButton text="Private" reg={register} />
                       <ChannelModeButton text="Password" reg={register} />
                     </fieldset>
@@ -174,8 +206,18 @@ export default function CreateChannel({
                             type="password"
                             autoComplete="off"
                             defaultValue=""
-                            className="my-2 h-10 w-64 self-center px-1 text-xl "
+                            className={`${
+                              errors.password ? "ring-1 ring-red-500" : ""
+                            } my-2 h-10 w-64 self-center px-1 text-xl`}
                           />
+                          {errors.password && (
+                            <span
+                              className="text-center text-sm text-red-600"
+                              role="alert"
+                            >
+                              You must set a password
+                            </span>
+                          )}
                         </div>
                       ) : (
                         <></>
