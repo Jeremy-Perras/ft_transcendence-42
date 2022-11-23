@@ -13,7 +13,7 @@ import {
   useUnfriendUserMutation,
   useUserProfileQuery,
 } from "../../graphql/generated";
-import BlockedIcon from "/src/assets/images/Banned.svg";
+
 import ClassicIcon from "/src/assets/images/ClassicIcon.svg";
 import BonusIcon from "/src/assets/images/BonusIcon.svg";
 import FireIcon from "/src/assets/images/FireIcon.svg";
@@ -33,6 +33,7 @@ import {
 } from "../components/header";
 import { RankIcon } from "../utils/rankIcon";
 import BannedIcon from "/src/assets/images/Banned.svg";
+import BannedDarkIcon from "/src/assets/images/Banned_dark.svg";
 
 const query = (
   userId: number
@@ -215,7 +216,15 @@ const GameHistory = ({ data }: { data: UserProfileQuery }) => {
   );
 };
 
-const AddFriend = ({ userId }: { userId: number }) => {
+const AddFriend = ({
+  userId,
+  pendingInvitation,
+  pendingInviteAccept,
+}: {
+  userId: number;
+  pendingInvitation: boolean | undefined;
+  pendingInviteAccept: boolean | undefined;
+}) => {
   const queryClient = useQueryClient();
   const askFriend = useFriendUserMutation({
     onSuccess: () => {
@@ -228,16 +237,30 @@ const AddFriend = ({ userId }: { userId: number }) => {
     },
   });
   return (
-    <div className="flex w-full">
+    <div className="flex w-full select-none">
       <div
-        className="flex h-24 basis-1/2 items-center justify-center border-2 bg-slate-100 p-4 text-xl font-bold text-slate-600 transition-all hover:cursor-pointer hover:bg-slate-200 "
+        className={`${
+          pendingInvitation
+            ? "text-slate-200"
+            : "hover:cursor-pointer hover:bg-slate-200"
+        } flex h-24 basis-1/2 items-center justify-center border-2 bg-slate-100 p-4 text-xl font-bold text-slate-600 transition-all`}
         onClick={() => {
-          userId ? askFriend.mutate({ userId: userId }) : null;
+          pendingInvitation && userId
+            ? askFriend.mutate({ userId: userId })
+            : null;
         }}
       >
-        <AddFriendIcon className="mx-4 mb-2 w-16 self-center text-neutral-300" />
-        <span className="flex items-center text-center text-2xl font-bold ">
-          Add Friend
+        <AddFriendIcon
+          className={`${
+            pendingInvitation ? "text-slate-200" : ""
+          } mx-4 mb-2 w-16 self-center `}
+        />
+        <span className="flex items-center text-center text-2xl font-bold">
+          {pendingInvitation
+            ? "Invitation send"
+            : pendingInviteAccept
+            ? "Accept invitation"
+            : "Add Friend"}
         </span>
       </div>
       <div
@@ -246,7 +269,7 @@ const AddFriend = ({ userId }: { userId: number }) => {
         }}
         className="flex h-24 basis-1/2 items-center justify-center border-y-2 border-r-2 bg-slate-100 p-4 text-center text-2xl font-bold  text-slate-600 transition-all  hover:cursor-pointer hover:bg-slate-200"
       >
-        <img className="mr-5 w-12" src={BannedIcon} />
+        <img className="mr-5 w-12" src={BannedDarkIcon} />
         <div>Block</div>
       </div>
     </div>
@@ -263,17 +286,26 @@ const Unblock = ({ userId }: { userId: number }) => {
   });
   return (
     <div
-      className="flex h-24 w-full flex-col items-center justify-center border-2 border-red-500 bg-red-400 p-4 text-xl font-bold text-slate-800 transition-all hover:cursor-pointer hover:bg-red-500 "
+      className="flex h-24 w-full select-none flex-col items-center justify-center border-2 border-red-500 bg-red-400 p-4 text-xl font-bold text-slate-800 transition-all hover:cursor-pointer hover:bg-red-500 "
       onClick={() => {
         userId ? unblock.mutate({ userId: userId }) : null;
       }}
     >
-      <AddFriendIcon className="mx-4 mb-2 w-16 self-center " />
       <span className="flex items-center text-center text-2xl font-bold ">
         You blocked this user
       </span>
       <span className="flex items-center text-center text-base font-bold ">
         Click to unblock
+      </span>
+    </div>
+  );
+};
+
+const Blocked = () => {
+  return (
+    <div className="flex h-24 w-full select-none flex-col items-center justify-center border-2 border-red-500 bg-red-400 p-4 text-xl font-bold text-slate-800 transition-all  hover:cursor-not-allowed ">
+      <span className="flex items-center text-center text-2xl font-bold ">
+        You are blocked by this user
       </span>
     </div>
   );
@@ -299,10 +331,10 @@ const FriendButtons = ({ data }: { data: UserProfileQuery }) => {
   });
 
   return (
-    <div className="flex h-24 bg-slate-100 text-xl font-bold">
+    <div className="flex h-24 select-none bg-slate-100 text-xl font-bold text-slate-500">
       <div
         onClick={() => {
-          alert("Launch Game invitation");
+          alert("Launch Game invitation"); //TODO: replace
         }}
         className="flex basis-1/3 items-center justify-center border-2 border-slate-300 bg-slate-200 text-center transition-all hover:cursor-pointer hover:bg-slate-300"
       >
@@ -334,6 +366,25 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
     return data;
   };
   const currentUserData = CurrentUserData();
+
+  const blocked = data.user.blocked;
+  const blocking = data.user.blocking;
+  // const friend =
+  //   currentUserData?.user.friends.some((friend) => friend.id == data.user.id) &&
+  //   currentUserData?.user.friendedBy.some((user) => (user.id = data.user.id));
+  // const pendingInviteAccept =
+  //   !currentUserData?.user.friends.some(
+  //     (friend) => friend.id == data.user.id
+  //   ) &&
+  //   currentUserData?.user.friendedBy.some((user) => (user.id = data.user.id));
+  // const pendingInvitation =
+  //   currentUserData?.user.friends.some((friend) => friend.id == data.user.id) &&
+  //   !currentUserData?.user.friendedBy.some((user) => (user.id = data.user.id));
+
+  //TODO : replace with real values when back ok
+  const friend = false;
+  const pendingInviteAccept = false;
+  const pendingInvitation = false;
   return (
     <div className="flex h-full w-full flex-col ">
       <Header>
@@ -353,15 +404,19 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
       <GameHistory data={data} />
       {currentUserData?.user.id === data.user.id ? (
         <></>
-      ) : currentUserData?.user.friends.some(
-          (friend) => friend.id == data.user.id
-        ) && !data.user.blocked ? (
-        <FriendButtons data={data} />
-      ) : data.user.blocked ? (
+      ) : blocked ? (
         <Unblock userId={data.user.id} />
+      ) : blocking ? (
+        <Blocked />
+      ) : friend ? (
+        <FriendButtons data={data} />
       ) : (
         <div>
-          <AddFriend userId={data.user.id} />
+          <AddFriend
+            userId={data.user.id}
+            pendingInvitation={pendingInvitation}
+            pendingInviteAccept={pendingInviteAccept}
+          />
         </div>
       )}
     </div>
@@ -377,6 +432,6 @@ export default function Profile() {
   >;
   const { data } = useQuery({ ...query(userId), initialData });
   if (typeof data === "undefined") {
-    return <div></div>;
+    return <div>Error</div>;
   } else return <DisplayUserProfile data={data} />;
 }
