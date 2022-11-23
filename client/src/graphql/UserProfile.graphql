@@ -32,12 +32,9 @@ query UserProfile($userId: Int) {
     friends {
       id
     }
-<<<<<<< HEAD
     friended {
       id
       name
     }
-=======
->>>>>>> ebd8d88d85d46a2d4272efd3eb0ea0f42b1d068c
   }
 }

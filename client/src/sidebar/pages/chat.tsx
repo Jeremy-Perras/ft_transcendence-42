@@ -27,6 +27,7 @@ import {
   HeaderLeftBtn,
 } from "../components/header";
 import { RankIcon } from "../utils/rankIcon";
+import queryClient from "../../query";
 
 type ChatQuery = {
   messages: {
@@ -88,14 +89,13 @@ const DirectMessage = ({
   author,
 }: DirectMessage) => {
   const navigate = useNavigate();
-
   const queryClient = useQueryClient();
-
   const readDirectMessage = useReadDirectMessageMutation({
     onSuccess: () => {
       queryClient.invalidateQueries(useDirectMessagesQuery.getKey({ userId }));
     },
   });
+
   useEffect(() => {
     if (readAt === null && author.id === userId)
       readDirectMessage.mutate({
@@ -211,9 +211,9 @@ export default function Chat() {
           <></>
         )}
 
-        {data?.messages.map((message, index) => (
-          <DirectMessage key={index} userId={userId} {...message} />
-        ))}
+        {data?.messages.map((message, index) => {
+          return <DirectMessage key={index} userId={userId} {...message} />;
+        })}
         <div ref={messagesEndRef} />
       </ul>
 

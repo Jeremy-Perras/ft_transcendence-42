@@ -55,6 +55,9 @@ export class User {
   @Field((type) => [Channel])
   channels: [Channel | undefined];
 
+  @Field((type) => [User])
+  friended: [User | undefined];
+
   // @Field((type) => status)
   // status: status;
 

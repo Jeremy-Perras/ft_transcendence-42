@@ -127,12 +127,10 @@ export class UserResolver {
   // }
 
   @ResolveField()
-<<<<<<< HEAD
   async friended(
     @CurrentUser() currentUserId: number,
     @Root() user: User
   ): Promise<userType[]> {
-    console.log(user.id, currentUserId);
     const u = await this.prisma.user.findUnique({
       select:
         currentUserId === user.id
@@ -148,7 +146,6 @@ export class UserResolver {
         id: currentUserId,
       },
     });
-    console.log("friendedBy        ", u);
     return u
       ? u.friendedBy.map((us) => ({
           id: us.id,
@@ -160,8 +157,6 @@ export class UserResolver {
   }
 
   @ResolveField()
-=======
->>>>>>> ebd8d88d85d46a2d4272efd3eb0ea0f42b1d068c
   async games(
     @Root() user: User,
     @Args("finished", {
@@ -471,8 +466,8 @@ export class DirectMessageResolver {
     return true;
   }
 
-  //TODO: ? message existing guard
-  @UseGuards(ExistingMessageGuard)
+  //TODO: this guard breaks everything
+  // @UseGuards(ExistingMessageGuard)
   @Mutation((returns) => Boolean)
   async readDirectMessage(
     @Args("messageId", { type: () => Int }) messageId: number

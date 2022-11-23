@@ -230,7 +230,13 @@ export class ChannelResolver {
               sentAt: "asc",
             },
           ],
-          select: { id: true, content: true, sentAt: true },
+          select: {
+            id: true,
+            content: true,
+            sentAt: true,
+            readBy: true,
+            author: true,
+          },
         },
       },
       where: {
@@ -254,6 +260,7 @@ export class ChannelResolver {
           id: message.id,
           content: message.content,
           sentAt: message.sentAt,
+          author: message.author,
         }))
       : [];
   }

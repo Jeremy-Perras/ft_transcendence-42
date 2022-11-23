@@ -6,6 +6,9 @@ query UserChatsAndFriends {
       name
       messages {
         __typename
+        author {
+          id
+        }
         content
         sentAt
       }
@@ -17,12 +20,23 @@ query UserChatsAndFriends {
       avatar
       messages {
         __typename
+        author {
+          id
+        }
         content
         sentAt
+        readAt
       }
       friends {
         id
       }
     }
+    friended {
+      __typename
+      id
+      name
+      avatar
+    }
   }
 }
+# TODO: modify the query with status

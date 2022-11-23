@@ -17,19 +17,21 @@ import {
   HeaderLeftBtn,
 } from "../components/header";
 import { getDate } from "../utils/getDate";
-import { useUserProfileHeaderQuery } from "../../graphql/generated";
 
 type Chat = {
   __typename: "User" | "Channel";
   name: string;
   avatar?: string | undefined;
   id: number;
-  messages: {
+  messages?: {
     __typename?: "DirectMessage" | "ChannelMessage" | undefined;
+    author: { __typename?: "User" | undefined; id: number };
     content: string;
     sentAt: number;
+    readAt?: number;
   }[];
-  friendedBy?: { id: number }[];
+  // status?: "Friend" | "InvitationSent" | "InvitationReceived";
+  //TODO : get from back
 };
 
 const query = (): UseQueryOptions<
@@ -41,17 +43,20 @@ const query = (): UseQueryOptions<
     queryKey: useUserChatsAndFriendsQuery.getKey({}),
     queryFn: useUserChatsAndFriendsQuery.fetcher({}),
     select: (data) => {
-      return [...data.user.friends, ...data.user.channels].sort((a, b) => {
-        const x = a.messages.sort((c, d) => {
-          return c.sentAt - d.sentAt;
-        })[a.messages.length - 1];
-        const y = b.messages.sort((c, d) => {
-          return c.sentAt - d.sentAt;
-        })[b.messages.length - 1];
-        if (!x) return 1;
-        if (!y) return -1;
-        return y.sentAt - x.sentAt;
-      });
+      const merge = [...data.user.friends, ...data.user.channels].sort(
+        (a, b) => {
+          const x = a.messages.sort((c, d) => {
+            return c.sentAt - d.sentAt;
+          })[a.messages.length - 1];
+          const y = b.messages.sort((c, d) => {
+            return c.sentAt - d.sentAt;
+          })[b.messages.length - 1];
+          if (!x) return 1;
+          if (!y) return -1;
+          return y.sentAt - x.sentAt;
+        }
+      );
+      return [...merge, ...data.user.friended];
     },
   };
 };
@@ -61,25 +66,30 @@ export const homeLoader = async (queryClient: QueryClient) => {
 };
 
 const ChannelAndFriendBanner = ({
-  // newInvite,
-  chat: { __typename, name, avatar, id, messages, friendedBy },
+  chat: { __typename, name, avatar, id, messages },
 }: {
-  // newInvite: boolean;
   chat: Chat;
 }) => {
   const navigate = useNavigate();
 
-  const lastMessage = messages[messages.length - 1];
+  const lastMessage = messages ? messages[messages.length - 1] : null;
 
-  //TODO : replace booleans with new back logic
-  const invitationSent = false && __typename == "User";
-  const newInvite = true && __typename == "User";
+  //TODO : new channel message
+  let newChatMessage = false;
+  messages?.forEach((message) => {
+    if (message.author.id === id && message.readAt === null)
+      newChatMessage = true;
+  });
+
+  let status = "Friend";
+  //TODO : replace  with new back logic
+
   return (
     <div
       onClick={() =>
         navigate(
           `/${
-            __typename == "User" && !invitationSent && !newInvite
+            __typename == "User" && status === "Friend"
               ? "chat"
               : __typename == "User"
               ? "profile"
@@ -107,20 +117,26 @@ const ChannelAndFriendBanner = ({
       <div className="flex grow flex-col justify-center px-2">
         <div className="flex justify-between">
           <span className="pb-px font-bold">{name}</span>
-          {!invitationSent && !newInvite ? (
+          {__typename == "User" && status === "Friend" ? (
             <span className="mt-1 text-xs text-slate-400">
               {lastMessage?.sentAt ? getDate(+lastMessage.sentAt) : ""}
             </span>
           ) : null}
         </div>
-        {invitationSent ? (
+        {__typename == "User" && status === "InvitationSent" ? (
           <span className="text-sm text-slate-300">Invitation sent</span>
-        ) : newInvite ? (
+        ) : status === "InvitationReceived" ? (
           <span className="animate-pulse text-sm text-slate-300">
             New invitation !
           </span>
         ) : (
-          <span className="flex max-h-5 max-w-sm overflow-hidden text-clip text-sm text-slate-400">
+          <span
+            className={`${
+              newChatMessage
+                ? "animate-pulse text-base font-bold text-black"
+                : "text-sm text-slate-400"
+            }  flex max-h-5 max-w-sm overflow-hidden text-clip `}
+          >
             {lastMessage?.content}
           </span>
         )}
@@ -178,8 +194,6 @@ export const Home = () => {
           data?.map((chat, index) => (
             <ChannelAndFriendBanner key={index} chat={chat} />
           ))
-
-          //TODO : add new invitations
         )}
       </div>
     </div>
