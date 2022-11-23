@@ -16,6 +16,7 @@ import { gameType } from "../game/game.model";
 import { PrismaService } from "../prisma/prisma.service";
 import {
   BlockGuard,
+  ExistingMessageGuard,
   ExistingUserGuard,
   FriendGuard,
   SelfGuard,
@@ -114,25 +115,45 @@ export class UserResolver {
   }
 
   @ResolveField()
-  async friended(
-    @CurrentUser() currentUserId: number,
-    @Root() user: User
-  ): Promise<userType[]> {
+  async status(@CurrentUser() currentUserId: number, @Root() user: User) {
     const u = await this.prisma.user.findUnique({
-      select:
-        currentUserId === user.id
-          ? { friendedBy: true }
-          : { friendedBy: { where: { id: currentUserId } } },
+      select: { friendedBy: true, friends: true },
       where: {
         id: user.id,
       },
     });
+
+    return;
+  }
+
+  @ResolveField()
+  async friended(
+    @CurrentUser() currentUserId: number,
+    @Root() user: User
+  ): Promise<userType[]> {
+    console.log(user.id, currentUserId);
+    const u = await this.prisma.user.findUnique({
+      select:
+        currentUserId === user.id
+          ? { friendedBy: true }
+          : {
+              friendedBy: {
+                where: {
+                  id: currentUserId,
+                },
+              },
+            },
+      where: {
+        id: currentUserId,
+      },
+    });
+    console.log("friendedBy        ", u);
     return u
-      ? u.friendedBy.map((user) => ({
-          id: user.id,
-          name: user.name,
-          avatar: user.avatar,
-          rank: user.rank,
+      ? u.friendedBy.map((us) => ({
+          id: us.id,
+          name: us.name,
+          avatar: us.avatar,
+          rank: us.rank,
         }))
       : [];
   }
@@ -448,6 +469,7 @@ export class DirectMessageResolver {
   }
 
   //TODO: ? message existing guard
+  @UseGuards(ExistingMessageGuard)
   @Mutation((returns) => Boolean)
   async readDirectMessage(
     @Args("messageId", { type: () => Int }) messageId: number

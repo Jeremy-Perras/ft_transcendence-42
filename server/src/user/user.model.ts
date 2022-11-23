@@ -13,10 +13,16 @@ export type userType = Omit<
   | "channels"
   | "games"
   | "friended"
+  | "status"
 >;
 
 export type directMessageType = Omit<DirectMessage, "author" | "recipient">;
-
+enum status {
+  notfriend,
+  invitationreceived,
+  invatationsend,
+  friend,
+}
 @ObjectType()
 export class User {
   @Field((type) => Int)
@@ -51,6 +57,9 @@ export class User {
 
   @Field((type) => [Channel])
   channels: [Channel | undefined];
+
+  @Field((type) => status)
+  status: status;
 
   @Field((type) => [DirectMessage])
   messages: [DirectMessage | undefined];

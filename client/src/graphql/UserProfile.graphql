@@ -32,8 +32,9 @@ query UserProfile($userId: Int) {
     friends {
       id
     }
-     friended {
+    friended {
       id
+      name
     }
   }
 }
