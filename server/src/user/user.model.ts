@@ -6,7 +6,13 @@ import { Game } from "../game/game.model";
 
 export type userType = Omit<
   User,
-  "friends" | "blocked" | "blocking" | "messages" | "channels" | "games"
+  | "friends"
+  | "blocked"
+  | "blocking"
+  | "messages"
+  | "channels"
+  | "games"
+  | "friended"
 >;
 
 export type directMessageType = Omit<DirectMessage, "author" | "recipient">;
@@ -30,6 +36,9 @@ export class User {
 
   @Field((type) => [User])
   friends: [User | undefined];
+
+  @Field((type) => [User])
+  friended: [User | undefined];
 
   @Field((type) => [Game])
   games: [Game | undefined];

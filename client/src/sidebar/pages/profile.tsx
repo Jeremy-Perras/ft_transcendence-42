@@ -369,22 +369,22 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
 
   const blocked = data.user.blocked;
   const blocking = data.user.blocking;
-  // const friend =
-  //   currentUserData?.user.friends.some((friend) => friend.id == data.user.id) &&
-  //   currentUserData?.user.friendedBy.some((user) => (user.id = data.user.id));
-  // const pendingInviteAccept =
-  //   !currentUserData?.user.friends.some(
-  //     (friend) => friend.id == data.user.id
-  //   ) &&
-  //   currentUserData?.user.friendedBy.some((user) => (user.id = data.user.id));
-  // const pendingInvitation =
-  //   currentUserData?.user.friends.some((friend) => friend.id == data.user.id) &&
-  //   !currentUserData?.user.friendedBy.some((user) => (user.id = data.user.id));
+  const friend =
+    currentUserData?.user.friends.some((friend) => friend.id == data.user.id) &&
+    currentUserData?.user.friended.some((user) => (user.id = data.user.id));
+  const pendingInviteAccept =
+    !currentUserData?.user.friends.some(
+      (friend) => friend.id == data.user.id
+    ) &&
+    currentUserData?.user.friended.some((user) => (user.id = data.user.id));
+  const pendingInvitation =
+    currentUserData?.user.friends.some((friend) => friend.id == data.user.id) &&
+    !currentUserData?.user.friended.some((user) => (user.id = data.user.id));
 
   //TODO : replace with real values when back ok
-  const friend = false;
-  const pendingInviteAccept = false;
-  const pendingInvitation = false;
+  // const friend = false;
+  // const pendingInviteAccept = false;
+  // const pendingInvitation = false;
   return (
     <div className="flex h-full w-full flex-col ">
       <Header>

@@ -114,6 +114,30 @@ export class UserResolver {
   }
 
   @ResolveField()
+  async friended(
+    @CurrentUser() currentUserId: number,
+    @Root() user: User
+  ): Promise<userType[]> {
+    const u = await this.prisma.user.findUnique({
+      select:
+        currentUserId === user.id
+          ? { friendedBy: true }
+          : { friendedBy: { where: { id: currentUserId } } },
+      where: {
+        id: user.id,
+      },
+    });
+    return u
+      ? u.friendedBy.map((user) => ({
+          id: user.id,
+          name: user.name,
+          avatar: user.avatar,
+          rank: user.rank,
+        }))
+      : [];
+  }
+
+  @ResolveField()
   async games(
     @Root() user: User,
     @Args("finished", {

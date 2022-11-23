@@ -36,7 +36,7 @@ async function main() {
       data: {
         id: i,
         name: faker.name.fullName(),
-        avatar: `${i}.png`,
+        avatar: `${i}.jpg`,
         rank: Math.floor(Math.random() * 100),
       },
     });
