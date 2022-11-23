@@ -17,7 +17,16 @@ import {
 import ClassicIcon from "/src/assets/images/ClassicIcon.svg";
 import BonusIcon from "/src/assets/images/BonusIcon.svg";
 import FireIcon from "/src/assets/images/FireIcon.svg";
-import Achievement1Icon from "/src/assets/images/Achievement1.svg";
+
+import OneVictoryIcon from "/src/assets/images/achievements/FirstVictory.svg";
+import TenVictoryIcon from "/src/assets/images/achievements/10Victories.svg";
+import TwentyFiveVictoryIcon from "/src/assets/images/achievements/25Victories.svg";
+import HundredVictoryIcon from "/src/assets/images/achievements/100Victories.svg";
+import HundredGamesIcon from "/src/assets/images/achievements/100Games.svg";
+import LooseIcon from "/src/assets/images/achievements/LooseMedal.svg";
+import WinIcon from "/src/assets/images/achievements/WinMedal.svg";
+import MultiModeIcon from "/src/assets/images/achievements/MultiMode.svg";
+
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { ReactComponent as AddAvatarIcon } from "pixelarticons/svg/cloud-upload.svg";
 import { ReactComponent as AddFriendIcon } from "pixelarticons/svg/user-plus.svg";
@@ -102,19 +111,64 @@ const UserProfileHeader = ({
           <div>Victories : {victories} </div>
           <div>Victory rate : {numberOfGames ? `${victoryRate} %` : "-"}</div>
         </div>
-        {/* TODO : put here achievements */}
+        {/* TODO : put here achievements  :
+ finish set achievement opacity depending on data
+        */}
         <div className="mr-2 flex shrink-0 flex-col justify-end pt-2 ">
           <div className="flex">
-            <img src={Achievement1Icon} className="mx-1 py-1 opacity-100" />
-            <img src={Achievement1Icon} className="mx-1 py-1 opacity-10" />
-            <img src={Achievement1Icon} className="mx-1 py-1 opacity-100" />
-            <img src={Achievement1Icon} className="mx-1 py-1 opacity-10" />
+            <img
+              src={OneVictoryIcon}
+              className={`${
+                victories >= 1 ? "opacity-100" : "opacity-10"
+              } mx-1 py-1 opacity-100`}
+            />
+            <img
+              src={TenVictoryIcon}
+              className={`${
+                victories >= 10 ? "opacity-100" : "opacity-10"
+              } mx-1 py-1 opacity-100`}
+            />
+            <img
+              src={TwentyFiveVictoryIcon}
+              className={`${
+                victories >= 25 ? "opacity-100" : "opacity-10"
+              } mx-1 py-1 opacity-100`}
+            />
+            <img
+              src={HundredVictoryIcon}
+              className={`${
+                victories >= 100 ? "opacity-100" : "opacity-10"
+              } mx-1 py-1 opacity-100`}
+            />
           </div>
           <div className="flex">
-            <img src={Achievement1Icon} className="mx-1 py-1 opacity-10" />
-            <img src={Achievement1Icon} className="mx-1 py-1 opacity-10" />
-            <img src={Achievement1Icon} className="mx-1 py-1 opacity-10" />
-            <img src={Achievement1Icon} className="mx-1 py-1 opacity-10" />
+            <img
+              src={MultiModeIcon}
+              className={`${
+                //TODO
+                victories >= 1 ? "opacity-100" : "opacity-10"
+              } mx-1 py-1 opacity-100`}
+            />
+            <img
+              src={WinIcon}
+              className={`${
+                //TODO
+                victories >= 1 ? "opacity-100" : "opacity-10"
+              } mx-1 py-1 opacity-100`}
+            />
+            <img
+              src={LooseIcon}
+              className={`${
+                //TODO
+                victories >= 1 ? "opacity-100" : "opacity-10"
+              } mx-1 py-1 opacity-100`}
+            />
+            <img
+              src={HundredGamesIcon}
+              className={`${
+                numberOfGames >= 100 ? "opacity-100" : "opacity-10"
+              } mx-1 py-1 opacity-100`}
+            />
           </div>
         </div>
       </div>

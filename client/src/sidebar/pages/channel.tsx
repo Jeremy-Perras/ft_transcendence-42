@@ -1,24 +1,20 @@
 import { useEffect, useRef, useState } from "react";
 import {
   LoaderFunctionArgs,
-  Params,
   useLoaderData,
   useNavigate,
   useParams,
 } from "react-router-dom";
 import {
-  usePasswordQuery,
-  useCreateChannelMessageReadMutation,
-  useInfoChannelQuery,
+  ChannelDiscussionQuery,
+  useChannelDiscussionQuery,
   useSendChannelMessageMutation,
-  InfoChannelQuery,
 } from "../../graphql/generated";
-import { User } from "./chat";
-import { getDate } from "./home";
+
 import { ReactComponent as ForbiddenIcon } from "pixelarticons/svg/close-box.svg";
 import { ReactComponent as EmptyChatIcon } from "pixelarticons/svg/message-plus.svg";
 import { ReactComponent as PasswordIcon } from "pixelarticons/svg/lock.svg";
-import { HeaderPortal } from "../layout";
+
 import { useForm } from "react-hook-form";
 import BannedIcon from "/src/assets/images/Banned.svg";
 import {
@@ -27,17 +23,41 @@ import {
   useQueryClient,
   UseQueryOptions,
 } from "@tanstack/react-query";
+import {
+  Header,
+  HeaderCenterContent,
+  HeaderLeftBtn,
+  HeaderNavigateBack,
+} from "../components/header";
+import { User } from "../types/user";
+import { getDate } from "../utils/getDate";
+
+type ChannelQuery = {
+  userId: number;
+  name: string;
+  messages: ChannelMessage[];
+  owner: { id: number; name: string; avatar: string };
+  adminIds: { id: number }[];
+  memberIds: { id: number }[];
+  banned: {
+    __typename?: "RestrictedMember" | undefined;
+    id: number;
+  }[];
+  muted: { __typename?: "RestrictedMember" | undefined; id: number }[];
+  password: boolean;
+  private: boolean;
+};
 
 const query = (
   channelId: number
-): UseQueryOptions<InfoChannelQuery, unknown, Channelquery> => {
+): UseQueryOptions<ChannelDiscussionQuery, unknown, ChannelQuery> => {
   return {
-    queryKey: useInfoChannelQuery.getKey({
-      channelId: +channelId,
+    queryKey: useChannelDiscussionQuery.getKey({
+      channelId: channelId,
       userId: null,
     }),
-    queryFn: useInfoChannelQuery.fetcher({
-      channelId: +channelId,
+    queryFn: useChannelDiscussionQuery.fetcher({
+      channelId: channelId,
       userId: null,
     }),
     select: (channels) => ({
@@ -69,21 +89,6 @@ export const channelLoader = async (
   }
 };
 
-type Channelquery = {
-  userId: number;
-  name: string;
-  messages: ChannelMessage[];
-  owner: { id: number; name: string; avatar: string };
-  adminIds: { id: number }[];
-  memberIds: { id: number }[];
-  banned: {
-    __typename?: "RestrictedMember" | undefined;
-    id: number;
-  }[];
-  muted: { __typename?: "RestrictedMember" | undefined; id: number }[];
-  password: boolean;
-  private: boolean;
-};
 const ReadBy = ({ users }: { users: User[] }) => {
   const navigate = useNavigate();
   return (
@@ -215,15 +220,6 @@ const AccessForbidden = ({
   );
 };
 
-//TODO : change
-const GetPassword = ({ passwordId }: { passwordId: number }) => {
-  const { data } = usePasswordQuery({
-    passwordId: passwordId,
-  });
-  return data;
-};
-
-//TODO : Enter pw only at 1st connection to channel => cookie?
 const AccessProtected = ({
   userId,
   channelId,
@@ -245,7 +241,7 @@ const AccessProtected = ({
     handleSubmit,
     watch,
   } = useForm();
-  const pass = GetPassword({ passwordId: +channelId });
+
   const navigate = useNavigate();
   return (
     <div className="flex h-full w-full flex-col items-center justify-center pb-60">
@@ -256,7 +252,8 @@ const AccessProtected = ({
       <div className="flex w-full flex-col items-center justify-center">
         <form
           onSubmit={handleSubmit(() => {
-            pass?.password === watch("Password")
+            //TODO : checkpassword here
+            watch("Password")
               ? (setAuth(true),
                 (document.cookie = `userId=${userId}, channelId=${channelId}`))
               : setAuth(false);
@@ -272,7 +269,6 @@ const AccessProtected = ({
                 {...register("Password", {
                   maxLength: 100,
                   required: true,
-                  validate: (value) => value === pass?.password,
                 })}
                 type="Password"
                 autoComplete="off"
@@ -311,56 +307,134 @@ const AccessProtected = ({
   );
 };
 
-export default function Channel() {
-  const { channelId } = useParams();
-  const queryClient = useQueryClient();
-  if (!channelId) return <div>no channel id</div>;
+const SendMessageElement = ({
+  banned,
+  muted,
+  channelId,
+}: {
+  banned: boolean | undefined;
+  muted: boolean | undefined;
+  channelId: number;
+}) => {
+  const [content, setContent] = useState("");
 
-  const initialData = useLoaderData() as Awaited<
-    ReturnType<ReturnType<typeof channel>>
-  >;
-  const { data } = useQuery({ ...query(+channelId), initialData });
+  const queryClient = useQueryClient();
   const messageMutation = useSendChannelMessageMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries([]);
+      queryClient.invalidateQueries(
+        useChannelDiscussionQuery.getKey({
+          channelId: +channelId,
+          userId: null,
+        })
+      );
     },
   });
-  const createChannelMessageRead = useCreateChannelMessageReadMutation({
-    onSuccess: () => {
-      queryClient.invalidateQueries([]);
-    },
+
+  return (
+    <div className="flex h-16 w-full border-t-2 bg-slate-50 p-2">
+      <textarea
+        disabled={banned || muted}
+        rows={1}
+        className={`${
+          banned || muted ? "hover:cursor-not-allowed" : ""
+        } h-10 w-11/12 resize-none overflow-visible rounded-lg px-3 pt-2`}
+        onChange={(e) => setContent(e.target.value)}
+        placeholder={`${
+          muted === true ? "You are muted" : "Type your message here ..."
+        }`}
+        onKeyDown={(e) => {
+          if (e.code == "Enter" && !e.getModifierState("Shift")) {
+            messageMutation.mutate({
+              message: content,
+              channelId: +channelId,
+            });
+            e.currentTarget.value = "";
+            e.preventDefault();
+            setContent("");
+          } else {
+            if (e.code == "Enter" && !e.getModifierState("Shift")) {
+              e.currentTarget.value = "";
+              e.preventDefault();
+              setContent("");
+            }
+          }
+        }}
+      />
+    </div>
+  );
+};
+
+export default function Channel() {
+  const { channelId } = useParams();
+
+  if (!channelId) return <div>No channel id</div>;
+
+  const initialData = useLoaderData() as Awaited<
+    ReturnType<typeof channelLoader>
+  >;
+  const { data } = useQuery({
+    ...query(+channelId),
+    initialData,
   });
-  const [content, setContent] = useState("");
+  //TODO:broken - data undefined
+
+  //TODO : does not work
+  // const createChannelMessageRead = useCreateChannelMessageReadMutation({
+  //   onSuccess: () => {
+  //     queryClient.invalidateQueries(useChannelDiscussionQuery.getKey({ channelId: +channelId }));
+  //   },
+  // });
+
+  const [auth, setAuth] = useState(false);
+  const cookies = document.cookie;
 
   const banned = data?.banned.some((u) => u.id === data.userId);
   const muted = data?.muted.some((u) => u.id === data.userId);
-  const [auth, setAuth] = useState(false);
-  const cookies = document.cookie;
+
+  const settingsLinkAuthorized =
+    banned ||
+    (data?.password && !auth) ||
+    (data?.private &&
+      !data.adminIds.some((admin) => admin.id === data.userId) &&
+      !data.memberIds.some((member) => member.id === data.userId));
+
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
   const scrollToBottom = () => {
     messagesEndRef?.current?.scrollIntoView({ behavior: "smooth" });
   };
-
   useEffect(() => {
     scrollToBottom();
   }, [data?.messages]);
 
+  const navigate = useNavigate();
+
   return (
     <>
-      <HeaderPortal
-        container={document.getElementById("header") as HTMLElement}
-        text={data?.name}
-        link={
-          banned ||
-          (data?.password && !auth) ||
-          (data?.private &&
-            !data.adminIds.some((admin) => admin.id === data.userId) &&
-            !data.memberIds.some((member) => member.id === data.userId))
-            ? ""
-            : `/settings/channel/${channelId}`
-        }
-        icon=""
-      />
+      <Header>
+        <>
+          <HeaderLeftBtn>
+            <HeaderNavigateBack />
+          </HeaderLeftBtn>
+          <HeaderCenterContent>
+            <div
+              className={`${
+                settingsLinkAuthorized ? "hover:cursor-pointer" : ""
+              } flex h-full items-center justify-center`}
+              onClick={() =>
+                navigate(
+                  `${
+                    !settingsLinkAuthorized
+                      ? ""
+                      : "/settings/channel/${channelId}"
+                  }`
+                )
+              }
+            >
+              <div>{data?.name}</div>
+            </div>
+          </HeaderCenterContent>
+        </>
+      </Header>
       {banned ? (
         <Banned />
       ) : data?.private &&
@@ -383,19 +457,7 @@ export default function Channel() {
           setAuth={setAuth}
         />
       ) : (
-        <div
-          onClick={() => {
-            data?.messages.forEach((message) => {
-              message.readBy
-                ? ""
-                : createChannelMessageRead.mutate({
-                    messageId: message.id,
-                    userId: data.userId,
-                  });
-            });
-          }}
-          className="flex h-full flex-col bg-slate-100"
-        >
+        <div className="flex h-full flex-col bg-slate-100">
           <div className="mt-px flex w-full grow flex-col overflow-auto pr-2 pl-px">
             {data?.messages.length === 0 ? (
               <div className="mb-48 flex h-full flex-col items-center justify-center text-center text-slate-300">
@@ -410,36 +472,11 @@ export default function Channel() {
             ))}
             <div ref={messagesEndRef} />
           </div>
-          <div className="flex h-16 w-full border-t-2 bg-slate-50 p-2">
-            <textarea
-              disabled={banned || muted}
-              rows={1}
-              className={`${
-                banned || muted ? "hover:cursor-not-allowed" : ""
-              } h-10 w-11/12 resize-none overflow-visible rounded-lg px-3 pt-2`}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder={`${
-                muted === true ? "You are muted" : "Type your message here ..."
-              }`}
-              onKeyDown={(e) => {
-                if (e.code == "Enter" && !e.getModifierState("Shift")) {
-                  messageMutation.mutate({
-                    message: content,
-                    recipientId: +channelId,
-                  });
-                  e.currentTarget.value = "";
-                  e.preventDefault();
-                  setContent("");
-                } else {
-                  if (e.code == "Enter" && !e.getModifierState("Shift")) {
-                    e.currentTarget.value = "";
-                    e.preventDefault();
-                    setContent("");
-                  }
-                }
-              }}
-            />
-          </div>
+          <SendMessageElement
+            channelId={+channelId}
+            muted={muted}
+            banned={banned}
+          />
         </div>
       )}
     </>
