@@ -219,11 +219,11 @@ const GameHistory = ({ data }: { data: UserProfileQuery }) => {
 const AddFriend = ({
   userId,
   pendingInvitation,
-  pendingInviteAccept,
+  pendingAccept,
 }: {
   userId: number;
   pendingInvitation: boolean | undefined;
-  pendingInviteAccept: boolean | undefined;
+  pendingAccept: boolean | undefined;
 }) => {
   const queryClient = useQueryClient();
   const askFriend = useFriendUserMutation({
@@ -245,7 +245,7 @@ const AddFriend = ({
             : "hover:cursor-pointer hover:bg-slate-200"
         } flex h-24 basis-1/2 items-center justify-center border-2 bg-slate-100 p-4 text-xl font-bold text-slate-600 transition-all`}
         onClick={() => {
-          pendingInvitation && userId
+          !pendingInvitation && userId
             ? askFriend.mutate({ userId: userId })
             : null;
         }}
@@ -258,7 +258,7 @@ const AddFriend = ({
         <span className="flex items-center text-center text-2xl font-bold">
           {pendingInvitation
             ? "Invitation send"
-            : pendingInviteAccept
+            : pendingAccept
             ? "Accept invitation"
             : "Add Friend"}
         </span>
@@ -366,25 +366,21 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
     return data;
   };
   const currentUserData = CurrentUserData();
+  if (typeof currentUserData === "undefined") return <>Error</>;
 
   const blocked = data.user.blocked;
   const blocking = data.user.blocking;
   const friend =
     currentUserData?.user.friends.some((friend) => friend.id == data.user.id) &&
-    currentUserData?.user.friended.some((user) => (user.id = data.user.id));
-  const pendingInviteAccept =
+    data?.user.friends.some((user) => (user.id = currentUserData.user.id));
+  const pendingAccept =
     !currentUserData?.user.friends.some(
       (friend) => friend.id == data.user.id
-    ) &&
-    currentUserData?.user.friended.some((user) => (user.id = data.user.id));
+    ) && data?.user.friends.some((user) => (user.id = currentUserData.user.id));
   const pendingInvitation =
     currentUserData?.user.friends.some((friend) => friend.id == data.user.id) &&
-    !currentUserData?.user.friended.some((user) => (user.id = data.user.id));
+    !data?.user.friends.some((user) => (user.id = currentUserData.user.id));
 
-  //TODO : replace with real values when back ok
-  // const friend = false;
-  // const pendingInviteAccept = false;
-  // const pendingInvitation = false;
   return (
     <div className="flex h-full w-full flex-col ">
       <Header>
@@ -415,7 +411,7 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
           <AddFriend
             userId={data.user.id}
             pendingInvitation={pendingInvitation}
-            pendingInviteAccept={pendingInviteAccept}
+            pendingAccept={pendingAccept}
           />
         </div>
       )}

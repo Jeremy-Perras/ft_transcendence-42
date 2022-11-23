@@ -86,7 +86,6 @@ export class FriendGuard implements CanActivate {
       },
       where: { id: userId },
     });
-    console.log("friendBy", friend?.friendedBy, "friend", friend?.friends);
     if (
       (friend?.friendedBy && friend.friendedBy.length === 0) ||
       (friend?.friends && friend.friends.length === 0)
