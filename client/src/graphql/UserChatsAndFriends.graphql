@@ -20,6 +20,9 @@ query UserChatsAndFriends {
         content
         sentAt
       }
+      friends {
+        id
+      }
     }
   }
 }

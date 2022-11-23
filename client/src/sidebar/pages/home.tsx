@@ -17,6 +17,7 @@ import {
   HeaderLeftBtn,
 } from "../components/header";
 import { getDate } from "../utils/getDate";
+import { useUserProfileHeaderQuery } from "../../graphql/generated";
 
 type Chat = {
   __typename: "User" | "Channel";
@@ -28,6 +29,7 @@ type Chat = {
     content: string;
     sentAt: number;
   }[];
+  friends?: { id: number }[];
 };
 
 const query = (): UseQueryOptions<
@@ -58,14 +60,26 @@ export const homeLoader = async (queryClient: QueryClient) => {
   return queryClient.fetchQuery(query());
 };
 
-const Chat = ({ __typename, name, avatar, id, messages }: Chat) => {
+const Banner = ({ __typename, name, avatar, id, messages, friends }: Chat) => {
   const navigate = useNavigate();
   const lastMessage = messages[messages.length - 1];
-
+  const myData = useUserProfileHeaderQuery(); //TODO: replace with auth-strore my Id
+  console.log();
+  const pendingAccept =
+    __typename === "User" &&
+    friends?.some((user) => user.id === myData.data?.user.id);
   return (
     <div
       onClick={() =>
-        navigate(`/${__typename == "User" ? "chat" : "channel"}/${id}`)
+        navigate(
+          `/${
+            __typename == "User" && !pendingAccept
+              ? "chat"
+              : __typename == "User"
+              ? "profile"
+              : "channel"
+          }/${id}`
+        )
       }
       className="flex justify-center transition-all hover:cursor-pointer  hover:bg-slate-100"
     >
@@ -87,13 +101,19 @@ const Chat = ({ __typename, name, avatar, id, messages }: Chat) => {
       <div className="flex grow flex-col justify-center px-2">
         <div className="flex justify-between">
           <span className="pb-px font-bold">{name}</span>
-          <span className="mt-1 text-xs text-slate-400">
-            {lastMessage?.sentAt ? getDate(+lastMessage.sentAt) : ""}
-          </span>
+          {!pendingAccept ? (
+            <span className="mt-1 text-xs text-slate-400">
+              {lastMessage?.sentAt ? getDate(+lastMessage.sentAt) : ""}
+            </span>
+          ) : null}
         </div>
-        <span className="flex max-h-5 max-w-sm overflow-hidden text-clip text-sm text-slate-400">
-          {lastMessage?.content}
-        </span>
+        {pendingAccept ? (
+          <span className="text-sm text-slate-300">Pending invitation...</span>
+        ) : (
+          <span className="flex max-h-5 max-w-sm overflow-hidden text-clip text-sm text-slate-400">
+            {lastMessage?.content}
+          </span>
+        )}
       </div>
     </div>
   );
@@ -145,7 +165,7 @@ export const Home = () => {
         ) : data?.length === 0 ? (
           <Empty />
         ) : (
-          data?.map((chat, index) => <Chat key={index} {...chat} />)
+          data?.map((chat, index) => <Banner key={index} {...chat} />)
         )}
       </div>
     </div>
