@@ -32,6 +32,7 @@ import {
   HeaderNavigateBack,
 } from "../components/header";
 import { RankIcon } from "../utils/rankIcon";
+import BannedIcon from "/src/assets/images/Banned.svg";
 
 const query = (
   userId: number
@@ -221,17 +222,33 @@ const AddFriend = ({ userId }: { userId: number }) => {
       queryClient.invalidateQueries(useUserProfileQuery.getKey({ userId }));
     },
   });
+  const block = useBlockUserMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries(useUserProfileQuery.getKey({ userId }));
+    },
+  });
   return (
-    <div
-      className="flex h-24 w-full items-center justify-center border-2 bg-slate-100 p-4 text-xl font-bold text-slate-400 transition-all hover:cursor-pointer hover:bg-slate-200 "
-      onClick={() => {
-        userId ? askFriend.mutate({ userId: userId }) : null;
-      }}
-    >
-      <AddFriendIcon className="mx-4 mb-2 w-16 self-center " />
-      <span className="flex items-center text-center text-2xl font-bold ">
-        Add Friend
-      </span>
+    <div className="flex w-full">
+      <div
+        className="flex h-24 basis-1/2 items-center justify-center border-2 bg-slate-100 p-4 text-xl font-bold text-slate-600 transition-all hover:cursor-pointer hover:bg-slate-200 "
+        onClick={() => {
+          userId ? askFriend.mutate({ userId: userId }) : null;
+        }}
+      >
+        <AddFriendIcon className="mx-4 mb-2 w-16 self-center text-neutral-300" />
+        <span className="flex items-center text-center text-2xl font-bold ">
+          Add Friend
+        </span>
+      </div>
+      <div
+        onClick={() => {
+          block.mutate({ userId });
+        }}
+        className="flex h-24 basis-1/2 items-center justify-center border-y-2 border-r-2 bg-slate-100 p-4 text-center text-2xl font-bold  text-slate-600 transition-all  hover:cursor-pointer hover:bg-slate-200"
+      >
+        <img className="mr-5 w-12" src={BannedIcon} />
+        <div>Block</div>
+      </div>
     </div>
   );
 };
@@ -246,14 +263,17 @@ const Unblock = ({ userId }: { userId: number }) => {
   });
   return (
     <div
-      className="flex h-24 w-full items-center justify-center border-2 bg-red-200 p-4 text-xl font-bold text-slate-800 transition-all hover:cursor-pointer hover:bg-slate-200 "
+      className="flex h-24 w-full flex-col items-center justify-center border-2 border-red-500 bg-red-400 p-4 text-xl font-bold text-slate-800 transition-all hover:cursor-pointer hover:bg-red-500 "
       onClick={() => {
         userId ? unblock.mutate({ userId: userId }) : null;
       }}
     >
       <AddFriendIcon className="mx-4 mb-2 w-16 self-center " />
       <span className="flex items-center text-center text-2xl font-bold ">
-        Unblock
+        You blocked this user
+      </span>
+      <span className="flex items-center text-center text-base font-bold ">
+        Click to unblock
       </span>
     </div>
   );
@@ -262,7 +282,6 @@ const Unblock = ({ userId }: { userId: number }) => {
 const FriendButtons = ({ data }: { data: UserProfileQuery }) => {
   const queryClient = useQueryClient();
 
-  //TODO : fix this mutation
   const unfriend = useUnfriendUserMutation({
     onSuccess: () => {
       queryClient.invalidateQueries(
@@ -270,6 +289,7 @@ const FriendButtons = ({ data }: { data: UserProfileQuery }) => {
       );
     },
   });
+
   const block = useBlockUserMutation({
     onSuccess: () => {
       queryClient.invalidateQueries(
@@ -322,14 +342,8 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
             <HeaderNavigateBack />
           </HeaderLeftBtn>
           <HeaderCenterContent>
-            <div
-              className={`${
-                data.user.blocked ? "bg-red-300" : ""
-              } flex h-full items-center justify-center`}
-            >
-              <div className="relative h-8 w-8">
-                <img className="h-8" src={RankIcon(data?.user.rank)} />
-              </div>
+            <div className="flex h-full items-center justify-center">
+              <img className="mr-2 h-8" src={RankIcon(data?.user.rank)} />
               <div>{data?.user.name}</div>
             </div>
           </HeaderCenterContent>
@@ -341,12 +355,14 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
         <></>
       ) : currentUserData?.user.friends.some(
           (friend) => friend.id == data.user.id
-        ) ? (
+        ) && !data.user.blocked ? (
         <FriendButtons data={data} />
       ) : data.user.blocked ? (
         <Unblock userId={data.user.id} />
       ) : (
-        <AddFriend userId={data.user.id} />
+        <div>
+          <AddFriend userId={data.user.id} />
+        </div>
       )}
     </div>
   );
