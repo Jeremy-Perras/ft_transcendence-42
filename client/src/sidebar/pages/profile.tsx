@@ -4,20 +4,16 @@ import {
   useQueryClient,
   UseQueryOptions,
 } from "@tanstack/react-query";
-import {
-  LoaderFunctionArgs,
-  Params,
-  useLoaderData,
-  useParams,
-} from "react-router-dom";
+import { LoaderFunctionArgs, useLoaderData, useParams } from "react-router-dom";
 import {
   useBlockUserMutation,
   useFriendUserMutation,
   UserProfileQuery,
   useUnblockUserMutation,
+  useUnfriendUserMutation,
   useUserProfileQuery,
 } from "../../graphql/generated";
-
+import BlockedIcon from "/src/assets/images/Banned.svg";
 import ClassicIcon from "/src/assets/images/ClassicIcon.svg";
 import BonusIcon from "/src/assets/images/BonusIcon.svg";
 import FireIcon from "/src/assets/images/FireIcon.svg";
@@ -218,19 +214,18 @@ const GameHistory = ({ data }: { data: UserProfileQuery }) => {
   );
 };
 
-const AddFriend = () => {
-  const params = useParams();
+const AddFriend = ({ userId }: { userId: number }) => {
   const queryClient = useQueryClient();
   const askFriend = useFriendUserMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries([]);
+      queryClient.invalidateQueries(useUserProfileQuery.getKey({ userId }));
     },
   });
   return (
     <div
       className="flex h-24 w-full items-center justify-center border-2 bg-slate-100 p-4 text-xl font-bold text-slate-400 transition-all hover:cursor-pointer hover:bg-slate-200 "
       onClick={() => {
-        params.userId ? askFriend.mutate({ userId: +params.userId }) : null;
+        userId ? askFriend.mutate({ userId: userId }) : null;
       }}
     >
       <AddFriendIcon className="mx-4 mb-2 w-16 self-center " />
@@ -241,25 +236,45 @@ const AddFriend = () => {
   );
 };
 
-const FriendButtons = ({ data }: { data: UserProfileQuery }) => {
-  const params = useParams();
+const Unblock = ({ userId }: { userId: number }) => {
+  const queryClient = useQueryClient();
 
+  const unblock = useUnblockUserMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries(useUserProfileQuery.getKey({ userId }));
+    },
+  });
+  return (
+    <div
+      className="flex h-24 w-full items-center justify-center border-2 bg-red-200 p-4 text-xl font-bold text-slate-800 transition-all hover:cursor-pointer hover:bg-slate-200 "
+      onClick={() => {
+        userId ? unblock.mutate({ userId: userId }) : null;
+      }}
+    >
+      <AddFriendIcon className="mx-4 mb-2 w-16 self-center " />
+      <span className="flex items-center text-center text-2xl font-bold ">
+        Unblock
+      </span>
+    </div>
+  );
+};
+
+const FriendButtons = ({ data }: { data: UserProfileQuery }) => {
   const queryClient = useQueryClient();
 
   //TODO : fix this mutation
-  // const unfriend = useFriendUserMutation({
-  //   onSuccess: () => {
-  //     queryClient.invalidateQueries([]);
-  //   },
-  // });
-  const blockMutation = useBlockUserMutation({
+  const unfriend = useUnfriendUserMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries([]);
+      queryClient.invalidateQueries(
+        useUserProfileQuery.getKey({ userId: data.user.id })
+      );
     },
   });
-  const unblockMutation = useUnblockUserMutation({
+  const block = useBlockUserMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries([]);
+      queryClient.invalidateQueries(
+        useUserProfileQuery.getKey({ userId: data.user.id })
+      );
     },
   });
 
@@ -274,24 +289,20 @@ const FriendButtons = ({ data }: { data: UserProfileQuery }) => {
         Play !
       </div>
       <div
-        // onClick={() => {
-        //   params.userId ? unfriend.mutate({ userId: +params.userId }) : null;
-        // }}
+        onClick={() => {
+          unfriend.mutate({ userId: data.user.id });
+        }}
         className="flex basis-1/3 items-center justify-center border-y-2 border-slate-300 bg-slate-200 text-center transition-all hover:cursor-pointer hover:bg-slate-300"
       >
         Unfriend
       </div>
       <div
         onClick={() => {
-          params.userId
-            ? data?.user.blocked
-              ? unblockMutation.mutate({ userId: +params.userId })
-              : blockMutation.mutate({ userId: +params.userId })
-            : null;
+          block.mutate({ userId: data.user.id });
         }}
         className="flex basis-1/3 items-center justify-center border-2 border-slate-300 bg-slate-200  text-center transition-all  hover:cursor-pointer hover:bg-slate-300"
       >
-        {data?.user.blocked ? "Unblock" : "Block"}
+        Block
       </div>
     </div>
   );
@@ -311,16 +322,13 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
             <HeaderNavigateBack />
           </HeaderLeftBtn>
           <HeaderCenterContent>
-            <div className="flex h-full items-center justify-center hover:cursor-pointer hover:bg-slate-100">
-              <img
-                className="h-8 w-8 border border-black"
-                src={`/uploads/avatars/${data?.user.avatar}`}
-              />
+            <div
+              className={`${
+                data.user.blocked ? "bg-red-300" : ""
+              } flex h-full items-center justify-center`}
+            >
               <div className="relative h-8 w-8">
-                <img
-                  className="absolute top-0 -left-2 h-4"
-                  src={RankIcon(data?.user.rank)}
-                />
+                <img className="h-8" src={RankIcon(data?.user.rank)} />
               </div>
               <div>{data?.user.name}</div>
             </div>
@@ -335,8 +343,10 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
           (friend) => friend.id == data.user.id
         ) ? (
         <FriendButtons data={data} />
+      ) : data.user.blocked ? (
+        <Unblock userId={data.user.id} />
       ) : (
-        <AddFriend />
+        <AddFriend userId={data.user.id} />
       )}
     </div>
   );

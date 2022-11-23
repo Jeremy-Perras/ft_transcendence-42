@@ -6,6 +6,7 @@ import SideBar from "./sidebar/sidebar";
 import queryClient from "./query";
 import { useAuthStore } from "./stores";
 import "./index.css";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
 let init = false;
 const App = () => {
@@ -30,6 +31,7 @@ const App = () => {
       <QueryClientProvider client={queryClient}>
         <GameRouter />
         {isLoggedIn ? <SideBar /> : null}
+        <ReactQueryDevtools initialIsOpen={false} panelPosition="left" />
       </QueryClientProvider>
     </div>
   );

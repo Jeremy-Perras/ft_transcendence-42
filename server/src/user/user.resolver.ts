@@ -422,4 +422,18 @@ export class DirectMessageResolver {
     });
     return true;
   }
+
+  //TODO: ? message existing guard
+  @Mutation((returns) => Boolean)
+  async readDirectMessage(
+    @Args("messageId", { type: () => Int }) messageId: number
+  ) {
+    await this.prisma.directMessage.update({
+      where: { id: messageId },
+      data: {
+        readAt: new Date(),
+      },
+    });
+    return true;
+  }
 }

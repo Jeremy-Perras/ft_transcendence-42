@@ -13,6 +13,7 @@ import {
 import {
   DirectMessagesQuery,
   useDirectMessagesQuery,
+  useReadDirectMessageMutation,
   useSendDirectMessageMutation,
 } from "../../graphql/generated";
 import { User } from "../types/user";
@@ -80,6 +81,7 @@ export const chatLoader = async (
 
 const DirectMessage = ({
   userId,
+  id,
   content,
   sentAt,
   readAt,
@@ -88,18 +90,18 @@ const DirectMessage = ({
   const navigate = useNavigate();
 
   const queryClient = useQueryClient();
-  // TODO : mutation to set `readAt`
-  // const directMessageRead = useDirectMessageReadMutation({
-  //   onSuccess: () => {
-  //     queryClient.invalidateQueries(["DirectMessages", { userId: userId }]);
-  //   },
-  // });
-  // useEffect(() => {
-  //   if (readAt === null && author.id === userId)
-  //     updateDirectMessageRead.mutate({
-  //       messageId: id,
-  //     });
-  // }, []);
+
+  const readDirectMessage = useReadDirectMessageMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries(useDirectMessagesQuery.getKey({ userId }));
+    },
+  });
+  useEffect(() => {
+    if (readAt === null && author.id === userId)
+      readDirectMessage.mutate({
+        messageId: id,
+      });
+  }, []);
 
   return (
     <li className="mx-2 mb-5 flex flex-col ">
@@ -135,12 +137,8 @@ const DirectMessage = ({
           </div>
         </div>
       </div>
-      <div
-        className={`${
-          author.id === userId ? "justify-end" : "justify-start"
-        } flex text-xs text-slate-300`}
-      >
-        {readAt != undefined ? "Seen" : ""}
+      <div className="mr-9 flex justify-end text-xs text-slate-300">
+        {readAt != undefined && author.id !== userId ? "Seen" : ""}
       </div>
     </li>
   );
@@ -162,7 +160,7 @@ export default function Chat() {
 
   const sendMessageMutation = useSendDirectMessageMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries(["DirectMessages", { userId: userId }]);
+      queryClient.invalidateQueries(useDirectMessagesQuery.getKey({ userId }));
     },
   });
 
