@@ -17,6 +17,7 @@ import {
   HeaderLeftBtn,
 } from "../components/header";
 import { getDate } from "../utils/getDate";
+import { useUserProfileHeaderQuery } from "../../graphql/generated";
 
 type Chat = {
   __typename: "User" | "Channel";
@@ -28,6 +29,7 @@ type Chat = {
     content: string;
     sentAt: number;
   }[];
+  friendedBy?: { id: number }[];
 };
 
 const query = (): UseQueryOptions<
@@ -58,14 +60,32 @@ export const homeLoader = async (queryClient: QueryClient) => {
   return queryClient.fetchQuery(query());
 };
 
-const Chat = ({ __typename, name, avatar, id, messages }: Chat) => {
+const ChannelAndFriendBanner = ({
+  // newInvite,
+  chat: { __typename, name, avatar, id, messages, friendedBy },
+}: {
+  // newInvite: boolean;
+  chat: Chat;
+}) => {
   const navigate = useNavigate();
+
   const lastMessage = messages[messages.length - 1];
 
+  //TODO : replace booleans with new back logic
+  const invitationSent = false && __typename == "User";
+  const newInvite = true && __typename == "User";
   return (
     <div
       onClick={() =>
-        navigate(`/${__typename == "User" ? "chat" : "channel"}/${id}`)
+        navigate(
+          `/${
+            __typename == "User" && !invitationSent && !newInvite
+              ? "chat"
+              : __typename == "User"
+              ? "profile"
+              : "channel"
+          }/${id}`
+        )
       }
       className="flex justify-center transition-all hover:cursor-pointer  hover:bg-slate-100"
     >
@@ -87,13 +107,23 @@ const Chat = ({ __typename, name, avatar, id, messages }: Chat) => {
       <div className="flex grow flex-col justify-center px-2">
         <div className="flex justify-between">
           <span className="pb-px font-bold">{name}</span>
-          <span className="mt-1 text-xs text-slate-400">
-            {lastMessage?.sentAt ? getDate(+lastMessage.sentAt) : ""}
-          </span>
+          {!invitationSent && !newInvite ? (
+            <span className="mt-1 text-xs text-slate-400">
+              {lastMessage?.sentAt ? getDate(+lastMessage.sentAt) : ""}
+            </span>
+          ) : null}
         </div>
-        <span className="flex max-h-5 max-w-sm overflow-hidden text-clip text-sm text-slate-400">
-          {lastMessage?.content}
-        </span>
+        {invitationSent ? (
+          <span className="text-sm text-slate-300">Invitation sent</span>
+        ) : newInvite ? (
+          <span className="animate-pulse text-sm text-slate-300">
+            New invitation !
+          </span>
+        ) : (
+          <span className="flex max-h-5 max-w-sm overflow-hidden text-clip text-sm text-slate-400">
+            {lastMessage?.content}
+          </span>
+        )}
       </div>
     </div>
   );
@@ -145,7 +175,11 @@ export const Home = () => {
         ) : data?.length === 0 ? (
           <Empty />
         ) : (
-          data?.map((chat, index) => <Chat key={index} {...chat} />)
+          data?.map((chat, index) => (
+            <ChannelAndFriendBanner key={index} chat={chat} />
+          ))
+
+          //TODO : add new invitations
         )}
       </div>
     </div>

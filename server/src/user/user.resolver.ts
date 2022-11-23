@@ -127,6 +127,7 @@ export class UserResolver {
   // }
 
   @ResolveField()
+<<<<<<< HEAD
   async friended(
     @CurrentUser() currentUserId: number,
     @Root() user: User
@@ -159,6 +160,8 @@ export class UserResolver {
   }
 
   @ResolveField()
+=======
+>>>>>>> ebd8d88d85d46a2d4272efd3eb0ea0f42b1d068c
   async games(
     @Root() user: User,
     @Args("finished", {

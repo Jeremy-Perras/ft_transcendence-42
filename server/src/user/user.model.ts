@@ -43,9 +43,6 @@ export class User {
   @Field((type) => [User])
   friends: [User | undefined];
 
-  @Field((type) => [User])
-  friended: [User | undefined];
-
   @Field((type) => [Game])
   games: [Game | undefined];
 
