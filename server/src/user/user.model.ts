@@ -58,8 +58,8 @@ export class User {
   @Field((type) => [Channel])
   channels: [Channel | undefined];
 
-  @Field((type) => status)
-  status: status;
+  // @Field((type) => status)
+  // status: status;
 
   @Field((type) => [DirectMessage])
   messages: [DirectMessage | undefined];

@@ -114,17 +114,17 @@ export class UserResolver {
       : [];
   }
 
-  @ResolveField()
-  async status(@CurrentUser() currentUserId: number, @Root() user: User) {
-    const u = await this.prisma.user.findUnique({
-      select: { friendedBy: true, friends: true },
-      where: {
-        id: user.id,
-      },
-    });
+  // @ResolveField()
+  // async status(@CurrentUser() currentUserId: number, @Root() user: User) {
+  //   const u = await this.prisma.user.findUnique({
+  //     select: { friendedBy: true, friends: true },
+  //     where: {
+  //       id: user.id,
+  //     },
+  //   });
 
-    return;
-  }
+  //   return;
+  // }
 
   @ResolveField()
   async friended(
