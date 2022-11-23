@@ -29,7 +29,7 @@ type Chat = {
     content: string;
     sentAt: number;
   }[];
-  friends?: { id: number }[];
+  friendedBy?: { id: number }[];
 };
 
 const query = (): UseQueryOptions<
@@ -60,20 +60,26 @@ export const homeLoader = async (queryClient: QueryClient) => {
   return queryClient.fetchQuery(query());
 };
 
-const Banner = ({ __typename, name, avatar, id, messages, friends }: Chat) => {
+const ChannelAndFriendBanner = ({
+  // newInvite,
+  chat: { __typename, name, avatar, id, messages, friendedBy },
+}: {
+  // newInvite: boolean;
+  chat: Chat;
+}) => {
   const navigate = useNavigate();
+
   const lastMessage = messages[messages.length - 1];
-  const myData = useUserProfileHeaderQuery(); //TODO: replace with auth-strore my Id
-  console.log();
-  const pendingAccept =
-    __typename === "User" &&
-    friends?.some((user) => user.id === myData.data?.user.id);
+
+  //TODO : replace booleans with new back logic
+  const invitationSent = false && __typename == "User";
+  const newInvite = true && __typename == "User";
   return (
     <div
       onClick={() =>
         navigate(
           `/${
-            __typename == "User" && !pendingAccept
+            __typename == "User" && !invitationSent && !newInvite
               ? "chat"
               : __typename == "User"
               ? "profile"
@@ -101,14 +107,18 @@ const Banner = ({ __typename, name, avatar, id, messages, friends }: Chat) => {
       <div className="flex grow flex-col justify-center px-2">
         <div className="flex justify-between">
           <span className="pb-px font-bold">{name}</span>
-          {!pendingAccept ? (
+          {!invitationSent && !newInvite ? (
             <span className="mt-1 text-xs text-slate-400">
               {lastMessage?.sentAt ? getDate(+lastMessage.sentAt) : ""}
             </span>
           ) : null}
         </div>
-        {pendingAccept ? (
-          <span className="text-sm text-slate-300">Pending invitation...</span>
+        {invitationSent ? (
+          <span className="text-sm text-slate-300">Invitation sent</span>
+        ) : newInvite ? (
+          <span className="animate-pulse text-sm text-slate-300">
+            New invitation !
+          </span>
         ) : (
           <span className="flex max-h-5 max-w-sm overflow-hidden text-clip text-sm text-slate-400">
             {lastMessage?.content}
@@ -165,7 +175,11 @@ export const Home = () => {
         ) : data?.length === 0 ? (
           <Empty />
         ) : (
-          data?.map((chat, index) => <Banner key={index} {...chat} />)
+          data?.map((chat, index) => (
+            <ChannelAndFriendBanner key={index} chat={chat} />
+          ))
+
+          //TODO : add new invitations
         )}
       </div>
     </div>

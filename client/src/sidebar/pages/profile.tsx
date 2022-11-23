@@ -376,15 +376,18 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
 
   //TODO : change these booleans with the new back logic
   const friend =
-    currentUserData?.user.friends.some((friend) => friend.id == data.user.id) &&
-    data?.user.friends.some((user) => (user.id = currentUserData.user.id));
+    currentUserData?.user.friends.some(
+      (friend) => friend.id === data.user.id
+    ) && data?.user.friends.some((user) => user.id === currentUserData.user.id);
   const pendingAccept =
     !currentUserData?.user.friends.some(
-      (friend) => friend.id == data.user.id
-    ) && data?.user.friends.some((user) => (user.id = currentUserData.user.id));
+      (friend) => friend.id === data.user.id
+    ) && data?.user.friends.some((user) => user.id === currentUserData.user.id);
   const pendingInvitation =
-    currentUserData?.user.friends.some((friend) => friend.id == data.user.id) &&
-    !data?.user.friends.some((user) => (user.id = currentUserData.user.id));
+    currentUserData?.user.friends.some(
+      (friend) => friend.id === data.user.id
+    ) &&
+    !data?.user.friends.some((user) => user.id === currentUserData.user.id);
 
   return (
     <div className="flex h-full w-full flex-col ">
