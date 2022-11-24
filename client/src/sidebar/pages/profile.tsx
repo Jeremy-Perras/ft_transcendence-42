@@ -484,9 +484,9 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
 
   if (typeof currentUserData === "undefined") return <>Error</>;
 
-  const blocked = data.user.blocked;
-  const blocking = data.user.blocking;
+  const status = data.user.friendStatus;
 
+  //TODO : change
   const friend = data.user.friendStatus === "FRIEND";
   const pendingAccept = data.user.friendStatus === "INVITATIONRECEIVED";
   const pendingInvitation = data.user.friendStatus === "INVITATIONSEND";
@@ -508,9 +508,9 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
       </Header>
       <UserProfileHeader data={data} currentUserId={currentUserData?.user.id} />
       <GameHistory data={data} currentUserId={currentUserData?.user.id} />
-      {currentUserData?.user.id === data.user.id ? null : blocked ? (
+      {currentUserData?.user.id === data.user.id ? null : data.user.blocked ? (
         <Unblock userId={data.user.id} />
-      ) : blocking ? (
+      ) : data.user.blocking ? (
         <Blocked />
       ) : friend ? (
         <FriendButtons data={data} />

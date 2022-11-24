@@ -436,6 +436,7 @@ export class UserResolver {
     @CurrentUser() currentUserId: number,
     @Args("userId", { type: () => Int }) userId: number
   ) {
+    await this.refuseInvitation(currentUserId, userId);
     await this.prisma.user.update({
       where: {
         id: currentUserId,
