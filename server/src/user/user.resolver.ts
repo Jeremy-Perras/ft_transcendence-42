@@ -140,6 +140,7 @@ export class UserResolver {
     });
     return achievements;
   }
+
   @ResolveField()
   async friends(
     @CurrentUser() currentUserId: number,
@@ -419,6 +420,24 @@ export class UserResolver {
   @UseGuards(FriendGuard)
   @Mutation((returns) => Boolean)
   async unfriendUser(
+    @CurrentUser() currentUserId: number,
+    @Args("userId", { type: () => Int }) userId: number
+  ) {
+    await this.prisma.user.update({
+      where: {
+        id: currentUserId,
+      },
+      data: {
+        friends: { disconnect: { id: userId } },
+      },
+    });
+    return true;
+  }
+
+  @UseGuards(ExistingUserGuard)
+  @UseGuards(SelfGuard)
+  @Mutation((returns) => Boolean)
+  async cancelInvitation(
     @CurrentUser() currentUserId: number,
     @Args("userId", { type: () => Int }) userId: number
   ) {

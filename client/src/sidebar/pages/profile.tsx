@@ -8,6 +8,7 @@ import { LoaderFunctionArgs, useLoaderData, useParams } from "react-router-dom";
 import {
   useAddFriendMutation,
   useBlockUserMutation,
+  useCancelInvitationMutation,
   UserProfileQuery,
   useUnblockUserMutation,
   useUnfriendUserMutation,
@@ -307,26 +308,31 @@ const AddFriend = ({
       queryClient.invalidateQueries(useUserProfileQuery.getKey({ userId }));
     },
   });
+  const cancelInvation = useCancelInvitationMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries(useUserProfileQuery.getKey());
+      queryClient.invalidateQueries(
+        useUserProfileQuery.getKey({ userId: userId })
+      );
+    },
+  });
   return (
     <div className="flex w-full select-none">
       <div
-        className={`${
-          pendingInvitation
-            ? "text-slate-200"
-            : "hover:cursor-pointer hover:bg-slate-200"
-        } flex h-24 basis-1/2 items-center justify-center border-2 bg-slate-100 p-4 text-xl font-bold text-slate-600 transition-all`}
+        className="flex h-24 basis-1/2 items-center justify-center border-2 bg-slate-100 p-4 text-xl font-bold text-slate-600 transition-all hover:cursor-pointer hover:bg-slate-200"
         onClick={() => {
-          addFriend.mutate({ userId });
+          pendingInvitation ? "" : addFriend.mutate({ userId });
         }}
       >
-        <AddFriendIcon
-          className={`${
-            pendingInvitation ? "text-slate-200" : ""
-          } mx-4 mb-2 w-16 self-center `}
-        />
-        <span className="flex items-center text-center text-2xl font-bold">
+        <AddFriendIcon className="mx-4 mb-2 w-16 self-center" />
+        <span
+          className="flex items-center text-center text-2xl font-bold"
+          onClick={() => {
+            pendingInvitation ? cancelInvation.mutate({ userId: userId }) : "";
+          }}
+        >
           {pendingInvitation
-            ? "Invitation send"
+            ? "Cancel Invitation"
             : pendingAccept
             ? "Accept invitation"
             : "Add Friend"}
