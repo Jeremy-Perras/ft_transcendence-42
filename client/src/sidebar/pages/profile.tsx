@@ -27,6 +27,8 @@ import { ReactComponent as AddAvatarIcon } from "pixelarticons/svg/cloud-upload.
 import { ReactComponent as AddFriendIcon } from "pixelarticons/svg/user-plus.svg";
 import { ReactComponent as PlayIcon } from "pixelarticons/svg/gamepad.svg";
 import { ReactComponent as UnfriendIcon } from "pixelarticons/svg/user-x.svg";
+import { ReactComponent as AcceptIcon } from "pixelarticons/svg/check.svg";
+import { ReactComponent as RefuseIcon } from "pixelarticons/svg/close.svg";
 import { useState } from "react";
 
 import FileUploadPage from "./uploadAvatar";
@@ -199,7 +201,13 @@ const UserProfileHeader = ({
   );
 };
 
-const GameHistory = ({ data }: { data: UserProfileQuery }) => {
+const GameHistory = ({
+  data,
+  currentUserId,
+}: {
+  data: UserProfileQuery;
+  currentUserId: number;
+}) => {
   return (
     <div className="flex w-full grow flex-col overflow-auto p-1 text-sm">
       <div className="mt-8 pb-2 text-center text-xl font-bold">
@@ -208,8 +216,8 @@ const GameHistory = ({ data }: { data: UserProfileQuery }) => {
       {data.user.games.length === 0 ? (
         <div className="flex flex-col">
           <div className="mt-20 text-center text-2xl text-slate-300">
-            {" "}
-            {data.user.name} didn't play yet !
+            {`${data.user.id === currentUserId ? "You" : data.user.name} didn't
+            play yet !`}
           </div>
           <PlayIcon className="text-slate-100" />
         </div>
@@ -333,7 +341,13 @@ const AddFriend = ({
           pendingInvitation ? "" : addFriend.mutate({ userId });
         }}
       >
-        <AddFriendIcon className="mx-4 mb-2 w-16 self-center" />
+        {!pendingAccept && !pendingInvitation ? (
+          <AddFriendIcon className="mx-4 mb-2 w-16 self-center" />
+        ) : pendingInvitation ? (
+          <RefuseIcon className="w-16" />
+        ) : (
+          <AcceptIcon className="w-16" />
+        )}
         <span
           className="flex items-center text-center text-2xl font-bold"
           onClick={() => {
@@ -352,9 +366,9 @@ const AddFriend = ({
           onClick={() => {
             refuseInvation.mutate({ userId });
           }}
-          className="flex h-24 basis-1/2 items-center justify-center border-y-2 border-r-2 bg-slate-100 p-4 text-center text-2xl font-bold  text-slate-600 transition-all  hover:cursor-pointer hover:bg-slate-200"
+          className="flex h-24 basis-1/3 items-center justify-center border-y-2 border-r-2 bg-slate-100 p-4 text-center text-2xl font-bold  text-slate-600 transition-all  hover:cursor-pointer hover:bg-slate-200"
         >
-          <img className="mr-5 w-12" src={BannedDarkIcon} />
+          <RefuseIcon className="w-12" />
           <div>Refuse</div>
         </div>
       ) : (
@@ -467,13 +481,12 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
     return data;
   };
   const currentUserData = CurrentUserData();
-  console.log(data);
+
   if (typeof currentUserData === "undefined") return <>Error</>;
 
   const blocked = data.user.blocked;
   const blocking = data.user.blocking;
 
-  //TODO : change these booleans with the new back logic
   const friend = data.user.friendStatus === "FRIEND";
   const pendingAccept = data.user.friendStatus === "INVITATIONRECEIVED";
   const pendingInvitation = data.user.friendStatus === "INVITATIONSEND";
@@ -494,7 +507,7 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
         </>
       </Header>
       <UserProfileHeader data={data} currentUserId={currentUserData?.user.id} />
-      <GameHistory data={data} />
+      <GameHistory data={data} currentUserId={currentUserData?.user.id} />
       {currentUserData?.user.id === data.user.id ? null : blocked ? (
         <Unblock userId={data.user.id} />
       ) : blocking ? (
