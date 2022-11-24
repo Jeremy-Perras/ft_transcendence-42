@@ -363,6 +363,16 @@ export class UserResolver {
     @CurrentUser() currentUserId: number,
     @Args("userId", { type: () => Int }) userId: number
   ) {
+    // const u = await this.prisma.user.findUnique({
+    //   select: { friendedBy: true, friends: true },
+    //   where: { id: currentUserId },
+    // });
+    // u?.friendedBy.some((us) => us.id === userId)
+    //   ? this.refuseInvitation(currentUserId, userId)
+    //   : "";
+    // u?.friends.some((us) => us.id === userId)
+    //   ? this.unfriendUser(currentUserId, userId)
+    //   : "";
     await this.prisma.user.update({
       where: {
         id: currentUserId,
@@ -449,6 +459,25 @@ export class UserResolver {
         friends: { disconnect: { id: userId } },
       },
     });
+    return true;
+  }
+
+  @UseGuards(ExistingUserGuard)
+  @UseGuards(SelfGuard)
+  @Mutation((returns) => Boolean)
+  async refuseInvitation(
+    @CurrentUser() currentUserId: number,
+    @Args("userId", { type: () => Int }) userId: number
+  ) {
+    const u = await this.prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        friends: { disconnect: { id: currentUserId } },
+      },
+    });
+    console.log(u);
     return true;
   }
 }

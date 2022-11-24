@@ -13,6 +13,7 @@ import {
   useUnblockUserMutation,
   useUnfriendUserMutation,
   useUserProfileQuery,
+  useRefuseInvitationMutation,
 } from "../../graphql/generated";
 
 import ClassicIcon from "/src/assets/images/ClassicIcon.svg";
@@ -316,6 +317,14 @@ const AddFriend = ({
       );
     },
   });
+  const refuseInvation = useRefuseInvitationMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries(useUserProfileQuery.getKey());
+      queryClient.invalidateQueries(
+        useUserProfileQuery.getKey({ userId: userId })
+      );
+    },
+  });
   return (
     <div className="flex w-full select-none">
       <div
@@ -338,9 +347,22 @@ const AddFriend = ({
             : "Add Friend"}
         </span>
       </div>
+      {pendingAccept ? (
+        <div
+          onClick={() => {
+            refuseInvation.mutate({ userId });
+          }}
+          className="flex h-24 basis-1/2 items-center justify-center border-y-2 border-r-2 bg-slate-100 p-4 text-center text-2xl font-bold  text-slate-600 transition-all  hover:cursor-pointer hover:bg-slate-200"
+        >
+          <img className="mr-5 w-12" src={BannedDarkIcon} />
+          <div>Refuse</div>
+        </div>
+      ) : (
+        ""
+      )}
       <div
         onClick={() => {
-          block.mutate({ userId });
+          block.mutate({ userId: userId });
         }}
         className="flex h-24 basis-1/2 items-center justify-center border-y-2 border-r-2 bg-slate-100 p-4 text-center text-2xl font-bold  text-slate-600 transition-all  hover:cursor-pointer hover:bg-slate-200"
       >
