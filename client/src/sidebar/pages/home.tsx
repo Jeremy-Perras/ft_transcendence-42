@@ -56,7 +56,7 @@ const query = (): UseQueryOptions<
           return y.sentAt - x.sentAt;
         }
       );
-      return [...merge, ...data.user.friended];
+      return [...merge, ...data.user.pendingFriends];
     },
   };
 };

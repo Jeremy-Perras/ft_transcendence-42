@@ -32,13 +32,10 @@ query UserProfile($userId: Int) {
     friends {
       id
     }
-    friended {
-      id
-      name
-    }
     achievements {
       name
       icon
     }
+   friendStatus
   }
 }
