@@ -7,7 +7,6 @@ import {
   ResolveField,
   Root,
   Mutation,
-  ObjectType,
 } from "@nestjs/graphql";
 import { Prisma } from "@prisma/client";
 import { GqlAuthenticatedGuard } from "../auth/authenticated.guard";

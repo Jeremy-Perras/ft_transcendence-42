@@ -40,6 +40,7 @@ import {
 } from "../components/header";
 import { RankIcon } from "../utils/rankIcon";
 import BannedDarkIcon from "/src/assets/images/Banned_dark.svg";
+import { friendStatus } from "../../../../server/src/user/user.model";
 
 const query = (
   userId: number
@@ -486,7 +487,7 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
 
   const status = data.user.friendStatus;
 
-  //TODO : change
+  //TODO : change - this is the wrong way
   const friend = data.user.friendStatus === "FRIEND";
   const pendingAccept = data.user.friendStatus === "INVITATIONRECEIVED";
   const pendingInvitation = data.user.friendStatus === "INVITATIONSEND";
