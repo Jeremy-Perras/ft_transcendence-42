@@ -472,7 +472,6 @@ export class UserResolver {
     @CurrentUser() currentUserId: number,
     @Args("userId", { type: () => Int }) userId: number
   ) {
-    console.log("test");
     await this.prisma.user.update({
       where: {
         id: userId,
