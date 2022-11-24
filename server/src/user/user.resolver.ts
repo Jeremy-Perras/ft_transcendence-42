@@ -371,9 +371,10 @@ export class UserResolver {
 
     u?.friends.some((us) => us.id === userId)
       ? await this.unfriendUser(currentUserId, userId)
-      : u?.friendedBy.some((us) => us.id === userId)
+      : null;
+    u?.friendedBy.some((us) => us.id === userId)
       ? await this.refuseInvitation(currentUserId, userId)
-      : "";
+      : null;
 
     await this.prisma.user.update({
       where: {
