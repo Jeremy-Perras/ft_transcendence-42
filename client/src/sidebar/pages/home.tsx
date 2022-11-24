@@ -16,6 +16,7 @@ import {
   useAddFriendMutation,
   UserChatsAndFriendsQuery,
   useUserChatsAndFriendsQuery,
+  useRefuseInvitationMutation,
 } from "../../graphql/generated";
 import CreateChannel, { CreateChannelBtn } from "../components/createChannel";
 import { SearchBar, SearchResults } from "../components/search";
@@ -162,6 +163,12 @@ const Invitation = ({
     },
   });
 
+  const refuse = useRefuseInvitationMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries(useUserChatsAndFriendsQuery.getKey());
+    },
+  });
+
   return (
     <div className="my-px flex items-center justify-center border bg-slate-100">
       <div className="m-2 flex h-8 w-8 shrink-0  justify-center text-white">
@@ -186,7 +193,9 @@ const Invitation = ({
           />
           <RefuseIcon
             className="mx-2 w-8 border border-slate-300 bg-slate-200 hover:cursor-pointer hover:bg-slate-300"
-            // onClick={() => {}}
+            onClick={() => {
+              refuse.mutate({ userId });
+            }}
           />
         </div>
       </div>
