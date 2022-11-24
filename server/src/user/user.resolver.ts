@@ -363,16 +363,16 @@ export class UserResolver {
     @CurrentUser() currentUserId: number,
     @Args("userId", { type: () => Int }) userId: number
   ) {
-    // const u = await this.prisma.user.findUnique({
-    //   select: { friendedBy: true, friends: true },
-    //   where: { id: currentUserId },
-    // });
-    // u?.friendedBy.some((us) => us.id === userId)
-    //   ? this.refuseInvitation(currentUserId, userId)
-    //   : "";
-    // u?.friends.some((us) => us.id === userId)
-    //   ? this.unfriendUser(currentUserId, userId)
-    //   : "";
+    const u = await this.prisma.user.findUnique({
+      select: { friendedBy: true, friends: true },
+      where: { id: currentUserId },
+    });
+    u?.friends.some((us) => us.id === userId)
+      ? this.unfriendUser(currentUserId, userId)
+      : "";
+    u?.friendedBy.some((us) => us.id === userId)
+      ? this.refuseInvitation(currentUserId, userId)
+      : "";
     await this.prisma.user.update({
       where: {
         id: currentUserId,
@@ -469,7 +469,8 @@ export class UserResolver {
     @CurrentUser() currentUserId: number,
     @Args("userId", { type: () => Int }) userId: number
   ) {
-    const u = await this.prisma.user.update({
+    console.log("test");
+    await this.prisma.user.update({
       where: {
         id: userId,
       },
@@ -477,7 +478,6 @@ export class UserResolver {
         friends: { disconnect: { id: currentUserId } },
       },
     });
-    console.log(u);
     return true;
   }
 }
