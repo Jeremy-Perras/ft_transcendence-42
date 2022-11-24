@@ -34,8 +34,6 @@ query UserChatsAndFriends {
       id
       name
       avatar
-      blocked
-      blocking
       friendStatus
     }
   }
