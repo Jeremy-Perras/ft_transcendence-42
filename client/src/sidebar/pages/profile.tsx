@@ -423,25 +423,16 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
     return data;
   };
   const currentUserData = CurrentUserData();
+  console.log(data);
   if (typeof currentUserData === "undefined") return <>Error</>;
 
   const blocked = data.user.blocked;
   const blocking = data.user.blocking;
 
   //TODO : change these booleans with the new back logic
-  const friend =
-    currentUserData?.user.friends.some(
-      (friend) => friend.id === data.user.id
-    ) && data?.user.friends.some((user) => user.id === currentUserData.user.id);
-  const pendingAccept =
-    !currentUserData?.user.friends.some(
-      (friend) => friend.id === data.user.id
-    ) && data?.user.friends.some((user) => user.id === currentUserData.user.id);
-  const pendingInvitation =
-    currentUserData?.user.friends.some(
-      (friend) => friend.id === data.user.id
-    ) &&
-    !data?.user.friends.some((user) => user.id === currentUserData.user.id);
+  const friend = data.user.friendStatus === "FRIEND";
+  const pendingAccept = data.user.friendStatus === "INVITATIONRECEVEID";
+  const pendingInvitation = data.user.friendStatus === "INVITATIONSEND";
 
   return (
     <div className="flex h-full w-full flex-col ">

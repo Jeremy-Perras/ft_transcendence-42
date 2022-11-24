@@ -31,7 +31,7 @@ query UserChatsAndFriends {
         id
       }
     }
-    friended {
+   pendingFriends{
       __typename
       id
       name

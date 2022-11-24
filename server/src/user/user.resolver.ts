@@ -7,6 +7,7 @@ import {
   ResolveField,
   Root,
   Mutation,
+  ObjectType,
 } from "@nestjs/graphql";
 import { Prisma } from "@prisma/client";
 import { GqlAuthenticatedGuard } from "../auth/authenticated.guard";
@@ -21,7 +22,13 @@ import {
   FriendGuard,
   SelfGuard,
 } from "./user.guards";
-import { DirectMessage, directMessageType, User, userType } from "./user.model";
+import {
+  DirectMessage,
+  directMessageType,
+  friendStatus,
+  User,
+  userType,
+} from "./user.model";
 
 @Resolver(User)
 @UseGuards(GqlAuthenticatedGuard)
@@ -85,75 +92,98 @@ export class UserResolver {
   }
 
   @ResolveField()
-  async friends(
+  async friendStatus(
     @CurrentUser() currentUserId: number,
     @Root() user: User
-  ): Promise<userType[]> {
+  ): Promise<friendStatus | undefined> {
+    if (currentUserId === user.id) {
+      return undefined;
+    }
     const u = await this.prisma.user.findUnique({
-      select:
-        currentUserId === user.id
-          ? { friends: true }
-          : {
-              friends: {
-                where: {
-                  id: currentUserId,
-                },
-              },
-            },
+      select: {
+        friendedBy: {
+          where: {
+            id: currentUserId,
+          },
+        },
+        friends: {
+          where: {
+            id: currentUserId,
+          },
+        },
+      },
       where: {
         id: user.id,
       },
     });
-    return u
-      ? u.friends.map((user) => ({
-          id: user.id,
-          name: user.name,
-          avatar: user.avatar,
-          rank: user.rank,
-        }))
-      : [];
+
+    if (
+      u?.friendedBy &&
+      u.friendedBy.length > 0 &&
+      u.friends &&
+      u.friends.length > 0
+    ) {
+      return friendStatus.FRIEND;
+    }
+    if (u?.friendedBy && u.friendedBy.length > 0) {
+      return friendStatus.INVITATIONSEND;
+    }
+    if (u?.friends && u.friends.length > 0) {
+      return friendStatus.INVITATIONRECEVEID;
+    }
+    return friendStatus.NOTFRIEND;
   }
 
-  // @ResolveField()
-  // async status(@CurrentUser() currentUserId: number, @Root() user: User) {
-  //   const u = await this.prisma.user.findUnique({
-  //     select: { friendedBy: true, friends: true },
-  //     where: {
-  //       id: user.id,
-  //     },
-  //   });
-
-  //   return;
-  // }
-
   @ResolveField()
-  async friended(
+  async friends(
     @CurrentUser() currentUserId: number,
     @Root() user: User
   ): Promise<userType[]> {
-    const u = await this.prisma.user.findUnique({
-      select:
-        currentUserId === user.id
-          ? { friendedBy: true }
-          : {
-              friendedBy: {
-                where: {
-                  id: currentUserId,
-                },
-              },
-            },
-      where: {
-        id: currentUserId,
-      },
-    });
-    return u
-      ? u.friendedBy.map((us) => ({
-          id: us.id,
-          name: us.name,
-          avatar: us.avatar,
-          rank: us.rank,
-        }))
-      : [];
+    if (currentUserId === user.id) {
+      const u = await this.prisma.user.findUnique({
+        select: {
+          friendedBy: {
+            where: { friendedBy: { some: { id: currentUserId } } },
+          },
+        },
+        where: { id: user.id },
+      });
+      return u
+        ? u.friendedBy.map((us) => ({
+            id: us.id,
+            name: us.name,
+            avatar: us.avatar,
+            rank: us.rank,
+          }))
+        : [];
+    }
+    return [];
+  }
+
+  @ResolveField()
+  async pendingFriends(
+    @CurrentUser() currentUserId: number,
+    @Root() user: User
+  ): Promise<userType[]> {
+    if (currentUserId === user.id) {
+      const u = await this.prisma.user.findUnique({
+        select: {
+          friendedBy: {
+            where: { friendedBy: { none: { id: currentUserId } } },
+          },
+        },
+        where: { id: user.id },
+      });
+      return u
+        ? u.friendedBy.map((us) => ({
+            id: us.id,
+            name: us.name,
+            avatar: us.avatar,
+            rank: us.rank,
+          }))
+        : [];
+    }
+    return [];
   }
 
   @ResolveField()

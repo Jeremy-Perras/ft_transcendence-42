@@ -8,8 +8,7 @@ datasource db {
 }
 
 model User {
-  id Int @id @unique
-
+  id          Int     @id @unique
   name        String
   avatar      String
   twoFASecret String?

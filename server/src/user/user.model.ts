@@ -1,9 +1,14 @@
 import "reflect-metadata";
-import { Field, Int, IntersectionType, ObjectType } from "@nestjs/graphql";
+import {
+  Field,
+  Int,
+  IntersectionType,
+  ObjectType,
+  registerEnumType,
+} from "@nestjs/graphql";
 import { IsNotEmpty, Min } from "class-validator";
 import { Channel } from "../channel/channel.model";
 import { Game } from "../game/game.model";
-
 export type userType = Omit<
   User,
   | "friends"
@@ -12,17 +17,22 @@ export type userType = Omit<
   | "messages"
   | "channels"
   | "games"
-  | "friended"
   | "status"
+  | "pendingFriends"
 >;
-
+import "reflect-metadata";
 export type directMessageType = Omit<DirectMessage, "author" | "recipient">;
-enum status {
-  notfriend,
-  invitationreceived,
-  invatationsend,
-  friend,
+
+export enum friendStatus {
+  NOTFRIEND,
+  INVITATIONRECEVEID,
+  INVITATIONSEND,
+  FRIEND,
 }
+
+registerEnumType(friendStatus, {
+  name: "friendStatus",
+});
 @ObjectType()
 export class User {
   @Field((type) => Int)
@@ -43,6 +53,9 @@ export class User {
   @Field((type) => [User])
   friends: [User | undefined];
 
+  @Field((type) => [User])
+  pendingFriends: [User | undefined];
+
   @Field((type) => [Game])
   games: [Game | undefined];
 
@@ -55,11 +68,8 @@ export class User {
   @Field((type) => [Channel])
   channels: [Channel | undefined];
 
-  @Field((type) => [User])
-  friended: [User | undefined];
-
-  // @Field((type) => status)
-  // status: status;
+  @Field((type) => friendStatus, { nullable: true })
+  friendStatus?: friendStatus;
 
   @Field((type) => [DirectMessage])
   messages: [DirectMessage | undefined];
