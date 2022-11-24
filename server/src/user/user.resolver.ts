@@ -16,12 +16,17 @@ import { gameType } from "../game/game.model";
 import { PrismaService } from "../prisma/prisma.service";
 import {
   BlockGuard,
-  ExistingMessageGuard,
   ExistingUserGuard,
   FriendGuard,
   SelfGuard,
 } from "./user.guards";
-import { DirectMessage, directMessageType, User, userType } from "./user.model";
+import {
+  DirectMessage,
+  directMessageType,
+  User,
+  userType,
+  Achievement,
+} from "./user.model";
 
 @Resolver(User)
 @UseGuards(GqlAuthenticatedGuard)
@@ -112,6 +117,15 @@ export class UserResolver {
           rank: user.rank,
         }))
       : [];
+  }
+
+  @ResolveField()
+  async achievements(@Root() user: User): Promise<Achievement[]> {
+    const achievements = await this.prisma.achievement.findMany({
+      select: { icon: true, name: true },
+      where: { userId: user.id },
+    });
+    return achievements;
   }
 
   // @ResolveField()

@@ -36,5 +36,9 @@ query UserProfile($userId: Int) {
       id
       name
     }
+    achievements {
+      name
+      icon
+    }
   }
 }

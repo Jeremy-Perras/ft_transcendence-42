@@ -38,6 +38,18 @@ async function main() {
         name: faker.name.fullName(),
         avatar: `${i}.jpg`,
         rank: Math.floor(Math.random() * 100),
+        achievements: {
+          create: [
+            {
+              icon: "/achievements/LooseMedal.svg",
+              name: "Ten defeats serie",
+            },
+            {
+              icon: "/achievements/FirstVictory.svg",
+              name: "One victory",
+            },
+          ],
+        },
       },
     });
   }

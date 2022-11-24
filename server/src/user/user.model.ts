@@ -1,5 +1,11 @@
 import "reflect-metadata";
-import { Field, Int, IntersectionType, ObjectType } from "@nestjs/graphql";
+import {
+  Field,
+  FileSystemHelper,
+  Int,
+  IntersectionType,
+  ObjectType,
+} from "@nestjs/graphql";
 import { IsNotEmpty, Min } from "class-validator";
 import { Channel } from "../channel/channel.model";
 import { Game } from "../game/game.model";
@@ -14,6 +20,7 @@ export type userType = Omit<
   | "games"
   | "friended"
   | "status"
+  | "achievements"
 >;
 
 export type directMessageType = Omit<DirectMessage, "author" | "recipient">;
@@ -23,6 +30,7 @@ enum status {
   invatationsend,
   friend,
 }
+
 @ObjectType()
 export class User {
   @Field((type) => Int)
@@ -46,6 +54,9 @@ export class User {
   @Field((type) => [Game])
   games: [Game | undefined];
 
+  @Field((type) => [Achievement])
+  achievements: [Achievement | undefined];
+
   @Field((type) => Boolean)
   blocked: boolean;
 
@@ -65,6 +76,16 @@ export class User {
   messages: [DirectMessage | undefined];
 }
 
+@ObjectType()
+export class Achievement {
+  @Field((type) => String)
+  @IsNotEmpty()
+  name: string;
+
+  @Field((type) => String)
+  @IsNotEmpty()
+  icon: string;
+}
 @ObjectType()
 export class DirectMessage {
   @Field((type) => Int)
