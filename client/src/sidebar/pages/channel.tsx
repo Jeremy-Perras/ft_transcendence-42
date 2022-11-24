@@ -253,7 +253,7 @@ const AccessProtected = ({
         <form
           onSubmit={handleSubmit(() => {
             //TODO : checkpassword here
-            watch("Password")
+            watch("Password") // NON !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!=> JP
               ? (setAuth(true),
                 (document.cookie = `userId=${userId}, channelId=${channelId}`))
               : setAuth(false);

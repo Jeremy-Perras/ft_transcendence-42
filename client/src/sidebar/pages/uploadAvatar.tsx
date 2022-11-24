@@ -20,8 +20,9 @@ export default function FileUploadPage({
   const changeHandler = (event: any) => {
     setSelectedFile(event);
   };
+  //TODO: seems broken
   return (
-    <div className={"absolute flex h-full w-full flex-col"}>
+    <div className={"absolute z-20 flex h-full w-full flex-col"}>
       <div className="flex h-36 w-full text-base ">
         <div
           className=" basis-1/5 bg-black bg-opacity-40"
@@ -30,7 +31,7 @@ export default function FileUploadPage({
 
         <div className="relative flex w-full grow items-center justify-evenly text-clip border bg-slate-50 p-4 shadow-md shadow-slate-800">
           <CloseIcon
-            className="absolute right-1 top-1 h-7 w-7 hover:cursor-pointer"
+            className="absolute right-0 top-0 h-4 w-4 hover:cursor-pointer"
             onClick={() => setIsOpen(false)}
           />
           <input
@@ -60,6 +61,7 @@ export default function FileUploadPage({
             className="flex shrink-0 rounded-sm border border-neutral-500 bg-neutral-100 py-1 px-2 hover:bg-slate-200"
           >
             Submit
+            {/* //TODO : error if file empty */}
           </button>
         </div>
         <div

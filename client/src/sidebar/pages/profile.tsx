@@ -40,7 +40,6 @@ import {
 } from "../components/header";
 import { RankIcon } from "../utils/rankIcon";
 import BannedDarkIcon from "/src/assets/images/Banned_dark.svg";
-import { friendStatus } from "../../../../server/src/user/user.model";
 
 const query = (
   userId: number
@@ -140,7 +139,7 @@ const UserProfileHeader = ({
     );
   }
   return (
-    <div className="flex flex-col">
+    <div className="relative flex flex-col">
       <div className="flex w-full items-center">
         <div className="relative my-2 ml-3 mr-2 flex shrink-0">
           {typeof data?.user.avatar !== undefined &&
