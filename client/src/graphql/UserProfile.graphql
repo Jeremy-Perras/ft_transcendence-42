@@ -36,6 +36,6 @@ query UserProfile($userId: Int) {
       name
       icon
     }
-   friendStatus
+    friendStatus
   }
 }

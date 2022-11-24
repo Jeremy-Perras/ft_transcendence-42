@@ -475,7 +475,7 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
 
   //TODO : change these booleans with the new back logic
   const friend = data.user.friendStatus === "FRIEND";
-  const pendingAccept = data.user.friendStatus === "INVITATIONRECEVEID";
+  const pendingAccept = data.user.friendStatus === "INVITATIONRECEIVED";
   const pendingInvitation = data.user.friendStatus === "INVITATIONSEND";
 
   return (

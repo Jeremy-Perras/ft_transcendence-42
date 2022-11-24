@@ -26,7 +26,7 @@ export type directMessageType = Omit<DirectMessage, "author" | "recipient">;
 
 export enum friendStatus {
   NOTFRIEND,
-  INVITATIONRECEVEID,
+  INVITATIONRECEIVED,
   INVITATIONSEND,
   FRIEND,
 }
