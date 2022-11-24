@@ -27,16 +27,16 @@ query UserChatsAndFriends {
         sentAt
         readAt
       }
-      friends {
-        id
-      }
+      friendStatus
     }
-   pendingFriends{
+    pendingFriends {
       __typename
       id
       name
       avatar
+      blocked
+      blocking
+      friendStatus
     }
   }
 }
-# TODO: modify the query with status

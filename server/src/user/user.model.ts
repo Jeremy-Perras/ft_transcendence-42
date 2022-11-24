@@ -18,6 +18,7 @@ export type userType = Omit<
   | "channels"
   | "games"
   | "status"
+  | "achievements"
   | "pendingFriends"
 >;
 import "reflect-metadata";
@@ -25,7 +26,7 @@ export type directMessageType = Omit<DirectMessage, "author" | "recipient">;
 
 export enum friendStatus {
   NOTFRIEND,
-  INVITATIONRECEVEID,
+  INVITATIONRECEIVED,
   INVITATIONSEND,
   FRIEND,
 }
@@ -59,6 +60,9 @@ export class User {
   @Field((type) => [Game])
   games: [Game | undefined];
 
+  @Field((type) => [Achievement])
+  achievements: [Achievement | undefined];
+
   @Field((type) => Boolean)
   blocked: boolean;
 
@@ -75,6 +79,16 @@ export class User {
   messages: [DirectMessage | undefined];
 }
 
+@ObjectType()
+export class Achievement {
+  @Field((type) => String)
+  @IsNotEmpty()
+  name: string;
+
+  @Field((type) => String)
+  @IsNotEmpty()
+  icon: string;
+}
 @ObjectType()
 export class DirectMessage {
   @Field((type) => Int)

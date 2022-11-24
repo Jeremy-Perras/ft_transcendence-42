@@ -18,14 +18,7 @@ import ClassicIcon from "/src/assets/images/ClassicIcon.svg";
 import BonusIcon from "/src/assets/images/BonusIcon.svg";
 import FireIcon from "/src/assets/images/FireIcon.svg";
 
-import OneVictoryIcon from "/src/assets/images/achievements/FirstVictory.svg";
-import TenVictoryIcon from "/src/assets/images/achievements/10Victories.svg";
-import TwentyFiveVictoryIcon from "/src/assets/images/achievements/25Victories.svg";
-import HundredVictoryIcon from "/src/assets/images/achievements/100Victories.svg";
-import HundredGamesIcon from "/src/assets/images/achievements/100Games.svg";
-import LooseIcon from "/src/assets/images/achievements/LooseMedal.svg";
-import WinIcon from "/src/assets/images/achievements/WinMedal.svg";
-import MultiModeIcon from "/src/assets/images/achievements/MultiMode.svg";
+import UnachievedIcon from "/achievements/Unachieved.svg";
 
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { ReactComponent as AddAvatarIcon } from "pixelarticons/svg/cloud-upload.svg";
@@ -63,6 +56,40 @@ export const profileLoader = async (
   }
 };
 
+const Achievement = ({
+  icon,
+  name,
+  achieved,
+}: {
+  icon: string;
+  name: string;
+  achieved: boolean;
+}) => {
+  const [showName, setShowName] = useState(false);
+  return (
+    <div className="">
+      <img
+        src={icon}
+        alt={`Achievement: ${name}`}
+        className={`${
+          achieved ? "opacity-100" : "opacity-10"
+        } mx-1 py-1 opacity-100`}
+        onMouseOver={() => setShowName(true)}
+        onMouseOut={() => setShowName(false)}
+      />
+      <div
+        className={`${
+          showName ? "opacity-100" : "opacity-0"
+        } absolute left-0 -bottom-4 w-36 text-center text-xs ${
+          achieved ? "text-slate-600" : "text-slate-200"
+        }`}
+      >
+        {name}
+      </div>
+    </div>
+  );
+};
+
 const UserProfileHeader = ({
   data,
   currentUserId,
@@ -71,18 +98,42 @@ const UserProfileHeader = ({
   currentUserId: number | undefined;
 }) => {
   const [showChangeAvatar, setShowChangeAvatar] = useState(false);
+
   const numberOfGames = data?.user.games.length;
   const victories = data?.user.games.filter((game) => {
     if (
-      (game.players.player1.id === data?.user.id &&
+      (game.players.player1.id === data.user.id &&
         game.score.player1Score > game.score.player2Score) ||
-      (game.players.player2?.id === data?.user.id &&
+      (game.players.player2?.id === data.user.id &&
         game.score.player2Score > game.score.player1Score)
     )
       return true;
     else return false;
   }).length;
   const victoryRate = Math.floor((100 * victories) / numberOfGames);
+  const unachievedFirstRow = [];
+  for (let i = 0; i < 4 - data.user.achievements.length; i++) {
+    unachievedFirstRow.push(
+      <Achievement
+        key={i}
+        icon={UnachievedIcon}
+        name={"Unachieved"}
+        achieved={false}
+      />
+    );
+  }
+  const unachievedSecondRow = [];
+  for (let i = 0; i < 8 - data.user.achievements.length; i++) {
+    if (i >= 4) break;
+    unachievedSecondRow.push(
+      <Achievement
+        key={i}
+        icon={UnachievedIcon}
+        name={"Unachieved"}
+        achieved={false}
+      />
+    );
+  }
   return (
     <div className="flex flex-col">
       <div className="flex w-full items-center">
@@ -111,72 +162,37 @@ const UserProfileHeader = ({
           <div>Victories : {victories} </div>
           <div>Victory rate : {numberOfGames ? `${victoryRate} %` : "-"}</div>
         </div>
-        {/* TODO : put here achievements  :
- finish set achievement opacity depending on data
-        */}
-        <div className="mr-2 flex shrink-0 flex-col justify-end pt-2 ">
+        <div className="relative mr-2 flex shrink-0 flex-col justify-end pt-1 ">
           <div className="flex">
-            <img
-              src={OneVictoryIcon}
-              className={`${
-                victories >= 1 ? "opacity-100" : "opacity-10"
-              } mx-1 py-1 opacity-100`}
-            />
-            <img
-              src={TenVictoryIcon}
-              className={`${
-                victories >= 10 ? "opacity-100" : "opacity-10"
-              } mx-1 py-1 opacity-100`}
-            />
-            <img
-              src={TwentyFiveVictoryIcon}
-              className={`${
-                victories >= 25 ? "opacity-100" : "opacity-10"
-              } mx-1 py-1 opacity-100`}
-            />
-            <img
-              src={HundredVictoryIcon}
-              className={`${
-                victories >= 100 ? "opacity-100" : "opacity-10"
-              } mx-1 py-1 opacity-100`}
-            />
+            {data.user.achievements.slice(0, 4).map((a, key) => (
+              <Achievement
+                key={key}
+                icon={a.icon}
+                name={a.name}
+                achieved={true}
+              />
+            ))}
+            {unachievedFirstRow}
           </div>
           <div className="flex">
-            <img
-              src={MultiModeIcon}
-              className={`${
-                //TODO
-                victories >= 1 ? "opacity-100" : "opacity-10"
-              } mx-1 py-1 opacity-100`}
-            />
-            <img
-              src={WinIcon}
-              className={`${
-                //TODO
-                victories >= 1 ? "opacity-100" : "opacity-10"
-              } mx-1 py-1 opacity-100`}
-            />
-            <img
-              src={LooseIcon}
-              className={`${
-                //TODO
-                victories >= 1 ? "opacity-100" : "opacity-10"
-              } mx-1 py-1 opacity-100`}
-            />
-            <img
-              src={HundredGamesIcon}
-              className={`${
-                numberOfGames >= 100 ? "opacity-100" : "opacity-10"
-              } mx-1 py-1 opacity-100`}
-            />
+            {data.user.achievements.slice(4, 8).map((a, key) => (
+              <Achievement
+                key={key}
+                icon={a.icon}
+                name={a.name}
+                achieved={true}
+              />
+            ))}
+            {unachievedSecondRow}
           </div>
         </div>
+
+        {data.user.id === currentUserId && showChangeAvatar ? (
+          <FileUploadPage setIsOpen={setShowChangeAvatar} />
+        ) : (
+          <></>
+        )}
       </div>
-      {data.user.id === currentUserId && showChangeAvatar ? (
-        <FileUploadPage setIsOpen={setShowChangeAvatar} />
-      ) : (
-        <></>
-      )}
     </div>
   );
 };
@@ -431,7 +447,7 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
 
   //TODO : change these booleans with the new back logic
   const friend = data.user.friendStatus === "FRIEND";
-  const pendingAccept = data.user.friendStatus === "INVITATIONRECEVEID";
+  const pendingAccept = data.user.friendStatus === "INVITATIONRECEIVED";
   const pendingInvitation = data.user.friendStatus === "INVITATIONSEND";
 
   return (

@@ -35,8 +35,19 @@ model User {
   gamesAsPlayer1 Game[] @relation("GamePlayer1")
   gamesAsPlayer2 Game[] @relation("GamePlayer2")
 
+  achievements Achievement[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Achievement {
+  name   String
+  icon   String
+  User   User?  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
+
+  @@id([userId, name])
 }
 
 model DirectMessage {

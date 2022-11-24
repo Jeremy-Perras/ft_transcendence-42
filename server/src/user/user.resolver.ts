@@ -17,7 +17,6 @@ import { gameType } from "../game/game.model";
 import { PrismaService } from "../prisma/prisma.service";
 import {
   BlockGuard,
-  ExistingMessageGuard,
   ExistingUserGuard,
   FriendGuard,
   SelfGuard,
@@ -25,6 +24,7 @@ import {
 import {
   DirectMessage,
   directMessageType,
+  Achievement,
   friendStatus,
   User,
   userType,
@@ -116,7 +116,6 @@ export class UserResolver {
         id: user.id,
       },
     });
-
     if (
       u?.friendedBy &&
       u.friendedBy.length > 0 &&
@@ -129,9 +128,18 @@ export class UserResolver {
       return friendStatus.INVITATIONSEND;
     }
     if (u?.friends && u.friends.length > 0) {
-      return friendStatus.INVITATIONRECEVEID;
+      return friendStatus.INVITATIONRECEIVED;
     }
     return friendStatus.NOTFRIEND;
+  }
+
+  @ResolveField()
+  async achievements(@Root() user: User): Promise<Achievement[]> {
+    const achievements = await this.prisma.achievement.findMany({
+      select: { icon: true, name: true },
+      where: { userId: user.id },
+    });
+    return achievements;
   }
 
   @ResolveField()
@@ -496,8 +504,6 @@ export class DirectMessageResolver {
     return true;
   }
 
-  //TODO: this guard breaks everything
-  // @UseGuards(ExistingMessageGuard)
   @Mutation((returns) => Boolean)
   async readDirectMessage(
     @Args("messageId", { type: () => Int }) messageId: number
