@@ -50,6 +50,7 @@ type ChannelMessage = {
 };
 
 type ChannelQuery = {
+  userId: number;
   name: string;
   messages: ChannelMessage[];
   owner: { id: number; name: string; avatar: string };
@@ -68,9 +69,16 @@ const query = (
   channelId: number
 ): UseQueryOptions<ChannelDiscussionQuery, unknown, ChannelQuery> => {
   return {
-    queryKey: useChannelDiscussionQuery.getKey({ channelId: channelId }),
-    queryFn: useChannelDiscussionQuery.fetcher({ channelId: channelId }),
+    queryKey: useChannelDiscussionQuery.getKey({
+      channelId: channelId,
+      userId: null,
+    }),
+    queryFn: useChannelDiscussionQuery.fetcher({
+      channelId: channelId,
+      userId: null,
+    }),
     select: (channels) => ({
+      userId: channels.user.id,
       name: channels.channel.name,
       messages: channels.channel.messages,
       owner: {
@@ -219,19 +227,15 @@ const AccessForbidden = ({
 };
 
 const AccessProtected = ({
-  userId,
   channelId,
   ownerId,
   ownerName,
   ownerAvatar,
-  setAuth,
 }: {
-  userId: number;
   channelId: number;
   ownerId: number;
   ownerName: string;
   ownerAvatar: string;
-  setAuth: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   const {
     register,
@@ -408,21 +412,9 @@ const DisplayMessage = ({
   );
 };
 
-const getuserId = () => {
-  const { data } = useUserProfileQuery(
-    {},
-    {
-      select(data) {
-        const res = data.user.id;
-        return res;
-      },
-    }
-  );
-  return data;
-};
 export default function Channel() {
   const params = useParams();
-  const userId = getuserId();
+
   if (typeof params.channelId === "undefined") return <div></div>;
   const channelId = +params.channelId;
 
@@ -452,15 +444,15 @@ export default function Channel() {
     },
   });
   const [auth, setAuth] = useState(false);
-  const banned = data?.banned.some((u) => u.id === userId);
-  const muted = data?.muted.some((u) => u.id === userId);
+  const banned = data?.banned.some((u) => u.id === data.userId);
+  const muted = data?.muted.some((u) => u.id === data.userId);
 
   const settingsLinkAuthorized =
     banned ||
     (data?.password && !auth) ||
     (data?.private &&
-      !data.adminIds.some((admin) => admin.id === userId) &&
-      !data.memberIds.some((member) => member.id === userId));
+      !data.adminIds.some((admin) => admin.id === data.userId) &&
+      !data.memberIds.some((member) => member.id === data.userId));
 
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
   const scrollToBottom = () => {
@@ -469,7 +461,6 @@ export default function Channel() {
   useEffect(() => {
     scrollToBottom();
   }, [data?.messages]);
-
   return (
     <>
       <Header>
@@ -500,15 +491,15 @@ export default function Channel() {
       {banned ? (
         <Banned />
       ) : data?.private &&
-        !data.adminIds.some((admin) => admin.id === userId) &&
-        !data.memberIds.some((member) => member.id === userId) ? (
+        !data.adminIds.some((admin) => admin.id === data.userId) &&
+        !data.memberIds.some((member) => member.id === data.userId) ? (
         <AccessForbidden
           ownerId={data?.owner.id}
           ownerAvatar={data.owner.avatar}
           ownerName={data.owner.name}
         />
-      ) : data?.memberIds.some((user) => user.id === userId) ||
-        data?.owner.id === userId ? (
+      ) : data?.memberIds.some((user) => user.id === data.userId) ||
+        data?.owner.id === data?.userId ? (
         <DisplayMessage
           banned={banned}
           channelId={+channelId}
@@ -517,16 +508,14 @@ export default function Channel() {
         />
       ) : data?.password && !auth ? (
         <AccessProtected
-          userId={userId}
           channelId={+channelId}
           ownerId={data?.owner.id}
           ownerAvatar={data.owner.avatar}
           ownerName={data.owner.name}
-          setAuth={setAuth}
         />
       ) : data?.private ? (
-        data?.memberIds.some((user) => user.id === userId) ||
-        data?.owner.id === userId ? (
+        data?.memberIds.some((user) => user.id === data.userId) ||
+        data?.owner.id === data.userId ? (
           <DisplayMessage
             banned={banned}
             channelId={+channelId}
@@ -540,6 +529,14 @@ export default function Channel() {
             ownerName={data.owner.name}
           />
         )
+      ) : data?.memberIds.some((user) => user.id === data.userId) ||
+        data?.owner.id === data?.userId ? (
+        <DisplayMessage
+          banned={banned}
+          channelId={+channelId}
+          messages={data?.messages}
+          muted={muted}
+        />
       ) : (
         joinChannel.mutate({ channelId: +channelId })
       )}
