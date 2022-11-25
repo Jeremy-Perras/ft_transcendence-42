@@ -557,7 +557,6 @@ export class DirectMessageResolver {
     @Args("messageId", { type: () => Int }) messageId: number
   ) {
     const message = await this.prisma.directMessage.findUnique({
-      select: { id: true },
       where: { id: messageId },
     });
     if (!message) {

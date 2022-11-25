@@ -819,7 +819,8 @@ const ChannelMode = ({
       onSubmit={handleSubmit((data) => {
         showPasswordField
           ? updatePassword.mutate({
-              channelId,
+              channelId: channelId,
+              password: data.password,
             })
           : null;
       })}
@@ -840,7 +841,12 @@ const ChannelMode = ({
             </button>
             {activeMode === "Password" && (
               <button
-                onClick={() => console.log("remove pwd")}
+                onClick={() =>
+                  updatePassword.mutate({
+                    channelId: channelId,
+                    password: null,
+                  })
+                }
                 className="h-6 basis-1/2 border-2  border-slate-200 bg-slate-100 text-xs hover:cursor-pointer hover:bg-slate-200"
               >
                 Remove Password

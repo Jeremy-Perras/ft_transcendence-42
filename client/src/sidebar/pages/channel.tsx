@@ -8,6 +8,7 @@ import {
 import {
   ChannelDiscussionQuery,
   useChannelDiscussionQuery,
+  useCreateChannelMessageReadMutation,
   useJoinChannelMutation,
   useSendChannelMessageMutation,
   useUserProfileQuery,
@@ -245,7 +246,7 @@ const AccessProtected = ({
   const queryClient = useQueryClient();
   const joinChannel = useJoinChannelMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries();
+      queryClient.invalidateQueries(useUserProfileQuery.getKey());
     },
   });
   const navigate = useNavigate();
@@ -429,13 +430,13 @@ export default function Channel() {
   // TODO:broken - data undefined
 
   //TODO : does not work
-  // const createChannelMessageRead = useCreateChannelMessageReadMutation({
-  //   onSuccess: () => {
-  //     queryClient.invalidateQueries(
-  //       useChannelDiscussionQuery.getKey({ channelId: +channelId })
-  //     );
-  //   },
-  // });
+  const createChannelMessageRead = useCreateChannelMessageReadMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries(
+        useChannelDiscussionQuery.getKey({ channelId: +channelId })
+      );
+    },
+  });
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const joinChannel = useJoinChannelMutation({
@@ -443,13 +444,12 @@ export default function Channel() {
       queryClient.invalidateQueries(useUserProfileQuery.getKey());
     },
   });
-  const [auth, setAuth] = useState(false);
   const banned = data?.banned.some((u) => u.id === data.userId);
   const muted = data?.muted.some((u) => u.id === data.userId);
 
   const settingsLinkAuthorized =
     banned ||
-    (data?.password && !auth) ||
+    data?.password ||
     (data?.private &&
       !data.adminIds.some((admin) => admin.id === data.userId) &&
       !data.memberIds.some((member) => member.id === data.userId));
@@ -506,7 +506,7 @@ export default function Channel() {
           messages={data?.messages}
           muted={muted}
         />
-      ) : data?.password && !auth ? (
+      ) : data?.password ? (
         <AccessProtected
           channelId={+channelId}
           ownerId={data?.owner.id}
