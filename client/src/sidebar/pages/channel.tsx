@@ -11,7 +11,6 @@ import {
   useCreateChannelMessageReadMutation,
   useJoinChannelMutation,
   useSendChannelMessageMutation,
-  useUserProfileQuery,
 } from "../../graphql/generated";
 
 import { ReactComponent as ForbiddenIcon } from "pixelarticons/svg/close-box.svg";
@@ -243,12 +242,18 @@ const AccessProtected = ({
     formState: { errors },
     handleSubmit,
   } = useForm<formData>();
+
+  const [showPwdError, setShowPwdError] = useState(false);
   const queryClient = useQueryClient();
   const joinChannel = useJoinChannelMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries(useUserProfileQuery.getKey());
+      queryClient.invalidateQueries(
+        useChannelDiscussionQuery.getKey({ channelId: channelId })
+      );
     },
+    onError: () => setShowPwdError(true),
   });
+
   const navigate = useNavigate();
   return (
     <div className="flex h-full w-full flex-col items-center justify-center pb-60">
@@ -279,16 +284,20 @@ const AccessProtected = ({
                 type="Password"
                 autoComplete="off"
                 defaultValue=""
-                className="my-4 h-10 w-64 self-center px-1 text-xl "
+                className="mt-4 h-10 w-64 self-center px-1 text-xl "
               />
             </div>
           </div>
-          <span className="flex items-center justify-center text-center">
-            {errors.password && (
+          <span className="flex h-8 items-center justify-center text-center text-base">
+            {errors.password ? (
               <p className=" text-red-300 before:content-['⚠']">
-                Password entered is incorrect
+                Password cannot be empty
               </p>
-            )}
+            ) : showPwdError ? (
+              <p className=" text-red-300 before:content-['⚠']">
+                Wrong password
+              </p>
+            ) : null}
           </span>
           <input
             className="mt-4 flex justify-center self-center border-2 border-slate-300 bg-slate-200 px-6 py-3 text-center text-xl font-bold hover:cursor-pointer hover:bg-slate-300"
