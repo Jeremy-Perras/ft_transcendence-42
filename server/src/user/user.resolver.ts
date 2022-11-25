@@ -556,12 +556,20 @@ export class DirectMessageResolver {
   async readDirectMessage(
     @Args("messageId", { type: () => Int }) messageId: number
   ) {
+    const message = await this.prisma.directMessage.findUnique({
+      select: { id: true },
+      where: { id: messageId },
+    });
+    if (!message) {
+      throw new NotFoundException("Message not found");
+    }
     await this.prisma.directMessage.update({
       where: { id: messageId },
       data: {
         readAt: new Date(),
       },
     });
+
     return true;
   }
 }
