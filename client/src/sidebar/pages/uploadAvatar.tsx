@@ -1,6 +1,9 @@
 import { focusManager } from "@tanstack/react-query";
 import React, { useEffect, useState } from "react";
-import { useUserProfileQuery } from "../../graphql/generated";
+import {
+  useUserProfileHeaderQuery,
+  useUserProfileQuery,
+} from "../../graphql/generated";
 import queryClient from "../../query";
 import { ReactComponent as CloseIcon } from "pixelarticons/svg/close.svg";
 
@@ -17,7 +20,6 @@ export default function FileUploadPage({
   }, []);
 
   //TODO : remove any
-  //TODO : BROKEN => set the path ?
   const changeHandler = (event: any) => {
     setSelectedFile(event);
   };
@@ -50,11 +52,14 @@ export default function FileUploadPage({
               if (selectedFile != null) {
                 const formData = new FormData();
                 formData.append("file", selectedFile);
-                fetch("/file/upload", {
+                fetch("/upload/avatar/", {
                   method: "POST",
                   body: formData,
                 }).then(() => {
                   queryClient.invalidateQueries(useUserProfileQuery.getKey());
+                  queryClient.invalidateQueries(
+                    useUserProfileHeaderQuery.getKey()
+                  );
                 });
               }
               setIsOpen(false);

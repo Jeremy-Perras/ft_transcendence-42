@@ -49,6 +49,19 @@ type ChannelMessage = {
   sentAt: number;
 };
 
+type ChannelDisplayMessage = {
+  userId: number;
+  channelId: number;
+  id: number;
+  author: User;
+  readBy: {
+    __typename?: "ChannelMessageRead" | undefined;
+    user: User;
+  }[];
+  content: string;
+  sentAt: number;
+};
+
 type ChannelQuery = {
   userId: number;
   name: string;
@@ -157,8 +170,28 @@ const ChannelMessage = ({
   readBy,
   content,
   sentAt,
-}: ChannelMessage) => {
+  userId,
+  channelId,
+  id,
+}: ChannelDisplayMessage) => {
   const navigate = useNavigate();
+  // TODO : update read messages does not work
+  const queryClient = useQueryClient();
+  const createChannelMessageRead = useCreateChannelMessageReadMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries(
+        useChannelDiscussionQuery.getKey({ channelId: +channelId })
+      );
+    },
+  });
+  useEffect(() => {
+    if (readBy.some((users) => users.user.id === userId) === false) {
+      console.log("test");
+      createChannelMessageRead.mutate({
+        messageId: id,
+      });
+    }
+  }, []);
 
   return (
     <>
@@ -384,11 +417,13 @@ const DisplayMessage = ({
   channelId,
   muted,
   banned,
+  userId,
 }: {
   messages: ChannelMessage[] | undefined;
   channelId: number;
   muted: boolean | undefined;
   banned: boolean | undefined;
+  userId: number;
 }) => {
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
   const scrollToBottom = () => {
@@ -409,7 +444,12 @@ const DisplayMessage = ({
           <></>
         )}
         {messages?.map((message, index) => (
-          <ChannelMessage key={index} {...message} />
+          <ChannelMessage
+            key={index}
+            userId={userId}
+            channelId={channelId}
+            {...message}
+          />
         ))}
         <div ref={messagesEndRef} />
       </div>
@@ -460,15 +500,6 @@ export default function Channel() {
     initialData,
   });
   if (typeof data === "undefined") return <div>Error</div>;
-
-  //TODO : update read messages does not work
-  // const createChannelMessageRead = useCreateChannelMessageReadMutation({
-  //   onSuccess: () => {
-  //     queryClient.invalidateQueries(
-  //       useChannelDiscussionQuery.getKey({ channelId: +channelId })
-  //     );
-  //   },
-  // });
 
   const navigate = useNavigate();
 
@@ -531,6 +562,7 @@ export default function Channel() {
             channelId={+channelId}
             messages={data?.messages}
             muted={muted}
+            userId={data.userId}
           />
         )
       ) : data.password ? (
@@ -549,6 +581,7 @@ export default function Channel() {
             channelId={+channelId}
             messages={data?.messages}
             muted={muted}
+            userId={data.userId}
           />
         )
       ) : !data.adminIds.some((admin) => admin.id === data.userId) &&
@@ -561,6 +594,7 @@ export default function Channel() {
           channelId={+channelId}
           messages={data?.messages}
           muted={muted}
+          userId={data.userId}
         />
       )}
     </>

@@ -853,14 +853,14 @@ export class ChannelMessageReadResolver {
     if (!message) {
       throw new NotFoundException("Message not found");
     }
-
-    await this.prisma.channelMessageRead.create({
-      data: {
-        channelMessageId: messageId,
-        userId: currentUserId,
-        readAt: new Date(),
-      },
-    });
+    console.log(message);
+    // await this.prisma.channelMessageRead.create({
+    //   data: {
+    //     channelMessageId: messageId,
+    //     userId: currentUserId,
+    //     readAt: new Date(),
+    //   },
+    // });
     return true;
   }
 }
