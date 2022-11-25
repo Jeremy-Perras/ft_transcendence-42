@@ -331,9 +331,9 @@ const SendMessageElement = ({
   });
 
   return (
-    <div className="flex w-full border-t-2 bg-slate-50 p-2">
+    <div className="flex w-full bg-white px-[2px]">
       <textarea
-        autoFocus={false}
+        autoFocus={true}
         disabled={banned || muted}
         rows={2}
         className={`${
@@ -362,6 +362,49 @@ const SendMessageElement = ({
         }}
       />
     </div>
+  );
+};
+
+const DisplayMessage = ({
+  messages,
+  channelId,
+  muted,
+  banned,
+}: {
+  messages: ChannelMessage[] | undefined;
+  channelId: number;
+  muted: boolean | undefined;
+  banned: boolean | undefined;
+}) => {
+  const messagesEndRef = useRef<null | HTMLDivElement>(null);
+  const scrollToBottom = () => {
+    messagesEndRef?.current?.scrollIntoView({ behavior: "smooth" });
+  };
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+  return (
+    <>
+      <div className="mt-px flex w-full grow flex-col overflow-auto pr-2 pl-px">
+        {messages?.length === 0 ? (
+          <div className="mb-48 flex h-full flex-col items-center justify-center text-center text-slate-300">
+            <EmptyChatIcon className="w-96 text-slate-200" />
+            Seems a little bit too silent here... Send the first message !
+          </div>
+        ) : (
+          <></>
+        )}
+        {messages?.map((message, index) => (
+          <ChannelMessage key={index} {...message} />
+        ))}
+        <div ref={messagesEndRef} />
+      </div>
+      <SendMessageElement
+        channelId={+channelId}
+        muted={muted}
+        banned={banned}
+      />
+    </>
   );
 };
 
@@ -429,84 +472,77 @@ export default function Channel() {
 
   return (
     <>
-      <>
-        <Header>
-          <>
-            <HeaderLeftBtn>
-              <HeaderNavigateBack />
-            </HeaderLeftBtn>
-            <HeaderCenterContent>
-              <div
-                className={`${
-                  settingsLinkAuthorized ? "hover:cursor-pointer" : ""
-                } flex h-full items-center justify-center`}
-                onClick={() =>
-                  navigate(
-                    `${
-                      !settingsLinkAuthorized
-                        ? ""
-                        : "/settings/channel/${channelId}"
-                    }`
-                  )
-                }
-              >
-                <div>{data?.name}</div>
-              </div>
-            </HeaderCenterContent>
-          </>
-        </Header>
-        {banned ? (
-          <Banned />
-        ) : data?.private &&
-          !data.adminIds.some((admin) => admin.id === userId) &&
-          !data.memberIds.some((member) => member.id === userId) ? (
-          <AccessForbidden
-            ownerId={data?.owner.id}
-            ownerAvatar={data.owner.avatar}
-            ownerName={data.owner.name}
-          />
-        ) : data?.memberIds.some((user) => user.id === userId) ||
-          data?.owner.id === userId ? (
-          <div className="flex h-full flex-col bg-slate-100">
-            <div className="mt-px flex w-full grow flex-col overflow-auto pr-2 pl-px">
-              {data?.messages.length === 0 ? (
-                <div className="mb-48 flex h-full flex-col items-center justify-center text-center text-slate-300">
-                  <EmptyChatIcon className="w-96 text-slate-200" />
-                  Seems a little bit too silent here... Send the first message !
-                </div>
-              ) : (
-                <></>
-              )}
-              {data?.messages?.map((message, index) => (
-                <ChannelMessage key={index} {...message} />
-              ))}
-              <div ref={messagesEndRef} />
+      <Header>
+        <>
+          <HeaderLeftBtn>
+            <HeaderNavigateBack />
+          </HeaderLeftBtn>
+          <HeaderCenterContent>
+            <div
+              className={`${
+                settingsLinkAuthorized ? "hover:cursor-pointer" : ""
+              } flex h-full items-center justify-center`}
+              onClick={() =>
+                navigate(
+                  `${
+                    !settingsLinkAuthorized
+                      ? ""
+                      : "/settings/channel/${channelId}"
+                  }`
+                )
+              }
+            >
+              <div>{data?.name}</div>
             </div>
-            <SendMessageElement
-              channelId={+channelId}
-              muted={muted}
-              banned={banned}
-            />
-          </div>
-        ) : data?.password && !auth ? (
-          <AccessProtected
-            userId={userId}
+          </HeaderCenterContent>
+        </>
+      </Header>
+      {banned ? (
+        <Banned />
+      ) : data?.private &&
+        !data.adminIds.some((admin) => admin.id === userId) &&
+        !data.memberIds.some((member) => member.id === userId) ? (
+        <AccessForbidden
+          ownerId={data?.owner.id}
+          ownerAvatar={data.owner.avatar}
+          ownerName={data.owner.name}
+        />
+      ) : data?.memberIds.some((user) => user.id === userId) ||
+        data?.owner.id === userId ? (
+        <DisplayMessage
+          banned={banned}
+          channelId={+channelId}
+          messages={data?.messages}
+          muted={muted}
+        />
+      ) : data?.password && !auth ? (
+        <AccessProtected
+          userId={userId}
+          channelId={+channelId}
+          ownerId={data?.owner.id}
+          ownerAvatar={data.owner.avatar}
+          ownerName={data.owner.name}
+          setAuth={setAuth}
+        />
+      ) : data?.private ? (
+        data?.memberIds.some((user) => user.id === userId) ||
+        data?.owner.id === userId ? (
+          <DisplayMessage
+            banned={banned}
             channelId={+channelId}
-            ownerId={data?.owner.id}
-            ownerAvatar={data.owner.avatar}
-            ownerName={data.owner.name}
-            setAuth={setAuth}
-          />
-        ) : data?.private ? (
-          <AccessForbidden
-            ownerId={data?.owner.id}
-            ownerAvatar={data.owner.avatar}
-            ownerName={data.owner.name}
+            messages={data?.messages}
+            muted={muted}
           />
         ) : (
-          joinChannel.mutate({ channelId: +channelId })
-        )}
-      </>
+          <AccessForbidden
+            ownerId={data?.owner.id}
+            ownerAvatar={data.owner.avatar}
+            ownerName={data.owner.name}
+          />
+        )
+      ) : (
+        joinChannel.mutate({ channelId: +channelId })
+      )}
     </>
   );
 }
