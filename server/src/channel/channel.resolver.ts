@@ -643,6 +643,7 @@ export class ChannelResolver {
       where: { id: channelId },
       data: { password: hash },
     });
+    return true;
   }
 
   @UseGuards(ExistingChannelGuard)

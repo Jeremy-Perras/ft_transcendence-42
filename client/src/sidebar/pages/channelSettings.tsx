@@ -808,6 +808,7 @@ const ChannelMode = ({
         })
       );
     },
+    onError: () => alert("FAIL"), //JEREMY : CASSE
   });
 
   const [showPasswordField, setShowPasswordField] = useState(false);
