@@ -1,4 +1,4 @@
-query ChannelDiscussion($channelId: Int!) {
+query ChannelDiscussion($channelId: Int!, $userId: Int) {
   channel(id: $channelId) {
     banned {
       id
@@ -38,5 +38,8 @@ query ChannelDiscussion($channelId: Int!) {
         avatar
       }
     }
+    }
+     user(id: $userId) {
+    id
   }
 }
