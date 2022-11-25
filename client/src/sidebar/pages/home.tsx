@@ -124,7 +124,7 @@ const ChannelAndFriendBanner = ({
         <span
           className={`${
             newChatMessage
-              ? "animate-pulse text-base font-bold text-black"
+              ? "text-base font-bold text-black"
               : "text-sm text-slate-400"
           }  flex max-h-5 max-w-sm overflow-hidden text-clip `}
         >

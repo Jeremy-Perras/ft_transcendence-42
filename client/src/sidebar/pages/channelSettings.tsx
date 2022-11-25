@@ -138,37 +138,34 @@ export const channelSettingsLoader = async (
 /********************************************************************/
 
 const MuteButton = ({
-  currentUserId,
   id,
   channelId,
   muted,
 }: {
-  currentUserId: number;
   id: number;
   channelId: number;
   muted: boolean | undefined;
 }) => {
   const [showInfoMute, setShowInfoMute] = useState(false);
-
   const queryClient = useQueryClient();
   const muteUser = useMuteUserMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries([
+      queryClient.invalidateQueries(
         useChannelSettingsQuery.getKey({
-          userId: currentUserId,
+          userId: null,
           channelId: channelId,
-        }),
-      ]);
+        })
+      );
     },
   });
   const unmuteUser = useUnmuteUserMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries([
+      queryClient.invalidateQueries(
         useChannelSettingsQuery.getKey({
-          userId: currentUserId,
+          userId: null,
           channelId: channelId,
-        }),
-      ]);
+        })
+      );
     },
   });
 
@@ -213,12 +210,10 @@ const MuteButton = ({
 };
 
 const BanButton = ({
-  currentUserId,
   id,
   channelId,
   banned,
 }: {
-  currentUserId: number;
   id: number;
   channelId: number;
   banned: boolean | undefined;
@@ -228,22 +223,22 @@ const BanButton = ({
   const queryClient = useQueryClient();
   const banUser = useBanUserMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries([
+      queryClient.invalidateQueries(
         useChannelSettingsQuery.getKey({
           userId: null,
           channelId: channelId,
-        }),
-      ]);
+        })
+      );
     },
   });
   const unbanUser = useUnbanUserMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries([
+      queryClient.invalidateQueries(
         useChannelSettingsQuery.getKey({
-          userId: currentUserId,
+          userId: null,
           channelId: channelId,
-        }),
-      ]);
+        })
+      );
     },
   });
 
@@ -290,11 +285,9 @@ const BanButton = ({
 /* *********************** ADMIN ELEMENT ******************** */
 
 const SetAsAdminButton = ({
-  currentUserId,
   id,
   channelId,
 }: {
-  currentUserId: number;
   id: number;
   channelId: number;
 }) => {
@@ -303,12 +296,12 @@ const SetAsAdminButton = ({
   const queryClient = useQueryClient();
   const addAdmin = useAddAdminMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries([
+      queryClient.invalidateQueries(
         useChannelSettingsQuery.getKey({
-          userId: currentUserId,
+          userId: null,
           channelId: channelId,
-        }),
-      ]);
+        })
+      );
     },
   });
 
@@ -342,11 +335,9 @@ const SetAsAdminButton = ({
 };
 
 const UnsetAdminButton = ({
-  currentUserId,
   id,
   channelId,
 }: {
-  currentUserId: number;
   id: number;
   channelId: number;
 }) => {
@@ -355,12 +346,12 @@ const UnsetAdminButton = ({
   const queryClient = useQueryClient();
   const removeAdmin = useRemoveAdminMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries([
+      queryClient.invalidateQueries(
         useChannelSettingsQuery.getKey({
-          userId: currentUserId,
+          userId: null,
           channelId: channelId,
-        }),
-      ]);
+        })
+      );
     },
   });
 
@@ -439,7 +430,6 @@ const UserHeader = ({
 
 /* *********************** MAIN COMPONENT ******************** */
 const UserBanner = ({
-  currentUserId,
   id,
   name,
   avatar,
@@ -451,7 +441,6 @@ const UserBanner = ({
   changesAuthorizedAsOwner,
   channelId,
 }: {
-  currentUserId: number;
   channelId: number;
   id: number;
   name: string | undefined;
@@ -483,34 +472,16 @@ const UserBanner = ({
         />
         <div className="flex justify-center self-center">
           {changesAuthorizedAsOwner && !admin && !owner && !banned ? (
-            <SetAsAdminButton
-              currentUserId={currentUserId}
-              id={id}
-              channelId={channelId}
-            />
+            <SetAsAdminButton id={id} channelId={channelId} />
           ) : changesAuthorizedAsOwner && admin && !owner && !banned ? (
-            <UnsetAdminButton
-              currentUserId={currentUserId}
-              id={id}
-              channelId={channelId}
-            />
+            <UnsetAdminButton id={id} channelId={channelId} />
           ) : null}
           {(admin && changesAuthorizedAsOwner && !banned) ||
           (!admin && changesAuthorizedAsAdmin && !banned) ? (
-            <MuteButton
-              currentUserId={currentUserId}
-              id={id}
-              channelId={channelId}
-              muted={muted}
-            />
+            <MuteButton id={id} channelId={channelId} muted={muted} />
           ) : null}
           {changesAuthorizedAsOwner || changesAuthorizedAsAdmin ? (
-            <BanButton
-              currentUserId={currentUserId}
-              id={id}
-              channelId={channelId}
-              banned={banned}
-            />
+            <BanButton id={id} channelId={channelId} banned={banned} />
           ) : null}
         </div>
       </div>
@@ -570,7 +541,6 @@ const Search = ({
   search,
   queryData,
   channelId,
-  userId,
 }: {
   search: string;
   queryData: ChannelSettingsQuery;
@@ -590,12 +560,12 @@ const Search = ({
   );
   const updateMembers = useInviteUserMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries([
+      queryClient.invalidateQueries(
         useChannelSettingsQuery.getKey({
-          userId: userId,
+          userId: null,
           channelId: channelId,
-        }),
-      ]);
+        })
+      );
     },
   });
 
@@ -667,11 +637,9 @@ const Highlight = ({
 /*                                 POPUPS                           */
 /********************************************************************/
 const LeaveChannelPopUp = ({
-  userId,
   channelId,
   setConfirmation,
 }: {
-  userId: number;
   channelId: number;
   setConfirmation: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
@@ -680,12 +648,12 @@ const LeaveChannelPopUp = ({
   const queryClient = useQueryClient();
   const leaveChannel = useLeaveChannelMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries([
+      queryClient.invalidateQueries(
         useChannelSettingsQuery.getKey({
-          userId: userId,
+          userId: null,
           channelId: channelId,
-        }),
-      ]);
+        })
+      );
     },
   });
 
@@ -738,11 +706,9 @@ const LeaveChannelPopUp = ({
 };
 
 const DeletePopUp = ({
-  userId,
   channelId,
   setConfirmation,
 }: {
-  userId: number;
   channelId: number;
   setConfirmation: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
@@ -751,12 +717,12 @@ const DeletePopUp = ({
   const queryClient = useQueryClient();
   const deleteChannel = useDeleteChannelMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries([
+      queryClient.invalidateQueries(
         useChannelSettingsQuery.getKey({
-          userId: userId,
+          userId: null,
           channelId: channelId,
-        }),
-      ]);
+        })
+      );
     },
   });
 
@@ -819,12 +785,10 @@ const DeletePopUp = ({
 /*                           CHANNEL MODE                           */
 /********************************************************************/
 const ChannelMode = ({
-  userId,
   channelId,
   activeMode,
   changesAuthorized,
 }: {
-  userId: number;
   channelId: number;
   activeMode: string;
   changesAuthorized: boolean;
@@ -837,14 +801,18 @@ const ChannelMode = ({
   } = useForm<formData>();
   const updatePassword = useUpdateChannelPasswordMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries([
+      queryClient.invalidateQueries(
         useChannelSettingsQuery.getKey({
-          userId: userId,
+          userId: null,
           channelId: channelId,
-        }),
-      ]);
+        })
+      );
     },
   });
+
+  const [showPasswordField, setShowPasswordField] = useState(
+    activeMode === "Password"
+  );
   //TODO : useEffect to set pw confirmation
   const [showConfirmation, setShowConfirmation] = useState(false);
   return (
@@ -852,56 +820,82 @@ const ChannelMode = ({
       <form
         className="flex h-full flex-col"
         onSubmit={handleSubmit((data) => {
-          updatePassword.mutate({
-            channelId: channelId,
-            // password: data.password,
-          });
-          setShowConfirmation(true);
+          showPasswordField
+            ? updatePassword.mutate({
+                channelId,
+              })
+            : null;
+          showPasswordField ? setShowConfirmation(true) : null;
         })}
       >
         <div className="mb-2 flex h-full ">Mode : {activeMode}</div>
-        <div className="flex h-full items-center justify-start">
-          {activeMode === "Password protected" && changesAuthorized ? (
-            <div className="flex items-center justify-start ">
-              <label
-                className="mr-2 self-end text-sm text-slate-400"
-                htmlFor="Password"
-              >
-                Enter new password :
-              </label>
-              <input
-                {...register("password", {
-                  required: activeMode === "Password protected",
-                  maxLength: 100,
-                })}
-                type="password"
-                autoComplete="off"
-                defaultValue=""
-                autoFocus={true}
+        <div className="flex">
+          <input
+            type="checkbox"
+            placeholder="January"
+            checked={activeMode === "Password"}
+            onClick={() => setShowPasswordField(!showPasswordField)}
+            className="mx-3"
+          />
+          <div className="flex h-full items-center justify-center">
+            {changesAuthorized ? (
+              <div
                 className={`${
-                  errors.password ? "ring-1 ring-red-500" : ""
-                } my-2 h-10 w-64 self-center px-1 text-xs`}
-              />
-              {/* TODO: check in subject "remove password => set channel to public?" */}
-              {errors.password && (
-                <span className="text-center text-xs text-red-600" role="alert">
-                  You must set a password
-                </span>
-              )}
-              {showConfirmation && (
-                <span
-                  className="text-center text-xs text-slate-400"
-                  role="alert"
+                  showPasswordField ? "opacity-100" : "opacity-10"
+                } flex items-center justify-center`}
+              >
+                <label
+                  className="mr-2 mt-4 text-sm text-slate-400"
+                  htmlFor="Password"
                 >
-                  Password successfully updated
-                </span>
-              )}
-              <input
-                className="ml-3 flex w-fit justify-center self-center border border-slate-300 bg-slate-200 px-1 text-center text-sm font-bold hover:cursor-pointer hover:bg-slate-300"
-                type="submit"
-              />
-            </div>
-          ) : null}
+                  {activeMode === "Password" ? "New password: " : "Password: "}
+                </label>
+                <div className="relative">
+                  <input
+                    {...register("password", {
+                      required: showPasswordField,
+                      maxLength: 100,
+                    })}
+                    type="password"
+                    autoComplete="off"
+                    defaultValue=""
+                    disabled={!showPasswordField}
+                    autoFocus={showPasswordField}
+                    className={`${
+                      showPasswordField && errors.password
+                        ? "ring-1 ring-red-500"
+                        : "ring-0 "
+                    } my-2 h-8 w-48 self-center px-1 text-xs`}
+                  />
+
+                  {errors.password && showPasswordField && (
+                    <span
+                      className="absolute -bottom-2 -left-0 w-full text-center text-xs text-red-600"
+                      role="alert"
+                    >
+                      You must set a password
+                    </span>
+                  )}
+                </div>
+                {showConfirmation && (
+                  <span
+                    className="text-center text-xs text-slate-400"
+                    role="alert"
+                  >
+                    Password successfully updated
+                  </span>
+                )}
+                <input
+                  className={`${
+                    showPasswordField
+                      ? "hover:cursor-pointer hover:bg-slate-300"
+                      : "hover:cursor-not-allowed"
+                  } ml-3 flex w-fit justify-center self-center border border-slate-300 bg-slate-200 px-1 text-center text-sm font-bold `}
+                  type="submit"
+                />
+              </div>
+            ) : null}
+          </div>
         </div>
       </form>
     </div>
@@ -909,7 +903,6 @@ const ChannelMode = ({
 };
 
 const ChannelHeader = ({
-  currentUserId,
   isOwner,
   channelId,
   channelName,
@@ -918,7 +911,6 @@ const ChannelHeader = ({
   setDeleteConfirmation,
   setLeaveConfirmation,
 }: {
-  currentUserId: number;
   isOwner: boolean;
   channelId: number;
   channelName: string | undefined;
@@ -955,7 +947,6 @@ const ChannelHeader = ({
           </div>
           <div className="mt-2 flex flex-row ">
             <ChannelMode
-              userId={currentUserId}
               channelId={channelId}
               activeMode={
                 privateMode
@@ -978,12 +969,10 @@ const ChannelHeader = ({
 /********************************************************************/
 
 const MemberList = ({
-  currentUserId,
   channel,
   isAdmin,
   isOwner,
 }: {
-  currentUserId: number;
   channel: ChannelInfo;
   isAdmin: boolean;
   isOwner: boolean;
@@ -994,7 +983,6 @@ const MemberList = ({
         MEMBERS
       </div>
       <UserBanner
-        currentUserId={currentUserId}
         id={channel.owner.id}
         name={channel.owner.name}
         avatar={channel.owner.avatar}
@@ -1009,7 +997,6 @@ const MemberList = ({
       {channel.admins.map((user, index) => {
         return !(user.id === channel.owner.id) ? (
           <UserBanner
-            currentUserId={currentUserId}
             key={index}
             channelId={channel.id}
             id={user.id}
@@ -1027,7 +1014,6 @@ const MemberList = ({
       {channel.members.map((user, index) => {
         return !channel.admins.some((admin) => admin.id === user.id) ? (
           <UserBanner
-            currentUserId={currentUserId}
             key={index}
             channelId={channel.id}
             id={user.id}
@@ -1047,7 +1033,6 @@ const MemberList = ({
       </div>
       {channel.banned.map((user, index) => (
         <UserBanner
-          currentUserId={currentUserId}
           key={index}
           channelId={channel.id}
           id={user.id}
@@ -1114,13 +1099,11 @@ export default function ChannelSettings() {
         {deleteConfirmation ? (
           <DeletePopUp
             channelId={channelId}
-            userId={data.user.id}
             setConfirmation={setDeleteConfirmation}
           />
         ) : leaveConfirmation ? (
           <LeaveChannelPopUp
             channelId={channelId}
-            userId={data.user.id}
             setConfirmation={setLeaveConfirmation}
           />
         ) : (
@@ -1132,7 +1115,6 @@ export default function ChannelSettings() {
           } flex h-full w-full flex-col`}
         >
           <ChannelHeader
-            currentUserId={data.user.id}
             isOwner={isOwner}
             channelId={data.channel.id}
             channelName={data.channel.name}

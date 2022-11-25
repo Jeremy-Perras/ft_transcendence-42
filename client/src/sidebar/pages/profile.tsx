@@ -190,12 +190,9 @@ const UserProfileHeader = ({
             {unachievedSecondRow}
           </div>
         </div>
-
         {data.user.id === currentUserId && showChangeAvatar ? (
           <FileUploadPage setIsOpen={setShowChangeAvatar} />
-        ) : (
-          <></>
-        )}
+        ) : null}
       </div>
     </div>
   );
@@ -221,9 +218,7 @@ const GameHistory = ({
           </div>
           <PlayIcon className="text-slate-100" />
         </div>
-      ) : (
-        <></>
-      )}
+      ) : null}
       {data?.user.games.map((game, index) => {
         const victory =
           (game.players.player1.id === data?.user.id &&
