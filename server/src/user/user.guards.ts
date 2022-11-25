@@ -116,20 +116,3 @@ export class ExistingUserGuard implements CanActivate {
     return true;
   }
 }
-
-@Injectable()
-export class ExistingMessageGuard implements CanActivate {
-  constructor(private prisma: PrismaService) {}
-
-  async canActivate(context: ExecutionContext): Promise<boolean> {
-    const ctx = GqlExecutionContext.create(context);
-    const targetMessageId = ctx.getArgs<{ messageId: number }>().messageId;
-    const message = await this.prisma.directMessage.findUnique({
-      where: { id: targetMessageId },
-    });
-    if (!message) {
-      throw new NotFoundException("Message not found");
-    }
-    return false;
-  }
-}

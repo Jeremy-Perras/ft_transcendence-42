@@ -9,6 +9,18 @@ import {
 import { IsNotEmpty, Min } from "class-validator";
 import { Channel } from "../channel/channel.model";
 import { Game } from "../game/game.model";
+
+import "reflect-metadata";
+
+export type directMessageType = Omit<DirectMessage, "author" | "recipient">;
+
+export enum friendStatus {
+  NOT_FRIEND,
+  INVITATION_RECEIVED,
+  INVITATION_SEND,
+  FRIEND,
+}
+
 export type userType = Omit<
   User,
   | "friends"
@@ -21,15 +33,6 @@ export type userType = Omit<
   | "achievements"
   | "pendingFriends"
 >;
-import "reflect-metadata";
-export type directMessageType = Omit<DirectMessage, "author" | "recipient">;
-
-export enum friendStatus {
-  NOTFRIEND,
-  INVITATIONRECEIVED,
-  INVITATIONSEND,
-  FRIEND,
-}
 
 registerEnumType(friendStatus, {
   name: "friendStatus",

@@ -488,8 +488,8 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
 
   //TODO : change - this is the wrong way
   const friend = data.user.friendStatus === "FRIEND";
-  const pendingAccept = data.user.friendStatus === "INVITATIONRECEIVED";
-  const pendingInvitation = data.user.friendStatus === "INVITATIONSEND";
+  const pendingAccept = data.user.friendStatus === "INVITATION_RECEIVED";
+  const pendingInvitation = data.user.friendStatus === "INVITATION_SEND";
 
   return (
     <div className="flex h-full w-full flex-col ">

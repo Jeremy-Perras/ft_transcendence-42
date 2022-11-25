@@ -1,0 +1,3 @@
+mutation BanUser($userId: Int!, $channelId: Int!) {
+  banUser(userId: $userId, channelId: $channelId)
+}

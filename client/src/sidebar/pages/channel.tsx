@@ -369,13 +369,13 @@ export default function Channel() {
 
   if (!channelId) return <div>No channel id</div>;
 
-  const initialData = useLoaderData() as Awaited<
-    ReturnType<typeof channelLoader>
-  >;
-  const { data } = useQuery({
-    ...query(+channelId),
-    initialData,
-  });
+  // const initialData = useLoaderData() as Awaited<
+  //   ReturnType<typeof channelLoader>
+  // >;
+  // const { data } = useQuery({
+  //   ...query(+channelId),
+  //   initialData,
+  // });
   //TODO:broken - data undefined
 
   //TODO : does not work
@@ -385,26 +385,25 @@ export default function Channel() {
   //   },
   // });
 
-  const [auth, setAuth] = useState(false);
-  const cookies = document.cookie;
+  // const cookies = document.cookie;
 
-  const banned = data?.banned.some((u) => u.id === data.userId);
-  const muted = data?.muted.some((u) => u.id === data.userId);
+  // const banned = data?.banned.some((u) => u.id === data.userId);
+  // const muted = data?.muted.some((u) => u.id === data.userId);
 
-  const settingsLinkAuthorized =
-    banned ||
-    (data?.password && !auth) ||
-    (data?.private &&
-      !data.adminIds.some((admin) => admin.id === data.userId) &&
-      !data.memberIds.some((member) => member.id === data.userId));
+  // const settingsLinkAuthorized =
+  //   banned ||
+  //   (data?.password && !auth) ||
+  //   (data?.private &&
+  //     !data.adminIds.some((admin) => admin.id === data.userId) &&
+  //     !data.memberIds.some((member) => member.id === data.userId));
 
-  const messagesEndRef = useRef<null | HTMLDivElement>(null);
-  const scrollToBottom = () => {
-    messagesEndRef?.current?.scrollIntoView({ behavior: "smooth" });
-  };
-  useEffect(() => {
-    scrollToBottom();
-  }, [data?.messages]);
+  // const messagesEndRef = useRef<null | HTMLDivElement>(null);
+  // const scrollToBottom = () => {
+  //   messagesEndRef?.current?.scrollIntoView({ behavior: "smooth" });
+  // };
+  // useEffect(() => {
+  //   scrollToBottom();
+  // }, [data?.messages]);
 
   const navigate = useNavigate();
 
@@ -417,25 +416,17 @@ export default function Channel() {
           </HeaderLeftBtn>
           <HeaderCenterContent>
             <div
-              className={`${
-                settingsLinkAuthorized ? "hover:cursor-pointer" : ""
-              } flex h-full items-center justify-center`}
-              onClick={() =>
-                navigate(
-                  `${
-                    !settingsLinkAuthorized
-                      ? ""
-                      : "/settings/channel/${channelId}"
-                  }`
-                )
-              }
+              // className={`${
+              //   settingsLinkAuthorized ? "hover:cursor-pointer" : ""
+              // } flex h-full items-center justify-center`}
+              onClick={() => navigate(`${`/settings/channel/${channelId}`}`)}
             >
-              <div>{data?.name}</div>
+              <div>Link</div>
             </div>
           </HeaderCenterContent>
         </>
       </Header>
-      {banned ? (
+      {/* {banned ? (
         <Banned />
       ) : data?.private &&
         !data.adminIds.some((admin) => admin.id === data.userId) &&
@@ -478,7 +469,7 @@ export default function Channel() {
             banned={banned}
           />
         </div>
-      )}
+      )} */}
     </>
   );
 }
