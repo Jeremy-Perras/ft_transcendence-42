@@ -461,7 +461,7 @@ export default function Channel() {
   });
   if (typeof data === "undefined") return <div>Error</div>;
 
-  //TODO : does not work
+  //TODO : update read messages does not work
   // const createChannelMessageRead = useCreateChannelMessageReadMutation({
   //   onSuccess: () => {
   //     queryClient.invalidateQueries(

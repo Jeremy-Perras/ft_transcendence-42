@@ -17,10 +17,11 @@ export default function FileUploadPage({
   }, []);
 
   //TODO : remove any
+  //TODO : BROKEN => set the path ?
   const changeHandler = (event: any) => {
     setSelectedFile(event);
   };
-  //TODO: seems broken
+
   return (
     <div className={"absolute z-20 flex h-full w-full flex-col"}>
       <div className="flex h-36 w-full text-base ">
@@ -61,7 +62,7 @@ export default function FileUploadPage({
             className="flex shrink-0 rounded-sm border border-neutral-500 bg-neutral-100 py-1 px-2 hover:bg-slate-200"
           >
             Submit
-            {/* //TODO : error if file empty */}
+            {/* //TODO : don't close when submit if file empty */}
           </button>
         </div>
         <div
