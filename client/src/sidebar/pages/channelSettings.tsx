@@ -32,7 +32,6 @@ import { ReactComponent as SearchIcon } from "pixelarticons/svg/search.svg";
 import { ReactComponent as SettingsIcon } from "pixelarticons/svg/sliders.svg";
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { ReactComponent as LeaveIcon } from "pixelarticons/svg/logout.svg";
-import RemovePwdIcon from "/src/assets/images/RemovePassword.svg";
 import { useRef, useState } from "react";
 
 import * as Avatar from "@radix-ui/react-avatar";
@@ -55,7 +54,6 @@ import {
 
 type formData = {
   password?: string;
-  type: "Private" | "Password" | "Public"; //TODO : check in subject if needed
 };
 
 type ChannelSettingsQuery = {
@@ -508,7 +506,7 @@ const SearchBar = ({
   };
 
   return (
-    <div className="relative flex w-full shrink-0 grow-0 self-end border-t-2 bg-slate-100">
+    <div className="relative flex w-full shrink-0 grow-0 self-end border-t bg-slate-100">
       <AddMemberIcon className="flex h-full w-10 self-center border-r-2 text-slate-400 " />
       <input
         type="text"
@@ -571,13 +569,13 @@ const Search = ({
   });
 
   return (
-    <div className="flex h-full flex-col justify-end divide-y divide-slate-200">
+    <div className="flex h-52 max-h-52 grow-0 flex-col justify-end divide-y divide-slate-200 overflow-y-scroll">
       {data?.map((result, index) => (
         <div key={index}>
           {!queryData.channel.members.some((u) => u.id === result?.id) &&
           !queryData.channel.admins.some((u) => u.id === result?.id) ? (
             <div
-              className="flex items-center p-2 even:bg-white hover:cursor-pointer hover:bg-blue-100"
+              className="flex items-center bg-slate-100 p-2 even:bg-white hover:cursor-pointer hover:bg-blue-100"
               onClick={() => {
                 result?.id !== undefined
                   ? updateMembers.mutate({
@@ -591,7 +589,7 @@ const Search = ({
                 <Avatar.Root>
                   <Avatar.Image
                     className="h-10 w-10 border border-black object-cover"
-                    src={result?.avatar}
+                    src={`uploads/avatars/${result?.avatar}`}
                   />
                   <Avatar.Fallback>
                     <UserIcon className="h-10 w-10" />
@@ -800,6 +798,7 @@ const ChannelMode = ({
     handleSubmit,
     formState: { errors },
   } = useForm<formData>();
+
   const updatePassword = useUpdateChannelPasswordMutation({
     onSuccess: () => {
       queryClient.invalidateQueries(
@@ -815,7 +814,7 @@ const ChannelMode = ({
 
   return (
     <form
-      className="mt-2 flex h-full flex-col"
+      className="mt-4 flex h-full flex-col"
       onSubmit={handleSubmit((data) => {
         showPasswordField
           ? updatePassword.mutate({
@@ -825,7 +824,7 @@ const ChannelMode = ({
           : null;
       })}
     >
-      <div className="flex w-full">
+      <div className="flex w-full ">
         <div className="flex h-10 basis-1/2">Mode : {activeMode}</div>
         {changesAuthorized && activeMode !== "Private" && (
           <div className="flex w-full">
@@ -841,13 +840,19 @@ const ChannelMode = ({
             </button>
             {activeMode === "Password" && (
               <button
-                onClick={() =>
-                  updatePassword.mutate({
-                    channelId: channelId,
-                    password: null,
-                  })
-                }
-                className="h-6 basis-1/2 border-2  border-slate-200 bg-slate-100 text-xs hover:cursor-pointer hover:bg-slate-200"
+                onClick={() => {
+                  !showPasswordField
+                    ? updatePassword.mutate({
+                        channelId: channelId,
+                        password: null,
+                      })
+                    : null;
+                }}
+                className={`${
+                  activeMode === "Password" && showPasswordField
+                    ? "opacity-20 hover:cursor-not-allowed"
+                    : "hover:cursor-pointer hover:bg-slate-200"
+                } h-6 basis-1/2 border-2  border-slate-200 bg-slate-100 text-xs `}
               >
                 Remove Password
               </button>
@@ -856,7 +861,7 @@ const ChannelMode = ({
         )}
       </div>
 
-      <div className="flex h-full items-center justify-center">
+      <div className="mb-2 flex h-full items-center justify-start">
         {changesAuthorized && activeMode !== "Private" ? (
           <div
             className={`${
@@ -893,20 +898,12 @@ const ChannelMode = ({
                 </span>
               )}
             </div>
-            {/* {showConfirmation && (
-                <span
-                  className="text-center text-xs text-slate-400"
-                  role="alert"
-                >
-                  Password successfully updated
-                </span>
-              )} */}
             <input
               className={`${
                 showPasswordField
                   ? "hover:cursor-pointer hover:bg-slate-300"
                   : "hover:cursor-not-allowed"
-              } ml-3 flex w-fit justify-center self-center border border-slate-300 bg-slate-200 px-1 text-center text-sm font-bold `}
+              } ml-3 flex w-fit justify-center self-center border border-slate-300 bg-slate-200 px-1 text-center text-xs font-bold `}
               type="submit"
             />
           </div>
@@ -934,7 +931,7 @@ const ChannelHeader = ({
   setLeaveConfirmation: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   return (
-    <div className="relative flex h-full w-full flex-col justify-center p-2">
+    <div className="relative flex h-44 w-full flex-col p-2">
       <div className="absolute top-1 right-1 flex">
         <LeaveIcon
           className="mt-1 w-8 self-center text-lg text-slate-500 hover:cursor-pointer hover:text-slate-700"
@@ -956,7 +953,7 @@ const ChannelHeader = ({
           <UsersIcon className="mt-2 h-20 w-20 self-center text-slate-700 " />
         </div>
         <div className="ml-4 flex h-full w-full flex-col">
-          <div className="text-left text-2xl font-bold">
+          <div className="pt-2 text-left text-2xl font-bold">
             Channel : {channelName}
           </div>
           <ChannelMode
@@ -1124,7 +1121,7 @@ export default function ChannelSettings() {
         <div
           className={`${
             deleteConfirmation || leaveConfirmation ? "blur-sm" : ""
-          } flex h-full w-full flex-col`}
+          } relative flex h-full w-full flex-col`}
         >
           <ChannelHeader
             isOwner={isOwner}
@@ -1141,7 +1138,14 @@ export default function ChannelSettings() {
             isOwner={isOwner}
           />
           {isOwner || isAdmin ? (
-            <div className="mt-5 flex h-full w-full flex-col justify-end overflow-auto">
+            <div
+              className={`${
+                search.length === 0
+                  ? "border-t-0"
+                  : "z-10 max-h-52 border-t-2 border-slate-200 shadow-[0_10px_10px_10px_rgba(0,0,0,0.5)]"
+              } absolute bottom-0 mt-5 flex w-full flex-col justify-end`}
+            >
+              {/* //TODO : overflow issue */}
               {search.length === 0 ? (
                 ""
               ) : data ? (

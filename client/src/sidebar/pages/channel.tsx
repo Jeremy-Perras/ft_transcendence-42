@@ -17,7 +17,7 @@ import {
 import { ReactComponent as ForbiddenIcon } from "pixelarticons/svg/close-box.svg";
 import { ReactComponent as EmptyChatIcon } from "pixelarticons/svg/message-plus.svg";
 import { ReactComponent as PasswordIcon } from "pixelarticons/svg/lock.svg";
-
+import { ReactComponent as JoinIcon } from "pixelarticons/svg/users.svg";
 import { useForm } from "react-hook-form";
 import BannedIcon from "/src/assets/images/Banned.svg";
 import {
@@ -413,6 +413,30 @@ const DisplayMessage = ({
   );
 };
 
+const JoinPublicChannel = ({ channelId }: { channelId: number }) => {
+  const queryClient = useQueryClient();
+  const joinChannel = useJoinChannelMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries(
+        useChannelDiscussionQuery.getKey({ channelId: +channelId })
+      );
+    },
+  });
+
+  return (
+    <div className="flex h-full w-full flex-col items-center justify-center pb-60">
+      <JoinIcon className="w-100 text-slate-100" />
+      <div className="text-2xl text-slate-300">This Channel is public.</div>
+      <div
+        onClick={() => joinChannel.mutate({ channelId: +channelId })}
+        className="mt-5 flex h-24 w-24 flex-col items-center justify-center border-2 border-slate-200 bg-slate-100 p-2 text-xl text-slate-800 hover:cursor-pointer hover:bg-slate-200"
+      >
+        <div>Join ? </div>
+      </div>
+    </div>
+  );
+};
+
 export default function Channel() {
   const params = useParams();
 
@@ -429,20 +453,15 @@ export default function Channel() {
   if (typeof data === "undefined") return <div>Error</div>;
 
   //TODO : does not work
-  const createChannelMessageRead = useCreateChannelMessageReadMutation({
-    onSuccess: () => {
-      queryClient.invalidateQueries(
-        useChannelDiscussionQuery.getKey({ channelId: +channelId })
-      );
-    },
-  });
+  // const createChannelMessageRead = useCreateChannelMessageReadMutation({
+  //   onSuccess: () => {
+  //     queryClient.invalidateQueries(
+  //       useChannelDiscussionQuery.getKey({ channelId: +channelId })
+  //     );
+  //   },
+  // });
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const joinChannel = useJoinChannelMutation({
-    onSuccess: () => {
-      queryClient.invalidateQueries(useUserProfileQuery.getKey()); //TODO : check if this is the good key
-    },
-  });
+
   const banned = data?.banned.some((u) => u.id === data.userId);
   const muted = data?.muted.some((u) => u.id === data.userId);
 
@@ -487,55 +506,52 @@ export default function Channel() {
       </Header>
       {banned ? (
         <Banned />
-      ) : data?.private &&
-        !data.adminIds.some((admin) => admin.id === data.userId) &&
-        !data.memberIds.some((member) => member.id === data.userId) ? (
-        <AccessForbidden
-          ownerId={data?.owner.id}
-          ownerAvatar={data.owner.avatar}
-          ownerName={data.owner.name}
-        />
-      ) : data?.memberIds.some((user) => user.id === data.userId) ||
-        data?.owner.id === data?.userId ? (
-        <DisplayMessage
-          banned={banned}
-          channelId={+channelId}
-          messages={data?.messages}
-          muted={muted}
-        />
-      ) : data?.password ? (
-        <AccessProtected
-          channelId={+channelId}
-          ownerId={data?.owner.id}
-          ownerAvatar={data.owner.avatar}
-          ownerName={data.owner.name}
-        />
       ) : data?.private ? (
-        data?.memberIds.some((user) => user.id === data.userId) ||
-        data?.owner.id === data.userId ? (
+        !data.adminIds.some((admin) => admin.id === data.userId) &&
+        !data.memberIds.some((member) => member.id === data.userId) &&
+        !(data.owner.id === data.userId) ? (
+          <AccessForbidden
+            ownerId={data?.owner.id}
+            ownerAvatar={data.owner.avatar}
+            ownerName={data.owner.name}
+          />
+        ) : (
           <DisplayMessage
             banned={banned}
             channelId={+channelId}
             messages={data?.messages}
             muted={muted}
           />
-        ) : (
-          <AccessForbidden
+        )
+      ) : data.password ? (
+        !data.adminIds.some((admin) => admin.id === data.userId) &&
+        !data.memberIds.some((member) => member.id === data.userId) &&
+        !(data.owner.id === data.userId) ? (
+          <AccessProtected
+            channelId={+channelId}
             ownerId={data?.owner.id}
             ownerAvatar={data.owner.avatar}
             ownerName={data.owner.name}
           />
+        ) : (
+          <DisplayMessage
+            banned={banned}
+            channelId={+channelId}
+            messages={data?.messages}
+            muted={muted}
+          />
         )
-      ) : data?.memberIds.some((user) => user.id === data.userId) ||
-        data?.owner.id === data?.userId ? (
+      ) : !data.adminIds.some((admin) => admin.id === data.userId) &&
+        !data.memberIds.some((member) => member.id === data.userId) &&
+        !(data.owner.id === data.userId) ? (
+        <JoinPublicChannel channelId={channelId} />
+      ) : (
         <DisplayMessage
           banned={banned}
           channelId={+channelId}
           messages={data?.messages}
           muted={muted}
         />
-      ) : (
-        joinChannel.mutate({ channelId: +channelId })
       )}
     </>
   );
