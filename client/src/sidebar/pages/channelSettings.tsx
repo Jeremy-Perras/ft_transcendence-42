@@ -810,9 +810,7 @@ const ChannelMode = ({
     },
   });
 
-  const [showPasswordField, setShowPasswordField] = useState(
-    activeMode === "Password"
-  );
+  const [showPasswordField, setShowPasswordField] = useState(false);
   //TODO : useEffect to set pw confirmation
   const [showConfirmation, setShowConfirmation] = useState(false);
   return (
@@ -828,74 +826,91 @@ const ChannelMode = ({
           showPasswordField ? setShowConfirmation(true) : null;
         })}
       >
-        <div className="mb-2 flex h-full ">Mode : {activeMode}</div>
         <div className="flex">
-          <input
-            type="checkbox"
-            placeholder="January"
-            checked={activeMode === "Password"}
-            onClick={() => setShowPasswordField(!showPasswordField)}
-            className="mx-3"
-          />
-          <div className="flex h-full items-center justify-center">
-            {changesAuthorized ? (
-              <div
-                className={`${
-                  showPasswordField ? "opacity-100" : "opacity-10"
-                } flex items-center justify-center`}
-              >
-                <label
-                  className="mr-2 mt-4 text-sm text-slate-400"
-                  htmlFor="Password"
+          <div className="flex h-full align-middle ">Mode : {activeMode}</div>
+          {changesAuthorized && activeMode !== "Private" && (
+            <>
+              {activeMode === "Password" && (
+                <button
+                  onClick={() => console.log("remove pwd")}
+                  className="mx-3 border border-black bg-slate-200"
                 >
-                  {activeMode === "Password" ? "New password: " : "Password: "}
-                </label>
-                <div className="relative">
-                  <input
-                    {...register("password", {
-                      required: showPasswordField,
-                      maxLength: 100,
-                    })}
-                    type="password"
-                    autoComplete="off"
-                    defaultValue=""
-                    disabled={!showPasswordField}
-                    autoFocus={showPasswordField}
-                    className={`${
-                      showPasswordField && errors.password
-                        ? "ring-1 ring-red-500"
-                        : "ring-0 "
-                    } my-2 h-8 w-48 self-center px-1 text-xs`}
-                  />
+                  <img className="w-8" src={RemovePwdIcon} />
+                  Remove password
+                </button>
+              )}
+              <button
+                onClick={() => setShowPasswordField(!showPasswordField)}
+                className="mx-3 border border-slate-300 bg-slate-200 text-xs hover:cursor-pointer hover:bg-slate-300"
+              >
+                {activeMode === "Password" && !showPasswordField
+                  ? "Change password"
+                  : activeMode === "Public" && !showPasswordField
+                  ? "Add password"
+                  : "Cancel"}
+              </button>
+            </>
+          )}
+        </div>
 
-                  {errors.password && showPasswordField && (
-                    <span
-                      className="absolute -bottom-2 -left-0 w-full text-center text-xs text-red-600"
-                      role="alert"
-                    >
-                      You must set a password
-                    </span>
-                  )}
-                </div>
-                {showConfirmation && (
+        <div className="flex h-full items-center justify-center">
+          {changesAuthorized && activeMode !== "Private" ? (
+            <div
+              className={`${
+                showPasswordField ? "opacity-100" : "opacity-10"
+              } flex items-center justify-center`}
+            >
+              <label
+                className="mr-2 mt-4 text-sm text-slate-400"
+                htmlFor="Password"
+              >
+                {activeMode === "Password" ? "New password: " : "Password: "}
+              </label>
+              <div className="relative">
+                <input
+                  {...register("password", {
+                    required: showPasswordField,
+                    maxLength: 100,
+                  })}
+                  type="password"
+                  autoComplete="off"
+                  defaultValue=""
+                  disabled={!showPasswordField}
+                  autoFocus={showPasswordField}
+                  className={`${
+                    showPasswordField && errors.password
+                      ? "ring-1 ring-red-500"
+                      : "ring-0 "
+                  } my-2 h-8 w-48 self-center px-1 text-xs`}
+                />
+
+                {errors.password && showPasswordField && (
                   <span
-                    className="text-center text-xs text-slate-400"
+                    className="absolute -bottom-2 -left-0 w-full text-center text-xs text-red-600"
                     role="alert"
                   >
-                    Password successfully updated
+                    You must set a password
                   </span>
                 )}
-                <input
-                  className={`${
-                    showPasswordField
-                      ? "hover:cursor-pointer hover:bg-slate-300"
-                      : "hover:cursor-not-allowed"
-                  } ml-3 flex w-fit justify-center self-center border border-slate-300 bg-slate-200 px-1 text-center text-sm font-bold `}
-                  type="submit"
-                />
               </div>
-            ) : null}
-          </div>
+              {showConfirmation && (
+                <span
+                  className="text-center text-xs text-slate-400"
+                  role="alert"
+                >
+                  Password successfully updated
+                </span>
+              )}
+              <input
+                className={`${
+                  showPasswordField
+                    ? "hover:cursor-pointer hover:bg-slate-300"
+                    : "hover:cursor-not-allowed"
+                } ml-3 flex w-fit justify-center self-center border border-slate-300 bg-slate-200 px-1 text-center text-sm font-bold `}
+                type="submit"
+              />
+            </div>
+          ) : null}
         </div>
       </form>
     </div>
@@ -952,7 +967,7 @@ const ChannelHeader = ({
                 privateMode
                   ? "Private"
                   : passwordProtected
-                  ? "Password protected"
+                  ? "Password"
                   : "Public"
               }
               changesAuthorized={isOwner}
@@ -1124,7 +1139,6 @@ export default function ChannelSettings() {
             setLeaveConfirmation={setLeaveConfirmation}
           />
           <MemberList
-            currentUserId={data.user.id}
             channel={data.channel}
             isAdmin={isAdmin}
             isOwner={isOwner}

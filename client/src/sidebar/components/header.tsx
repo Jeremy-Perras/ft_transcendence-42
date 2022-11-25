@@ -85,7 +85,11 @@ export const Header = ({
 }) => {
   const isSmallScreen = useMediaQuery("(max-width: 1536px)");
   return (
-    <div className={`${className} z-10 flex w-full shadow-sm shadow-slate-400`}>
+    <div
+      className={`${
+        className !== "undefined" ? className : ""
+      } z-10 flex w-full shadow-sm shadow-slate-400`}
+    >
       {children}
       <CurrentUserProfile />
       {isSmallScreen ? <CloseSidebar /> : null}
