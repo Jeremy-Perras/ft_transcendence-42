@@ -15,6 +15,9 @@ import { Home, homeLoader } from "./pages/home";
 import Chat, { chatLoader } from "./pages/chat";
 import Profile, { profileLoader } from "./pages/profile";
 import Channel, { channelLoader } from "./pages/channel";
+import ChannelSettings, {
+  channelSettingsLoader,
+} from "./pages/channelSettings";
 
 const loaderFn = (
   fn: (queryClient: QueryClient, args: LoaderFunctionArgs) => unknown
@@ -33,11 +36,11 @@ const router = createMemoryRouter([
     element: <Channel />,
     loader: loaderFn(channelLoader),
   },
-  // {
-  //   path: "/settings/channel/:channelId",
-  //   element: <ChannelSettings />,
-  //   loader: loaderFn(channelSettingsLoader),
-  // },
+  {
+    path: "/settings/channel/:channelId",
+    element: <ChannelSettings />,
+    loader: loaderFn(channelSettingsLoader),
+  },
   {
     path: "/chat/:userId",
     element: <Chat />,

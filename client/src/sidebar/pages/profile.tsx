@@ -190,12 +190,9 @@ const UserProfileHeader = ({
             {unachievedSecondRow}
           </div>
         </div>
-
         {data.user.id === currentUserId && showChangeAvatar ? (
           <FileUploadPage setIsOpen={setShowChangeAvatar} />
-        ) : (
-          <></>
-        )}
+        ) : null}
       </div>
     </div>
   );
@@ -221,9 +218,7 @@ const GameHistory = ({
           </div>
           <PlayIcon className="text-slate-100" />
         </div>
-      ) : (
-        <></>
-      )}
+      ) : null}
       {data?.user.games.map((game, index) => {
         const victory =
           (game.players.player1.id === data?.user.id &&
@@ -488,8 +483,8 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
 
   //TODO : change - this is the wrong way
   const friend = data.user.friendStatus === "FRIEND";
-  const pendingAccept = data.user.friendStatus === "INVITATIONRECEIVED";
-  const pendingInvitation = data.user.friendStatus === "INVITATIONSEND";
+  const pendingAccept = data.user.friendStatus === "INVITATION_RECEIVED";
+  const pendingInvitation = data.user.friendStatus === "INVITATION_SEND";
 
   return (
     <div className="flex h-full w-full flex-col ">

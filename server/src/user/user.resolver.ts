@@ -124,12 +124,12 @@ export class UserResolver {
       return friendStatus.FRIEND;
     }
     if (u?.friendedBy && u.friendedBy.length > 0) {
-      return friendStatus.INVITATIONSEND;
+      return friendStatus.INVITATION_SEND;
     }
     if (u?.friends && u.friends.length > 0) {
-      return friendStatus.INVITATIONRECEIVED;
+      return friendStatus.INVITATION_RECEIVED;
     }
-    return friendStatus.NOTFRIEND;
+    return friendStatus.NOT_FRIEND;
   }
 
   @ResolveField()
