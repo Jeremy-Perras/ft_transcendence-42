@@ -508,12 +508,10 @@ export default function Channel() {
         />
       ) : data?.password && !auth ? (
         <AccessProtected
-          userId={data.userId}
           channelId={+channelId}
           ownerId={data?.owner.id}
           ownerAvatar={data.owner.avatar}
           ownerName={data.owner.name}
-          setAuth={setAuth}
         />
       ) : data?.private ? (
         data?.memberIds.some((user) => user.id === data.userId) ||
