@@ -8,7 +8,9 @@ import {
 import {
   ChannelDiscussionQuery,
   useChannelDiscussionQuery,
+  useJoinChannelMutation,
   useSendChannelMessageMutation,
+  useUserProfileQuery,
 } from "../../graphql/generated";
 
 import { ReactComponent as ForbiddenIcon } from "pixelarticons/svg/close-box.svg";
@@ -32,8 +34,22 @@ import {
 import { User } from "../types/user";
 import { getDate } from "../utils/getDate";
 
+type formData = {
+  password?: string;
+};
+
+type ChannelMessage = {
+  id: number;
+  author: User;
+  readBy: {
+    __typename?: "ChannelMessageRead" | undefined;
+    user: User;
+  }[];
+  content: string;
+  sentAt: number;
+};
+
 type ChannelQuery = {
-  userId: number;
   name: string;
   messages: ChannelMessage[];
   owner: { id: number; name: string; avatar: string };
@@ -52,16 +68,9 @@ const query = (
   channelId: number
 ): UseQueryOptions<ChannelDiscussionQuery, unknown, ChannelQuery> => {
   return {
-    queryKey: useChannelDiscussionQuery.getKey({
-      channelId: channelId,
-      userId: null,
-    }),
-    queryFn: useChannelDiscussionQuery.fetcher({
-      channelId: channelId,
-      userId: null,
-    }),
+    queryKey: useChannelDiscussionQuery.getKey({ channelId: channelId }),
+    queryFn: useChannelDiscussionQuery.fetcher({ channelId: channelId }),
     select: (channels) => ({
-      userId: channels.user.id,
       name: channels.channel.name,
       messages: channels.channel.messages,
       owner: {
@@ -83,10 +92,19 @@ export const channelLoader = async (
   queryClient: QueryClient,
   { params }: LoaderFunctionArgs
 ) => {
-  if (params.userId) {
-    const userId = +params.userId;
-    return queryClient.fetchQuery(query(userId));
+  if (params.channelId) {
+    const channelId = +params.channelId;
+    return queryClient.fetchQuery(query(channelId));
   }
+};
+
+const Banned = () => {
+  return (
+    <div className="flex h-full w-full flex-col items-center justify-center pb-60">
+      <img src={BannedIcon} className="w-96 text-slate-100 opacity-30" />
+      <div className="mt-10 text-3xl text-neutral-300">You are banned.</div>
+    </div>
+  );
 };
 
 const ReadBy = ({ users }: { users: User[] }) => {
@@ -106,7 +124,7 @@ const ReadBy = ({ users }: { users: User[] }) => {
             <img
               className="m-px h-4 w-4 self-center border border-black transition-all hover:h-5 hover:w-5 hover:cursor-pointer"
               key={index}
-              src={avatar}
+              src={`/uploads/avatars/${avatar}`}
               alt="User avatar"
               onClick={() => navigate(`/profile/${id}`)}
               onMouseOver={() => setShowName(true)}
@@ -124,17 +142,6 @@ const ReadBy = ({ users }: { users: User[] }) => {
       })}
     </div>
   );
-};
-
-type ChannelMessage = {
-  id: number;
-  author: User;
-  readBy: {
-    __typename?: "ChannelMessageRead" | undefined;
-    user: User;
-  }[];
-  content: string;
-  sentAt: number;
 };
 
 const ChannelMessage = ({
@@ -155,7 +162,7 @@ const ChannelMessage = ({
           <div className="flex self-end">
             <img
               className="h-6 w-6 border border-black transition-all hover:h-7 hover:w-7 hover:cursor-pointer"
-              src={author.avatar}
+              src={`/uploads/avatars/${author.avatar}`}
               alt="Message author avatar"
               onClick={() => navigate(`/profile/${author.id}`)}
             />
@@ -181,15 +188,6 @@ const ChannelMessage = ({
   );
 };
 
-const Banned = () => {
-  return (
-    <div className="flex h-full w-full flex-col items-center justify-center pb-60">
-      <img src={BannedIcon} className="w-96 text-slate-100 opacity-30" />
-      <div className="mt-10 text-3xl text-neutral-300">You are banned.</div>
-    </div>
-  );
-};
-
 const AccessForbidden = ({
   ownerId,
   ownerName,
@@ -210,7 +208,7 @@ const AccessForbidden = ({
       >
         <div>Ask access to </div>
         <img
-          src={ownerAvatar}
+          src={`/uploads/avatars/${ownerAvatar}`}
           alt="Owner avatar"
           className="my-2 h-10 w-10 border border-black"
         />
@@ -239,9 +237,13 @@ const AccessProtected = ({
     register,
     formState: { errors },
     handleSubmit,
-    watch,
-  } = useForm();
-
+  } = useForm<formData>();
+  const queryClient = useQueryClient();
+  const joinChannel = useJoinChannelMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries();
+    },
+  });
   const navigate = useNavigate();
   return (
     <div className="flex h-full w-full flex-col items-center justify-center pb-60">
@@ -251,12 +253,11 @@ const AccessProtected = ({
       </div>
       <div className="flex w-full flex-col items-center justify-center">
         <form
-          onSubmit={handleSubmit(() => {
-            //TODO : checkpassword here
-            watch("Password") // NON !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!=> JP
-              ? (setAuth(true),
-                (document.cookie = `userId=${userId}, channelId=${channelId}`))
-              : setAuth(false);
+          onSubmit={handleSubmit((data) => {
+            joinChannel.mutate({
+              channelId: channelId,
+              password: data.password,
+            });
           })}
           className="flex flex-col"
         >
@@ -266,7 +267,7 @@ const AccessProtected = ({
                 Enter password
               </label>
               <input
-                {...register("Password", {
+                {...register("password", {
                   maxLength: 100,
                   required: true,
                 })}
@@ -278,9 +279,9 @@ const AccessProtected = ({
             </div>
           </div>
           <span className="flex items-center justify-center text-center">
-            {errors.Password && (
+            {errors.password && (
               <p className=" text-red-300 before:content-['⚠']">
-                Wrong password
+                Password entered is incorrect
               </p>
             )}
           </span>
@@ -297,7 +298,7 @@ const AccessProtected = ({
       >
         <div>Ask to</div>
         <img
-          src={ownerAvatar}
+          src={`/uploads/avatars/${ownerAvatar}`}
           alt="Owner avatar"
           className="my-2 h-10 w-10 border border-black"
         />
@@ -324,35 +325,35 @@ const SendMessageElement = ({
       queryClient.invalidateQueries(
         useChannelDiscussionQuery.getKey({
           channelId: +channelId,
-          userId: null,
         })
       );
     },
   });
 
   return (
-    <div className="flex h-16 w-full border-t-2 bg-slate-50 p-2">
+    <div className="flex w-full border-t-2 bg-slate-50 p-2">
       <textarea
+        autoFocus={false}
         disabled={banned || muted}
-        rows={1}
+        rows={2}
         className={`${
           banned || muted ? "hover:cursor-not-allowed" : ""
-        } h-10 w-11/12 resize-none overflow-visible rounded-lg px-3 pt-2`}
+        }  w-full resize-none border-x-2 border-b-8 border-white px-2 pt-4 pb-2 `}
         onChange={(e) => setContent(e.target.value)}
         placeholder={`${
-          muted === true ? "You are muted" : "Type your message here ..."
+          banned
+            ? "You are banned"
+            : muted
+            ? "You are muted"
+            : "Type your message here ..."
         }`}
         onKeyDown={(e) => {
-          if (e.code == "Enter" && !e.getModifierState("Shift")) {
-            messageMutation.mutate({
-              message: content,
-              channelId: +channelId,
-            });
-            e.currentTarget.value = "";
-            e.preventDefault();
-            setContent("");
-          } else {
+          if (banned === false && muted === false) {
             if (e.code == "Enter" && !e.getModifierState("Shift")) {
+              messageMutation.mutate({
+                message: content,
+                channelId: channelId,
+              });
               e.currentTarget.value = "";
               e.preventDefault();
               setContent("");
@@ -364,10 +365,23 @@ const SendMessageElement = ({
   );
 };
 
+const getuserId = () => {
+  const { data } = useUserProfileQuery(
+    {},
+    {
+      select(data) {
+        const res = data.user.id;
+        return res;
+      },
+    }
+  );
+  return data;
+};
 export default function Channel() {
-  const { channelId } = useParams();
-
-  if (!channelId) return <div>No channel id</div>;
+  const params = useParams();
+  const userId = getuserId();
+  if (typeof params.channelId === "undefined") return <div></div>;
+  const channelId = +params.channelId;
 
   const initialData = useLoaderData() as Awaited<
     ReturnType<typeof channelLoader>
@@ -376,27 +390,34 @@ export default function Channel() {
     ...query(+channelId),
     initialData,
   });
-  //TODO:broken - data undefined
+
+  // TODO:broken - data undefined
 
   //TODO : does not work
   // const createChannelMessageRead = useCreateChannelMessageReadMutation({
   //   onSuccess: () => {
-  //     queryClient.invalidateQueries(useChannelDiscussionQuery.getKey({ channelId: +channelId }));
+  //     queryClient.invalidateQueries(
+  //       useChannelDiscussionQuery.getKey({ channelId: +channelId })
+  //     );
   //   },
   // });
-
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const joinChannel = useJoinChannelMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries(useUserProfileQuery.getKey());
+    },
+  });
   const [auth, setAuth] = useState(false);
-  const cookies = document.cookie;
-
-  const banned = data?.banned.some((u) => u.id === data.userId);
-  const muted = data?.muted.some((u) => u.id === data.userId);
+  const banned = data?.banned.some((u) => u.id === userId);
+  const muted = data?.muted.some((u) => u.id === userId);
 
   const settingsLinkAuthorized =
     banned ||
     (data?.password && !auth) ||
     (data?.private &&
-      !data.adminIds.some((admin) => admin.id === data.userId) &&
-      !data.memberIds.some((member) => member.id === data.userId));
+      !data.adminIds.some((admin) => admin.id === userId) &&
+      !data.memberIds.some((member) => member.id === userId));
 
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
   const scrollToBottom = () => {
@@ -406,79 +427,86 @@ export default function Channel() {
     scrollToBottom();
   }, [data?.messages]);
 
-  const navigate = useNavigate();
-
   return (
     <>
-      <Header>
-        <>
-          <HeaderLeftBtn>
-            <HeaderNavigateBack />
-          </HeaderLeftBtn>
-          <HeaderCenterContent>
-            <div
-              className={`${
-                settingsLinkAuthorized ? "hover:cursor-pointer" : ""
-              } flex h-full items-center justify-center`}
-              onClick={() =>
-                navigate(
-                  `${
-                    !settingsLinkAuthorized
-                      ? ""
-                      : "/settings/channel/${channelId}"
-                  }`
-                )
-              }
-            >
-              <div>{data?.name}</div>
-            </div>
-          </HeaderCenterContent>
-        </>
-      </Header>
-      {banned ? (
-        <Banned />
-      ) : data?.private &&
-        !data.adminIds.some((admin) => admin.id === data.userId) &&
-        !data.memberIds.some((member) => member.id === data.userId) ? (
-        <AccessForbidden
-          ownerId={data?.owner.id}
-          ownerAvatar={data.owner.avatar}
-          ownerName={data.owner.name}
-        />
-      ) : data?.password &&
-        !auth &&
-        !cookies.includes(`userId=${data?.userId}, channelId=${channelId}`) ? (
-        <AccessProtected
-          userId={data.userId}
-          channelId={+channelId}
-          ownerId={data?.owner.id}
-          ownerAvatar={data.owner.avatar}
-          ownerName={data.owner.name}
-          setAuth={setAuth}
-        />
-      ) : (
-        <div className="flex h-full flex-col bg-slate-100">
-          <div className="mt-px flex w-full grow flex-col overflow-auto pr-2 pl-px">
-            {data?.messages.length === 0 ? (
-              <div className="mb-48 flex h-full flex-col items-center justify-center text-center text-slate-300">
-                <EmptyChatIcon className="w-96 text-slate-200" />
-                Seems a little bit too silent here... Send the first message !
+      <>
+        <Header>
+          <>
+            <HeaderLeftBtn>
+              <HeaderNavigateBack />
+            </HeaderLeftBtn>
+            <HeaderCenterContent>
+              <div
+                className={`${
+                  settingsLinkAuthorized ? "hover:cursor-pointer" : ""
+                } flex h-full items-center justify-center`}
+                onClick={() =>
+                  navigate(
+                    `${
+                      !settingsLinkAuthorized
+                        ? ""
+                        : "/settings/channel/${channelId}"
+                    }`
+                  )
+                }
+              >
+                <div>{data?.name}</div>
               </div>
-            ) : (
-              <></>
-            )}
-            {data?.messages?.map((message, index) => (
-              <ChannelMessage key={index} {...message} />
-            ))}
-            <div ref={messagesEndRef} />
-          </div>
-          <SendMessageElement
-            channelId={+channelId}
-            muted={muted}
-            banned={banned}
+            </HeaderCenterContent>
+          </>
+        </Header>
+        {banned ? (
+          <Banned />
+        ) : data?.private &&
+          !data.adminIds.some((admin) => admin.id === userId) &&
+          !data.memberIds.some((member) => member.id === userId) ? (
+          <AccessForbidden
+            ownerId={data?.owner.id}
+            ownerAvatar={data.owner.avatar}
+            ownerName={data.owner.name}
           />
-        </div>
-      )}
+        ) : data?.memberIds.some((user) => user.id === userId) ||
+          data?.owner.id === userId ? (
+          <div className="flex h-full flex-col bg-slate-100">
+            <div className="mt-px flex w-full grow flex-col overflow-auto pr-2 pl-px">
+              {data?.messages.length === 0 ? (
+                <div className="mb-48 flex h-full flex-col items-center justify-center text-center text-slate-300">
+                  <EmptyChatIcon className="w-96 text-slate-200" />
+                  Seems a little bit too silent here... Send the first message !
+                </div>
+              ) : (
+                <></>
+              )}
+              {data?.messages?.map((message, index) => (
+                <ChannelMessage key={index} {...message} />
+              ))}
+              <div ref={messagesEndRef} />
+            </div>
+            <SendMessageElement
+              channelId={+channelId}
+              muted={muted}
+              banned={banned}
+            />
+          </div>
+        ) : data?.password && !auth ? (
+          <AccessProtected
+            userId={userId}
+            channelId={+channelId}
+            ownerId={data?.owner.id}
+            ownerAvatar={data.owner.avatar}
+            ownerName={data.owner.name}
+            setAuth={setAuth}
+          />
+        ) : data?.private ? (
+          <AccessForbidden
+            ownerId={data?.owner.id}
+            ownerAvatar={data.owner.avatar}
+            ownerName={data.owner.name}
+          />
+        ) : (
+          joinChannel.mutate({ channelId: +channelId })
+        )}
+      </>
     </>
   );
 }

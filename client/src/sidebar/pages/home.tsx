@@ -89,7 +89,6 @@ const ChannelAndFriendBanner = ({
     if (message.author.id === id && message.readAt === null)
       newChatMessage = true;
   });
-
   return (
     <div
       onClick={() =>
@@ -124,7 +123,7 @@ const ChannelAndFriendBanner = ({
         <span
           className={`${
             newChatMessage
-              ? "animate-pulse text-base font-bold text-black"
+              ? "text-base font-bold text-black"
               : "text-sm text-slate-400"
           }  flex max-h-5 max-w-sm overflow-hidden text-clip `}
         >
@@ -206,10 +205,8 @@ const Invitation = ({
 export const Home = () => {
   const initialData = useLoaderData() as Awaited<ReturnType<typeof homeLoader>>;
   const { data } = useQuery({ ...query(), initialData });
-
   const [searchInput, setSearchInput] = useState("");
   const [showChannelCreation, setShowChannelCreation] = useState(false);
-
   return (
     <div className="relative flex h-full flex-col">
       <Header className={showChannelCreation ? "pointer-events-none" : ""}>

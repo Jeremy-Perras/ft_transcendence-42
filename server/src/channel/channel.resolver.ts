@@ -312,7 +312,7 @@ export class ChannelResolver {
 
     if (
       channel.password &&
-      (password === null || !bcrypt.compareSync(password, channel.password))
+      (!password || !bcrypt.compareSync(password, channel.password))
     ) {
       throw new ForbiddenException("Password is incorrect");
     }
@@ -323,7 +323,6 @@ export class ChannelResolver {
         channelId,
       },
     });
-
     return true;
   }
 
@@ -778,6 +777,7 @@ export class ChannelMessageResolver {
       select: {
         readAt: true,
         channelMessageId: true,
+        user: true,
       },
       where: {
         channelMessageId: channelMessage.id,
@@ -788,6 +788,12 @@ export class ChannelMessageResolver {
       ? reads.map((r) => ({
           readAt: r.readAt,
           messageID: r.channelMessageId,
+          user: {
+            id: r.user.id,
+            name: r.user.name,
+            rank: r.user.rank,
+            avatar: r.user.avatar,
+          },
         }))
       : [];
   }
@@ -830,34 +836,6 @@ export class ChannelMessageResolver {
 @UseGuards(GqlAuthenticatedGuard)
 export class ChannelMessageReadResolver {
   constructor(private prisma: PrismaService) {}
-
-  @ResolveField()
-  async user(
-    @Root() channelMessageread: ChannelMessageRead
-  ): Promise<userType> {
-    const message = await this.prisma.channelMessageRead.findUnique({
-      select: {
-        user: true,
-      },
-      where: {
-        channelMessageId_userId: {
-          channelMessageId: channelMessageread.messageID,
-          userId: channelMessageread.user.id,
-        },
-      },
-    });
-
-    if (!message) {
-      throw new NotFoundException("Message not found");
-    }
-
-    return {
-      id: message.user.id,
-      avatar: message.user.avatar,
-      name: message.user.name,
-      rank: message.user.rank,
-    };
-  }
 
   @RoleGuard(Role.Member)
   @Mutation((returns) => Boolean)

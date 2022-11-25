@@ -1,4 +1,4 @@
-query ChannelDiscussion($channelId: Int!, $userId: Int) {
+query ChannelDiscussion($channelId: Int!) {
   channel(id: $channelId) {
     banned {
       id
@@ -10,23 +10,6 @@ query ChannelDiscussion($channelId: Int!, $userId: Int) {
     passwordProtected
     name
     id
-    messages {
-      readBy {
-        user {
-          id
-          name
-          avatar
-        }
-      }
-      author {
-        id
-        name
-        avatar
-      }
-      content
-      sentAt
-      id
-    }
     owner {
       id
       name
@@ -38,8 +21,22 @@ query ChannelDiscussion($channelId: Int!, $userId: Int) {
     admins {
       id
     }
-  }
-  user(id: $userId) {
-    id
+    messages {
+      readBy {
+        user {
+          id
+          name
+          avatar
+        }
+      }
+      content
+      id
+      sentAt
+      author {
+        id
+        name
+        avatar
+      }
+    }
   }
 }
