@@ -506,8 +506,8 @@ const SearchBar = ({
   };
 
   return (
-    <div className="relative flex w-full shrink-0 grow-0 self-end border-t bg-slate-100">
-      <AddMemberIcon className="flex h-full w-10 self-center border-r-2 text-slate-400 " />
+    <div className="relative flex w-full  self-end border-t bg-slate-100">
+      <AddMemberIcon className="flex w-10 self-center border-r-2 text-slate-400 " />
       <input
         type="text"
         ref={input}
@@ -569,7 +569,7 @@ const Search = ({
   });
 
   return (
-    <div className="flex h-52 max-h-52 grow-0 flex-col justify-end divide-y divide-slate-200 overflow-y-scroll">
+    <div className="flex  flex-col  divide-y divide-slate-200 overflow-y-scroll">
       {data?.map((result, index) => (
         <div key={index}>
           {!queryData.channel.members.some((u) => u.id === result?.id) &&
@@ -585,6 +585,8 @@ const Search = ({
                   : "";
               }}
             >
+              {/* TODO : channel invite only and pwd => instead of add member when clicking on user in settings, send invite and put it on home like user invites
+               */}
               <>
                 <Avatar.Root>
                   <Avatar.Image
@@ -797,6 +799,7 @@ const ChannelMode = ({
     register,
     handleSubmit,
     formState: { errors },
+    reset,
   } = useForm<formData>();
 
   const updatePassword = useUpdateChannelPasswordMutation({
@@ -807,8 +810,9 @@ const ChannelMode = ({
           channelId: channelId,
         })
       );
+      setShowPasswordField(false);
+      reset();
     },
-    onError: () => alert("FAIL"), //JEREMY : CASSE
   });
 
   const [showPasswordField, setShowPasswordField] = useState(false);
@@ -830,7 +834,9 @@ const ChannelMode = ({
         {changesAuthorized && activeMode !== "Private" && (
           <div className="flex w-full">
             <button
-              onClick={() => setShowPasswordField(!showPasswordField)}
+              onClick={() => {
+                setShowPasswordField(!showPasswordField), reset();
+              }}
               className="mr-1 h-6  basis-1/2 border-2 border-slate-200 bg-slate-100 text-xs hover:cursor-pointer hover:bg-slate-200"
             >
               {activeMode === "Password" && !showPasswordField
@@ -1122,7 +1128,7 @@ export default function ChannelSettings() {
         <div
           className={`${
             deleteConfirmation || leaveConfirmation ? "blur-sm" : ""
-          } relative flex h-full w-full flex-col`}
+          }  flex h-full w-full flex-col`}
         >
           <ChannelHeader
             isOwner={isOwner}
@@ -1143,10 +1149,9 @@ export default function ChannelSettings() {
               className={`${
                 search.length === 0
                   ? "border-t-0"
-                  : "z-10 max-h-52 border-t-2 border-slate-200 shadow-[0_10px_10px_10px_rgba(0,0,0,0.5)]"
-              } absolute bottom-0 mt-5 flex w-full flex-col justify-end`}
+                  : "absolute bottom-0 z-10 max-h-80 border-t-2 border-slate-200 shadow-[0_10px_10px_10px_rgba(0,0,0,0.5)]"
+              }  mt-5 flex w-full flex-col justify-end `}
             >
-              {/* //TODO : overflow issue */}
               {search.length === 0 ? (
                 ""
               ) : data ? (

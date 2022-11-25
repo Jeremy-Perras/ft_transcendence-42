@@ -84,6 +84,7 @@ const ChannelAndFriendBanner = ({
   const lastMessage = messages ? messages[messages.length - 1] : null;
 
   //TODO : new channel message
+  //TODO : channel invite only and pwd => instead of add member when clicking on user in settings, send invite and put it on home like user invites
   let newChatMessage = false;
   messages?.forEach((message) => {
     if (message.author.id === id && message.readAt === null)
@@ -114,11 +115,9 @@ const ChannelAndFriendBanner = ({
       <div className="flex grow flex-col justify-center px-2">
         <div className="flex justify-between">
           <span className="pb-px font-bold">{name}</span>
-          {__typename == "User" ? (
-            <span className="mt-1 text-xs text-slate-400">
-              {lastMessage?.sentAt ? getDate(+lastMessage.sentAt) : ""}
-            </span>
-          ) : null}
+          <span className="mt-1 text-xs text-slate-400">
+            {lastMessage?.sentAt ? getDate(+lastMessage.sentAt) : ""}
+          </span>
         </div>
         <span
           className={`${
@@ -222,7 +221,7 @@ export const Home = () => {
           </HeaderCenterContent>
         </>
       </Header>
-      <div className="h-full overflow-y-auto">
+      <div className="flex h-full flex-col overflow-y-auto">
         <CreateChannel
           showChannelCreation={showChannelCreation}
           setShowChannelCreation={setShowChannelCreation}
@@ -237,7 +236,7 @@ export const Home = () => {
         ) : (
           data?.map((chat, index) =>
             chat.__typename === "User" &&
-            chat.friendStatus === "INVITATIONRECEIVED" ? (
+            chat.friendStatus === "INVITATION_RECEIVED" ? (
               <Invitation
                 userId={chat.id}
                 avatar={chat.avatar}

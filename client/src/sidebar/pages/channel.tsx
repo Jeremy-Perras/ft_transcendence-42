@@ -469,6 +469,7 @@ export default function Channel() {
   //     );
   //   },
   // });
+
   const navigate = useNavigate();
 
   const banned = data?.banned.some((u) => u.id === data.userId);
