@@ -227,19 +227,15 @@ const AccessForbidden = ({
 };
 
 const AccessProtected = ({
-  userId,
   channelId,
   ownerId,
   ownerName,
   ownerAvatar,
-  setAuth,
 }: {
-  userId: number;
   channelId: number;
   ownerId: number;
   ownerName: string;
   ownerAvatar: string;
-  setAuth: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   const {
     register,
@@ -465,12 +461,6 @@ export default function Channel() {
   useEffect(() => {
     scrollToBottom();
   }, [data?.messages]);
-  console.log(
-    data?.memberIds.some((user) => user.id === data.userId) ||
-      data?.owner.id === data?.userId,
-    data?.owner.id,
-    data?.userId
-  );
   return (
     <>
       <Header>
