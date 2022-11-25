@@ -416,7 +416,7 @@ const DisplayMessage = ({
 export default function Channel() {
   const params = useParams();
 
-  if (typeof params.channelId === "undefined") return <div></div>;
+  if (typeof params.channelId === "undefined") return <div>No channel Id</div>;
   const channelId = +params.channelId;
 
   const initialData = useLoaderData() as Awaited<
@@ -426,8 +426,7 @@ export default function Channel() {
     ...query(+channelId),
     initialData,
   });
-
-  // TODO:broken - data undefined
+  if (typeof data === "undefined") return <div>Error</div>;
 
   //TODO : does not work
   const createChannelMessageRead = useCreateChannelMessageReadMutation({
@@ -441,18 +440,16 @@ export default function Channel() {
   const queryClient = useQueryClient();
   const joinChannel = useJoinChannelMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries(useUserProfileQuery.getKey());
+      queryClient.invalidateQueries(useUserProfileQuery.getKey()); //TODO : check if this is the good key
     },
   });
   const banned = data?.banned.some((u) => u.id === data.userId);
   const muted = data?.muted.some((u) => u.id === data.userId);
 
   const settingsLinkAuthorized =
-    banned ||
-    data?.password ||
-    (data?.private &&
-      !data.adminIds.some((admin) => admin.id === data.userId) &&
-      !data.memberIds.some((member) => member.id === data.userId));
+    data?.owner.id === data?.userId ||
+    data?.adminIds.some((admin) => admin.id === data.userId) ||
+    data?.memberIds.some((member) => member.id === data.userId);
 
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
   const scrollToBottom = () => {
@@ -476,9 +473,9 @@ export default function Channel() {
               onClick={() =>
                 navigate(
                   `${
-                    !settingsLinkAuthorized
-                      ? ""
-                      : `/settings/channel/${channelId}`
+                    settingsLinkAuthorized
+                      ? `/settings/channel/${channelId}`
+                      : ""
                   }`
                 )
               }
