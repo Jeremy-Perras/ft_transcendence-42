@@ -419,13 +419,13 @@ export default function Channel() {
       !data.adminIds.some((admin) => admin.id === userId) &&
       !data.memberIds.some((member) => member.id === userId));
 
-  // const messagesEndRef = useRef<null | HTMLDivElement>(null);
-  // const scrollToBottom = () => {
-  //   messagesEndRef?.current?.scrollIntoView({ behavior: "smooth" });
-  // };
-  // useEffect(() => {
-  //   scrollToBottom();
-  // }, [data?.messages]);
+  const messagesEndRef = useRef<null | HTMLDivElement>(null);
+  const scrollToBottom = () => {
+    messagesEndRef?.current?.scrollIntoView({ behavior: "smooth" });
+  };
+  useEffect(() => {
+    scrollToBottom();
+  }, [data?.messages]);
 
   return (
     <>
