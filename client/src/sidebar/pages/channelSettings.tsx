@@ -32,6 +32,7 @@ import { ReactComponent as SearchIcon } from "pixelarticons/svg/search.svg";
 import { ReactComponent as SettingsIcon } from "pixelarticons/svg/sliders.svg";
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { ReactComponent as LeaveIcon } from "pixelarticons/svg/logout.svg";
+import RemovePwdIcon from "/src/assets/images/RemovePassword.svg";
 import { useRef, useState } from "react";
 
 import * as Avatar from "@radix-ui/react-avatar";
@@ -811,109 +812,101 @@ const ChannelMode = ({
   });
 
   const [showPasswordField, setShowPasswordField] = useState(false);
-  //TODO : useEffect to set pw confirmation
-  const [showConfirmation, setShowConfirmation] = useState(false);
+
   return (
-    <div className="flex h-full flex-col">
-      <form
-        className="flex h-full flex-col"
-        onSubmit={handleSubmit((data) => {
-          showPasswordField
-            ? updatePassword.mutate({
-                channelId,
-              })
-            : null;
-          showPasswordField ? setShowConfirmation(true) : null;
-        })}
-      >
-        <div className="flex">
-          <div className="flex h-full align-middle ">Mode : {activeMode}</div>
-          {changesAuthorized && activeMode !== "Private" && (
-            <>
-              {activeMode === "Password" && (
-                <button
-                  onClick={() => console.log("remove pwd")}
-                  className="mx-3 border border-black bg-slate-200"
-                >
-                  <img className="w-8" src={RemovePwdIcon} />
-                  Remove password
-                </button>
-              )}
-              <button
-                onClick={() => setShowPasswordField(!showPasswordField)}
-                className="mx-3 border border-slate-300 bg-slate-200 text-xs hover:cursor-pointer hover:bg-slate-300"
-              >
-                {activeMode === "Password" && !showPasswordField
-                  ? "Change password"
-                  : activeMode === "Public" && !showPasswordField
-                  ? "Add password"
-                  : "Cancel"}
-              </button>
-            </>
-          )}
-        </div>
-
-        <div className="flex h-full items-center justify-center">
-          {changesAuthorized && activeMode !== "Private" ? (
-            <div
-              className={`${
-                showPasswordField ? "opacity-100" : "opacity-10"
-              } flex items-center justify-center`}
+    <form
+      className="mt-2 flex h-full flex-col"
+      onSubmit={handleSubmit((data) => {
+        showPasswordField
+          ? updatePassword.mutate({
+              channelId,
+            })
+          : null;
+      })}
+    >
+      <div className="flex w-full">
+        <div className="flex h-10 basis-1/2">Mode : {activeMode}</div>
+        {changesAuthorized && activeMode !== "Private" && (
+          <div className="flex w-full">
+            <button
+              onClick={() => setShowPasswordField(!showPasswordField)}
+              className="mr-1 h-6  basis-1/2 border-2 border-slate-200 bg-slate-100 text-xs hover:cursor-pointer hover:bg-slate-200"
             >
-              <label
-                className="mr-2 mt-4 text-sm text-slate-400"
-                htmlFor="Password"
+              {activeMode === "Password" && !showPasswordField
+                ? "Change password"
+                : activeMode === "Public" && !showPasswordField
+                ? "Add password"
+                : "Cancel"}
+            </button>
+            {activeMode === "Password" && (
+              <button
+                onClick={() => console.log("remove pwd")}
+                className="h-6 basis-1/2 border-2  border-slate-200 bg-slate-100 text-xs hover:cursor-pointer hover:bg-slate-200"
               >
-                {activeMode === "Password" ? "New password: " : "Password: "}
-              </label>
-              <div className="relative">
-                <input
-                  {...register("password", {
-                    required: showPasswordField,
-                    maxLength: 100,
-                  })}
-                  type="password"
-                  autoComplete="off"
-                  defaultValue=""
-                  disabled={!showPasswordField}
-                  autoFocus={showPasswordField}
-                  className={`${
-                    showPasswordField && errors.password
-                      ? "ring-1 ring-red-500"
-                      : "ring-0 "
-                  } my-2 h-8 w-48 self-center px-1 text-xs`}
-                />
+                Remove Password
+              </button>
+            )}
+          </div>
+        )}
+      </div>
 
-                {errors.password && showPasswordField && (
-                  <span
-                    className="absolute -bottom-2 -left-0 w-full text-center text-xs text-red-600"
-                    role="alert"
-                  >
-                    You must set a password
-                  </span>
-                )}
-              </div>
-              {showConfirmation && (
+      <div className="flex h-full items-center justify-center">
+        {changesAuthorized && activeMode !== "Private" ? (
+          <div
+            className={`${
+              showPasswordField ? "opacity-100" : "opacity-10"
+            } flex items-center justify-center`}
+          >
+            <label className="mr-2 text-sm text-slate-400" htmlFor="Password">
+              {activeMode === "Password" ? "New password: " : "Password: "}
+            </label>
+            <div className="relative">
+              <input
+                {...register("password", {
+                  required: showPasswordField,
+                  maxLength: 100,
+                })}
+                type="password"
+                autoComplete="off"
+                defaultValue=""
+                disabled={!showPasswordField}
+                autoFocus={showPasswordField}
+                className={`${
+                  showPasswordField && errors.password
+                    ? "ring-1 ring-red-500"
+                    : "ring-0 "
+                }  h-7 w-48 self-center px-1 text-xs`}
+              />
+
+              {errors.password && showPasswordField && (
+                <span
+                  className="absolute -bottom-4 -left-0 w-full text-center text-xs text-red-600"
+                  role="alert"
+                >
+                  You must set a password
+                </span>
+              )}
+            </div>
+            {/* {showConfirmation && (
                 <span
                   className="text-center text-xs text-slate-400"
                   role="alert"
                 >
                   Password successfully updated
                 </span>
-              )}
-              <input
-                className={`${
-                  showPasswordField
-                    ? "hover:cursor-pointer hover:bg-slate-300"
-                    : "hover:cursor-not-allowed"
-                } ml-3 flex w-fit justify-center self-center border border-slate-300 bg-slate-200 px-1 text-center text-sm font-bold `}
-                type="submit"
-              />
-            </div>
-          ) : null}
-        </div>
-      </form>
-    </div>
+              )} */}
+            <input
+              className={`${
+                showPasswordField
+                  ? "hover:cursor-pointer hover:bg-slate-300"
+                  : "hover:cursor-not-allowed"
+              } ml-3 flex w-fit justify-center self-center border border-slate-300 bg-slate-200 px-1 text-center text-sm font-bold `}
+              type="submit"
+            />
+          </div>
+        ) : null}
+      </div>
+    </form>
   );
 };
 
@@ -935,7 +928,7 @@ const ChannelHeader = ({
   setLeaveConfirmation: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   return (
-    <div className="relative flex flex-col justify-center p-2">
+    <div className="relative flex h-full w-full flex-col justify-center p-2">
       <div className="absolute top-1 right-1 flex">
         <LeaveIcon
           className="mt-1 w-8 self-center text-lg text-slate-500 hover:cursor-pointer hover:text-slate-700"
@@ -944,8 +937,8 @@ const ChannelHeader = ({
           }}
         />
       </div>
-      <div className="mt-1 ml-1 flex w-full grow items-center">
-        <div className="relative flex h-28 w-28 justify-center self-center border border-slate-400 bg-white">
+      <div className="mt-1 ml-1 flex h-full w-full items-center">
+        <div className="relative flex h-28 w-28 shrink-0 justify-center self-center border border-slate-400 bg-white">
           {isOwner ? (
             <TrashIcon
               className="absolute -top-2 -right-2 w-6 self-center border border-black bg-white text-lg text-black shadow-sm shadow-black hover:cursor-pointer hover:bg-slate-200"
@@ -956,23 +949,21 @@ const ChannelHeader = ({
           ) : null}
           <UsersIcon className="mt-2 h-20 w-20 self-center text-slate-700 " />
         </div>
-        <div className="mx-4 flex h-full flex-col">
+        <div className="ml-4 flex h-full w-full flex-col">
           <div className="text-left text-2xl font-bold">
             Channel : {channelName}
           </div>
-          <div className="mt-2 flex flex-row ">
-            <ChannelMode
-              channelId={channelId}
-              activeMode={
-                privateMode
-                  ? "Private"
-                  : passwordProtected
-                  ? "Password"
-                  : "Public"
-              }
-              changesAuthorized={isOwner}
-            />
-          </div>
+          <ChannelMode
+            channelId={channelId}
+            activeMode={
+              privateMode
+                ? "Private"
+                : passwordProtected
+                ? "Password"
+                : "Public"
+            }
+            changesAuthorized={isOwner}
+          />
         </div>
       </div>
     </div>

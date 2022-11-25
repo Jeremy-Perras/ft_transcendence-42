@@ -487,7 +487,7 @@ export default function Channel() {
                   `${
                     !settingsLinkAuthorized
                       ? ""
-                      : "/settings/channel/${channelId}"
+                      : `/settings/channel/${channelId}`
                   }`
                 )
               }
