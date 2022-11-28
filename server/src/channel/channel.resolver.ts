@@ -845,6 +845,7 @@ export class ChannelMessageReadResolver {
     @CurrentUser() currentUserId: number
   ) {
     const message = await this.prisma.channelMessage.findUnique({
+      select: { readBy: true },
       where: {
         id: messageId,
       },
@@ -853,14 +854,14 @@ export class ChannelMessageReadResolver {
     if (!message) {
       throw new NotFoundException("Message not found");
     }
-    console.log(message);
-    // await this.prisma.channelMessageRead.create({
-    //   data: {
-    //     channelMessageId: messageId,
-    //     userId: currentUserId,
-    //     readAt: new Date(),
-    //   },
-    // });
+    //TODO problem because react call two times lets's see zhen he will not in dev if still problem
+    await this.prisma.channelMessageRead.create({
+      data: {
+        channelMessageId: messageId,
+        userId: currentUserId,
+        readAt: new Date(),
+      },
+    });
     return true;
   }
 }

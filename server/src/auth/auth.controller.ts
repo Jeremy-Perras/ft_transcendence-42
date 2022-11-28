@@ -6,7 +6,9 @@ import {
   UnauthorizedException,
   Get,
   Redirect,
+  Request,
 } from "@nestjs/common";
+import { Request as RequestExpress } from "express";
 import { AuthenticatedGuard } from "./authenticated.guard";
 import { LoginGuard } from "./login.guard";
 
@@ -41,6 +43,15 @@ export class AuthController {
   @UseGuards(AuthenticatedGuard)
   @Get("/session")
   session(): string {
+    return "ok";
+  }
+
+  @UseGuards(AuthenticatedGuard)
+  @Get("/logout")
+  logout(@Request() req: RequestExpress): string {
+    req.session.destroy(() => {
+      return;
+    });
     return "ok";
   }
 }

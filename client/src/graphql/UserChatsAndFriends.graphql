@@ -1,4 +1,4 @@
-query UserChatsAndFriends {
+query UserChatsAndFriends{
   user {
     channels {
       __typename
@@ -37,4 +37,5 @@ query UserChatsAndFriends {
       friendStatus
     }
   }
+   
 }

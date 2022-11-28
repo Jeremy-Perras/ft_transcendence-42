@@ -1,4 +1,8 @@
-import { NotFoundException, UseGuards } from "@nestjs/common";
+import {
+  NotFoundException,
+  ForbiddenException,
+  UseGuards,
+} from "@nestjs/common";
 import {
   Resolver,
   Query,
@@ -482,6 +486,29 @@ export class UserResolver {
     });
     return true;
   }
+
+  @UseGuards(SelfGuard)
+  @Mutation((returns) => Boolean)
+  async updateUserName(
+    @CurrentUser() currentUserId: number,
+    @Args("name", { type: () => String }) name: string
+  ) {
+    const user = await this.prisma.user.findMany({
+      select: { name: true },
+    });
+    if (user.some((user) => user.name === name)) {
+      throw new ForbiddenException("Name already used");
+    }
+    await this.prisma.user.update({
+      where: {
+        id: currentUserId,
+      },
+      data: {
+        name: name,
+      },
+    });
+    return true;
+  }
 }
 
 @Resolver(DirectMessage)
@@ -557,18 +584,23 @@ export class DirectMessageResolver {
     @Args("messageId", { type: () => Int }) messageId: number
   ) {
     const message = await this.prisma.directMessage.findUnique({
+      select: { readAt: true },
       where: { id: messageId },
     });
     if (!message) {
       throw new NotFoundException("Message not found");
     }
-    await this.prisma.directMessage.update({
-      where: { id: messageId },
-      data: {
-        readAt: new Date(),
-      },
-    });
+    //TODO remove condition when porject is not in dev cause of react call two times
+    if (message.readAt === null) {
+      await this.prisma.directMessage.update({
+        where: { id: messageId },
+        data: {
+          readAt: new Date(),
+        },
+      });
 
-    return true;
+      return true;
+    }
+    return false;
   }
 }

@@ -585,8 +585,6 @@ const Search = ({
                   : "";
               }}
             >
-              {/* TODO : channel invite only and pwd => instead of update member when clicking on user in settings, send invite and put it on home like user invites
-               */}
               <>
                 <Avatar.Root>
                   <Avatar.Image

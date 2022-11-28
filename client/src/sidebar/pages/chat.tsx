@@ -27,7 +27,6 @@ import {
   HeaderLeftBtn,
 } from "../components/header";
 import { RankIcon } from "../utils/rankIcon";
-import queryClient from "../../query";
 
 type ChatQuery = {
   messages: {
@@ -97,10 +96,11 @@ const DirectMessage = ({
   });
 
   useEffect(() => {
-    if (readAt === null && author.id === userId)
+    if (readAt === null && author.id === userId) {
       readDirectMessage.mutate({
         messageId: id,
       });
+    }
   }, []);
 
   return (

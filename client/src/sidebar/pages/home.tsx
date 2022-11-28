@@ -5,7 +5,7 @@ import {
   UseQueryOptions,
 } from "@tanstack/react-query";
 import { useState } from "react";
-import { ReactComponent as GamePadIcon } from "pixelarticons/svg/gamepad.svg";
+
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { ReactComponent as UsersIcon } from "pixelarticons/svg/users.svg";
 import { ReactComponent as AcceptIcon } from "pixelarticons/svg/check.svg";
@@ -27,6 +27,7 @@ import {
 } from "../components/header";
 import { getDate } from "../utils/getDate";
 import { FriendStatus } from "../../graphql/generated";
+import { Empty } from "../components/Empty";
 
 type Chat = {
   __typename: "User" | "Channel";
@@ -84,7 +85,6 @@ const ChannelAndFriendBanner = ({
   const lastMessage = messages ? messages[messages.length - 1] : null;
 
   //TODO : new channel message
-  //TODO : channel invite only and pwd => instead of add member when clicking on user in settings, send invite and put it on home like user invites
   let newChatMessage = false;
   messages?.forEach((message) => {
     if (message.author.id === id && message.readAt === null)
@@ -129,17 +129,6 @@ const ChannelAndFriendBanner = ({
           {lastMessage?.content}
         </span>
       </div>
-    </div>
-  );
-};
-
-const Empty = () => {
-  return (
-    <div className="flex h-full select-none flex-col items-center justify-center text-slate-200">
-      <GamePadIcon className="-mt-2 w-96" />
-      <span className="-mt-10 px-20 text-center text-2xl">
-        Add your friends to play with them!
-      </span>
     </div>
   );
 };
@@ -232,7 +221,10 @@ export const Home = () => {
             setSearchInput={setSearchInput}
           />
         ) : data?.length === 0 ? (
-          <Empty />
+          <Empty
+            Message="Add your friends to play with them!"
+            Icon="GamePadIcon"
+          />
         ) : (
           data?.map((chat, index) =>
             chat.__typename === "User" &&

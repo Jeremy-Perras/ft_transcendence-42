@@ -1,17 +1,16 @@
 import { useMediaQuery } from "@react-hookz/web";
 import { useNavigate } from "react-router-dom";
 import { ReactComponent as BackBurgerIcon } from "pixelarticons/svg/backburger.svg";
+import { ReactComponent as LogOutIcon } from "pixelarticons/svg/logout.svg";
 import { ReactComponent as ArrowLeftIcon } from "pixelarticons/svg/arrow-left-box.svg";
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { useSidebarStore } from "../../stores";
 import { useUserProfileHeaderQuery } from "../../graphql/generated";
 import * as Avatar from "@radix-ui/react-avatar";
-
+import { useAuthStore } from "./../../stores";
 const CurrentUserProfile = () => {
   const navigate = useNavigate();
-
   const { data, isFetched } = useUserProfileHeaderQuery();
-
   return (
     <div
       className="flex w-10 shrink-0 grow-0 cursor-pointer flex-col justify-center"
@@ -32,11 +31,12 @@ const CurrentUserProfile = () => {
   );
 };
 
+//TODO replace border-x-2 inside classname if you remove LogOut
 const CloseSidebar = () => {
   const closeSidebar = useSidebarStore((state) => state.close);
 
   return (
-    <div className="flex w-10 shrink-0 grow-0 cursor-pointer flex-col justify-center border-x-2">
+    <div className="flex w-10 shrink-0 grow-0 cursor-pointer flex-col justify-center ">
       <BackBurgerIcon
         onClick={closeSidebar}
         className="h-9 rotate-180 cursor-pointer transition-colors duration-200 hover:text-slate-500"
@@ -45,6 +45,18 @@ const CloseSidebar = () => {
   );
 };
 
+const LogOut = () => {
+  return (
+    <div className="ml-1 flex w-10 shrink-0 grow-0 cursor-pointer flex-col justify-center border-x-2">
+      <LogOutIcon
+        onClick={() => {
+          useAuthStore.getState().logout();
+        }}
+        className="m-1 h-9 rotate-180 cursor-pointer transition-colors duration-200 hover:text-slate-500"
+      />
+    </div>
+  );
+};
 export const HeaderNavigateBack = () => {
   const navigate = useNavigate();
   return (
@@ -92,6 +104,7 @@ export const Header = ({
     >
       {children}
       <CurrentUserProfile />
+      <LogOut />
       {isSmallScreen ? <CloseSidebar /> : null}
     </div>
   );

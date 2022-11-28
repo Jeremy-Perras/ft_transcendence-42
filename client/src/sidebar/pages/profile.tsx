@@ -14,6 +14,7 @@ import {
   useUnfriendUserMutation,
   useUserProfileQuery,
   useRefuseInvitationMutation,
+  useUpdateUserNameMutation,
 } from "../../graphql/generated";
 
 import ClassicIcon from "/src/assets/images/ClassicIcon.svg";
@@ -21,7 +22,7 @@ import BonusIcon from "/src/assets/images/BonusIcon.svg";
 import FireIcon from "/src/assets/images/FireIcon.svg";
 
 import UnachievedIcon from "/achievements/Unachieved.svg";
-
+import { ReactComponent as CloseIcon } from "pixelarticons/svg/close.svg";
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { ReactComponent as AddAvatarIcon } from "pixelarticons/svg/cloud-upload.svg";
 import { ReactComponent as AddFriendIcon } from "pixelarticons/svg/user-plus.svg";
@@ -40,6 +41,12 @@ import {
 } from "../components/header";
 import { RankIcon } from "../utils/rankIcon";
 import BannedDarkIcon from "/src/assets/images/Banned_dark.svg";
+
+import { useForm } from "react-hook-form";
+
+type formData = {
+  name: string;
+};
 
 const query = (
   userId: number
@@ -469,23 +476,73 @@ const FriendButtons = ({ data }: { data: UserProfileQuery }) => {
     </div>
   );
 };
-
+const ChangeName = ({
+  setName,
+}: {
+  setName: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
+  const queryClient = useQueryClient();
+  const [showNameError, setShowNameError] = useState(false);
+  const { register, handleSubmit } = useForm<formData>();
+  const changeName = useUpdateUserNameMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries(useUserProfileQuery.getKey({}));
+      setShowNameError(false);
+    },
+    onError: () => setShowNameError(true),
+  });
+  return (
+    <form
+      onSubmit={handleSubmit((data) => {
+        changeName.mutate({ name: data.name });
+      })}
+      className="absolute top-11  flex w-full flex-col justify-center bg-slate-200"
+    >
+      <div className="flex w-full justify-center ">
+        <div className="flex flex-col justify-center text-center">
+          <label className="mt-4 text-xl text-slate-400" htmlFor="Password">
+            Enter Name
+          </label>
+          <input
+            {...register("name", {
+              maxLength: 100,
+              required: true,
+            })}
+            autoComplete="off"
+            defaultValue=""
+            className="mt-4 h-10 w-64 self-center px-1 text-xl "
+          />
+        </div>
+      </div>
+      {showNameError ? (
+        <p className="flex items-center justify-center text-center text-base text-red-300 before:content-['⚠']">
+          Name Already used
+        </p>
+      ) : null}
+      <input
+        className="mt-1 flex justify-center self-center border-2 border-slate-300 bg-slate-200 px-6 py-3 text-center text-xl font-bold hover:cursor-pointer hover:bg-slate-300"
+        type="submit"
+      />
+      <CloseIcon
+        onClick={() => setName(false)}
+        className="absolute right-0 top-0 h-4 w-4 hover:cursor-pointer"
+      />
+    </form>
+  );
+};
 const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
   const CurrentUserData = () => {
     const { data } = useUserProfileQuery();
     return data;
   };
   const currentUserData = CurrentUserData();
-
+  const [name, setName] = useState(false);
   if (typeof currentUserData === "undefined") return <>Error</>;
-
-  const status = data.user.friendStatus;
 
   //TODO : change - this is the wrong way
   const friend = data.user.friendStatus === "FRIEND";
   const pendingAccept = data.user.friendStatus === "INVITATION_RECEIVED";
   const pendingInvitation = data.user.friendStatus === "INVITATION_SEND";
-
   return (
     <div className="flex h-full w-full flex-col ">
       <Header>
@@ -496,7 +553,7 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
           <HeaderCenterContent>
             <div className="flex h-full items-center justify-center">
               <img className="mr-2 h-8" src={RankIcon(data?.user.rank)} />
-              <div>{data?.user.name}</div>
+              <button onClick={() => setName(!name)}>{data?.user.name}</button>
             </div>
           </HeaderCenterContent>
         </>
@@ -516,6 +573,7 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
           pendingAccept={pendingAccept}
         />
       )}
+      {name ? <ChangeName setName={setName} /> : null}
     </div>
   );
 };
@@ -528,7 +586,6 @@ export default function Profile() {
     ReturnType<typeof profileLoader>
   >;
   const { data } = useQuery({ ...query(userId), initialData });
-  if (typeof data === "undefined") {
-    return <div>Error</div>;
-  } else return <DisplayUserProfile data={data} />;
+  if (typeof data === "undefined") return <div>Error</div>;
+  return <DisplayUserProfile data={data} />;
 }

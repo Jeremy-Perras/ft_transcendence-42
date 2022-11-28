@@ -131,15 +131,14 @@ const Banned = () => {
 const ReadBy = ({ users }: { users: User[] }) => {
   const navigate = useNavigate();
   return (
-    <div className="ml-24 flex h-6 w-full items-end justify-start">
+    <div className="flex h-6 w-full flex-row items-end justify-start">
       <div className="mb-px mr-1 w-full text-end text-xs text-slate-300 ">
         {users.length !== 0 ? "Seen by" : ""}
       </div>
       {users.map(({ id, name, avatar }, index) => {
-        const [showName, setShowName] = useState(false);
         return (
           <div
-            className="relative flex h-full w-8 flex-col flex-wrap justify-center"
+            className="group relative flex h-full w-8 flex-col flex-wrap justify-center"
             key={index}
           >
             <img
@@ -148,23 +147,16 @@ const ReadBy = ({ users }: { users: User[] }) => {
               src={`/uploads/avatars/${avatar}`}
               alt="User avatar"
               onClick={() => navigate(`/profile/${id}`)}
-              onMouseOver={() => setShowName(true)}
-              onMouseOut={() => setShowName(false)}
-            ></img>
-            <div
-              className={`${
-                showName ? "opacity-100" : "opacity-0 "
-              } absolute top-5 right-0 my-1 w-24 grow truncate text-right text-xs text-slate-300 transition-all duration-100`}
-            >
+            />
+            <span className="absolute top-5 right-0 my-1 w-24 grow truncate text-right text-xs text-slate-300 opacity-0 transition-all duration-100 group-hover:opacity-100">
               {name}
-            </div>
+            </span>
           </div>
         );
       })}
     </div>
   );
 };
-
 const ChannelMessage = ({
   author,
   readBy,
@@ -175,8 +167,11 @@ const ChannelMessage = ({
   id,
 }: ChannelDisplayMessage) => {
   const navigate = useNavigate();
-  // TODO : update read messages does not work
   const queryClient = useQueryClient();
+  const { data } = useChannelDiscussionQuery({
+    channelId: channelId,
+    userId: author.id,
+  });
   const createChannelMessageRead = useCreateChannelMessageReadMutation({
     onSuccess: () => {
       queryClient.invalidateQueries(
@@ -185,17 +180,16 @@ const ChannelMessage = ({
     },
   });
   useEffect(() => {
-    if (readBy.some((users) => users.user.id === userId) === false) {
-      console.log("test");
+    if (!readBy.some((user) => user.user.id === userId)) {
       createChannelMessageRead.mutate({
         messageId: id,
       });
     }
   }, []);
-
+  console.log(data?.user.blocking);
   return (
     <>
-      <div className="mt-6 text-center text-xs text-slate-300">
+      <div className=" left-0 mt-6 text-center text-xs text-slate-300">
         {getDate(+sentAt)}
       </div>
       <div className="flex w-full">
@@ -213,18 +207,22 @@ const ChannelMessage = ({
           <div className="text-left text-xs tracking-wide text-slate-400">
             <span>{author.name} </span>
           </div>
-          <div className="rounded-md bg-slate-200 px-4 py-2 text-left tracking-wide">
-            {content}
+          <div
+            className={`${
+              data?.user.blocked ? "bg-red-600" : ""
+            } rounded-md bg-slate-200 px-4 py-2 text-left tracking-wide`}
+          >
+            {data?.user.blocked
+              ? "You can't read the content this user is blocked"
+              : content}
           </div>
         </div>
       </div>
-      <div className="flex">
-        <ReadBy
-          users={readBy.map((Users) => {
-            return Users.user;
-          })}
-        />
-      </div>
+      <ReadBy
+        users={readBy.map((Users) => {
+          return Users.user;
+        })}
+      />
     </>
   );
 };

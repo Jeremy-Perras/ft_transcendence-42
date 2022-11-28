@@ -12,15 +12,14 @@ export default function FileUploadPage({
 }: {
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
-  const [selectedFile, setSelectedFile] = useState();
+  const [selectedFile, setSelectedFile] = useState<File>();
 
   useEffect(() => {
     focusManager.setFocused(false);
     return () => focusManager.setFocused(undefined);
   }, []);
 
-  //TODO : remove any
-  const changeHandler = (event: any) => {
+  const changeHandler = (event: File) => {
     setSelectedFile(event);
   };
 
@@ -47,28 +46,31 @@ export default function FileUploadPage({
               } else null;
             }}
           />
-          <button
-            onClick={() => {
-              if (selectedFile != null) {
-                const formData = new FormData();
-                formData.append("file", selectedFile);
-                fetch("/upload/avatar/", {
-                  method: "POST",
-                  body: formData,
-                }).then(() => {
-                  queryClient.invalidateQueries(useUserProfileQuery.getKey());
-                  queryClient.invalidateQueries(
-                    useUserProfileHeaderQuery.getKey()
-                  );
-                });
-              }
-              setIsOpen(false);
-            }}
-            className="flex shrink-0 rounded-sm border border-neutral-500 bg-neutral-100 py-1 px-2 hover:bg-slate-200"
-          >
-            Submit
-            {/* //TODO : don't close when submit if file empty */}
-          </button>
+          {selectedFile != null ? (
+            <button
+              onClick={() => {
+                if (selectedFile != null) {
+                  const formData = new FormData();
+                  formData.append("file", selectedFile);
+                  fetch("/upload/avatar/", {
+                    method: "POST",
+                    body: formData,
+                  }).then(() => {
+                    queryClient.invalidateQueries(useUserProfileQuery.getKey());
+                    queryClient.invalidateQueries(
+                      useUserProfileHeaderQuery.getKey()
+                    );
+                  });
+                }
+                setIsOpen(false);
+              }}
+              className="flex shrink-0 rounded-sm border border-neutral-500 bg-neutral-100 py-1 px-2 hover:bg-slate-200"
+            >
+              Submit
+            </button>
+          ) : (
+            ""
+          )}
         </div>
         <div
           className="  basis-1/5 bg-black bg-opacity-40"

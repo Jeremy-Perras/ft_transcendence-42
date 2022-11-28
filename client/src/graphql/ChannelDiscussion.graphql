@@ -41,5 +41,7 @@ query ChannelDiscussion($channelId: Int!, $userId: Int) {
     }
      user(id: $userId) {
     id
+    blocked
+    blocking
   }
 }
