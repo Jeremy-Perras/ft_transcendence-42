@@ -186,7 +186,6 @@ const ChannelMessage = ({
       });
     }
   }, []);
-  console.log(data?.user.blocking);
   return (
     <>
       <div className=" left-0 mt-6 text-center text-xs text-slate-300">

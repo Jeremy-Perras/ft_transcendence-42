@@ -29,7 +29,6 @@ async function main() {
     const avatar = faker.image.avatar();
     get(avatar, (res) => {
       const path = resolve(__dirname, "../uploads/avatars", `${i}.jpg`);
-      console.log(avatar, path);
       res.pipe(createWriteStream(path));
     });
     await prisma.user.create({
