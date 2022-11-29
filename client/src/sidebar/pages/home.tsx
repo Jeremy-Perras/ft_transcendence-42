@@ -28,6 +28,7 @@ import {
 import { getDate } from "../utils/getDate";
 import { FriendStatus } from "../../graphql/generated";
 import { Empty } from "../components/Empty";
+import { ReactComponent as GamePadIcon } from "pixelarticons/svg/gamepad.svg";
 
 type Home = {
   currentUserId: number;
@@ -242,7 +243,7 @@ export const Home = () => {
         ) : data?.chatList.length === 0 ? (
           <Empty
             Message="Add your friends to play with them!"
-            Icon="GamePadIcon"
+            Icon={GamePadIcon}
           />
         ) : (
           data?.chatList.map((chat, index) =>

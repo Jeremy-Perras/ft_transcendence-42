@@ -107,7 +107,7 @@ export const SearchResults = ({
       {data?.length === 0 ? (
         <div className="relative flex h-full flex-col">
           <div className="flex h-full flex-col overflow-y-auto">
-            <Empty Message="No result for the research!" Icon="LoaderIcon" />
+            <Empty Message="No result for the research!" Icon={SearchIcon} />
           </div>
         </div>
       ) : (
