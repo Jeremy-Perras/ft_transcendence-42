@@ -101,12 +101,14 @@ const ChannelAndFriendBanner = ({
     }
     if (__typename === "Channel") {
       messages?.forEach((message) => {
-        if (!message.readBy?.some((user) => user.user?.id === currentUserId))
+        if (
+          !message.readBy?.some((user) => user.user?.id === currentUserId) &&
+          message.author.id !== currentUserId
+        )
           setNewChannelMessage(true);
       });
     }
   }, [messages]);
-
   return (
     <div
       onClick={() =>

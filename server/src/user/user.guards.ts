@@ -115,3 +115,21 @@ export class ExistingUserGuard implements CanActivate {
     return true;
   }
 }
+
+@Injectable()
+export class MessageFormat implements CanActivate {
+  constructor(private prisma: PrismaService) {}
+
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const ctx = GqlExecutionContext.create(context);
+    const newName = ctx.getArgs<{ name: string }>().name;
+    console.log(newName.length);
+    if (newName.length > 255) {
+      throw new ForbiddenException("you can't exceed 255 characters");
+    }
+    if (!newName) {
+      throw new ForbiddenException("Name can't be empty");
+    }
+    return true;
+  }
+}

@@ -22,6 +22,7 @@ import {
   BlockGuard,
   ExistingUserGuard,
   FriendGuard,
+  MessageFormat,
   SelfGuard,
 } from "./user.guards";
 import {
@@ -487,6 +488,7 @@ export class UserResolver {
     return true;
   }
 
+  @UseGuards(MessageFormat)
   @Mutation((returns) => Boolean)
   async updateUserName(
     @CurrentUser() currentUserId: number,
