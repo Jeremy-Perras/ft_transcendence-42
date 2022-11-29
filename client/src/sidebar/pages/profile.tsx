@@ -46,6 +46,7 @@ import BannedDarkIcon from "/src/assets/images/Banned_dark.svg";
 
 import { useForm, useWatch } from "react-hook-form";
 import { useAuthStore } from "../../stores";
+import { Empty } from "../components/Empty";
 
 type formData = {
   name: string;
@@ -453,9 +454,9 @@ const Disconnect = () => {
       }}
       className="flex h-24 w-full select-none  items-center justify-center border-2 border-slate-300 bg-slate-200 p-4 text-xl font-bold text-slate-400 transition-all hover:cursor-pointer hover:bg-slate-300  hover:text-slate-500 "
     >
-      <LogOutIcon className="m-1 h-16 rotate-180 cursor-pointer" />
+      <LogOutIcon className="m-1 h-12 rotate-180 cursor-pointer" />
       <span className="flex items-center text-center text-2xl font-bold ">
-        Click to disconnect
+        Logout
       </span>
     </div>
   );
@@ -665,9 +666,13 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
                             : null;
                         })}
                       />
-                      {errors.name ? (
+                      {errors.name?.type === "required" ? (
                         <p className="absolute left-1 -bottom-5 w-32 border border-red-500 bg-red-50 text-xs text-red-300 before:content-['⚠']">
                           Name cannot be empty
+                        </p>
+                      ) : errors.name?.type === "maxLength" ? (
+                        <p className="absolute left-1 -bottom-5 w-32 border border-red-500 bg-red-50 text-xs text-red-300 before:content-['⚠']">
+                          Name too long
                         </p>
                       ) : showNameError ? (
                         <p className="absolute left-1 -bottom-5 w-28 border border-red-500 bg-red-50 text-xs text-red-300 before:content-['⚠']">
@@ -735,7 +740,7 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
 
 export default function Profile() {
   const params = useParams();
-  if (typeof params.userId === "undefined") return <div></div>;
+  if (typeof params.userId === "undefined") return <div>Error</div>;
   const userId = +params.userId;
   const initialData = useLoaderData() as Awaited<
     ReturnType<typeof profileLoader>
