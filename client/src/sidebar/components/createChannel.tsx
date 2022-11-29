@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { FieldValues, useForm, UseFormRegister } from "react-hook-form";
+import { useForm, UseFormRegister } from "react-hook-form";
 import { ReactComponent as UsersIcon } from "pixelarticons/svg/users.svg";
 import { ReactComponent as PrivateIcon } from "pixelarticons/svg/mail.svg";
 import { ReactComponent as PasswordIcon } from "pixelarticons/svg/lock.svg";
