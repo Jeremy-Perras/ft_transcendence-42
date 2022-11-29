@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useMediaQuery } from "@react-hookz/web";
 import { ReactComponent as BackBurgerIcon } from "pixelarticons/svg/backburger.svg";
 import { motion, useAnimationControls } from "framer-motion";
@@ -18,6 +18,7 @@ import Channel, { channelLoader } from "./pages/channel";
 import ChannelSettings, {
   channelSettingsLoader,
 } from "./pages/channelSettings";
+import { useUserChatsAndFriendsQuery } from "../graphql/generated";
 
 const loaderFn = (
   fn: (queryClient: QueryClient, args: LoaderFunctionArgs) => unknown
@@ -54,9 +55,30 @@ const router = createMemoryRouter([
 ]);
 
 const SidebarOpenBtn = () => {
-  const newMessage = false; // TODO: use react query to get this
+  const [newMessage, setNewMessage] = useState(false); // TODO: use react query to get this
+  const { data } = useUserChatsAndFriendsQuery({});
   const openSidebar = useSidebarStore((state) => state.open);
 
+  useEffect(() => {
+    data?.user.friends?.forEach((friend) => {
+      friend.messages.forEach((message) => {
+        if (message.author.id !== data.user.id && message.readAt === null) {
+          setNewMessage(true);
+        }
+      });
+    });
+    data?.user.channels.forEach((message) => {
+      message.messages.forEach((readBy) => {
+        if (
+          !readBy.readBy?.some((user) => user.user?.id === data.user.id) &&
+          readBy.author.id !== data.user.id
+        ) {
+          console.log("test");
+          setNewMessage(true);
+        }
+      });
+    });
+  }, [data?.user.friends && data.user.channels]);
   return (
     <button
       onClick={() =>
