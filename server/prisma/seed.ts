@@ -25,7 +25,7 @@ async function main() {
   });
 
   // users
-  for (let i = 1; i <= 20; i++) {
+  for (let i = 1; i <= 100; i++) {
     const avatar = faker.image.avatar();
     get(avatar, (res) => {
       const path = resolve(__dirname, "../uploads/avatars", `${i}.jpg`);
@@ -195,26 +195,22 @@ async function main() {
   });
 
   // channel members
-  await prisma.channel.update({
-    where: {
-      id: 1,
-    },
-    data: {
-      members: {
-        create: [
-          {
-            userId: 4,
-          },
-          {
-            userId: 5,
-          },
-          {
-            userId: 6,
-          },
-        ],
+  for (let i = 10; i < 99; i++) {
+    await prisma.channel.update({
+      where: {
+        id: 1,
       },
-    },
-  });
+      data: {
+        members: {
+          create: [
+            {
+              userId: i,
+            },
+          ],
+        },
+      },
+    });
+  }
   await prisma.channel.update({
     where: {
       id: 2,
@@ -292,7 +288,7 @@ async function main() {
         sentAt: faker.date.recent(),
       },
     });
-    for (let ii = 1; ii <= 10; ii++) {
+    for (let ii = 1; ii <= 50; ii++) {
       if (ii != p1) {
         await prisma.channelMessage.update({
           where: {
