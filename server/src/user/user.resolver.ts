@@ -487,7 +487,6 @@ export class UserResolver {
     return true;
   }
 
-  @UseGuards(SelfGuard)
   @Mutation((returns) => Boolean)
   async updateUserName(
     @CurrentUser() currentUserId: number,
@@ -496,9 +495,11 @@ export class UserResolver {
     const user = await this.prisma.user.findMany({
       select: { name: true },
     });
+
     if (user.some((user) => user.name === name)) {
       throw new ForbiddenException("Name already used");
     }
+
     await this.prisma.user.update({
       where: {
         id: currentUserId,
