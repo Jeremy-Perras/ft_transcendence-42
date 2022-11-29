@@ -17,7 +17,6 @@ import {
   UserChatsAndFriendsQuery,
   useUserChatsAndFriendsQuery,
   useRefuseInvitationMutation,
-  useUserProfileQuery,
 } from "../../graphql/generated";
 import CreateChannel, { CreateChannelBtn } from "../components/createChannel";
 import { SearchBar, SearchResults } from "../components/search";

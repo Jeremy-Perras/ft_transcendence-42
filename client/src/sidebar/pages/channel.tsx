@@ -131,29 +131,34 @@ const Banned = () => {
 const ReadBy = ({ users }: { users: User[] }) => {
   const navigate = useNavigate();
   return (
-    <div className="flex h-6 w-full flex-row items-end justify-start">
-      <div className="mb-px mr-1 w-full text-end text-xs text-slate-300 ">
-        {users.length !== 0 ? "Seen by" : ""}
+    <div className="flex h-6 w-full shrink-0 flex-row flex-wrap items-center justify-end ">
+      <div className="mb-px mr-1 text-end text-xs text-slate-300 ">
+        {users.length !== 0
+          ? users.length > 20
+            ? `Seen by ${users.length} users`
+            : "Seen by"
+          : ""}
       </div>
-      {users.map(({ id, name, avatar }, index) => {
-        return (
-          <div
-            className="group relative flex h-full w-8 flex-col flex-wrap justify-center"
-            key={index}
-          >
-            <img
-              className="m-px h-4 w-4 self-center border border-black transition-all hover:h-5 hover:w-5 hover:cursor-pointer"
+      {users.length <= 20 &&
+        users.map(({ id, name, avatar }, index) => {
+          return (
+            <div
+              className="group relative flex w-5 shrink-0 grow-0 flex-col justify-center"
               key={index}
-              src={`/uploads/avatars/${avatar}`}
-              alt="User avatar"
-              onClick={() => navigate(`/profile/${id}`)}
-            />
-            <span className="absolute top-5 right-0 my-1 w-24 grow truncate text-right text-xs text-slate-300 opacity-0 transition-all duration-100 group-hover:opacity-100">
-              {name}
-            </span>
-          </div>
-        );
-      })}
+            >
+              <img
+                className=" h-4 w-4 self-center border border-black transition-all hover:h-5  hover:w-5 hover:cursor-pointer"
+                key={index}
+                src={`/uploads/avatars/${avatar}`}
+                alt="User avatar"
+                onClick={() => navigate(`/profile/${id}`)}
+              />
+              <span className="absolute top-5 right-0 my-1 w-24 grow truncate text-right text-xs text-slate-300 opacity-0 transition-all duration-100 group-hover:opacity-100">
+                {name}
+              </span>
+            </div>
+          );
+        })}
     </div>
   );
 };
@@ -180,7 +185,10 @@ const ChannelMessage = ({
     },
   });
   useEffect(() => {
-    if (!readBy.some((user) => user.user.id === userId)) {
+    if (
+      !readBy.some((user) => user.user.id === userId) &&
+      userId !== author.id
+    ) {
       createChannelMessageRead.mutate({
         messageId: id,
       });
@@ -188,7 +196,7 @@ const ChannelMessage = ({
   }, []);
   return (
     <>
-      <div className=" left-0 mt-6 text-center text-xs text-slate-300">
+      <div className="left-0 mt-6 text-center text-xs text-slate-300">
         {getDate(+sentAt)}
       </div>
       <div className="flex w-full">
