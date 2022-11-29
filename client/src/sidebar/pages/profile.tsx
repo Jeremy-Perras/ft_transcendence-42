@@ -23,7 +23,6 @@ import ClassicIcon from "/src/assets/images/ClassicIcon.svg";
 import BonusIcon from "/src/assets/images/BonusIcon.svg";
 import FireIcon from "/src/assets/images/FireIcon.svg";
 import UnachievedIcon from "/achievements/Unachieved.svg";
-import { ReactComponent as CloseIcon } from "pixelarticons/svg/close.svg";
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { ReactComponent as AddAvatarIcon } from "pixelarticons/svg/cloud-upload.svg";
 import { ReactComponent as AddFriendIcon } from "pixelarticons/svg/user-plus.svg";
@@ -46,7 +45,6 @@ import BannedDarkIcon from "/src/assets/images/Banned_dark.svg";
 
 import { useForm, useWatch } from "react-hook-form";
 import { useAuthStore } from "../../stores";
-import { Empty } from "../components/Empty";
 
 type formData = {
   name: string;
@@ -525,62 +523,6 @@ const FriendButtons = ({ data }: { data: UserProfileQuery }) => {
   );
 };
 
-const ChangeName = ({
-  setName,
-}: {
-  setName: React.Dispatch<React.SetStateAction<boolean>>;
-}) => {
-  const queryClient = useQueryClient();
-  const [showNameError, setShowNameError] = useState(false);
-  const { register, handleSubmit } = useForm<formData>();
-  const changeName = useUpdateUserNameMutation({
-    onSuccess: () => {
-      queryClient.invalidateQueries(useUserProfileQuery.getKey({}));
-      setShowNameError(false);
-    },
-    onError: () => setShowNameError(true),
-  });
-  //TODO enter form
-  return (
-    <form
-      onSubmit={handleSubmit((data) => {
-        changeName.mutate({ name: data.name });
-      })}
-      className="absolute top-11 flex w-full flex-col justify-center bg-slate-200 p-4 shadow-md shadow-black"
-    >
-      <div className="flex w-full justify-center ">
-        <div className="flex flex-col justify-center text-center">
-          <label className="mt-4 text-xl text-slate-400" htmlFor="Password">
-            Enter Name
-          </label>
-          <input
-            {...register("name", {
-              maxLength: 100,
-              required: true,
-            })}
-            autoComplete="off"
-            defaultValue=""
-            className="mt-4 h-10 w-64 self-center px-1 text-xl "
-          />
-        </div>
-      </div>
-      {showNameError ? (
-        <p className="flex items-center justify-center text-center text-base text-red-300 before:content-['⚠']">
-          Name Already used
-        </p>
-      ) : null}
-      <input
-        className="mt-1 flex justify-center self-center border-2 border-slate-300 bg-slate-200 px-6 py-3 text-center text-xl font-bold hover:cursor-pointer hover:bg-slate-300"
-        type="submit"
-      />
-      <CloseIcon
-        onClick={() => setName(false)}
-        className="absolute right-0 top-0 h-4 w-4 hover:cursor-pointer"
-      />
-    </form>
-  );
-};
-
 const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
   const CurrentUserData = () => {
     const { data } = useUserProfileQuery();
@@ -588,7 +530,6 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
   };
   const currentUserData = CurrentUserData();
 
-  const [name, setName] = useState(false);
   const [showNameError, setShowNameError] = useState(false);
 
   const {
@@ -645,7 +586,12 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
                 <>
                   <img className="mr-2 h-8" src={RankIcon(data?.user.rank)} />
                   <div className="relative flex w-fit">
-                    <form className="relative">
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                      }}
+                      className="relative"
+                    >
                       <span
                         className="invisible absolute w-fit whitespace-pre px-2"
                         ref={setSpan}
@@ -698,7 +644,6 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
                       className="h-8 w-8 border border-black"
                       src={`/uploads/avatars/${data?.user.avatar}`}
                     />
-
                     <img
                       className="absolute -top-1 -right-2 h-4"
                       src={RankIcon(data?.user.rank)}
@@ -734,7 +679,6 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
           }
         />
       )}
-      {name ? <ChangeName setName={setName} /> : null}
     </div>
   );
 };
