@@ -15,6 +15,7 @@ import {
   useUserProfileQuery,
   useRefuseInvitationMutation,
   useUpdateUserNameMutation,
+  FriendStatus,
 } from "../../graphql/generated";
 
 import ClassicIcon from "/src/assets/images/ClassicIcon.svg";
@@ -30,7 +31,8 @@ import { ReactComponent as PlayIcon } from "pixelarticons/svg/gamepad.svg";
 import { ReactComponent as UnfriendIcon } from "pixelarticons/svg/user-x.svg";
 import { ReactComponent as AcceptIcon } from "pixelarticons/svg/check.svg";
 import { ReactComponent as RefuseIcon } from "pixelarticons/svg/close.svg";
-import { useState } from "react";
+import { ReactComponent as EditIcon } from "pixelarticons/svg/edit.svg";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import FileUploadPage from "./uploadAvatar";
 import {
@@ -42,7 +44,7 @@ import {
 import { RankIcon } from "../utils/rankIcon";
 import BannedDarkIcon from "/src/assets/images/Banned_dark.svg";
 
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 
 type formData = {
   name: string;
@@ -248,13 +250,13 @@ const GameHistory = ({
                 src={`/uploads/avatars/${game.players.player1.avatar}`}
                 alt="Player 1 avatar"
               />
-              <div className="text-ellipsistext-left ml-2 w-32 self-center">
+              <div className="ml-2 w-32 self-center truncate text-left">
                 {game.players.player1.name}
               </div>
               <div className="grow select-none self-center text-center text-lg font-bold ">
                 VS
               </div>
-              <div className="mr-2 flex w-32 justify-end self-center text-ellipsis text-right">
+              <div className="mr-2 flex w-32 justify-end self-center truncate text-right">
                 {game.players.player2?.name}
               </div>
               <img
@@ -271,7 +273,7 @@ const GameHistory = ({
               {victory ? (
                 <div>VICTORY</div>
               ) : equal ? (
-                <div>EQUAL</div>
+                <div>DRAW</div>
               ) : (
                 <div>DEFEAT</div>
               )}
@@ -476,6 +478,7 @@ const FriendButtons = ({ data }: { data: UserProfileQuery }) => {
     </div>
   );
 };
+
 const ChangeName = ({
   setName,
 }: {
@@ -496,7 +499,7 @@ const ChangeName = ({
       onSubmit={handleSubmit((data) => {
         changeName.mutate({ name: data.name });
       })}
-      className="absolute top-11  flex w-full flex-col justify-center bg-slate-200"
+      className="absolute top-11 flex w-full flex-col justify-center bg-slate-200 p-4 shadow-md shadow-black"
     >
       <div className="flex w-full justify-center ">
         <div className="flex flex-col justify-center text-center">
@@ -530,19 +533,58 @@ const ChangeName = ({
     </form>
   );
 };
+
 const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
   const CurrentUserData = () => {
     const { data } = useUserProfileQuery();
     return data;
   };
   const currentUserData = CurrentUserData();
-  const [name, setName] = useState(false);
-  if (typeof currentUserData === "undefined") return <>Error</>;
 
-  //TODO : change - this is the wrong way
-  const friend = data.user.friendStatus === "FRIEND";
-  const pendingAccept = data.user.friendStatus === "INVITATION_RECEIVED";
-  const pendingInvitation = data.user.friendStatus === "INVITATION_SEND";
+  const [name, setName] = useState(false);
+  const [showNameError, setShowNameError] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors },
+    setFocus,
+  } = useForm<formData>();
+
+  const watchName = useWatch({
+    control,
+    name: "name",
+    defaultValue: data.user.name,
+  });
+
+  const queryClient = useQueryClient();
+  const changeName = useUpdateUserNameMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries(useUserProfileQuery.getKey({}));
+      setShowNameError(false);
+    },
+    onError: () => setShowNameError(true),
+  });
+
+  const [width, setWidth] = useState(0);
+  const spanEl = useRef<HTMLSpanElement | null>(null);
+  const setSpan = useCallback((el: HTMLSpanElement | null) => {
+    if (el) {
+      spanEl.current = el;
+      setWidth((w) => {
+        return spanEl.current?.offsetWidth
+          ? spanEl.current?.offsetWidth + 1
+          : w;
+      });
+    }
+  }, []);
+  useEffect(() => {
+    setWidth((w) => {
+      return spanEl.current?.offsetWidth ? spanEl.current?.offsetWidth + 1 : w;
+    });
+  }, [setSpan, watchName]);
+  if (typeof currentUserData === "undefined") return <>Error</>;
   return (
     <div className="flex h-full w-full flex-col ">
       <Header>
@@ -551,9 +593,71 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
             <HeaderNavigateBack />
           </HeaderLeftBtn>
           <HeaderCenterContent>
-            <div className="flex h-full items-center justify-center">
-              <img className="mr-2 h-8" src={RankIcon(data?.user.rank)} />
-              <button onClick={() => setName(!name)}>{data?.user.name}</button>
+            <div className="relative flex h-full items-center justify-center">
+              {currentUserData.user.id === data.user.id ? (
+                <>
+                  <img className="mr-2 h-8" src={RankIcon(data?.user.rank)} />
+                  <div className="relative flex w-fit">
+                    <form className="relative">
+                      <span
+                        className="invisible absolute w-fit whitespace-pre px-2"
+                        ref={setSpan}
+                      >
+                        {watchName}
+                      </span>
+                      <input
+                        {...register("name", {
+                          maxLength: 100,
+                          required: true,
+                        })}
+                        autoComplete="off"
+                        defaultValue={data.user.name}
+                        className="peer h-8 max-w-fit self-center text-ellipsis bg-slate-50 px-2"
+                        style={{ width }}
+                        onBlur={handleSubmit((param) => {
+                          param.name !== data?.user.name
+                            ? changeName.mutate({ name: param.name })
+                            : null;
+                        })}
+                      />
+                      {errors.name ? (
+                        <p className="absolute left-1 -bottom-5 w-32 border border-red-500 bg-red-50 text-xs text-red-300 before:content-['⚠']">
+                          Name cannot be empty
+                        </p>
+                      ) : showNameError ? (
+                        <p className="absolute left-1 -bottom-5 w-28 border border-red-500 bg-red-50 text-xs text-red-300 before:content-['⚠']">
+                          Name already used
+                        </p>
+                      ) : null}
+                    </form>
+                    <div
+                      onClick={() => {
+                        setFocus("name");
+                      }}
+                      className="top-0 right-2 flex items-center hover:cursor-pointer peer-focus:hidden"
+                    >
+                      <EditIcon className="mb-2 h-3 text-slate-400" />
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="relative mr-4 h-8 w-8 shrink-0 ">
+                    <img
+                      className="h-8 w-8 border border-black"
+                      src={`/uploads/avatars/${data?.user.avatar}`}
+                    />
+
+                    <img
+                      className="absolute -top-1 -right-2 h-4"
+                      src={RankIcon(data?.user.rank)}
+                    />
+                  </div>
+                  <span className="select-none truncate">
+                    {data?.user.name}
+                  </span>
+                </>
+              )}
             </div>
           </HeaderCenterContent>
         </>
@@ -564,13 +668,17 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
         <Unblock userId={data.user.id} />
       ) : data.user.blocking ? (
         <Blocked />
-      ) : friend ? (
+      ) : data.user.friendStatus === FriendStatus.Friend ? (
         <FriendButtons data={data} />
       ) : (
         <AddFriend
           userId={data.user.id}
-          pendingInvitation={pendingInvitation}
-          pendingAccept={pendingAccept}
+          pendingInvitation={
+            data.user.friendStatus === FriendStatus.InvitationSend
+          }
+          pendingAccept={
+            data.user.friendStatus === FriendStatus.InvitationReceived
+          }
         />
       )}
       {name ? <ChangeName setName={setName} /> : null}

@@ -537,7 +537,7 @@ export default function Channel() {
                 )
               }
             >
-              <div>{data?.name}</div>
+              <div className="select-none truncate">{data?.name}</div>
             </div>
           </HeaderCenterContent>
         </>

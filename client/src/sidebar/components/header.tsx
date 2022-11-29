@@ -74,7 +74,7 @@ export const HeaderCenterContent = ({
   children: JSX.Element;
 }) => {
   return (
-    <div className="relative flex w-full grow flex-col justify-center">
+    <div className="flex min-w-0 shrink grow basis-0 flex-col justify-center">
       {children}
     </div>
   );
@@ -99,12 +99,11 @@ export const Header = ({
   return (
     <div
       className={`${
-        className !== "undefined" ? className : ""
-      } z-10 flex w-full shadow-sm shadow-slate-400`}
+        typeof className !== "undefined" ? className : ""
+      } z-10 flex  w-full shadow-sm shadow-slate-400`}
     >
       {children}
       <CurrentUserProfile />
-      <LogOut />
       {isSmallScreen ? <CloseSidebar /> : null}
     </div>
   );

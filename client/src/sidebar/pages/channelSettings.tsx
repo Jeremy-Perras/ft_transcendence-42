@@ -1104,7 +1104,7 @@ export default function ChannelSettings() {
           <HeaderCenterContent>
             <div className="flex h-full items-center justify-center">
               <SettingsIcon className="mr-2 w-6" />
-              <div>{data?.channel.name}</div>
+              <div className="select-none truncate ">{data?.channel.name}</div>
             </div>
           </HeaderCenterContent>
         </>

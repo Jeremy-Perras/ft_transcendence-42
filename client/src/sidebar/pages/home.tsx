@@ -114,7 +114,7 @@ const ChannelAndFriendBanner = ({
       </div>
       <div className="flex grow flex-col justify-center px-2">
         <div className="flex justify-between">
-          <span className="pb-px font-bold">{name}</span>
+          <span className="w-60 truncate pb-px font-bold">{name}</span>
           <span className="mt-1 text-xs text-slate-400">
             {lastMessage?.sentAt ? getDate(+lastMessage.sentAt) : ""}
           </span>

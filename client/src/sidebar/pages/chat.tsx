@@ -186,17 +186,18 @@ export default function Chat() {
                 navigate(`/profile/${params.userId}`);
               }}
             >
-              <img
-                className="h-8 w-8 border border-black"
-                src={`/uploads/avatars/${data?.avatar}`}
-              />
-              <div className="relative h-8 w-8">
+              <div className="relative mr-4 h-8 w-8 shrink-0">
                 <img
-                  className="absolute top-0 -left-2 h-4"
+                  className="h-8 w-8 border border-black"
+                  src={`/uploads/avatars/${data?.avatar}`}
+                />
+
+                <img
+                  className="absolute -top-1 -right-2 h-4"
                   src={RankIcon(data?.rank)}
                 />
               </div>
-              <div>{data?.name}</div>
+              <span className="select-none truncate ">{data?.name}</span>
             </div>
           </HeaderCenterContent>
         </>
