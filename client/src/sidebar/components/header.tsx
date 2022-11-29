@@ -61,7 +61,7 @@ export const HeaderCenterContent = ({
   children: JSX.Element;
 }) => {
   return (
-    <div className="flex min-w-0 shrink grow basis-0 flex-col justify-center">
+    <div className="relative flex min-w-0 shrink grow basis-0 flex-col justify-center">
       {children}
     </div>
   );
