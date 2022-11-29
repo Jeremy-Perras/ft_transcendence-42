@@ -597,7 +597,6 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
     setFocus,
   } = useForm<formData>();
 
-<<<<<<< HEAD
   const watchName = useWatch({
     control,
     name: "name",
@@ -631,13 +630,6 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
     });
   }, [setSpan, watchName]);
   if (typeof currentUserData === "undefined") return <>Error</>;
-=======
-  const friend = data.user.friendStatus === FriendStatus.Friend;
-  const pendingAccept =
-    data.user.friendStatus === FriendStatus.InvitationReceived;
-  const pendingInvitation =
-    data.user.friendStatus === FriendStatus.InvitationSend;
->>>>>>> NewChannelMessage
   return (
     <div className="flex h-full w-full flex-col ">
       <Header>
