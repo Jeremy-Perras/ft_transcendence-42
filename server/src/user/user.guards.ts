@@ -15,7 +15,6 @@ export class SelfGuard implements CanActivate {
     const ctx = GqlExecutionContext.create(context);
     const userId = +ctx.getContext().req.user;
     const targetUserId = ctx.getArgs<{ userId: number }>().userId;
-
     if (userId === targetUserId) {
       throw new UserInputError("You cannot do this action to yourself");
     }

@@ -1,5 +1,6 @@
 query UserChatsAndFriends{
   user {
+    id
     channels {
       __typename
       id
@@ -11,6 +12,11 @@ query UserChatsAndFriends{
         }
         content
         sentAt
+        readBy {
+          user {
+            id
+            }
+          }
       }
     }
     friends {

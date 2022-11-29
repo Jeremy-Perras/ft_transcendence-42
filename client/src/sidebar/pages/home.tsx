@@ -4,7 +4,7 @@ import {
   useQueryClient,
   UseQueryOptions,
 } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { ReactComponent as UsersIcon } from "pixelarticons/svg/users.svg";
@@ -17,6 +17,7 @@ import {
   UserChatsAndFriendsQuery,
   useUserChatsAndFriendsQuery,
   useRefuseInvitationMutation,
+  useUserProfileQuery,
 } from "../../graphql/generated";
 import CreateChannel, { CreateChannelBtn } from "../components/createChannel";
 import { SearchBar, SearchResults } from "../components/search";
@@ -29,6 +30,11 @@ import { getDate } from "../utils/getDate";
 import { FriendStatus } from "../../graphql/generated";
 import { Empty } from "../components/Empty";
 
+type Home = {
+  currentUserId: number;
+  chatList: Chat[];
+};
+
 type Chat = {
   __typename: "User" | "Channel";
   name: string;
@@ -40,15 +46,12 @@ type Chat = {
     content: string;
     sentAt: number;
     readAt?: number | null | undefined;
+    readBy?: { user?: { __typename?: "User" | undefined; id: number } }[];
   }[];
   friendStatus?: FriendStatus | undefined | null;
 };
 
-const query = (): UseQueryOptions<
-  UserChatsAndFriendsQuery,
-  unknown,
-  Chat[]
-> => {
+const query = (): UseQueryOptions<UserChatsAndFriendsQuery, unknown, Home> => {
   return {
     queryKey: useUserChatsAndFriendsQuery.getKey({}),
     queryFn: useUserChatsAndFriendsQuery.fetcher({}),
@@ -66,7 +69,10 @@ const query = (): UseQueryOptions<
           return y.sentAt - x.sentAt;
         }
       );
-      return [...data.user.pendingFriends, ...merge];
+      return {
+        currentUserId: data.user.id,
+        chatList: [...data.user.pendingFriends, ...merge],
+      };
     },
   };
 };
@@ -77,19 +83,31 @@ export const homeLoader = async (queryClient: QueryClient) => {
 
 const ChannelAndFriendBanner = ({
   chat: { __typename, name, avatar, id, messages },
+  currentUserId,
 }: {
   chat: Chat;
+  currentUserId: number;
 }) => {
   const navigate = useNavigate();
-
   const lastMessage = messages ? messages[messages.length - 1] : null;
+  const [newChatMessage, setNewChatMessage] = useState(false);
+  const [newChannelMessage, setNewChannelMessage] = useState(false);
 
-  //TODO : new channel message
-  let newChatMessage = false;
-  messages?.forEach((message) => {
-    if (message.author.id === id && message.readAt === null)
-      newChatMessage = true;
-  });
+  useEffect(() => {
+    if (__typename === "User") {
+      messages?.forEach((message) => {
+        if (message.author.id === id && message.readAt === null)
+          setNewChatMessage(true);
+      });
+    }
+    if (__typename === "Channel") {
+      messages?.forEach((message) => {
+        if (!message.readBy?.some((user) => user.user?.id === currentUserId))
+          setNewChannelMessage(true);
+      });
+    }
+  }, [messages]);
+
   return (
     <div
       onClick={() =>
@@ -121,7 +139,7 @@ const ChannelAndFriendBanner = ({
         </div>
         <span
           className={`${
-            newChatMessage
+            newChatMessage || newChannelMessage
               ? "text-base font-bold text-black"
               : "text-sm text-slate-400"
           }  flex max-h-5 max-w-sm overflow-hidden text-clip `}
@@ -220,13 +238,13 @@ export const Home = () => {
             searchInput={searchInput}
             setSearchInput={setSearchInput}
           />
-        ) : data?.length === 0 ? (
+        ) : data?.chatList.length === 0 ? (
           <Empty
             Message="Add your friends to play with them!"
             Icon="GamePadIcon"
           />
         ) : (
-          data?.map((chat, index) =>
+          data?.chatList.map((chat, index) =>
             chat.__typename === "User" &&
             chat.friendStatus === "INVITATION_RECEIVED" ? (
               <Invitation
@@ -236,7 +254,11 @@ export const Home = () => {
                 key={index}
               />
             ) : (
-              <ChannelAndFriendBanner key={index} chat={chat} />
+              <ChannelAndFriendBanner
+                key={index}
+                chat={chat}
+                currentUserId={data?.currentUserId}
+              />
             )
           )
         )}

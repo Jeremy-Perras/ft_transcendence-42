@@ -16,12 +16,12 @@ import {
   useRefuseInvitationMutation,
   useUpdateUserNameMutation,
   FriendStatus,
+  useUserProfileHeaderQuery,
 } from "../../graphql/generated";
-
+import queryClient from "../../query";
 import ClassicIcon from "/src/assets/images/ClassicIcon.svg";
 import BonusIcon from "/src/assets/images/BonusIcon.svg";
 import FireIcon from "/src/assets/images/FireIcon.svg";
-
 import UnachievedIcon from "/achievements/Unachieved.svg";
 import { ReactComponent as CloseIcon } from "pixelarticons/svg/close.svg";
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
@@ -34,7 +34,7 @@ import { ReactComponent as RefuseIcon } from "pixelarticons/svg/close.svg";
 import { ReactComponent as EditIcon } from "pixelarticons/svg/edit.svg";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import FileUploadPage from "./uploadAvatar";
+import { ReactComponent as LogOutIcon } from "pixelarticons/svg/logout.svg";
 import {
   Header,
   HeaderCenterContent,
@@ -45,6 +45,7 @@ import { RankIcon } from "../utils/rankIcon";
 import BannedDarkIcon from "/src/assets/images/Banned_dark.svg";
 
 import { useForm, useWatch } from "react-hook-form";
+import { useAuthStore } from "../../stores";
 
 type formData = {
   name: string;
@@ -110,8 +111,6 @@ const UserProfileHeader = ({
   data: UserProfileQuery;
   currentUserId: number | undefined;
 }) => {
-  const [showChangeAvatar, setShowChangeAvatar] = useState(false);
-
   const numberOfGames = data?.user.games.length;
   const victories = data?.user.games.filter((game) => {
     if (
@@ -147,6 +146,24 @@ const UserProfileHeader = ({
       />
     );
   }
+  const changeHandler = (event: File) => {
+    const formData = new FormData();
+    formData.append("file", event);
+    fetch("/upload/avatar/", {
+      method: "POST",
+      body: formData,
+    }).then(() => {
+      queryClient.invalidateQueries(useUserProfileQuery.getKey());
+      queryClient.invalidateQueries(useUserProfileHeaderQuery.getKey());
+    });
+  };
+
+  const inputFile = useRef<HTMLInputElement>(null);
+
+  const onButtonClick = () => {
+    inputFile.current?.click();
+  };
+
   return (
     <div className="relative flex flex-col">
       <div className="flex w-full items-center">
@@ -162,10 +179,25 @@ const UserProfileHeader = ({
             <UserIcon className="h-28 w-28 border border-black text-neutral-700" />
           )}
           {data.user.id === currentUserId ? (
-            <AddAvatarIcon
-              onClick={() => setShowChangeAvatar(!showChangeAvatar)}
-              className="absolute -top-2 -right-2 h-6 w-6 border border-black bg-white p-px shadow-sm shadow-black hover:cursor-pointer"
-            />
+            <div>
+              <AddAvatarIcon
+                onClick={onButtonClick}
+                className="absolute -top-2 -right-2 h-6 w-6 border border-black bg-white p-px shadow-sm shadow-black hover:cursor-pointer"
+              />
+              <input
+                type="file"
+                id="file"
+                ref={inputFile}
+                style={{ display: "none" }}
+                onChange={(e) => {
+                  if (e.currentTarget?.files) {
+                    if (e.currentTarget?.files[0]) {
+                      changeHandler(e.currentTarget.files[0]);
+                    }
+                  }
+                }}
+              />
+            </div>
           ) : (
             <></>
           )}
@@ -199,9 +231,6 @@ const UserProfileHeader = ({
             {unachievedSecondRow}
           </div>
         </div>
-        {data.user.id === currentUserId && showChangeAvatar ? (
-          <FileUploadPage setIsOpen={setShowChangeAvatar} />
-        ) : null}
       </div>
     </div>
   );
@@ -416,6 +445,22 @@ const Unblock = ({ userId }: { userId: number }) => {
   );
 };
 
+const Disconnect = () => {
+  return (
+    <div
+      onClick={() => {
+        useAuthStore.getState().logout();
+      }}
+      className="flex h-24 w-full select-none  items-center justify-center border-2 border-slate-300 bg-slate-200 p-4 text-xl font-bold text-slate-400 transition-all hover:cursor-pointer hover:bg-slate-300  hover:text-slate-500 "
+    >
+      <LogOutIcon className="m-1 h-16 rotate-180 cursor-pointer" />
+      <span className="flex items-center text-center text-2xl font-bold ">
+        Click to disconnect
+      </span>
+    </div>
+  );
+};
+
 const Blocked = () => {
   return (
     <div className="flex h-24 w-full select-none flex-col items-center justify-center border-2 border-red-500 bg-red-400 p-4 text-xl font-bold text-slate-800 transition-all  hover:cursor-not-allowed ">
@@ -552,6 +597,7 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
     setFocus,
   } = useForm<formData>();
 
+<<<<<<< HEAD
   const watchName = useWatch({
     control,
     name: "name",
@@ -585,6 +631,13 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
     });
   }, [setSpan, watchName]);
   if (typeof currentUserData === "undefined") return <>Error</>;
+=======
+  const friend = data.user.friendStatus === FriendStatus.Friend;
+  const pendingAccept =
+    data.user.friendStatus === FriendStatus.InvitationReceived;
+  const pendingInvitation =
+    data.user.friendStatus === FriendStatus.InvitationSend;
+>>>>>>> NewChannelMessage
   return (
     <div className="flex h-full w-full flex-col ">
       <Header>
@@ -664,7 +717,9 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
       </Header>
       <UserProfileHeader data={data} currentUserId={currentUserData?.user.id} />
       <GameHistory data={data} currentUserId={currentUserData?.user.id} />
-      {currentUserData?.user.id === data.user.id ? null : data.user.blocked ? (
+      {currentUserData?.user.id === data.user.id ? (
+        <Disconnect />
+      ) : data.user.blocked ? (
         <Unblock userId={data.user.id} />
       ) : data.user.blocking ? (
         <Blocked />
