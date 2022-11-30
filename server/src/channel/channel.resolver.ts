@@ -854,7 +854,6 @@ export class ChannelMessageReadResolver {
     if (!message) {
       throw new NotFoundException("Message not found");
     }
-    //TODO problem because react call two times lets's see zhen he will not in dev if still problem
     await this.prisma.channelMessageRead.create({
       data: {
         channelMessageId: messageId,
