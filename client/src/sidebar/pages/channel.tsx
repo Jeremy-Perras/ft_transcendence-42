@@ -162,6 +162,7 @@ const ReadBy = ({ users }: { users: User[] }) => {
   );
 };
 
+const channelMessageLoaded = new Map<number, boolean>();
 const ChannelMessage = ({
   author,
   readBy,
@@ -186,9 +187,11 @@ const ChannelMessage = ({
   });
   useEffect(() => {
     if (
+      !channelMessageLoaded.get(id) &&
       !readBy.some((user) => user.user.id === userId) &&
       userId !== author.id
     ) {
+      channelMessageLoaded.set(id, true);
       createChannelMessageRead.mutate({
         messageId: id,
       });

@@ -4,7 +4,13 @@ import {
   useQueryClient,
   UseQueryOptions,
 } from "@tanstack/react-query";
-import { LoaderFunctionArgs, useLoaderData, useParams } from "react-router-dom";
+import {
+  LoaderFunctionArgs,
+  Navigate,
+  useLoaderData,
+  useNavigate,
+  useParams,
+} from "react-router-dom";
 import {
   useAddFriendMutation,
   useBlockUserMutation,
@@ -239,7 +245,7 @@ const GameHistory = ({
   data: UserProfileQuery;
   currentUserId: number;
 }) => {
-  // TODO: make user clickable
+  const navigate = useNavigate();
   return (
     <div className="flex w-full grow flex-col overflow-auto p-1 text-sm">
       <h2 className="mt-8 pb-2 text-center text-xl font-bold">MATCH HISTORY</h2>
@@ -270,21 +276,23 @@ const GameHistory = ({
           >
             <div className="flex w-full ">
               <img
-                className="ml-1 h-10 w-10 border border-black object-cover "
+                onClick={() => navigate(`/profile/${game.players.player1.id}`)}
+                className="ml-1 h-10 w-10 border border-black object-cover hover:cursor-pointer "
                 src={`/uploads/avatars/${game.players.player1.avatar}`}
                 alt="Player 1 avatar"
               />
-              <div className="ml-2 w-32 self-center truncate text-left">
+              <div className="ml-2 w-32 self-center truncate text-left ">
                 {game.players.player1.name}
               </div>
               <div className="grow select-none self-center text-center text-lg font-bold ">
                 VS
               </div>
-              <div className="mr-2 flex w-32 justify-end self-center truncate text-right">
+              <div className="ml-2 w-32 self-center truncate text-left ">
                 {game.players.player2?.name}
               </div>
               <img
-                className="h-10 w-10 justify-end border border-black object-cover"
+                onClick={() => navigate(`/profile/${game.players.player2.id}`)}
+                className="h-10 w-10 justify-end border border-black object-cover hover:cursor-pointer"
                 src={`/uploads/avatars/${game.players.player2.avatar}`}
                 alt="Player 2 avatar"
               />
