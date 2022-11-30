@@ -55,7 +55,7 @@ const router = createMemoryRouter([
 ]);
 
 const SidebarOpenBtn = () => {
-  const [newMessage, setNewMessage] = useState(false);
+  const [newMessage, setNewMessage] = useState(false); // TODO
   const { data } = useUserChatsAndFriendsQuery({});
   const openSidebar = useSidebarStore((state) => state.open);
 
@@ -78,6 +78,7 @@ const SidebarOpenBtn = () => {
       });
     });
   }, [data?.user.friends && data.user.channels]);
+
   return (
     <button
       onClick={() =>

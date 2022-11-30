@@ -22,7 +22,6 @@ import {
   BlockGuard,
   ExistingUserGuard,
   FriendGuard,
-  MessageFormat,
   SelfGuard,
 } from "./user.guards";
 import {
@@ -488,12 +487,19 @@ export class UserResolver {
     return true;
   }
 
-  @UseGuards(MessageFormat)
   @Mutation((returns) => Boolean)
   async updateUserName(
     @CurrentUser() currentUserId: number,
     @Args("name", { type: () => String }) name: string
   ) {
+    if (!name) {
+      throw new ForbiddenException("Your name can't be empty");
+    }
+
+    if (name.length > 255) {
+      throw new ForbiddenException("Your name can't exceed 255 characters");
+    }
+
     const user = await this.prisma.user.findMany({
       select: { name: true },
     });
@@ -590,20 +596,22 @@ export class DirectMessageResolver {
       select: { readAt: true },
       where: { id: messageId },
     });
+
     if (!message) {
       throw new NotFoundException("Message not found");
     }
-    //TODO remove condition when porject is not in dev cause of react call two times
-    if (message.readAt === null) {
-      await this.prisma.directMessage.update({
-        where: { id: messageId },
-        data: {
-          readAt: new Date(),
-        },
-      });
 
-      return true;
+    if (message.readAt) {
+      throw new ForbiddenException("Message already read");
     }
-    return false;
+
+    await this.prisma.directMessage.update({
+      where: { id: messageId },
+      data: {
+        readAt: new Date(),
+      },
+    });
+
+    return true;
   }
 }

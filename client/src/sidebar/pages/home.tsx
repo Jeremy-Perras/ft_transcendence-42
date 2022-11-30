@@ -215,6 +215,7 @@ export const Home = () => {
   const { data } = useQuery({ ...query(), initialData });
   const [searchInput, setSearchInput] = useState("");
   const [showChannelCreation, setShowChannelCreation] = useState(false);
+
   return (
     <div className="relative flex h-full flex-col">
       <Header className={showChannelCreation ? "pointer-events-none" : ""}>

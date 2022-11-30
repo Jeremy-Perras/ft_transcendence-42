@@ -12,7 +12,6 @@ import {
   useJoinChannelMutation,
   useSendChannelMessageMutation,
 } from "../../graphql/generated";
-
 import { ReactComponent as ForbiddenIcon } from "pixelarticons/svg/close-box.svg";
 import { ReactComponent as EmptyChatIcon } from "pixelarticons/svg/message-plus.svg";
 import { ReactComponent as PasswordIcon } from "pixelarticons/svg/lock.svg";
@@ -123,7 +122,7 @@ const Banned = () => {
   return (
     <div className="flex h-full w-full flex-col items-center justify-center pb-60">
       <img src={BannedIcon} className="w-96 text-slate-100 opacity-30" />
-      <div className="mt-10 text-3xl text-neutral-300">You are banned.</div>
+      <span className="mt-10 text-3xl text-neutral-300">You are banned.</span>
     </div>
   );
 };
@@ -197,9 +196,9 @@ const ChannelMessage = ({
   }, []);
   return (
     <>
-      <div className="left-0 mt-6 text-center text-xs text-slate-300">
+      <span className="left-0 mt-6 text-center text-xs text-slate-300">
         {getDate(+sentAt)}
-      </div>
+      </span>
       <div className="flex w-full">
         <div className="flex w-9 shrink-0 justify-center">
           <div className="flex self-end">
@@ -215,7 +214,7 @@ const ChannelMessage = ({
           <div className="text-left text-xs tracking-wide text-slate-400">
             <span>{author.name} </span>
           </div>
-          <div
+          <span
             className={`${
               data?.user.blocked ? "bg-red-600" : ""
             } rounded-md bg-slate-200 px-4 py-2 text-left tracking-wide`}
@@ -223,7 +222,7 @@ const ChannelMessage = ({
             {data?.user.blocked
               ? "You can't read the content this user is blocked"
               : content}
-          </div>
+          </span>
         </div>
       </div>
       <ReadBy
@@ -248,18 +247,18 @@ const AccessForbidden = ({
   return (
     <div className="flex h-full w-full flex-col items-center justify-center pb-60">
       <ForbiddenIcon className="w-100 text-slate-100" />
-      <div className="text-2xl text-slate-300">This Channel is private.</div>
+      <span className="text-2xl text-slate-300">This Channel is private.</span>
       <div
         onClick={() => navigate(`/profile/${ownerId}`)}
         className="mt-5 flex flex-col items-center justify-center border-2 border-slate-200 bg-slate-100 p-2 text-xl text-slate-800 hover:cursor-pointer hover:bg-slate-200"
       >
-        <div>Ask access to </div>
+        <span>Ask access to </span>
         <img
           src={`/uploads/avatars/${ownerAvatar}`}
           alt="Owner avatar"
           className="my-2 h-10 w-10 border border-black"
         />
-        <div>{`${ownerName} !`}</div>
+        <span>{`${ownerName} !`}</span>
       </div>
     </div>
   );
@@ -297,9 +296,9 @@ const AccessProtected = ({
   return (
     <div className="flex h-full w-full flex-col items-center justify-center pb-60">
       <PasswordIcon className="w-100 text-slate-100" />
-      <div className="text-2xl text-slate-300">
+      <span className="text-2xl text-slate-300">
         Access to this channel is protected.
-      </div>
+      </span>
       <div className="flex w-full flex-col items-center justify-center">
         <form
           onSubmit={handleSubmit((data) => {
@@ -433,11 +432,12 @@ const DisplayMessage = ({
 }) => {
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
   const scrollToBottom = () => {
-    messagesEndRef?.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef?.current?.scrollIntoView({ behavior: "auto" });
   };
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
   return (
     <>
       <div className="mt-px flex w-full grow flex-col overflow-auto pr-2 pl-px">
@@ -446,9 +446,7 @@ const DisplayMessage = ({
             <EmptyChatIcon className="w-96 text-slate-200" />
             Seems a little bit too silent here... Send the first message !
           </div>
-        ) : (
-          <></>
-        )}
+        ) : null}
         {messages?.map((message, index) => (
           <ChannelMessage
             key={index}
@@ -482,12 +480,12 @@ const JoinPublicChannel = ({ channelId }: { channelId: number }) => {
     <div className="flex h-full w-full flex-col items-center justify-center pb-60">
       <JoinIcon className="w-100 text-slate-100" />
       <div className="text-2xl text-slate-300">This Channel is public.</div>
-      <div
+      <span
         onClick={() => joinChannel.mutate({ channelId: +channelId })}
         className="mt-5 flex h-24 w-24 flex-col items-center justify-center border-2 border-slate-200 bg-slate-100 p-2 text-xl text-slate-800 hover:cursor-pointer hover:bg-slate-200"
       >
-        <div>Join ? </div>
-      </div>
+        Join ?
+      </span>
     </div>
   );
 };
@@ -546,7 +544,7 @@ export default function Channel() {
                 )
               }
             >
-              <div className="select-none truncate">{data?.name}</div>
+              <span className="select-none truncate">{data?.name}</span>
             </div>
           </HeaderCenterContent>
         </>

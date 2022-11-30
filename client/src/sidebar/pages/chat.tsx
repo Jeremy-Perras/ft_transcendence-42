@@ -79,6 +79,7 @@ export const chatLoader = async (
   }
 };
 
+const directMessageLoaded = new Map<number, boolean>();
 const DirectMessage = ({
   userId,
   id,
@@ -96,7 +97,12 @@ const DirectMessage = ({
   });
 
   useEffect(() => {
-    if (readAt === null && author.id === userId) {
+    if (
+      !directMessageLoaded.get(id) &&
+      readAt === null &&
+      author.id === userId
+    ) {
+      directMessageLoaded.set(id, true);
       readDirectMessage.mutate({
         messageId: id,
       });
@@ -105,9 +111,9 @@ const DirectMessage = ({
 
   return (
     <li className="mx-2 mb-5 flex flex-col ">
-      <div className="mb-2 text-center text-xs text-slate-300">
+      <span className="mb-2 text-center text-xs text-slate-300">
         {getDate(+sentAt)}
-      </div>
+      </span>
       <div
         className={`${
           author.id === userId ? "justify-start" : "justify-end"
@@ -125,21 +131,19 @@ const DirectMessage = ({
             onClick={() => navigate(`/profile/${author.id}`)}
           />
         </div>
-        <div>
-          <div
-            className={`max-w-sm break-words px-4 py-2 tracking-wide ${
-              author.id === userId
-                ? "rounded-md bg-slate-300"
-                : "rounded-md bg-slate-200"
-            }`}
-          >
-            {content}
-          </div>
-        </div>
+        <span
+          className={`max-w-sm break-words px-4 py-2 tracking-wide ${
+            author.id === userId
+              ? "rounded-md bg-slate-300"
+              : "rounded-md bg-slate-200"
+          }`}
+        >
+          {content}
+        </span>
       </div>
-      <div className="mr-9 flex justify-end text-xs text-slate-300">
+      <span className="mr-9 flex justify-end text-xs text-slate-300">
         {readAt != undefined && author.id !== userId ? "Seen" : ""}
-      </div>
+      </span>
     </li>
   );
 };
@@ -148,7 +152,7 @@ export default function Chat() {
   const queryClient = useQueryClient();
 
   const params = useParams();
-  if (typeof params.userId === "undefined") return <div></div>;
+  if (typeof params.userId === "undefined") return <div></div>; // TODO: 404
   const userId = +params.userId;
 
   const navigate = useNavigate();
@@ -166,7 +170,7 @@ export default function Chat() {
 
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
   const scrollToBottom = () => {
-    messagesEndRef?.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef?.current?.scrollIntoView({ behavior: "auto" });
   };
   useEffect(() => {
     scrollToBottom();
@@ -191,7 +195,6 @@ export default function Chat() {
                   className="h-8 w-8 border border-black"
                   src={`/uploads/avatars/${data?.avatar}`}
                 />
-
                 <img
                   className="absolute -top-1 -right-2 h-4"
                   src={RankIcon(data?.rank)}
@@ -208,9 +211,7 @@ export default function Chat() {
             <EmptyChatIcon className="w-96 text-slate-200" />
             Seems a little bit too silent here... Send the first message !
           </div>
-        ) : (
-          <></>
-        )}
+        ) : null}
 
         {data?.messages.map((message, index) => {
           return <DirectMessage key={index} userId={userId} {...message} />;
@@ -218,7 +219,7 @@ export default function Chat() {
         <div ref={messagesEndRef} />
       </ul>
 
-      <div className="flex w-full bg-white px-[2px] ">
+      <div className="flex w-full bg-white px-[2px]">
         <textarea
           autoFocus={true}
           disabled={data?.blocking == true || data?.blocked === true}

@@ -33,9 +33,7 @@ import { ReactComponent as SettingsIcon } from "pixelarticons/svg/sliders.svg";
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { ReactComponent as LeaveIcon } from "pixelarticons/svg/logout.svg";
 import { useRef, useState } from "react";
-
 import * as Avatar from "@radix-ui/react-avatar";
-
 import { useForm } from "react-hook-form";
 
 import {
@@ -132,10 +130,6 @@ export const channelSettingsLoader = async (
   }
 };
 
-/********************************************************************/
-/*                            USER BANNERS                          */
-/********************************************************************/
-
 const MuteButton = ({
   id,
   channelId,
@@ -196,13 +190,13 @@ const MuteButton = ({
             className="w-6 border-2 border-slate-300  text-neutral-600 hover:cursor-pointer hover:border-slate-700 hover:text-black"
           />
         )}
-        <div
+        <span
           className={`${
             showInfoMute ? "opacity-100" : "opacity-0 "
           } absolute top-6 w-8 text-center text-xs text-slate-400`}
         >
           {muted ? "Unmute" : "Mute"}
-        </div>
+        </span>
       </div>
     </div>
   );
@@ -269,19 +263,17 @@ const BanButton = ({
             className="w-6 border-2 border-slate-300  text-neutral-600 hover:cursor-pointer hover:border-slate-700 hover:text-black"
           />
         )}
-        <div
+        <span
           className={`${showInfoBan ? "opacity-100" : "opacity-0 "} ${
             banned ? "text-red-500" : "text-slate-400"
           } absolute top-6 w-8 text-center text-xs`}
         >
           {banned ? "Unban" : "Ban"}
-        </div>
+        </span>
       </div>
     </div>
   );
 };
-
-/* *********************** ADMIN ELEMENT ******************** */
 
 const SetAsAdminButton = ({
   id,
@@ -364,7 +356,6 @@ const UnsetAdminButton = ({
         });
       }}
     >
-      {" "}
       <RemoveAdminIcon
         onMouseOver={() => setShowInfoAdmin(true)}
         onMouseOut={() => {
@@ -372,13 +363,13 @@ const UnsetAdminButton = ({
         }}
         className="w-6 border-2 border-slate-300 text-neutral-600 hover:cursor-pointer hover:border-slate-700 hover:text-black"
       />
-      <div
+      <span
         className={`${
           showInfoAdmin ? "opacity-100" : "opacity-0 "
         } absolute top-6 w-24 text-center text-xs text-slate-400 `}
       >
         Remove admin
-      </div>
+      </span>
     </div>
   );
 };
@@ -413,21 +404,20 @@ const UserHeader = ({
       />
       <div className="ml-2 flex flex-col justify-center text-xs">
         <div className="flex">
-          <span className="truncate text-base font-bold ">{name}</span>
+          <span className="truncate text-base font-bold">{name}</span>
           <div className="mx-2 flex shrink-0">
             {banned ? <BanIcon className="w-4 text-red-600" /> : null}
             {muted ? <MuteIcon className="w-4 text-orange-300" /> : null}
           </div>
         </div>
-        <div className="text-xs">
+        <span className="text-xs">
           {owner ? "Owner" : admin ? "Admin" : "Member"}
-        </div>
+        </span>
       </div>
     </div>
   );
 };
 
-/* *********************** MAIN COMPONENT ******************** */
 const UserBanner = ({
   id,
   name,
@@ -452,45 +442,40 @@ const UserBanner = ({
   changesAuthorizedAsOwner: boolean;
 }) => {
   return (
-    <>
-      <div
-        className={`${
-          banned
-            ? "bg-red-200 hover:bg-red-300"
-            : "bg-slate-50 hover:bg-slate-100"
-        } flex w-full shrink-0 items-end justify-center pr-2 transition-all `}
-      >
-        <UserHeader
-          id={id}
-          name={name}
-          avatar={avatar}
-          admin={admin}
-          owner={owner}
-          banned={banned}
-          muted={muted}
-        />
-        <div className="flex justify-center self-center">
-          {changesAuthorizedAsOwner && !admin && !owner && !banned ? (
-            <SetAsAdminButton id={id} channelId={channelId} />
-          ) : changesAuthorizedAsOwner && admin && !owner && !banned ? (
-            <UnsetAdminButton id={id} channelId={channelId} />
-          ) : null}
-          {(admin && changesAuthorizedAsOwner && !banned) ||
-          (!admin && changesAuthorizedAsAdmin && !banned) ? (
-            <MuteButton id={id} channelId={channelId} muted={muted} />
-          ) : null}
-          {changesAuthorizedAsOwner || changesAuthorizedAsAdmin ? (
-            <BanButton id={id} channelId={channelId} banned={banned} />
-          ) : null}
-        </div>
+    <div
+      className={`${
+        banned
+          ? "bg-red-200 hover:bg-red-300"
+          : "bg-slate-50 hover:bg-slate-100"
+      } flex w-full shrink-0 items-end justify-center pr-2 transition-all `}
+    >
+      <UserHeader
+        id={id}
+        name={name}
+        avatar={avatar}
+        admin={admin}
+        owner={owner}
+        banned={banned}
+        muted={muted}
+      />
+      <div className="flex justify-center self-center">
+        {changesAuthorizedAsOwner && !admin && !owner && !banned ? (
+          <SetAsAdminButton id={id} channelId={channelId} />
+        ) : changesAuthorizedAsOwner && admin && !owner && !banned ? (
+          <UnsetAdminButton id={id} channelId={channelId} />
+        ) : null}
+        {(admin && changesAuthorizedAsOwner && !banned) ||
+        (!admin && changesAuthorizedAsAdmin && !banned) ? (
+          <MuteButton id={id} channelId={channelId} muted={muted} />
+        ) : null}
+        {changesAuthorizedAsOwner || changesAuthorizedAsAdmin ? (
+          <BanButton id={id} channelId={channelId} banned={banned} />
+        ) : null}
       </div>
-    </>
+    </div>
   );
 };
 
-/********************************************************************/
-/*                        SEARCH BAR                                */
-/********************************************************************/
 const SearchBar = ({
   search,
   setSearch,
@@ -569,7 +554,7 @@ const Search = ({
   });
 
   return (
-    <div className="flex  flex-col  divide-y divide-slate-200 overflow-y-scroll">
+    <div className="flex flex-col  divide-y divide-slate-200 overflow-y-scroll">
       {data?.map((result, index) => (
         <div key={index}>
           {!queryData.channel.members.some((u) => u.id === result?.id) &&
@@ -585,26 +570,20 @@ const Search = ({
                   : "";
               }}
             >
-              <>
-                <Avatar.Root>
-                  <Avatar.Image
-                    className="h-10 w-10 border border-black object-cover"
-                    src={`uploads/avatars/${result?.avatar}`}
-                  />
-                  <Avatar.Fallback>
-                    <UserIcon className="h-10 w-10" />
-                  </Avatar.Fallback>
-                </Avatar.Root>
-                {result?.name !== undefined ? (
-                  <Highlight content={result?.name} search={search} />
-                ) : (
-                  <></>
-                )}
-              </>
+              <Avatar.Root>
+                <Avatar.Image
+                  className="h-10 w-10 border border-black object-cover"
+                  src={`uploads/avatars/${result?.avatar}`}
+                />
+                <Avatar.Fallback>
+                  <UserIcon className="h-10 w-10" />
+                </Avatar.Fallback>
+              </Avatar.Root>
+              {result?.name !== undefined ? (
+                <Highlight content={result?.name} search={search} />
+              ) : null}
             </div>
-          ) : (
-            <></>
-          )}
+          ) : null}
         </div>
       ))}
     </div>
@@ -632,9 +611,6 @@ const Highlight = ({
   );
 };
 
-/********************************************************************/
-/*                                 POPUPS                           */
-/********************************************************************/
 const LeaveChannelPopUp = ({
   channelId,
   setConfirmation,
@@ -776,13 +752,6 @@ const DeletePopUp = ({
   );
 };
 
-/********************************************************************/
-/*                              HEADER                              */
-/********************************************************************/
-
-/********************************************************************/
-/*                           CHANNEL MODE                           */
-/********************************************************************/
 const ChannelMode = ({
   channelId,
   activeMode,
@@ -978,10 +947,6 @@ const ChannelHeader = ({
   );
 };
 
-/********************************************************************/
-/*                               MEMBERS                            */
-/********************************************************************/
-
 const MemberList = ({
   channel,
   isAdmin,
@@ -993,9 +958,9 @@ const MemberList = ({
 }) => {
   return (
     <div className="flex h-full w-full flex-col">
-      <div className="ml-1 pt-5 text-left text-xl font-bold text-slate-700">
+      <span className="ml-1 pt-5 text-left text-xl font-bold text-slate-700">
         MEMBERS
-      </div>
+      </span>
       <UserBanner
         id={channel.owner.id}
         name={channel.owner.name}
@@ -1042,9 +1007,9 @@ const MemberList = ({
           />
         ) : null;
       })}
-      <div className="ml-1 pt-5 text-left text-xl font-bold text-slate-700">
+      <span className="ml-1 pt-5 text-left text-xl font-bold text-slate-700">
         BANNED USERS
-      </div>
+      </span>
       {channel.banned.map((user, index) => (
         <UserBanner
           key={index}
@@ -1061,21 +1026,17 @@ const MemberList = ({
         />
       ))}
       {channel.banned.length === 0 ? (
-        <div className="mt-4 w-full text-center text-lg text-slate-300">
+        <span className="mt-4 w-full text-center text-lg text-slate-300">
           No one is banned
-        </div>
+        </span>
       ) : null}
     </div>
   );
 };
 
-/********************************************************************/
-/*                        MAIN COMPONENT                            */
-/********************************************************************/
-
 export default function ChannelSettings() {
   const params = useParams();
-  if (typeof params.channelId === "undefined") return <div>No channel Id</div>;
+  if (typeof params.channelId === "undefined") return <div>No channel Id</div>; // TODO: 404
   const channelId = +params.channelId;
 
   const initialData = useLoaderData() as Awaited<
@@ -1120,9 +1081,7 @@ export default function ChannelSettings() {
             channelId={channelId}
             setConfirmation={setLeaveConfirmation}
           />
-        ) : (
-          ""
-        )}
+        ) : null}
         <div
           className={`${
             deleteConfirmation || leaveConfirmation ? "blur-sm" : ""
@@ -1159,9 +1118,7 @@ export default function ChannelSettings() {
                   queryData={data}
                   channelId={data?.channel.id ? data?.channel.id : 0}
                 />
-              ) : (
-                <></>
-              )}
+              ) : null}
               <SearchBar search={search} setSearch={setSearch} />
             </div>
           ) : null}

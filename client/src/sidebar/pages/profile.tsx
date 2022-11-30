@@ -32,7 +32,6 @@ import { ReactComponent as AcceptIcon } from "pixelarticons/svg/check.svg";
 import { ReactComponent as RefuseIcon } from "pixelarticons/svg/close.svg";
 import { ReactComponent as EditIcon } from "pixelarticons/svg/edit.svg";
 import { useCallback, useEffect, useRef, useState } from "react";
-
 import { ReactComponent as LogOutIcon } from "pixelarticons/svg/logout.svg";
 import {
   Header,
@@ -42,7 +41,6 @@ import {
 } from "../components/header";
 import { RankIcon } from "../utils/rankIcon";
 import BannedDarkIcon from "/src/assets/images/Banned_dark.svg";
-
 import { useForm, useWatch } from "react-hook-form";
 import { useAuthStore } from "../../stores";
 
@@ -80,7 +78,7 @@ const Achievement = ({
 }) => {
   const [showName, setShowName] = useState(false);
   return (
-    <div className="">
+    <div>
       <img
         src={icon}
         alt={`Achievement: ${name}`}
@@ -111,6 +109,7 @@ const UserProfileHeader = ({
   currentUserId: number | undefined;
 }) => {
   const numberOfGames = data?.user.games.length;
+
   const victories = data?.user.games.filter((game) => {
     if (
       (game.players.player1.id === data.user.id &&
@@ -122,6 +121,7 @@ const UserProfileHeader = ({
     else return false;
   }).length;
   const victoryRate = Math.floor((100 * victories) / numberOfGames);
+
   const unachievedFirstRow = [];
   for (let i = 0; i < 4 - data.user.achievements.length; i++) {
     unachievedFirstRow.push(
@@ -159,10 +159,6 @@ const UserProfileHeader = ({
 
   const inputFile = useRef<HTMLInputElement>(null);
 
-  const onButtonClick = () => {
-    inputFile.current?.click();
-  };
-
   return (
     <div className="relative flex flex-col">
       <div className="flex w-full items-center">
@@ -180,7 +176,9 @@ const UserProfileHeader = ({
           {data.user.id === currentUserId ? (
             <div>
               <AddAvatarIcon
-                onClick={onButtonClick}
+                onClick={() => {
+                  inputFile.current?.click();
+                }}
                 className="absolute -top-2 -right-2 h-6 w-6 border border-black bg-white p-px shadow-sm shadow-black hover:cursor-pointer"
               />
               <input
@@ -197,17 +195,16 @@ const UserProfileHeader = ({
                 }}
               />
             </div>
-          ) : (
-            <></>
-          )}
+          ) : null}
         </div>
         <div className="mx-4 mt-4 flex grow flex-col self-start text-left">
-          <div>Matchs played : {numberOfGames} </div>
-          <div>Victories : {victories} </div>
-          <div>Victory rate : {numberOfGames ? `${victoryRate} %` : "-"}</div>
+          <span>Matchs played : {numberOfGames} </span>
+          <span>Victories : {victories} </span>
+          <span>Victory rate : {numberOfGames ? `${victoryRate} %` : "-"}</span>
         </div>
         <div className="relative mr-2 flex shrink-0 flex-col justify-end pt-1 ">
           <div className="flex">
+            {/* TODO: use flex wrap property */}
             {data.user.achievements.slice(0, 4).map((a, key) => (
               <Achievement
                 key={key}
@@ -242,11 +239,10 @@ const GameHistory = ({
   data: UserProfileQuery;
   currentUserId: number;
 }) => {
+  // TODO: make user clickable
   return (
     <div className="flex w-full grow flex-col overflow-auto p-1 text-sm">
-      <div className="mt-8 pb-2 text-center text-xl font-bold">
-        MATCH HISTORY
-      </div>
+      <h2 className="mt-8 pb-2 text-center text-xl font-bold">MATCH HISTORY</h2>
       {data.user.games.length === 0 ? (
         <div className="flex flex-col">
           <div className="mt-20 text-center text-2xl text-slate-300">
@@ -305,9 +301,9 @@ const GameHistory = ({
               ) : (
                 <div>DEFEAT</div>
               )}
-              <div>
+              <span>
                 {game.score.player1Score} - {game.score.player2Score}
-              </div>
+              </span>
             </div>
             <div className="flex justify-center">
               <img
@@ -365,6 +361,7 @@ const AddFriend = ({
       );
     },
   });
+
   return (
     <div className="flex w-full select-none">
       <div
@@ -401,7 +398,7 @@ const AddFriend = ({
           className="flex h-24 basis-1/3 items-center justify-center border-y-2 border-r-2 bg-slate-100 p-4 text-center text-2xl font-bold  text-slate-600 transition-all  hover:cursor-pointer hover:bg-slate-200"
         >
           <RefuseIcon className="w-12" />
-          <div>Refuse</div>
+          <span>Refuse</span>
         </div>
       ) : (
         ""
@@ -413,7 +410,7 @@ const AddFriend = ({
         className="flex h-24 basis-1/2 items-center justify-center border-y-2 border-r-2 bg-slate-100 p-4 text-center text-2xl font-bold  text-slate-600 transition-all  hover:cursor-pointer hover:bg-slate-200"
       >
         <img className="mr-5 w-12" src={BannedDarkIcon} />
-        <div>Block</div>
+        <span>Block</span>
       </div>
     </div>
   );
@@ -429,17 +426,13 @@ const Unblock = ({ userId }: { userId: number }) => {
   });
   return (
     <div
-      className="flex h-24 w-full select-none flex-col items-center justify-center border-2 border-red-500 bg-red-400 p-4 text-xl font-bold text-slate-800 transition-all hover:cursor-pointer hover:bg-red-500 "
+      className="flex h-24 w-full select-none flex-col items-center justify-center border-2 border-red-500 bg-red-400 p-4 font-bold text-slate-800 transition-all hover:cursor-pointer hover:bg-red-500 "
       onClick={() => {
         userId ? unblock.mutate({ userId: userId }) : null;
       }}
     >
-      <span className="flex items-center text-center text-2xl font-bold ">
-        You blocked this user
-      </span>
-      <span className="flex items-center text-center text-base font-bold ">
-        Click to unblock
-      </span>
+      <span className="text-2xl">You blocked this user</span>
+      <span>Click to unblock</span>
     </div>
   );
 };
@@ -450,12 +443,10 @@ const Disconnect = () => {
       onClick={() => {
         useAuthStore.getState().logout();
       }}
-      className="flex h-24 w-full select-none  items-center justify-center border-2 border-slate-300 bg-slate-200 p-4 text-xl font-bold text-slate-400 transition-all hover:cursor-pointer hover:bg-slate-300  hover:text-slate-500 "
+      className="flex h-24 w-full select-none items-center justify-center border-2 border-slate-300 bg-slate-200 p-4 text-xl font-bold text-slate-400 transition-all hover:cursor-pointer hover:bg-slate-300  hover:text-slate-500 "
     >
       <LogOutIcon className="m-1 h-12 rotate-180 cursor-pointer" />
-      <span className="flex items-center text-center text-2xl font-bold ">
-        Logout
-      </span>
+      <span className="text-2xl">Logout</span>
     </div>
   );
 };
@@ -463,9 +454,7 @@ const Disconnect = () => {
 const Blocked = () => {
   return (
     <div className="flex h-24 w-full select-none flex-col items-center justify-center border-2 border-red-500 bg-red-400 p-4 text-xl font-bold text-slate-800 transition-all  hover:cursor-not-allowed ">
-      <span className="flex items-center text-center text-2xl font-bold ">
-        You are blocked by this user
-      </span>
+      <span className="text-2xl">You are blocked by this user</span>
     </div>
   );
 };
@@ -499,7 +488,7 @@ const FriendButtons = ({ data }: { data: UserProfileQuery }) => {
         className="flex h-24 basis-1/3 items-center justify-center border-2  bg-slate-100 p-4 text-center text-2xl font-bold  text-slate-600 transition-all  hover:cursor-pointer hover:bg-slate-200"
       >
         <PlayIcon className="mr-2 w-10 self-center" />
-        <div>Play !</div>
+        <span>Play !</span>
       </div>
       <div
         onClick={() => {
@@ -508,7 +497,7 @@ const FriendButtons = ({ data }: { data: UserProfileQuery }) => {
         className="flex h-24 basis-1/3 items-center justify-center border-y-2  bg-slate-100 p-4 text-center text-2xl font-bold  text-slate-600 transition-all  hover:cursor-pointer hover:bg-slate-200"
       >
         <UnfriendIcon className="mr-2 w-10 self-center" />
-        <div>Unfriend</div>
+        <span>Unfriend</span>
       </div>
       <div
         onClick={() => {
@@ -517,7 +506,7 @@ const FriendButtons = ({ data }: { data: UserProfileQuery }) => {
         className="flex h-24 basis-1/3 items-center justify-center border-2  bg-slate-100 p-4 text-center text-2xl font-bold  text-slate-600 transition-all  hover:cursor-pointer hover:bg-slate-200"
       >
         <img className="mr-2 w-8" src={BannedDarkIcon} />
-        <div>Block</div>
+        <span>Block</span>
       </div>
     </div>
   );

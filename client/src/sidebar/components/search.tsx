@@ -110,9 +110,7 @@ export const SearchResults = ({
             <Empty Message="No result for the research!" Icon={SearchIcon} />
           </div>
         </div>
-      ) : (
-        ""
-      )}
+      ) : null}
       <ul className="flex flex-col divide-y divide-slate-200">
         {data?.map((result) => (
           <li
