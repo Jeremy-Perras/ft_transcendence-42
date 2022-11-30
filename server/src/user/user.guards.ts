@@ -123,7 +123,6 @@ export class MessageFormat implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const ctx = GqlExecutionContext.create(context);
     const newName = ctx.getArgs<{ name: string }>().name;
-    console.log(newName.length);
     if (newName.length > 255) {
       throw new ForbiddenException("you can't exceed 255 characters");
     }

@@ -73,7 +73,6 @@ const SidebarOpenBtn = () => {
           !readBy.readBy?.some((user) => user.user?.id === data.user.id) &&
           readBy.author.id !== data.user.id
         ) {
-          console.log("test");
           setNewMessage(true);
         }
       });
