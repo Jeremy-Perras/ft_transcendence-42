@@ -8,7 +8,8 @@ export default defineConfig({
     proxy: {
       "/graphql": "http://localhost:3000",
       "^/auth/.*": "http://localhost:3000",
-      "^/file/.*": "http://localhost:3000",
+      "^/upload/.*": "http://localhost:3000",
+      "^/uploads/.*": "http://localhost:3000",
     },
   },
   plugins: [

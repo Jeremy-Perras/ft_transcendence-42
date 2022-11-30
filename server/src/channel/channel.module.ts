@@ -14,6 +14,5 @@ import {
     ChannelMessageResolver,
     ChannelMessageReadResolver,
   ],
-  exports: [ChannelService],
 })
 export class ChannelModule {}

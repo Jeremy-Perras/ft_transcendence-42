@@ -1,0 +1,3 @@
+mutation ReadDirectMessage($messageId: Int!) {
+  readDirectMessage(messageId: $messageId)
+}

@@ -1,0 +1,47 @@
+query UserChatsAndFriends{
+  user {
+    id
+    channels {
+      __typename
+      id
+      name
+      messages {
+        __typename
+        author {
+          id
+        }
+        content
+        sentAt
+        readBy {
+          user {
+            id
+            }
+          }
+      }
+    }
+    friends {
+      __typename
+      id
+      name
+      avatar
+      messages {
+        __typename
+        author {
+          id
+        }
+        content
+        sentAt
+        readAt
+      }
+      friendStatus
+    }
+    pendingFriends {
+      __typename
+      id
+      name
+      avatar
+      friendStatus
+    }
+  }
+   
+}

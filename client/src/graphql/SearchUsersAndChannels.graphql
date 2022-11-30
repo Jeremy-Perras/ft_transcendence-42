@@ -1,0 +1,16 @@
+query SearchUsersAndChannels($name: String,$userId: Int ) {
+  users(name: $name) {
+    __typename
+    avatar
+    id
+    name
+  }
+  channels(name: $name) {
+    __typename
+    name
+    id
+  }
+  user(id: $userId) {
+    id
+  }
+}

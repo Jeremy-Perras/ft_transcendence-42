@@ -1,0 +1,6 @@
+query UserProfileHeader {
+  user {
+    id
+    avatar
+  }
+}

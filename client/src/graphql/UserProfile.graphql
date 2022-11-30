@@ -1,0 +1,41 @@
+query UserProfile($userId: Int) {
+  user(id: $userId) {
+    id
+    name
+    avatar
+    rank
+    games {
+      finishedAt
+      gamemode
+      players {
+        player1 {
+          avatar
+          name
+          rank
+          id
+        }
+        player2 {
+          avatar
+          name
+          rank
+          id
+        }
+      }
+      score {
+        player1Score
+        player2Score
+      }
+      startAt
+    }
+    blocked
+    blocking
+    friends {
+      id
+    }
+    achievements {
+      name
+      icon
+    }
+    friendStatus
+  }
+}

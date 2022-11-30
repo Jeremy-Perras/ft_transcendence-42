@@ -1,0 +1,3 @@
+mutation BlockUser($userId: Int!) {
+  blockUser(userId: $userId)
+}

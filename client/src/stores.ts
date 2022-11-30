@@ -23,7 +23,11 @@ const useAuthStore = create<AuthStore>((set) => ({
   login: () => {
     return set({ isLoggedIn: true });
   },
-  logout: () => set({ isLoggedIn: false }),
+  logout: () => {
+    fetch("/auth/logout").then(() => {
+      set({ isLoggedIn: false });
+    });
+  },
 }));
 
 export { useSidebarStore, useAuthStore };

@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "dev:client": "npm run dev -w client",
+    "dev:codegen": "npm run dev:codegen -w client",
     "dev:server": "npm run dev -w server",
-    "dev:prisma": "npm run prisma:watch -w server",
     "dev:seed": "npm run prisma:seed -w server",
     "build:client": "npm run build -w client",
     "build:server": "npm run build -w server",
@@ -25,5 +25,8 @@
     "eslint-plugin-prettier": "^4.2.1",
     "prettier": "^2.7.1",
     "typescript": "^4.8.4"
+  },
+  "dependencies": {
+    "@tanstack/react-query-devtools": "^4.16.1"
   }
 }

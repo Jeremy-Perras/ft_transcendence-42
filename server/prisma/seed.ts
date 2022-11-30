@@ -1,5 +1,8 @@
 import { faker } from "@faker-js/faker";
 import { PrismaClient } from "@prisma/client";
+import { createWriteStream } from "fs";
+import { resolve } from "path";
+import { get } from "https";
 
 const prisma = new PrismaClient();
 
@@ -22,14 +25,30 @@ async function main() {
   });
 
   // users
-  for (let i = 1; i <= 10; i++) {
+  for (let i = 1; i <= 100; i++) {
+    const avatar = faker.image.avatar();
+    get(avatar, (res) => {
+      const path = resolve(__dirname, "../uploads/avatars", `${i}.jpg`);
+      res.pipe(createWriteStream(path));
+    });
     await prisma.user.create({
       data: {
         id: i,
         name: faker.name.fullName(),
-        avatar: faker.image.avatar(),
-
+        avatar: `${i}.jpg`,
         rank: Math.floor(Math.random() * 100),
+        achievements: {
+          create: [
+            {
+              icon: "/achievements/LooseMedal.svg",
+              name: "Ten defeats serie",
+            },
+            {
+              icon: "/achievements/FirstVictory.svg",
+              name: "One victory",
+            },
+          ],
+        },
       },
     });
   }
@@ -176,26 +195,22 @@ async function main() {
   });
 
   // channel members
-  await prisma.channel.update({
-    where: {
-      id: 1,
-    },
-    data: {
-      members: {
-        create: [
-          {
-            userId: 4,
-          },
-          {
-            userId: 5,
-          },
-          {
-            userId: 6,
-          },
-        ],
+  for (let i = 10; i < 99; i++) {
+    await prisma.channel.update({
+      where: {
+        id: 1,
       },
-    },
-  });
+      data: {
+        members: {
+          create: [
+            {
+              userId: i,
+            },
+          ],
+        },
+      },
+    });
+  }
   await prisma.channel.update({
     where: {
       id: 2,
@@ -273,7 +288,7 @@ async function main() {
         sentAt: faker.date.recent(),
       },
     });
-    for (let ii = 1; ii <= 10; ii++) {
+    for (let ii = 1; ii <= 50; ii++) {
       if (ii != p1) {
         await prisma.channelMessage.update({
           where: {

@@ -13,10 +13,9 @@ export type channelType = Omit<
   "owner" | "messages" | "admins" | "members" | "banned" | "muted"
 >;
 export type channelMessageType = Omit<ChannelMessage, "author" | "readBy">;
-export type channelMessageReadType = Omit<
-  ChannelMessageRead,
-  "user" | "message"
->;
+export type channelMessageReadType = Omit<ChannelMessageRead, "user"> & {
+  user: userType;
+};
 export type restrictedMemberType = userType & Restricted;
 
 @ObjectType()

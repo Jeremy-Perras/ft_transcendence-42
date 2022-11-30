@@ -1,4 +1,8 @@
-import { NotFoundException, UseGuards } from "@nestjs/common";
+import {
+  NotFoundException,
+  ForbiddenException,
+  UseGuards,
+} from "@nestjs/common";
 import {
   Resolver,
   Query,
@@ -20,7 +24,14 @@ import {
   FriendGuard,
   SelfGuard,
 } from "./user.guards";
-import { DirectMessage, directMessageType, User, userType } from "./user.model";
+import {
+  DirectMessage,
+  directMessageType,
+  Achievement,
+  friendStatus,
+  User,
+  userType,
+} from "./user.model";
 
 @Resolver(User)
 @UseGuards(GqlAuthenticatedGuard)
@@ -84,33 +95,106 @@ export class UserResolver {
   }
 
   @ResolveField()
-  async friends(
+  async friendStatus(
     @CurrentUser() currentUserId: number,
     @Root() user: User
-  ): Promise<userType[]> {
+  ): Promise<friendStatus | undefined> {
+    if (currentUserId === user.id) {
+      return undefined;
+    }
     const u = await this.prisma.user.findUnique({
-      select:
-        currentUserId === user.id
-          ? { friends: true }
-          : {
-              friends: {
-                where: {
-                  id: currentUserId,
-                },
-              },
-            },
+      select: {
+        friendedBy: {
+          where: {
+            id: currentUserId,
+          },
+        },
+        friends: {
+          where: {
+            id: currentUserId,
+          },
+        },
+      },
       where: {
         id: user.id,
       },
     });
-    return u
-      ? u.friends.map((user) => ({
-          id: user.id,
-          name: user.name,
-          avatar: user.avatar,
-          rank: user.rank,
-        }))
-      : [];
+    if (
+      u?.friendedBy &&
+      u.friendedBy.length > 0 &&
+      u.friends &&
+      u.friends.length > 0
+    ) {
+      return friendStatus.FRIEND;
+    }
+    if (u?.friendedBy && u.friendedBy.length > 0) {
+      return friendStatus.INVITATION_SEND;
+    }
+    if (u?.friends && u.friends.length > 0) {
+      return friendStatus.INVITATION_RECEIVED;
+    }
+    return friendStatus.NOT_FRIEND;
+  }
+
+  @ResolveField()
+  async achievements(@Root() user: User): Promise<Achievement[]> {
+    const achievements = await this.prisma.achievement.findMany({
+      select: { icon: true, name: true },
+      where: { userId: user.id },
+    });
+    return achievements;
+  }
+
+  @ResolveField()
+  async friends(
+    @CurrentUser() currentUserId: number,
+    @Root() user: User
+  ): Promise<userType[]> {
+    if (currentUserId === user.id) {
+      const u = await this.prisma.user.findUnique({
+        select: {
+          friendedBy: {
+            where: { friendedBy: { some: { id: currentUserId } } },
+          },
+        },
+        where: { id: user.id },
+      });
+      return u
+        ? u.friendedBy.map((us) => ({
+            id: us.id,
+            name: us.name,
+            avatar: us.avatar,
+            rank: us.rank,
+          }))
+        : [];
+    }
+    return [];
+  }
+
+  @ResolveField()
+  async pendingFriends(
+    @CurrentUser() currentUserId: number,
+    @Root() user: User
+  ): Promise<userType[]> {
+    if (currentUserId === user.id) {
+      const u = await this.prisma.user.findUnique({
+        select: {
+          friendedBy: {
+            where: { friendedBy: { none: { id: currentUserId } } },
+          },
+        },
+        where: { id: user.id },
+      });
+      return u
+        ? u.friendedBy.map((us) => ({
+            id: us.id,
+            name: us.name,
+            avatar: us.avatar,
+            rank: us.rank,
+          }))
+        : [];
+    }
+    return [];
   }
 
   @ResolveField()
@@ -283,6 +367,18 @@ export class UserResolver {
     @CurrentUser() currentUserId: number,
     @Args("userId", { type: () => Int }) userId: number
   ) {
+    const u = await this.prisma.user.findUnique({
+      select: { friendedBy: true, friends: true },
+      where: { id: currentUserId },
+    });
+
+    u?.friends.some((us) => us.id === userId)
+      ? await this.unfriendUser(currentUserId, userId)
+      : null;
+    u?.friendedBy.some((us) => us.id === userId)
+      ? await this.refuseInvitation(currentUserId, userId)
+      : null;
+
     await this.prisma.user.update({
       where: {
         id: currentUserId,
@@ -343,12 +439,81 @@ export class UserResolver {
     @CurrentUser() currentUserId: number,
     @Args("userId", { type: () => Int }) userId: number
   ) {
+    await this.refuseInvitation(currentUserId, userId);
     await this.prisma.user.update({
       where: {
         id: currentUserId,
       },
       data: {
         friends: { disconnect: { id: userId } },
+      },
+    });
+    return true;
+  }
+
+  @UseGuards(ExistingUserGuard)
+  @UseGuards(SelfGuard)
+  @Mutation((returns) => Boolean)
+  async cancelInvitation(
+    @CurrentUser() currentUserId: number,
+    @Args("userId", { type: () => Int }) userId: number
+  ) {
+    await this.prisma.user.update({
+      where: {
+        id: currentUserId,
+      },
+      data: {
+        friends: { disconnect: { id: userId } },
+      },
+    });
+    return true;
+  }
+
+  @UseGuards(ExistingUserGuard)
+  @UseGuards(SelfGuard)
+  @Mutation((returns) => Boolean)
+  async refuseInvitation(
+    @CurrentUser() currentUserId: number,
+    @Args("userId", { type: () => Int }) userId: number
+  ) {
+    await this.prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        friends: { disconnect: { id: currentUserId } },
+      },
+    });
+    return true;
+  }
+
+  @Mutation((returns) => Boolean)
+  async updateUserName(
+    @CurrentUser() currentUserId: number,
+    @Args("name", { type: () => String }) name: string
+  ) {
+    if (!name) {
+      throw new ForbiddenException("Your name can't be empty");
+    }
+
+    if (name.length > 255) {
+      throw new ForbiddenException("Your name can't exceed 255 characters");
+    }
+
+    const user = await this.prisma.user.findMany({
+      select: { name: true },
+    });
+
+    if (user.some((user) => user.name === name)) {
+      throw new ForbiddenException("Name already used");
+    }
+
+    await this.prisma.user.update({
+      where: {
+        id: currentUserId,
+      },
+      data: {
+        name: name,
       },
     });
     return true;
@@ -420,6 +585,33 @@ export class DirectMessageResolver {
         recipientId: userId,
       },
     });
+    return true;
+  }
+
+  @Mutation((returns) => Boolean)
+  async readDirectMessage(
+    @Args("messageId", { type: () => Int }) messageId: number
+  ) {
+    const message = await this.prisma.directMessage.findUnique({
+      select: { readAt: true },
+      where: { id: messageId },
+    });
+
+    if (!message) {
+      throw new NotFoundException("Message not found");
+    }
+
+    if (message.readAt) {
+      throw new ForbiddenException("Message already read");
+    }
+
+    await this.prisma.directMessage.update({
+      where: { id: messageId },
+      data: {
+        readAt: new Date(),
+      },
+    });
+
     return true;
   }
 }

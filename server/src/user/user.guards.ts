@@ -15,7 +15,6 @@ export class SelfGuard implements CanActivate {
     const ctx = GqlExecutionContext.create(context);
     const userId = +ctx.getContext().req.user;
     const targetUserId = ctx.getArgs<{ userId: number }>().userId;
-
     if (userId === targetUserId) {
       throw new UserInputError("You cannot do this action to yourself");
     }
@@ -86,7 +85,6 @@ export class FriendGuard implements CanActivate {
       },
       where: { id: userId },
     });
-
     if (
       (friend?.friendedBy && friend.friendedBy.length === 0) ||
       (friend?.friends && friend.friends.length === 0)
