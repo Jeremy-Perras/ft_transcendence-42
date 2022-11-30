@@ -33,7 +33,6 @@ import {
 } from "../components/header";
 import { User } from "../types/user";
 import { getDate } from "../utils/getDate";
-import { newMessage } from "../sidebar";
 
 type formData = {
   password?: string;
@@ -163,6 +162,7 @@ const ReadBy = ({ users }: { users: User[] }) => {
     </div>
   );
 };
+
 const ChannelMessage = ({
   author,
   readBy,

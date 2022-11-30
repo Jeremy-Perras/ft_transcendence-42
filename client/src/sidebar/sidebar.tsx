@@ -55,7 +55,7 @@ const router = createMemoryRouter([
 ]);
 
 const SidebarOpenBtn = () => {
-  const [newMessage, setNewMessage] = useState(false); // TODO: use react query to get this
+  const [newMessage, setNewMessage] = useState(false);
   const { data } = useUserChatsAndFriendsQuery({});
   const openSidebar = useSidebarStore((state) => state.open);
 

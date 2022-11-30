@@ -55,6 +55,7 @@ export const HeaderNavigateBack = () => {
     />
   );
 };
+
 export const HeaderCenterContent = ({
   children,
 }: {
