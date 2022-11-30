@@ -6,7 +6,6 @@ import {
 } from "@tanstack/react-query";
 import {
   LoaderFunctionArgs,
-  Navigate,
   useLoaderData,
   useNavigate,
   useParams,
@@ -97,7 +96,7 @@ const Achievement = ({
       <div
         className={`${
           showName ? "opacity-100" : "opacity-0"
-        } absolute left-0 -bottom-4 w-36 text-center text-xs ${
+        } absolute left-0 -bottom-4 w-full text-center text-xs ${
           achieved ? "text-slate-600" : "text-slate-200"
         }`}
       >
@@ -128,21 +127,9 @@ const UserProfileHeader = ({
   }).length;
   const victoryRate = Math.floor((100 * victories) / numberOfGames);
 
-  const unachievedFirstRow = [];
-  for (let i = 0; i < 4 - data.user.achievements.length; i++) {
-    unachievedFirstRow.push(
-      <Achievement
-        key={i}
-        icon={UnachievedIcon}
-        name={"Unachieved"}
-        achieved={false}
-      />
-    );
-  }
-  const unachievedSecondRow = [];
+  const unachievedMedals = [];
   for (let i = 0; i < 8 - data.user.achievements.length; i++) {
-    if (i >= 4) break;
-    unachievedSecondRow.push(
+    unachievedMedals.push(
       <Achievement
         key={i}
         icon={UnachievedIcon}
@@ -151,6 +138,7 @@ const UserProfileHeader = ({
       />
     );
   }
+
   const changeHandler = (event: File) => {
     const formData = new FormData();
     formData.append("file", event);
@@ -208,30 +196,16 @@ const UserProfileHeader = ({
           <span>Victories : {victories} </span>
           <span>Victory rate : {numberOfGames ? `${victoryRate} %` : "-"}</span>
         </div>
-        <div className="relative mr-2 flex shrink-0 flex-col justify-end pt-1 ">
-          <div className="flex">
-            {/* TODO: use flex wrap property */}
-            {data.user.achievements.slice(0, 4).map((a, key) => (
-              <Achievement
-                key={key}
-                icon={a.icon}
-                name={a.name}
-                achieved={true}
-              />
-            ))}
-            {unachievedFirstRow}
-          </div>
-          <div className="flex">
-            {data.user.achievements.slice(4, 8).map((a, key) => (
-              <Achievement
-                key={key}
-                icon={a.icon}
-                name={a.name}
-                achieved={true}
-              />
-            ))}
-            {unachievedSecondRow}
-          </div>
+        <div className="relative flex shrink-0 basis-1/3 flex-wrap items-center justify-center pt-1">
+          {data.user.achievements.map((a, key) => (
+            <Achievement
+              key={key}
+              icon={a.icon}
+              name={a.name}
+              achieved={true}
+            />
+          ))}
+          {unachievedMedals}
         </div>
       </div>
     </div>
