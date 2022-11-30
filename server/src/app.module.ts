@@ -9,6 +9,7 @@ import { ChannelModule } from "./channel/channel.module";
 import { GameModule } from "./game/game.module";
 import { AuthModule } from "./auth/auth.module";
 import { UploadModule } from "./upload/upload.module";
+import { SocketModule } from "./socket/socket.module";
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { UploadModule } from "./upload/upload.module";
       rootPath: join(__dirname, "../uploads"), // TODO: use env var
       serveRoot: "/uploads",
     }),
+    SocketModule,
     AuthModule,
     UserModule,
     GameModule,

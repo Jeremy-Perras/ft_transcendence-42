@@ -7,6 +7,7 @@ import queryClient from "./query";
 import { useAuthStore } from "./stores";
 import "./index.css";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { io } from "socket.io-client";
 
 let init = false;
 const App = () => {
@@ -25,6 +26,28 @@ const App = () => {
       });
     }
   }, []);
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      const socket = io();
+
+      socket.on("connect", () => {
+        console.log("connected", socket);
+      });
+
+      socket.on("disconnect", () => {
+        console.log("disconnected", socket);
+      });
+
+      socket.on("test", () => {
+        console.log("new connection");
+      });
+
+      return () => {
+        socket.close();
+      };
+    }
+  }, [isLoggedIn]);
 
   return (
     <div className="relative flex h-screen w-screen overflow-hidden">

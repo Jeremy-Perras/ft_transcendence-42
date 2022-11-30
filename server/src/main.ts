@@ -4,6 +4,7 @@ import session from "express-session";
 import passport from "passport";
 import { AppModule } from "./app.module";
 import { PrismaExceptionFilter } from "./prisma/prisma.exception";
+import { ExpressIoAdapter } from "./socket/socket.adapter";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -19,16 +20,17 @@ async function bootstrap() {
       transform: true,
     })
   );
-  app.use(
-    session({
-      // TODO: don't use memory store in production
-      secret: "keyboard", // TODO: use env variable
-      resave: false,
-      saveUninitialized: false,
-    })
-  );
+  const sessionMiddleware = session({
+    // TODO: don't use memory store in production
+    secret: "keyboard", // TODO: use env variable
+    resave: false,
+    saveUninitialized: false,
+  });
+  app.use(sessionMiddleware);
   app.use(passport.initialize());
   app.use(passport.session());
+  const expressIoAdapter = new ExpressIoAdapter(app, sessionMiddleware);
+  app.useWebSocketAdapter(expressIoAdapter);
   await app.listen(3000);
 }
 bootstrap();

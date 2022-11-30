@@ -23,8 +23,10 @@
     "react-error-boundary": "^3.1.4",
     "react-hook-form": "^7.39.0",
     "react-router-dom": "^6.4.2",
+    "socket.io-client": "^4.5.4",
     "tailwindcss-radix": "^2.6.0",
-    "zustand": "^4.1.4"
+    "zustand": "^4.1.4",
+    "@apps/shared": "*"
   },
   "devDependencies": {
     "@graphql-codegen/cli": "^2.13.7",
