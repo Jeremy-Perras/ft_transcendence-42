@@ -1,3 +1,4 @@
+import { InvalidCacheTarget } from "@apps/shared";
 import {
   NotFoundException,
   ForbiddenException,
@@ -18,6 +19,7 @@ import { CurrentUser } from "../auth/currentUser.decorator";
 import { channelType } from "../channel/channel.model";
 import { gameType } from "../game/game.model";
 import { PrismaService } from "../prisma/prisma.service";
+import { SocketService } from "../socket/socket.service";
 import {
   BlockGuard,
   ExistingUserGuard,
@@ -36,7 +38,10 @@ import {
 @Resolver(User)
 @UseGuards(GqlAuthenticatedGuard)
 export class UserResolver {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private socketService: SocketService
+  ) {}
 
   @Query((returns) => User)
   async user(
@@ -391,6 +396,12 @@ export class UserResolver {
         },
       },
     });
+
+    this.socketService.emitInvalidateCache(
+      InvalidCacheTarget.BLOCK_USER,
+      [userId],
+      currentUserId
+    );
     return true;
   }
 
@@ -409,6 +420,13 @@ export class UserResolver {
         blocking: { disconnect: { id: userId } },
       },
     });
+
+    this.socketService.emitInvalidateCache(
+      InvalidCacheTarget.UNBLOCK_USER,
+      [userId],
+      currentUserId
+    );
+
     return true;
   }
 
@@ -428,6 +446,13 @@ export class UserResolver {
         friends: { connect: { id: userId } },
       },
     });
+
+    this.socketService.emitInvalidateCache(
+      InvalidCacheTarget.FRIEND_USER,
+      [userId],
+      currentUserId
+    );
+
     return true;
   }
 
@@ -448,6 +473,13 @@ export class UserResolver {
         friends: { disconnect: { id: userId } },
       },
     });
+
+    this.socketService.emitInvalidateCache(
+      InvalidCacheTarget.UNFRIEND_USER,
+      [userId],
+      currentUserId
+    );
+
     return true;
   }
 
@@ -466,6 +498,13 @@ export class UserResolver {
         friends: { disconnect: { id: userId } },
       },
     });
+
+    this.socketService.emitInvalidateCache(
+      InvalidCacheTarget.CANCEL_INVITATION,
+      [userId],
+      currentUserId
+    );
+
     return true;
   }
 
@@ -484,6 +523,13 @@ export class UserResolver {
         friends: { disconnect: { id: currentUserId } },
       },
     });
+
+    this.socketService.emitInvalidateCache(
+      InvalidCacheTarget.REFUSE_INVITATION_FRIEND,
+      [userId],
+      currentUserId
+    );
+
     return true;
   }
 
@@ -516,6 +562,17 @@ export class UserResolver {
         name: name,
       },
     });
+
+    const friend = await this.prisma.user.findMany({
+      select: { id: true },
+      where: { friendedBy: { some: { id: currentUserId } } },
+    });
+
+    this.socketService.emitInvalidateCache(
+      InvalidCacheTarget.UPDATE_USER_NAME,
+      friend.map((f) => f.id),
+      currentUserId
+    );
     return true;
   }
 }
@@ -523,7 +580,10 @@ export class UserResolver {
 @Resolver(DirectMessage)
 @UseGuards(GqlAuthenticatedGuard)
 export class DirectMessageResolver {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private socketService: SocketService
+  ) {}
 
   @ResolveField()
   async author(@Root() message: DirectMessage): Promise<userType> {
@@ -585,15 +645,23 @@ export class DirectMessageResolver {
         recipientId: userId,
       },
     });
+
+    this.socketService.emitInvalidateCache(
+      InvalidCacheTarget.DIRECT_MESSAGE,
+      [userId],
+      currentUserId
+    );
+
     return true;
   }
 
   @Mutation((returns) => Boolean)
   async readDirectMessage(
+    @CurrentUser() currentUserId: number,
     @Args("messageId", { type: () => Int }) messageId: number
   ) {
     const message = await this.prisma.directMessage.findUnique({
-      select: { readAt: true },
+      select: { readAt: true, authorId: true, recipientId: true },
       where: { id: messageId },
     });
 
@@ -611,6 +679,12 @@ export class DirectMessageResolver {
         readAt: new Date(),
       },
     });
+
+    this.socketService.emitInvalidateCache(
+      InvalidCacheTarget.READ_DIRECT_MESSAGE,
+      [message.recipientId],
+      message.authorId
+    );
 
     return true;
   }
