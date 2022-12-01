@@ -1,9 +1,14 @@
+import { InvalidCacheTarget } from "@apps/shared";
 import { Injectable, Logger } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
+import { SocketService } from "../socket/socket.service";
 
 @Injectable()
 export class UploadService {
-  constructor(private prismaService: PrismaService) {}
+  constructor(
+    private prismaService: PrismaService,
+    private socketService: SocketService
+  ) {}
 
   private readonly logger = new Logger(UploadService.name);
 
@@ -16,6 +21,16 @@ export class UploadService {
           avatar: filename,
         },
       });
+
+      const friend = await this.prismaService.user.findMany({
+        select: { id: true },
+        where: { friendedBy: { some: { id: userId } } },
+      });
+      this.socketService.emitInvalidateCache(
+        InvalidCacheTarget.AVATAR_USER,
+        friend.map((f) => f.id),
+        userId
+      );
     } catch (error) {
       this.logger.debug(error);
     }

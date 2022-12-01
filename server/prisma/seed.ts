@@ -195,6 +195,7 @@ async function main() {
   });
 
   // channel members
+
   for (let i = 10; i < 99; i++) {
     await prisma.channel.update({
       where: {

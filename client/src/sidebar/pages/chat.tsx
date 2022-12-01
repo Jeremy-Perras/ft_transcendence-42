@@ -27,6 +27,7 @@ import {
   HeaderLeftBtn,
 } from "../components/header";
 import { RankIcon } from "../utils/rankIcon";
+import { useSidebarStore } from "../../stores";
 
 type ChatQuery = {
   messages: {
@@ -168,13 +169,13 @@ export default function Chat() {
     },
   });
 
+  const sidebarIsOpen = useSidebarStore((state) => state.isOpen);
+
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
-  const scrollToBottom = () => {
-    messagesEndRef?.current?.scrollIntoView({ behavior: "auto" });
-  };
   useEffect(() => {
-    scrollToBottom();
-  }, [data?.messages]);
+    sidebarIsOpen &&
+      messagesEndRef?.current?.scrollIntoView({ behavior: "auto" });
+  }, [sidebarIsOpen, messagesEndRef, data?.messages]);
 
   return (
     <div className="0 flex h-full flex-col">
@@ -221,7 +222,7 @@ export default function Chat() {
 
       <div className="flex w-full bg-white px-[2px]">
         <textarea
-          autoFocus={true}
+          autoFocus={sidebarIsOpen}
           disabled={data?.blocking == true || data?.blocked === true}
           rows={2}
           className={`${
