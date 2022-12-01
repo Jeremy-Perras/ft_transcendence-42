@@ -32,13 +32,18 @@ import { Role, RoleGuard, RolesGuard } from "./channel.roles";
 import { ExistingChannelGuard, OwnerGuard } from "./channel.guards";
 import { setMaxIdleHTTPParsers } from "http";
 import { InvalidCacheTarget } from "@apps/shared";
+import { SocketService } from "../socket/socket.service";
+import { InvalidCacheTarget } from "@apps/shared";
 
 @Resolver(Channel)
 @UseGuards(RolesGuard)
 @UseGuards(GqlAuthenticatedGuard)
 export class ChannelResolver {
-  constructor(private prisma: PrismaService) {}
-  private socketService: SocketService;
+  constructor(
+    private prisma: PrismaService,
+    private socketservice: SocketService
+  ) {}
+
   @Query((returns) => Channel)
   async channel(
     @Args("id", { type: () => Int }) id: number
@@ -384,6 +389,23 @@ export class ChannelResolver {
         channelId,
       },
     });
+
+    const usersChannel = await this.prisma.channel.findUnique({
+      select: { members: true, ownerId: true },
+      where: { id: channelId },
+    });
+
+    const users = usersChannel?.members.map((u) => u.userId);
+    if (usersChannel?.ownerId) users?.push(usersChannel?.ownerId);
+
+    if (users) {
+      this.socketservice.emitInvalidateCache(
+        InvalidCacheTarget.JOIN_CHANNEL,
+        users,
+        channelId
+      );
+    }
+
     return true;
   }
 

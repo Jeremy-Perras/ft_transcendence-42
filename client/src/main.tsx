@@ -10,12 +10,13 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { io } from "socket.io-client";
 import { InvalidCacheTarget } from "@apps/shared";
 import {
+  useChannelSettingsQuery,
   useChannelDiscussionQuery,
   useDirectMessagesQuery,
   useDiscussionsAndInvitationsQuery,
+  useUserProfileQuery,
 } from "./graphql/generated";
 //TODO Mutation direct message invalidate all in once, or it's bugs
-//TODO When submit a message not focus the sideBar
 let init = false;
 const App = () => {
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
@@ -62,35 +63,77 @@ const App = () => {
               queryClient.invalidateQueries(
                 useDiscussionsAndInvitationsQuery.getKey({})
               );
+              queryClient.invalidateQueries(
+                useUserProfileQuery.getKey({ userId: data.targetId })
+              );
+              queryClient.invalidateQueries(
+                useUserProfileQuery.getKey({ userId: data.targetId })
+              );
               break;
             case InvalidCacheTarget.INVITATION_FRIEND:
               queryClient.invalidateQueries(
                 useDiscussionsAndInvitationsQuery.getKey({})
+              );
+              queryClient.invalidateQueries(
+                useUserProfileQuery.getKey({ userId: data.targetId })
+              );
+              queryClient.invalidateQueries(
+                useUserProfileQuery.getKey({ userId: data.targetId })
               );
               break;
             case InvalidCacheTarget.REFUSE_INVITATION_FRIEND:
               queryClient.invalidateQueries(
                 useDiscussionsAndInvitationsQuery.getKey({})
               );
+              queryClient.invalidateQueries(
+                useUserProfileQuery.getKey({ userId: data.targetId })
+              );
+              queryClient.invalidateQueries(
+                useUserProfileQuery.getKey({ userId: data.targetId })
+              );
               break;
             case InvalidCacheTarget.UPDATE_USER_NAME:
               queryClient.invalidateQueries(
                 useDiscussionsAndInvitationsQuery.getKey({})
+              );
+              queryClient.invalidateQueries(
+                useUserProfileQuery.getKey({ userId: data.targetId })
+              );
+              queryClient.invalidateQueries(
+                useUserProfileQuery.getKey({ userId: data.targetId })
               );
               break;
             case InvalidCacheTarget.FRIEND_USER:
               queryClient.invalidateQueries(
                 useDiscussionsAndInvitationsQuery.getKey({})
               );
+              queryClient.invalidateQueries(
+                useUserProfileQuery.getKey({ userId: data.targetId })
+              );
+              queryClient.invalidateQueries(
+                useUserProfileQuery.getKey({ userId: data.targetId })
+              );
               break;
             case InvalidCacheTarget.UNFRIEND_USER:
               queryClient.invalidateQueries(
                 useDiscussionsAndInvitationsQuery.getKey({})
               );
+              queryClient.invalidateQueries(
+                useUserProfileQuery.getKey({ userId: data.targetId })
+              );
+              queryClient.invalidateQueries(
+                useUserProfileQuery.getKey({ userId: data.targetId })
+              );
               break;
             case InvalidCacheTarget.CANCEL_INVITATION:
               queryClient.invalidateQueries(
                 useDiscussionsAndInvitationsQuery.getKey({})
+              );
+              queryClient.invalidateQueries(
+                useUserProfileQuery.getKey({ userId: data.targetId })
+              );
+              queryClient.invalidateQueries(
+                useUserProfileQuery.getKey({ userId: data.targetId })
               );
               break;
             case InvalidCacheTarget.UNBLOCK_USER:
@@ -105,6 +148,12 @@ const App = () => {
               queryClient.invalidateQueries(
                 useChannelDiscussionQuery.getKey({ channelId: data.targetId })
               );
+              queryClient.invalidateQueries(
+                useUserProfileQuery.getKey({ userId: data.targetId })
+              );
+              queryClient.invalidateQueries(
+                useUserProfileQuery.getKey({ userId: data.targetId })
+              );
               break;
             case InvalidCacheTarget.READ_DIRECT_MESSAGE:
               queryClient.invalidateQueries(
@@ -113,6 +162,34 @@ const App = () => {
               queryClient.invalidateQueries(
                 useDiscussionsAndInvitationsQuery.getKey({})
               );
+              break;
+            case InvalidCacheTarget.AVATAR_USER:
+              queryClient.invalidateQueries(
+                useDiscussionsAndInvitationsQuery.getKey({})
+              );
+              queryClient.invalidateQueries(
+                useUserProfileQuery.getKey({ userId: data.targetId })
+              );
+              break;
+            case InvalidCacheTarget.JOIN_CHANNEL:
+              queryClient.invalidateQueries(
+                useChannelSettingsQuery.getKey({ channelId: data.targetId })
+              );
+
+              break;
+            case InvalidCacheTarget.AVATAR_USER:
+              queryClient.invalidateQueries(
+                useDiscussionsAndInvitationsQuery.getKey({})
+              );
+              queryClient.invalidateQueries(
+                useUserProfileQuery.getKey({ userId: data.targetId })
+              );
+              break;
+            case InvalidCacheTarget.JOIN_CHANNEL:
+              queryClient.invalidateQueries(
+                useChannelSettingsQuery.getKey({ channelId: data.targetId })
+              );
+
               break;
             default:
               ((_: never) => _)(data.cacheTarget);

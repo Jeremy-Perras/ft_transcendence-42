@@ -37,7 +37,7 @@ import {
   Chat,
   chatType,
 } from "./user.model";
-
+//TODO accpet invitation reload cache
 @Resolver(User)
 @UseGuards(GqlAuthenticatedGuard)
 export class UserResolver {

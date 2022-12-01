@@ -32,6 +32,7 @@ import {
 } from "../components/header";
 import { User } from "../types/user";
 import { getDate } from "../utils/getDate";
+import { useSidebarStore } from "../../stores";
 
 type formData = {
   password?: string;
@@ -406,13 +407,13 @@ const DisplayMessage = ({
   banned: boolean | undefined;
   userId: number;
 }) => {
+  const sidebarIsOpen = useSidebarStore((state) => state.isOpen);
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
-  const scrollToBottom = () => {
-    messagesEndRef?.current?.scrollIntoView({ behavior: "auto" });
-  };
+
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    sidebarIsOpen &&
+      messagesEndRef?.current?.scrollIntoView({ behavior: "auto" });
+  }, [messages, sidebarIsOpen, messagesEndRef]);
 
   return (
     <>
