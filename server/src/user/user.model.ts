@@ -31,10 +31,20 @@ export type userType = Omit<
   | "status"
   | "achievements"
   | "pendingFriends"
+  | "chats"
 >;
 
 registerEnumType(friendStatus, {
   name: "friendStatus",
+});
+
+export enum chatType {
+  CHANNEL,
+  USER,
+}
+
+registerEnumType(chatType, {
+  name: "chatType",
 });
 
 @ObjectType()
@@ -80,8 +90,36 @@ export class User {
 
   @Field((type) => [DirectMessage])
   messages: [DirectMessage | undefined];
+
+  @Field((type) => [Chat])
+  chats: [Chat | undefined];
 }
 
+@ObjectType()
+export class Chat {
+  @Field((type) => Int)
+  @Min(0)
+  id: number;
+
+  @Field((type) => chatType)
+  type: chatType;
+
+  @Field((type) => String)
+  @IsNotEmpty()
+  name: string;
+
+  @Field((type) => String, { nullable: true })
+  avatar: string | undefined;
+
+  @Field((type) => String, { nullable: true })
+  lastMessageContent: string | undefined;
+
+  @Field((type) => Date, { nullable: true })
+  lastMessageDate: Date | undefined;
+
+  @Field((type) => Boolean)
+  hasUnreadMessages: boolean;
+}
 @ObjectType()
 export class Achievement {
   @Field((type) => String)

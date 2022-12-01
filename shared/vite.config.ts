@@ -1,13 +1,27 @@
-import { resolve } from "path";
 import { defineConfig } from "vite";
+import path from "path";
+import typescript from "@rollup/plugin-typescript";
 
-// https://vitejs.dev/config/
+const resolvePath = (str: string) => path.resolve(__dirname, str);
+
 export default defineConfig({
   build: {
     lib: {
-      entry: resolve(__dirname, "src/index.ts"),
-      name: "shared",
+      entry: resolvePath("./src/index.ts"),
+      name: "index",
       fileName: "index",
+    },
+    rollupOptions: {
+      plugins: [
+        typescript({
+          target: "es2020",
+          rootDir: resolvePath("./src"),
+          declaration: true,
+          // declarationDir: resolvePath("./dist"),
+          exclude: resolvePath("../node_modules/**"),
+          allowSyntheticDefaultImports: true,
+        }),
+      ],
     },
   },
 });

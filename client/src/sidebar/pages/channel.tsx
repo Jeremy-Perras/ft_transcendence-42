@@ -8,7 +8,6 @@ import {
 import {
   ChannelDiscussionQuery,
   useChannelDiscussionQuery,
-  useCreateChannelMessageReadMutation,
   useJoinChannelMutation,
   useSendChannelMessageMutation,
 } from "../../graphql/generated";
@@ -162,41 +161,20 @@ const ReadBy = ({ users }: { users: User[] }) => {
   );
 };
 
-const channelMessageLoaded = new Map<number, boolean>();
 const ChannelMessage = ({
   author,
   readBy,
   content,
   sentAt,
-  userId,
   channelId,
-  id,
 }: ChannelDisplayMessage) => {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
+
   const { data } = useChannelDiscussionQuery({
     channelId: channelId,
     userId: author.id,
   });
-  const createChannelMessageRead = useCreateChannelMessageReadMutation({
-    onSuccess: () => {
-      queryClient.invalidateQueries(
-        useChannelDiscussionQuery.getKey({ channelId: +channelId })
-      );
-    },
-  });
-  useEffect(() => {
-    if (
-      !channelMessageLoaded.get(id) &&
-      !readBy.some((user) => user.user.id === userId) &&
-      userId !== author.id
-    ) {
-      channelMessageLoaded.set(id, true);
-      createChannelMessageRead.mutate({
-        messageId: id,
-      });
-    }
-  }, []);
+
   return (
     <>
       <span className="left-0 mt-6 text-center text-xs text-slate-300">

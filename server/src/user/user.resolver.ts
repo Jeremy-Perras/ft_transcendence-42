@@ -20,6 +20,7 @@ import { channelType } from "../channel/channel.model";
 import { gameType } from "../game/game.model";
 import { PrismaService } from "../prisma/prisma.service";
 import { SocketService } from "../socket/socket.service";
+
 import {
   BlockGuard,
   ExistingUserGuard,
@@ -33,6 +34,8 @@ import {
   friendStatus,
   User,
   userType,
+  Chat,
+  chatType,
 } from "./user.model";
 
 @Resolver(User)
@@ -97,6 +100,159 @@ export class UserResolver {
       avatar: user.avatar,
       rank: user.rank,
     }));
+  }
+
+  @ResolveField()
+  async chats(
+    @CurrentUser() currentUserId: number,
+    @Root() user: User
+  ): Promise<Chat[] | undefined> {
+    if (currentUserId !== user.id) {
+      return undefined;
+    }
+    const res = await this.prisma.user.findUnique({
+      where: { id: currentUserId },
+      select: {
+        friends: {
+          where: {
+            friends: {
+              some: {
+                id: currentUserId,
+              },
+            },
+          },
+          select: {
+            id: true,
+            name: true,
+            avatar: true,
+            messageReceived: {
+              where: {
+                authorId: currentUserId,
+              },
+              select: {
+                content: true,
+                sentAt: true,
+                readAt: true,
+                authorId: true,
+              },
+              orderBy: { sentAt: "desc" },
+              take: 1,
+            },
+            messageSent: {
+              where: {
+                recipientId: currentUserId,
+              },
+              select: {
+                content: true,
+                sentAt: true,
+                readAt: true,
+                authorId: true,
+              },
+              orderBy: { sentAt: "desc" },
+              take: 1,
+            },
+          },
+        },
+        ownedChannels: {
+          select: {
+            id: true,
+            name: true,
+            channelMessages: {
+              select: {
+                authorId: true,
+                content: true,
+                sentAt: true,
+                readBy: {
+                  select: {
+                    userId: true,
+                  },
+                },
+              },
+              orderBy: { sentAt: "desc" },
+              take: 1,
+            },
+          },
+        },
+        channels: {
+          select: {
+            channel: {
+              select: {
+                id: true,
+                name: true,
+                channelMessages: {
+                  select: {
+                    authorId: true,
+                    content: true,
+                    sentAt: true,
+                    readBy: {
+                      select: {
+                        userId: true,
+                      },
+                    },
+                  },
+                  orderBy: { sentAt: "desc" },
+                  take: 1,
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!res) return [];
+
+    const mergeResult: Chat[] = [];
+
+    const formatChannel = (channel: typeof res.ownedChannels[number]) => {
+      mergeResult.push({
+        type: chatType.CHANNEL,
+        id: channel.id,
+        name: channel.name,
+        avatar: undefined,
+        lastMessageContent: channel.channelMessages[0]?.content,
+        lastMessageDate: channel.channelMessages[0]?.sentAt,
+        hasUnreadMessages:
+          channel.channelMessages[0]?.authorId === currentUserId
+            ? false
+            : channel.channelMessages[0]?.readBy.some(
+                (id) => id.userId === currentUserId
+              )
+            ? false
+            : true,
+      });
+    };
+    res?.ownedChannels.forEach(formatChannel);
+    res?.channels.forEach((c) => formatChannel(c.channel));
+
+    res.friends.forEach((f) => {
+      const lastMessage = f.messageReceived[0] ?? f.messageSent[0];
+      f.messageReceived[0] && f.messageSent[0]
+        ? f.messageReceived[0].sentAt > f.messageSent[0]?.sentAt
+          ? f.messageReceived[0]
+          : f.messageSent[0]
+        : f.messageReceived[0] ?? f.messageSent[0];
+
+      mergeResult.push({
+        type: chatType.USER,
+        id: f.id,
+        name: f.name,
+        avatar: f.avatar,
+        hasUnreadMessages:
+          lastMessage?.authorId === currentUserId
+            ? false
+            : lastMessage?.readAt
+            ? false
+            : true,
+        lastMessageContent: lastMessage?.content,
+        lastMessageDate: lastMessage?.sentAt,
+      });
+    });
+    return mergeResult.sort((x, y) => {
+      const x_val = x.lastMessageDate ? x.lastMessageDate.valueOf() : -1;
+      const y_val = y.lastMessageDate ? y.lastMessageDate.valueOf() : -1;
+      return y_val - x_val;
+    });
   }
 
   @ResolveField()
@@ -350,7 +506,32 @@ export class UserResolver {
         id: currentUserId,
       },
     });
+
     const result = u?.messageReceived.concat(u.messageSent);
+    //broken
+    // const unreadMessages: any[] = []; //TODO : fix this, issue with DirectMessage
+    // result?.forEach((message) => {
+    //   if (message.authorId !== currentUserId && !message.readAt) {
+    //     unreadMessages.push(message);
+    //   }
+    // });
+    // unreadMessages?.forEach(async (message) => {
+    //   if (message.authorId !== currentUserId && !message.readAt) {
+    //     await this.prisma.directMessage.update({
+    //       where: { id: message.id },
+    //       data: {
+    //         readAt: new Date(),
+    //       },
+    //     });
+    //     this.socketService.emitInvalidateCache(
+    //       InvalidCacheTarget.READ_DIRECT_MESSAGE,
+    //       [currentUserId],
+    //       user.id
+    //     );
+    //     //TODO: add cache invalidation on home
+    //   }
+    // });
+
     return result
       ? result
           .sort(
@@ -655,37 +836,37 @@ export class DirectMessageResolver {
     return true;
   }
 
-  @Mutation((returns) => Boolean)
-  async readDirectMessage(
-    @CurrentUser() currentUserId: number,
-    @Args("messageId", { type: () => Int }) messageId: number
-  ) {
-    const message = await this.prisma.directMessage.findUnique({
-      select: { readAt: true, authorId: true, recipientId: true },
-      where: { id: messageId },
-    });
+  //   @Mutation((returns) => Boolean)
+  //   async readDirectMessage(
+  //     @CurrentUser() currentUserId: number,
+  //     @Args("messageId", { type: () => Int }) messageId: number
+  //   ) {
+  //     const message = await this.prisma.directMessage.findUnique({
+  //       select: { readAt: true, authorId: true, recipientId: true },
+  //       where: { id: messageId },
+  //     });
 
-    if (!message) {
-      throw new NotFoundException("Message not found");
-    }
+  //     if (!message) {
+  //       throw new NotFoundException("Message not found");
+  //     }
 
-    if (message.readAt) {
-      throw new ForbiddenException("Message already read");
-    }
+  //     if (message.readAt) {
+  //       throw new ForbiddenException("Message already read");
+  //     }
 
-    await this.prisma.directMessage.update({
-      where: { id: messageId },
-      data: {
-        readAt: new Date(),
-      },
-    });
+  //     await this.prisma.directMessage.update({
+  //       where: { id: messageId },
+  //       data: {
+  //         readAt: new Date(),
+  //       },
+  //     });
 
-    this.socketService.emitInvalidateCache(
-      InvalidCacheTarget.READ_DIRECT_MESSAGE,
-      [message.recipientId],
-      message.authorId
-    );
+  //     this.socketService.emitInvalidateCache(
+  //       InvalidCacheTarget.READ_DIRECT_MESSAGE,
+  //       [message.recipientId],
+  //       message.authorId
+  //     );
 
-    return true;
-  }
+  //     return true;
+  //   }
 }

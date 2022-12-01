@@ -13,7 +13,6 @@ import {
 import {
   DirectMessagesQuery,
   useDirectMessagesQuery,
-  useReadDirectMessageMutation,
   useSendDirectMessageMutation,
 } from "../../graphql/generated";
 import { User } from "../types/user";
@@ -79,35 +78,14 @@ export const chatLoader = async (
   }
 };
 
-const directMessageLoaded = new Map<number, boolean>();
 const DirectMessage = ({
   userId,
-  id,
   content,
   sentAt,
   readAt,
   author,
 }: DirectMessage) => {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const readDirectMessage = useReadDirectMessageMutation({
-    onSuccess: () => {
-      queryClient.invalidateQueries(useDirectMessagesQuery.getKey({ userId }));
-    },
-  });
-
-  useEffect(() => {
-    if (
-      !directMessageLoaded.get(id) &&
-      readAt === null &&
-      author.id === userId
-    ) {
-      directMessageLoaded.set(id, true);
-      readDirectMessage.mutate({
-        messageId: id,
-      });
-    }
-  }, []);
 
   return (
     <li className="mx-2 mb-5 flex flex-col ">

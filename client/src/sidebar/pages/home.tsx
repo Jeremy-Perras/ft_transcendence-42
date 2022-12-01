@@ -4,7 +4,7 @@ import {
   useQueryClient,
   UseQueryOptions,
 } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { ReactComponent as UsersIcon } from "pixelarticons/svg/users.svg";
@@ -14,8 +14,7 @@ import { useLoaderData, useNavigate } from "react-router-dom";
 import * as Avatar from "@radix-ui/react-avatar";
 import {
   useAddFriendMutation,
-  UserChatsAndFriendsQuery,
-  useUserChatsAndFriendsQuery,
+  useDiscussionsAndInvitationsQuery,
   useRefuseInvitationMutation,
 } from "../../graphql/generated";
 import CreateChannel, { CreateChannelBtn } from "../components/createChannel";
@@ -26,54 +25,21 @@ import {
   HeaderLeftBtn,
 } from "../components/header";
 import { getDate } from "../utils/getDate";
-import { FriendStatus } from "../../graphql/generated";
+import {
+  ChatType,
+  DiscussionsAndInvitationsQuery,
+} from "../../graphql/generated";
 import { Empty } from "../components/Empty";
 import { ReactComponent as GamePadIcon } from "pixelarticons/svg/gamepad.svg";
 
-type Home = {
-  currentUserId: number;
-  chatList: Chat[];
-};
-
-type Chat = {
-  __typename: "User" | "Channel";
-  name: string;
-  avatar?: string | undefined;
-  id: number;
-  messages?: {
-    __typename?: "DirectMessage" | "ChannelMessage" | undefined;
-    author: { __typename?: "User" | undefined; id: number };
-    content: string;
-    sentAt: number;
-    readAt?: number | null | undefined;
-    readBy?: { user?: { __typename?: "User" | undefined; id: number } }[];
-  }[];
-  friendStatus?: FriendStatus | undefined | null;
-};
-
-const query = (): UseQueryOptions<UserChatsAndFriendsQuery, unknown, Home> => {
+const query = (): UseQueryOptions<
+  DiscussionsAndInvitationsQuery,
+  unknown,
+  DiscussionsAndInvitationsQuery
+> => {
   return {
-    queryKey: useUserChatsAndFriendsQuery.getKey({}),
-    queryFn: useUserChatsAndFriendsQuery.fetcher({}),
-    select: (data) => {
-      const merge = [...data.user.friends, ...data.user.channels].sort(
-        (a, b) => {
-          const x = a.messages.sort((c, d) => {
-            return c.sentAt - d.sentAt;
-          })[a.messages.length - 1];
-          const y = b.messages.sort((c, d) => {
-            return c.sentAt - d.sentAt;
-          })[b.messages.length - 1];
-          if (!x) return 1;
-          if (!y) return -1;
-          return y.sentAt - x.sentAt;
-        }
-      );
-      return {
-        currentUserId: data.user.id,
-        chatList: [...data.user.pendingFriends, ...merge],
-      };
-    },
+    queryKey: useDiscussionsAndInvitationsQuery.getKey({}),
+    queryFn: useDiscussionsAndInvitationsQuery.fetcher({}),
   };
 };
 
@@ -82,47 +48,27 @@ export const homeLoader = async (queryClient: QueryClient) => {
 };
 
 const ChannelAndFriendBanner = ({
-  chat: { __typename, name, avatar, id, messages },
-  currentUserId,
+  chat,
 }: {
-  chat: Chat;
-  currentUserId: number;
+  chat: DiscussionsAndInvitationsQuery["user"]["chats"][number];
 }) => {
   const navigate = useNavigate();
-  const lastMessage = messages ? messages[messages.length - 1] : null;
-  const [newChatMessage, setNewChatMessage] = useState(false);
-  const [newChannelMessage, setNewChannelMessage] = useState(false);
 
-  useEffect(() => {
-    if (__typename === "User") {
-      messages?.forEach((message) => {
-        if (message.author.id === id && message.readAt === null)
-          setNewChatMessage(true);
-      });
-    }
-    if (__typename === "Channel") {
-      messages?.forEach((message) => {
-        if (
-          !message.readBy?.some((user) => user.user?.id === currentUserId) &&
-          message.author.id !== currentUserId
-        )
-          setNewChannelMessage(true);
-      });
-    }
-  }, [messages]);
   return (
     <div
       onClick={() =>
-        navigate(`/${__typename == "User" ? "chat" : "channel"}/${id}`)
+        navigate(
+          `/${chat.type === ChatType.User ? "chat" : "channel"}/${chat.id}`
+        )
       }
       className="flex justify-center transition-all hover:cursor-pointer  hover:bg-slate-100"
     >
       <div className="m-2 flex h-16 w-16 shrink-0 justify-center   text-white">
-        {__typename == "User" ? (
+        {chat.type === ChatType.User ? (
           <Avatar.Root>
             <Avatar.Image
               className="h-16 w-16 border border-black object-cover"
-              src={`/uploads/avatars/${avatar}`}
+              src={`/uploads/avatars/${chat.avatar}`}
             />
             <Avatar.Fallback delayMs={0}>
               <UserIcon className="h-16 w-16 border border-black bg-slate-50 p-1 text-neutral-700" />
@@ -134,19 +80,19 @@ const ChannelAndFriendBanner = ({
       </div>
       <div className="flex grow flex-col justify-center px-2">
         <div className="flex justify-between">
-          <span className="w-60 truncate pb-px font-bold">{name}</span>
+          <span className="w-60 truncate pb-px font-bold">{chat.name}</span>
           <span className="mt-1 text-xs text-slate-400">
-            {lastMessage?.sentAt ? getDate(+lastMessage.sentAt) : ""}
+            {chat.lastMessageDate ? getDate(+chat.lastMessageDate) : ""}
           </span>
         </div>
         <span
           className={`${
-            newChatMessage || newChannelMessage
+            chat.hasUnreadMessages
               ? "text-base font-bold text-black"
               : "text-sm text-slate-400"
           }  flex max-h-5 max-w-sm overflow-hidden text-clip `}
         >
-          {lastMessage?.content}
+          {chat.lastMessageContent}
         </span>
       </div>
     </div>
@@ -166,13 +112,13 @@ const Invitation = ({
 
   const addFriend = useAddFriendMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries(useUserChatsAndFriendsQuery.getKey());
+      queryClient.invalidateQueries(useDiscussionsAndInvitationsQuery.getKey());
     },
   });
 
   const refuse = useRefuseInvitationMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries(useUserChatsAndFriendsQuery.getKey());
+      queryClient.invalidateQueries(useDiscussionsAndInvitationsQuery.getKey());
     },
   });
 
@@ -241,29 +187,27 @@ export const Home = () => {
             searchInput={searchInput}
             setSearchInput={setSearchInput}
           />
-        ) : data?.chatList.length === 0 ? (
-          <Empty
-            Message="Add your friends to play with them!"
-            Icon={GamePadIcon}
-          />
         ) : (
-          data?.chatList.map((chat, index) =>
-            chat.__typename === "User" &&
-            chat.friendStatus === "INVITATION_RECEIVED" ? (
+          <>
+            {data.user.pendingFriends.map((user, index) => (
               <Invitation
-                userId={chat.id}
-                avatar={chat.avatar}
-                name={chat.name}
                 key={index}
+                userId={user.id}
+                avatar={user.avatar}
+                name={user.name}
+              />
+            ))}
+            {data?.user.chats.length === 0 ? (
+              <Empty
+                Message="Add your friends to play with them!"
+                Icon={GamePadIcon}
               />
             ) : (
-              <ChannelAndFriendBanner
-                key={index}
-                chat={chat}
-                currentUserId={data?.currentUserId}
-              />
-            )
-          )
+              data.user.chats.map((chat, index) => (
+                <ChannelAndFriendBanner key={index} chat={chat} />
+              ))
+            )}
+          </>
         )}
       </div>
     </div>

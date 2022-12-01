@@ -1,4 +1,4 @@
-enum InvalidCacheTarget {
+export enum InvalidCacheTarget {
   DIRECT_MESSAGE,
   BLOCK_USER,
   INVITATION_FRIEND,
@@ -12,5 +12,3 @@ enum InvalidCacheTarget {
   // CHANNEL_MESSAGE,
   // CHANNEL_INVITATION,
 }
-
-export { InvalidCacheTarget };

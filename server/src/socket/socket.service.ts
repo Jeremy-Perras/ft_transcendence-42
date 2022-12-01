@@ -1,6 +1,5 @@
 import { InvalidCacheTarget } from "@apps/shared";
 import { forwardRef, Inject, Injectable } from "@nestjs/common";
-import { Server } from "http";
 import { SocketGateway } from "./socket.gateway";
 
 @Injectable()

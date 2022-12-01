@@ -255,6 +255,25 @@ export class ChannelResolver {
         ],
       },
     });
+
+    //TODO : Unique constraint failed on the fields: (`channelMessageId`,`userId`). breaks everything
+    // const unReadMessages = [];
+
+    // c?.channelMessages.forEach((message) => {
+    //   if (!message.readBy.some((u) => u.userId === currentUserId)) {
+    //     unReadMessages.push(message);
+    //   }
+    // });
+    // unReadMessages?.forEach(async (message) => {
+    //   await this.prisma.channelMessageRead.create({
+    //     data: {
+    //       channelMessageId: message.id,
+    //       userId: currentUserId,
+    //       readAt: new Date(),
+    //     },
+    //   });
+    // });
+
     return c
       ? c.channelMessages.map((message) => ({
           id: message.id,
@@ -833,34 +852,39 @@ export class ChannelMessageResolver {
   }
 }
 
-@Resolver(ChannelMessageRead)
-@UseGuards(GqlAuthenticatedGuard)
-export class ChannelMessageReadResolver {
-  constructor(private prisma: PrismaService) {}
+// @Resolver(ChannelMessageRead)
+// @UseGuards(GqlAuthenticatedGuard)
+// export class ChannelMessageReadResolver {
+//   constructor(private prisma: PrismaService) {}
 
-  @RoleGuard(Role.Member)
-  @Mutation((returns) => Boolean)
-  async createChannelMessageRead(
-    @Args("messageId", { type: () => Int }) messageId: number,
-    @CurrentUser() currentUserId: number
-  ) {
-    const message = await this.prisma.channelMessage.findUnique({
-      select: { readBy: true },
-      where: {
-        id: messageId,
-      },
-    });
+//   @RoleGuard(Role.Member)
+//   @Mutation((returns) => Boolean)
+//   async createChannelMessageRead(
+//     @Args("channelId", { type: () => Int }) channelId: number,
+//     @CurrentUser() currentUserId: number
+//   ) {
+//     const messages = await this.prisma.channel.findUnique({
+//       select: {
+//         channelMessages: {
+//           where: { readBy: { none: { userId: currentUserId } } },
+//           select: {
+//             id: true,
+//           },
+//         },
+//       },
+//       where: { id: channelId },
+//     });
 
-    if (!message) {
-      throw new NotFoundException("Message not found");
-    }
-    await this.prisma.channelMessageRead.create({
-      data: {
-        channelMessageId: messageId,
-        userId: currentUserId,
-        readAt: new Date(),
-      },
-    });
-    return true;
-  }
-}
+//     messages?.channelMessages.forEach(async (message) => {
+//       await this.prisma.channelMessageRead.create({
+//         data: {
+//           channelMessageId: message.id,
+//           userId: currentUserId,
+//           readAt: new Date(),
+//         },
+//       });
+//     });
+
+//     return true;
+//   }
+// }

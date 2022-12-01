@@ -905,7 +905,7 @@ const ChannelHeader = ({
   setLeaveConfirmation: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   return (
-    <div className="relative flex h-44 w-full flex-col p-2">
+    <div className="relative flex h-44 w-full flex-col border-b-2 p-2">
       <div className="absolute top-1 right-1 flex">
         <LeaveIcon
           className="mt-1 w-8 self-center text-lg text-slate-500 hover:cursor-pointer hover:text-slate-700"
@@ -957,7 +957,7 @@ const MemberList = ({
   isOwner: boolean;
 }) => {
   return (
-    <div className="flex h-full w-full flex-col">
+    <div className="flex h-full w-full flex-col overflow-auto">
       <span className="ml-1 pt-5 text-left text-xl font-bold text-slate-700">
         MEMBERS
       </span>

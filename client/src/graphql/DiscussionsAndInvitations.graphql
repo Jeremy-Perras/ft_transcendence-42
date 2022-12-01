@@ -1,0 +1,19 @@
+query DiscussionsAndInvitations($userId: Int) {
+  user(id: $userId) {
+    id
+    chats {
+      avatar
+      hasUnreadMessages
+      id
+      lastMessageContent
+      lastMessageDate
+      name
+      type
+    }
+    pendingFriends {
+      id
+      avatar
+      name
+    }
+  }
+}
