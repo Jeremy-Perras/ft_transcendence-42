@@ -491,7 +491,7 @@ export class UserResolver {
         id: currentUserId,
       },
     });
-
+    /************************* CRASHES - simultaneous queries ******************* */
     messagesToUpdate?.messageReceived.forEach(async (message) => {
       if (!message.readAt) {
         await this.prisma.directMessage.update({
@@ -500,6 +500,11 @@ export class UserResolver {
             readAt: new Date(),
           },
         });
+        this.socketService.emitInvalidateCache(
+          InvalidCacheTarget.DIRECT_MESSAGE,
+          [user.id],
+          currentUserId
+        );
       }
     });
 
@@ -835,38 +840,4 @@ export class DirectMessageResolver {
 
     return true;
   }
-
-  //   @Mutation((returns) => Boolean)
-  //   async readDirectMessage(
-  //     @CurrentUser() currentUserId: number,
-  //     @Args("messageId", { type: () => Int }) messageId: number
-  //   ) {
-  //     const message = await this.prisma.directMessage.findUnique({
-  //       select: { readAt: true, authorId: true, recipientId: true },
-  //       where: { id: messageId },
-  //     });
-
-  //     if (!message) {
-  //       throw new NotFoundException("Message not found");
-  //     }
-
-  //     if (message.readAt) {
-  //       throw new ForbiddenException("Message already read");
-  //     }
-
-  //     await this.prisma.directMessage.update({
-  //       where: { id: messageId },
-  //       data: {
-  //         readAt: new Date(),
-  //       },
-  //     });
-
-  //     this.socketService.emitInvalidateCache(
-  //       InvalidCacheTarget.READ_DIRECT_MESSAGE,
-  //       [message.recipientId],
-  //       message.authorId
-  //     );
-
-  //     return true;
-  //   }
 }

@@ -7,6 +7,7 @@ import {
 } from "react-router-dom";
 import {
   ChannelDiscussionQuery,
+  useBlockingUserQuery,
   useChannelDiscussionQuery,
   useJoinChannelMutation,
   useSendChannelMessageMutation,
@@ -166,15 +167,9 @@ const ChannelMessage = ({
   readBy,
   content,
   sentAt,
-  channelId,
 }: ChannelDisplayMessage) => {
   const navigate = useNavigate();
-
-  const { data } = useChannelDiscussionQuery({
-    channelId: channelId,
-    userId: author.id,
-  });
-
+  const { data } = useBlockingUserQuery({ userId: author.id });
   return (
     <>
       <span className="left-0 mt-6 text-center text-xs text-slate-300">

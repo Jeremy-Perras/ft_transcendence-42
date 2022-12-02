@@ -18,6 +18,7 @@ import { GqlAuthenticatedGuard } from "../auth/authenticated.guard";
 import { CurrentUser } from "../auth/currentUser.decorator";
 import { PrismaService } from "../prisma/prisma.service";
 import { userType } from "../user/user.model";
+import { SocketService } from "../socket/socket.service";
 import {
   Channel,
   ChannelMessage,
@@ -30,13 +31,14 @@ import {
 import { Role, RoleGuard, RolesGuard } from "./channel.roles";
 import { ExistingChannelGuard, OwnerGuard } from "./channel.guards";
 import { setMaxIdleHTTPParsers } from "http";
+import { InvalidCacheTarget } from "@apps/shared";
 
 @Resolver(Channel)
 @UseGuards(RolesGuard)
 @UseGuards(GqlAuthenticatedGuard)
 export class ChannelResolver {
   constructor(private prisma: PrismaService) {}
-
+  private socketService: SocketService;
   @Query((returns) => Channel)
   async channel(
     @Args("id", { type: () => Int }) id: number
@@ -250,12 +252,13 @@ export class ChannelResolver {
       },
     });
     /******Unique constraint failed on the fields: (`channelMessageId`,`userId`)******* */
+
     messages?.channelMessages.forEach(async (message) => {
-      console.log(message.id, currentUserId);
       if (
         !message.readBy.some((u) => u.userId === currentUserId) &&
         message.author.id !== currentUserId
       ) {
+        console.log(message.readBy);
         await this.prisma.channelMessageRead.create({
           data: {
             channelMessageId: message.id,
@@ -263,6 +266,19 @@ export class ChannelResolver {
             readAt: new Date(),
           },
         });
+        //add chache invalidation - does not work
+        // const m = await this.prisma.channel.findUnique({
+        //   select: { members: { select: { userId: true } }, ownerId: true },
+        //   where: { id: channel.id },
+        // });
+        // const t = m?.members.map((u) => u.userId);
+        // m?.ownerId ? t?.push(m?.ownerId) : null;
+        // if (t)
+        //   this.socketService.emitInvalidateCache(
+        //     InvalidCacheTarget.CHANNEL_MESSAGE,
+        //     t,
+        //     channel.id
+        //   );
       }
     });
 

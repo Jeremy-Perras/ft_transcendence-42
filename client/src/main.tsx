@@ -10,6 +10,7 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { io } from "socket.io-client";
 import { InvalidCacheTarget } from "@apps/shared";
 import {
+  useChannelDiscussionQuery,
   useDirectMessagesQuery,
   useDiscussionsAndInvitationsQuery,
 } from "./graphql/generated";
@@ -95,6 +96,14 @@ const App = () => {
             case InvalidCacheTarget.UNBLOCK_USER:
               queryClient.invalidateQueries(
                 useDiscussionsAndInvitationsQuery.getKey({})
+              );
+              break;
+            case InvalidCacheTarget.CHANNEL_MESSAGE:
+              queryClient.invalidateQueries(
+                useDiscussionsAndInvitationsQuery.getKey({})
+              );
+              queryClient.invalidateQueries(
+                useChannelDiscussionQuery.getKey({ channelId: data.targetId })
               );
               break;
             case InvalidCacheTarget.READ_DIRECT_MESSAGE:

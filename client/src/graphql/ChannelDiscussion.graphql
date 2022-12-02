@@ -38,10 +38,8 @@ query ChannelDiscussion($channelId: Int!, $userId: Int) {
         avatar
       }
     }
-    }
-     user(id: $userId) {
+  }
+  user(id: $userId) {
     id
-    blocked
-    blocking
   }
 }

@@ -1,0 +1,5 @@
+query BlockingUser ($userId: Int) {
+  user(id: $userId) {
+    blocked
+  }
+}
