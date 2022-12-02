@@ -50,6 +50,17 @@
       },
       "command": "npm run dev:server",
       "problemMatcher": []
+    },
+    {
+      "label": "dev:studio",
+      "type": "shell",
+      "presentation": {
+        "echo": false,
+        "reveal": "never",
+        "focus": false
+      },
+      "command": "npm run dev:studio",
+      "problemMatcher": []
     }
   ]
 }
