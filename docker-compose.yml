@@ -1,0 +1,28 @@
+version: '3'
+
+services:
+  postgres:
+    container_name: postgres_container
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: "test" #TODO: use env
+      PGDATA: /data/postgres
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    networks:
+      - postgres
+    restart: unless-stopped
+  app:
+    environment:
+      POSTGRES_URL: "postgresql://postgres:test@postgres:5432/app?schema=app" #TODO: use env
+    networks:
+      - postgres
+      - app
+
+networks:
+  postgres:
+  app:
+
+volumes:
+    postgres:
+    app:

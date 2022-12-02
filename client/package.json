@@ -3,10 +3,10 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
-    "dev": "vite",
+    "generate:codegen": "graphql-codegen",
     "dev:codegen": "graphql-codegen --watch",
-    "codegen": "graphql-codegen",
-    "build": "npm run codegen && tsc && vite build"
+    "dev:client": "vite",
+    "build:client": "rm -rf dist && tsc && vite build"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.0.0",

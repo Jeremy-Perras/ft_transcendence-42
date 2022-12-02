@@ -1,0 +1,14 @@
+version: '3'
+services:
+  app:
+    container_name: app_container_prod
+    image: node:19.2-bullseye
+    volumes:
+      - .:/workspace:cached
+      - vscode_extensions:/root/.vscode-server/extensions
+    command: /bin/sh -c "while sleep 1000; do :; done"
+    environment:
+      NODE_ENV: development
+
+volumes:
+  vscode_extensions:

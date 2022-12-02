@@ -1,0 +1,32 @@
+{
+  "name": "devcontainer",
+
+  "dockerComposeFile": ["../docker-compose.yml", "docker-compose.yml"],
+
+  "service": "app",
+
+  "workspaceFolder": "/workspace",
+
+  "forwardPorts": [3000, 5173, 5555],
+
+  "runServices": ["postgres"],
+
+  "postCreateCommand": "npm i && npm run compile:shared && npm run generate:prisma && npm run dev:seed",
+
+  "extensions": [
+    "formulahendry.auto-rename-tag",
+    "GraphQL.vscode-graphql-syntax",
+    "csstools.postcss",
+    "naumovs.color-highlight",
+    "ms-azuretools.vscode-docker",
+    "dbaeumer.vscode-eslint",
+    "eamodio.gitlens",
+    "GraphQL.vscode-graphql",
+    "christian-kohler.npm-intellisense",
+    "christian-kohler.path-intellisense",
+    "esbenp.prettier-vscode",
+    "Prisma.prisma",
+    "bradlc.vscode-tailwindcss",
+    "Gruntfuggly.todo-tree"
+  ]
+}

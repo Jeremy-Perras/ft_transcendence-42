@@ -6,15 +6,14 @@
     "seed": "ts-node prisma/seed.ts"
   },
   "scripts": {
-    "prebuild": "rimraf dist",
-    "build": "nest build",
-    "dev": "NODE_ENV=development nest start --watch --debug",
-    "prisma:watch": "prisma generate --watch",
-    "prisma:generate": "prisma generate",
-    "prisma:seed": "rimraf prisma/dev.db && npm run prisma:push && prisma db seed",
-    "prisma:push": "prisma db push --force-reset --accept-data-loss"
+    "generate:prisma": "prisma generate",
+    "dev:seed": "prisma db execute --file ./prisma/drop.sql && prisma db push --force-reset --accept-data-loss && prisma db seed",
+    "dev:studio": "prisma studio",
+    "dev:server": "nest start --watch --debug",
+    "build:server": "rm -rf dist && nest build"
   },
   "dependencies": {
+    "@adobe/node-fetch-retry": "^2.2.0",
     "@nestjs/apollo": "10.1.3",
     "@nestjs/common": "9.1.6",
     "@nestjs/core": "9.1.6",
@@ -35,7 +34,6 @@
     "passport": "^0.6.0",
     "passport-custom": "^1.1.1",
     "reflect-metadata": "0.1.13",
-    "rimraf": "3.0.2",
     "rxjs": "7.5.7",
     "@apps/shared": "*"
   },

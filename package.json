@@ -3,15 +3,16 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev:client": "npm run compile -w shared && npm run dev -w client",
+    "compile:shared": "echo TODO",
+    "generate:prisma": "npm run generate:prisma -w server",
+    "generate:codegen": "npm run genereate:codegen -w client",
+    "dev:studio": "npm run dev:studio -w server",
+    "dev:seed": "npm run dev:seed -w server",
+    "dev:server": "npm run dev:server -w server",
     "dev:codegen": "npm run dev:codegen -w client",
-    "dev:server": "npm run compile -w shared && npm run dev -w server",
-    "dev:seed": "npm run prisma:seed -w server",
-    "build:client": "npm run build -w client",
-    "build:server": "npm run build -w server",
-    "build:all": "npm run build:client && npm run build:server",
-    "db:deploy": "npm run prisma:push -w server && npm run prisma:generate -w server",
-    "deploy": "npm run db:deploy && npm run build:all && NODE_ENV=production node server/dist/main"
+    "dev:client": "npm run dev:client -w client",
+    "build:server": "npm run build:server -w server",
+    "build:client": "npm run build:client -w client"
   },
   "workspaces": [
     "./client",
