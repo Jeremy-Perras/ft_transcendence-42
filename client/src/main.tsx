@@ -10,12 +10,17 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { io } from "socket.io-client";
 import { InvalidCacheTarget } from "@apps/shared";
 import {
+  useChannelDiscussionQuery,
   useChannelSettingsQuery,
   useDirectMessagesQuery,
   useUserChatsAndFriendsQuery,
   useUserProfileQuery,
 } from "./graphql/generated";
 //TODO Mutation direct message invalidate all in once, or it's bugs
+// TODO Leave channel as owner make a other member owner randomly ?
+// TODOFirefox localhost:5555 bug
+//TODO how does it knows delete channel when nobody in
+//TODO if ban not show the change inside channel ?
 let init = false;
 const App = () => {
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
@@ -65,6 +70,7 @@ const App = () => {
               queryClient.invalidateQueries(
                 useUserProfileQuery.getKey({ userId: data.targetId })
               );
+              queryClient.invalidateQueries(useDirectMessagesQuery.getKey({}));
               break;
             case InvalidCacheTarget.INVITATION_FRIEND:
               queryClient.invalidateQueries(
@@ -105,6 +111,7 @@ const App = () => {
               queryClient.invalidateQueries(
                 useUserProfileQuery.getKey({ userId: data.targetId })
               );
+              queryClient.invalidateQueries(useDirectMessagesQuery.getKey({}));
               break;
             case InvalidCacheTarget.CANCEL_INVITATION:
               queryClient.invalidateQueries(
@@ -142,7 +149,76 @@ const App = () => {
               queryClient.invalidateQueries(
                 useChannelSettingsQuery.getKey({ channelId: data.targetId })
               );
-
+              break;
+            case InvalidCacheTarget.LEAVE_CHANNEL:
+              queryClient.invalidateQueries(
+                useChannelSettingsQuery.getKey({ channelId: data.targetId })
+              );
+              break;
+            case InvalidCacheTarget.DELETE_CHANNEL:
+              queryClient.invalidateQueries(
+                useChannelSettingsQuery.getKey({ channelId: data.targetId })
+              );
+              queryClient.invalidateQueries(
+                useUserChatsAndFriendsQuery.getKey({})
+              );
+              break;
+            case InvalidCacheTarget.MUTE_USER:
+              queryClient.invalidateQueries(
+                useChannelSettingsQuery.getKey({ channelId: data.targetId })
+              );
+              queryClient.invalidateQueries(
+                useChannelDiscussionQuery.getKey({ channelId: data.targetId })
+              );
+              break;
+            case InvalidCacheTarget.BAN_USER:
+              queryClient.invalidateQueries(
+                useChannelSettingsQuery.getKey({ channelId: data.targetId })
+              );
+              queryClient.invalidateQueries(
+                useChannelDiscussionQuery.getKey({ channelId: data.targetId })
+              );
+              break;
+            case InvalidCacheTarget.UNMUTE_USER:
+              queryClient.invalidateQueries(
+                useChannelSettingsQuery.getKey({ channelId: data.targetId })
+              );
+              queryClient.invalidateQueries(
+                useChannelDiscussionQuery.getKey({ channelId: data.targetId })
+              );
+              break;
+            case InvalidCacheTarget.UNBAN_USER:
+              queryClient.invalidateQueries(
+                useChannelSettingsQuery.getKey({ channelId: data.targetId })
+              );
+              queryClient.invalidateQueries(
+                useChannelDiscussionQuery.getKey({ channelId: data.targetId })
+              );
+              break;
+            case InvalidCacheTarget.INVITE_USER:
+              queryClient.invalidateQueries(
+                useUserChatsAndFriendsQuery.getKey({})
+              );
+              break;
+            case InvalidCacheTarget.ADD_ADMIN:
+              queryClient.invalidateQueries(
+                useChannelSettingsQuery.getKey({ channelId: data.targetId })
+              );
+              break;
+            case InvalidCacheTarget.REMOVE_ADMIN:
+              queryClient.invalidateQueries(
+                useChannelSettingsQuery.getKey({ channelId: data.targetId })
+              );
+              break;
+            case InvalidCacheTarget.SEND_CHANNEL_MESSAGE:
+              queryClient.invalidateQueries(
+                useChannelDiscussionQuery.getKey({ channelId: data.targetId })
+              );
+              break;
+            case InvalidCacheTarget.CREATE_CHANNEL_MESSAGE_READ:
+              queryClient.invalidateQueries(
+                useChannelDiscussionQuery.getKey({ channelId: data.targetId })
+              );
               break;
             default:
               ((_: never) => _)(data.cacheTarget);

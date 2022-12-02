@@ -249,7 +249,7 @@ export const Home = () => {
         ) : (
           data?.chatList.map((chat, index) =>
             chat.__typename === "User" &&
-            chat.friendStatus === "INVITATION_RECEIVED" ? (
+            chat.friendStatus === FriendStatus.InvitationReceived ? (
               <Invitation
                 userId={chat.id}
                 avatar={chat.avatar}

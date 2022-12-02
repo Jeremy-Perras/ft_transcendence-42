@@ -19,7 +19,6 @@ export class ExistingChannelGuard implements CanActivate {
     const channel = await this.prisma.channel.findUnique({
       where: { id: channelId },
     });
-
     if (!channel) {
       throw new NotFoundException("Channel not found");
     }

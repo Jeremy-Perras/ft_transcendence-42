@@ -426,6 +426,22 @@ export class ChannelResolver {
       });
     }
 
+    const usersChannel = await this.prisma.channel.findUnique({
+      select: { members: true, ownerId: true },
+      where: { id: channelId },
+    });
+
+    const users = usersChannel?.members.map((u) => u.userId);
+    if (usersChannel?.ownerId) users?.push(usersChannel?.ownerId);
+
+    if (users) {
+      this.socketservice.emitInvalidateCache(
+        InvalidCacheTarget.LEAVE_CHANNEL,
+        users,
+        channelId
+      );
+    }
+
     return true;
   }
 
@@ -457,6 +473,23 @@ export class ChannelResolver {
   async deleteChannel(
     @Args("channelId", { type: () => Int }) channelId: number
   ) {
+    const usersChannel = await this.prisma.channel.findUnique({
+      select: { members: true, ownerId: true },
+      where: { id: channelId },
+    });
+
+    const users = usersChannel?.members.map((u) => u.userId);
+
+    if (usersChannel?.ownerId) users?.push(usersChannel?.ownerId);
+
+    if (users) {
+      this.socketservice.emitInvalidateCache(
+        InvalidCacheTarget.DELETE_CHANNEL,
+        users,
+        channelId
+      );
+    }
+
     await this.prisma.channel.delete({
       where: { id: channelId },
     });
@@ -499,6 +532,22 @@ export class ChannelResolver {
       await this.prisma.mutedMember.create({
         data: { endAt: muteUntil, channelId, userId },
       });
+    }
+
+    const usersChannel = await this.prisma.channel.findUnique({
+      select: { members: true, ownerId: true, muted: true },
+      where: { id: channelId },
+    });
+
+    const users = usersChannel?.members.map((u) => u.userId);
+    if (usersChannel?.ownerId) users?.push(usersChannel?.ownerId);
+
+    if (users) {
+      this.socketservice.emitInvalidateCache(
+        InvalidCacheTarget.UNMUTE_USER,
+        users,
+        channelId
+      );
     }
 
     return true;
@@ -549,6 +598,23 @@ export class ChannelResolver {
       });
     }
 
+    const usersChannel = await this.prisma.channel.findUnique({
+      select: { members: true, ownerId: true, banned: true },
+      where: { id: channelId },
+    });
+
+    const users = usersChannel?.members.map((u) => u.userId);
+    if (usersChannel?.ownerId) users?.push(usersChannel?.ownerId);
+    if (usersChannel?.banned)
+      usersChannel.banned.forEach((u) => users?.push(u.userId));
+    if (users) {
+      this.socketservice.emitInvalidateCache(
+        InvalidCacheTarget.BAN_USER,
+        users,
+        channelId
+      );
+    }
+
     return true;
   }
 
@@ -582,6 +648,22 @@ export class ChannelResolver {
       },
     });
 
+    const usersChannel = await this.prisma.channel.findUnique({
+      select: { members: true, ownerId: true },
+      where: { id: channelId },
+    });
+
+    const users = usersChannel?.members.map((u) => u.userId);
+    if (usersChannel?.ownerId) users?.push(usersChannel?.ownerId);
+
+    if (users) {
+      this.socketservice.emitInvalidateCache(
+        InvalidCacheTarget.UNMUTE_USER,
+        users,
+        channelId
+      );
+    }
+
     return true;
   }
 
@@ -605,41 +687,24 @@ export class ChannelResolver {
     if (!isbanned) {
       throw new NotFoundException("User is not banned");
     }
-
-    await this.prisma.bannedMember.delete({
-      where: {
-        channelId_userId: {
-          channelId,
-          userId,
-        },
-      },
+    const usersChannel = await this.prisma.channel.findUnique({
+      select: { members: true, ownerId: true, banned: true },
+      where: { id: channelId },
     });
 
-    return true;
-  }
-
-  @UseGuards(ExistingChannelGuard)
-  @UseGuards(OwnerGuard)
-  @RoleGuard(Role.Admin)
-  @Mutation((returns) => Boolean)
-  async removeUser(
-    @Args("channelId", { type: () => Int }) channelId: number,
-    @Args("userId", { type: () => Int }) userId: number
-  ) {
-    const ismember = await this.prisma.channelMember.findUnique({
-      where: {
-        channelId_userId: {
-          channelId,
-          userId,
-        },
-      },
-    });
-
-    if (!ismember) {
-      throw new NotFoundException("User is not a member");
+    const users = usersChannel?.members.map((u) => u.userId);
+    if (usersChannel?.ownerId) users?.push(usersChannel?.ownerId);
+    if (usersChannel?.banned)
+      usersChannel.banned.forEach((u) => users?.push(u.userId));
+    if (users) {
+      this.socketservice.emitInvalidateCache(
+        InvalidCacheTarget.UNBAN_USER,
+        users,
+        channelId
+      );
     }
 
-    await this.prisma.channelMember.delete({
+    await this.prisma.bannedMember.delete({
       where: {
         channelId_userId: {
           channelId,
@@ -693,6 +758,12 @@ export class ChannelResolver {
       data: { channelId, userId },
     });
 
+    this.socketservice.emitInvalidateCache(
+      InvalidCacheTarget.INVITE_USER,
+      [userId],
+      userId
+    );
+
     return true;
   }
 
@@ -729,6 +800,22 @@ export class ChannelResolver {
       },
     });
 
+    const usersChannel = await this.prisma.channel.findUnique({
+      select: { members: true, ownerId: true },
+      where: { id: channelId },
+    });
+
+    const users = usersChannel?.members.map((u) => u.userId);
+    if (usersChannel?.ownerId) users?.push(usersChannel?.ownerId);
+
+    if (users) {
+      this.socketservice.emitInvalidateCache(
+        InvalidCacheTarget.ADD_ADMIN,
+        users,
+        channelId
+      );
+    }
+
     return true;
   }
 
@@ -762,6 +849,22 @@ export class ChannelResolver {
       },
     });
 
+    const usersChannel = await this.prisma.channel.findUnique({
+      select: { members: true, ownerId: true },
+      where: { id: channelId },
+    });
+
+    const users = usersChannel?.members.map((u) => u.userId);
+    if (usersChannel?.ownerId) users?.push(usersChannel?.ownerId);
+
+    if (users) {
+      this.socketservice.emitInvalidateCache(
+        InvalidCacheTarget.REMOVE_ADMIN,
+        users,
+        channelId
+      );
+    }
+
     return true;
   }
 }
@@ -769,7 +872,10 @@ export class ChannelResolver {
 @Resolver(ChannelMessage)
 @UseGuards(GqlAuthenticatedGuard)
 export class ChannelMessageResolver {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private socketservice: SocketService
+  ) {}
 
   @ResolveField()
   async author(@Root() channelMessage: ChannelMessage): Promise<userType> {
@@ -843,6 +949,22 @@ export class ChannelMessageResolver {
       throw new ForbiddenException("You are muted");
     }
 
+    const usersChannel = await this.prisma.channel.findUnique({
+      select: { members: true, ownerId: true },
+      where: { id: channelId },
+    });
+
+    const users = usersChannel?.members.map((u) => u.userId);
+    if (usersChannel?.ownerId) users?.push(usersChannel?.ownerId);
+
+    if (users) {
+      this.socketservice.emitInvalidateCache(
+        InvalidCacheTarget.SEND_CHANNEL_MESSAGE,
+        users,
+        channelId
+      );
+    }
+
     await this.prisma.channelMessage.create({
       data: {
         content: message,
@@ -851,6 +973,7 @@ export class ChannelMessageResolver {
         channelId,
       },
     });
+
     return true;
   }
 }
@@ -858,7 +981,10 @@ export class ChannelMessageResolver {
 @Resolver(ChannelMessageRead)
 @UseGuards(GqlAuthenticatedGuard)
 export class ChannelMessageReadResolver {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private socketservice: SocketService
+  ) {}
 
   @RoleGuard(Role.Member)
   @Mutation((returns) => Boolean)
@@ -867,7 +993,7 @@ export class ChannelMessageReadResolver {
     @CurrentUser() currentUserId: number
   ) {
     const message = await this.prisma.channelMessage.findUnique({
-      select: { readBy: true },
+      select: { readBy: true, channelId: true },
       where: {
         id: messageId,
       },
@@ -875,6 +1001,22 @@ export class ChannelMessageReadResolver {
 
     if (!message) {
       throw new NotFoundException("Message not found");
+    }
+
+    const usersChannel = await this.prisma.channel.findUnique({
+      select: { members: true, ownerId: true },
+      where: { id: message.channelId },
+    });
+
+    const users = usersChannel?.members.map((u) => u.userId);
+    if (usersChannel?.ownerId) users?.push(usersChannel?.ownerId);
+
+    if (users) {
+      this.socketservice.emitInvalidateCache(
+        InvalidCacheTarget.CREATE_CHANNEL_MESSAGE_READ,
+        users,
+        message.channelId
+      );
     }
     await this.prisma.channelMessageRead.create({
       data: {

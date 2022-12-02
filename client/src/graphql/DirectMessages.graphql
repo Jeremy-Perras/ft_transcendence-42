@@ -19,6 +19,7 @@ query DirectMessages($userId: Int) {
         name
       }
     }
+    friendStatus
     blocked
     blocking
   }
