@@ -11,6 +11,8 @@
 
   "runServices": ["postgres"],
 
+  "remoteUser": "node",
+
   "postCreateCommand": "npm i && npm run compile:shared && npm run generate:prisma && npm run dev:seed",
 
   "extensions": [
