@@ -190,9 +190,6 @@ export const Home = () => {
         ) : (
           <>
             {data.user.pendingFriends.map((user, index) => (
-          data?.chatList.map((chat, index) =>
-            chat.__typename === "User" &&
-            chat.friendStatus === FriendStatus.InvitationReceived ? (
               <Invitation
                 key={index}
                 userId={user.id}

@@ -22,7 +22,6 @@ import { SocketService } from "../socket/socket.service";
 import {
   Channel,
   ChannelMessage,
-  ChannelMessageRead,
   channelMessageReadType,
   channelMessageType,
   channelType,
@@ -30,9 +29,6 @@ import {
 } from "./channel.model";
 import { Role, RoleGuard, RolesGuard } from "./channel.roles";
 import { ExistingChannelGuard, OwnerGuard } from "./channel.guards";
-import { setMaxIdleHTTPParsers } from "http";
-import { InvalidCacheTarget } from "@apps/shared";
-import { SocketService } from "../socket/socket.service";
 import { InvalidCacheTarget } from "@apps/shared";
 
 @Resolver(Channel)
@@ -263,7 +259,6 @@ export class ChannelResolver {
         !message.readBy.some((u) => u.userId === currentUserId) &&
         message.author.id !== currentUserId
       ) {
-        console.log(message.readBy);
         await this.prisma.channelMessageRead.create({
           data: {
             channelMessageId: message.id,
@@ -271,21 +266,24 @@ export class ChannelResolver {
             readAt: new Date(),
           },
         });
-        //add chache invalidation - does not work
-        // const m = await this.prisma.channel.findUnique({
-        //   select: { members: { select: { userId: true } }, ownerId: true },
-        //   where: { id: channel.id },
-        // });
-        // const t = m?.members.map((u) => u.userId);
-        // m?.ownerId ? t?.push(m?.ownerId) : null;
-        // if (t)
-        //   this.socketService.emitInvalidateCache(
-        //     InvalidCacheTarget.CHANNEL_MESSAGE,
-        //     t,
-        //     channel.id
-        //   );
       }
     });
+
+    // const usersChannel = await this.prisma.channel.findUnique({
+    //   select: { members: true, ownerId: true },
+    //   where: { id: channel.id },
+    // });
+
+    // const users = usersChannel?.members.map((u) => u.userId);
+    // if (usersChannel?.ownerId) users?.push(usersChannel?.ownerId);
+
+    // if (users) {
+    //   this.socketservice.emitInvalidateCache(
+    //     InvalidCacheTarget.CREATE_CHANNEL_MESSAGE_READ,
+    //     users,
+    //     channel.id
+    //   );
+    // }
 
     const c = await this.prisma.channel.findFirst({
       select: {
@@ -1038,59 +1036,3 @@ export class ChannelMessageResolver {
     return true;
   }
 }
-
-@Resolver(ChannelMessageRead)
-@UseGuards(GqlAuthenticatedGuard)
-export class ChannelMessageReadResolver {
-  constructor(
-    private prisma: PrismaService,
-    private socketservice: SocketService
-  ) {}
-
-//   @RoleGuard(Role.Member)
-//   @Mutation((returns) => Boolean)
-//   async createChannelMessageRead(
-//     @Args("channelId", { type: () => Int }) channelId: number,
-//     @CurrentUser() currentUserId: number
-//   ) {
-//     const messages = await this.prisma.channel.findUnique({
-//       select: {
-//         channelMessages: {
-//           where: { readBy: true, channelId: { none: { userId: currentUserId } } },
-//           select: {
-//             id: true,
-//           },
-//         },
-//       },
-//       where: { id: channelId },
-//     });
-
-//     messages?.channelMessages.forEach(async (message) => {
-//    
-    const usersChannel = await this.prisma.channel.findUnique({
-      select: { members: true, ownerId: true },
-      where: { id: message.channelId },
-    });
-
-    const users = usersChannel?.members.map((u) => u.userId);
-    if (usersChannel?.ownerId) users?.push(usersChannel?.ownerId);
-
-    if (users) {
-      this.socketservice.emitInvalidateCache(
-        InvalidCacheTarget.CREATE_CHANNEL_MESSAGE_READ,
-        users,
-        message.channelId
-      );
-    }
-   await this.prisma.channelMessageRead.create({
-//         data: {
-//           channelMessageId: message.id,
-//           userId: currentUserId,
-//           readAt: new Date(),
-//         },
-//       });
-//     });
-
-//     return true;
-//   }
-// }

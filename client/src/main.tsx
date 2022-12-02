@@ -10,7 +10,6 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { io } from "socket.io-client";
 import { InvalidCacheTarget } from "@apps/shared";
 import {
-  useChannelDiscussionQuery,
   useChannelSettingsQuery,
   useChannelDiscussionQuery,
   useDirectMessagesQuery,
@@ -184,19 +183,7 @@ const App = () => {
               );
 
               break;
-            case InvalidCacheTarget.AVATAR_USER:
-              queryClient.invalidateQueries(
-                useDiscussionsAndInvitationsQuery.getKey({})
-              );
-              queryClient.invalidateQueries(
-                useUserProfileQuery.getKey({ userId: data.targetId })
-              );
-              break;
-            case InvalidCacheTarget.JOIN_CHANNEL:
-              queryClient.invalidateQueries(
-                useChannelSettingsQuery.getKey({ channelId: data.targetId })
-              );
-              break;
+
             case InvalidCacheTarget.LEAVE_CHANNEL:
               queryClient.invalidateQueries(
                 useChannelSettingsQuery.getKey({ channelId: data.targetId })
@@ -207,7 +194,7 @@ const App = () => {
                 useChannelSettingsQuery.getKey({ channelId: data.targetId })
               );
               queryClient.invalidateQueries(
-                useUserChatsAndFriendsQuery.getKey({})
+                useDiscussionsAndInvitationsQuery.getKey({})
               );
               break;
             case InvalidCacheTarget.MUTE_USER:
@@ -244,7 +231,7 @@ const App = () => {
               break;
             case InvalidCacheTarget.INVITE_USER:
               queryClient.invalidateQueries(
-                useUserChatsAndFriendsQuery.getKey({})
+                useDiscussionsAndInvitationsQuery.getKey({})
               );
               break;
             case InvalidCacheTarget.ADD_ADMIN:
