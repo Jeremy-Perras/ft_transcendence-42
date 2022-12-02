@@ -12,6 +12,7 @@ import {
 } from "react-router-dom";
 import {
   DirectMessagesQuery,
+  FriendStatus,
   useDirectMessagesQuery,
   useSendDirectMessageMutation,
 } from "../../graphql/generated";
@@ -41,6 +42,7 @@ type ChatQuery = {
   rank: number;
   blocked: boolean;
   blocking: boolean;
+  friendStatus: FriendStatus | undefined | null;
 };
 
 type DirectMessage = {
@@ -65,6 +67,7 @@ const query = (
       rank: user.user.rank,
       blocked: user.user.blocked,
       blocking: user.user.blocking,
+      friendStatus: user.user.friendStatus,
     }),
   };
 };
@@ -204,7 +207,9 @@ export default function Chat() {
           disabled={data?.blocking == true || data?.blocked === true}
           rows={2}
           className={`${
-            data?.blocking == true || data?.blocked === true
+            data?.blocking == true ||
+            data?.blocked === true ||
+            !(data?.friendStatus === FriendStatus.Friend)
               ? "hover:cursor-not-allowed"
               : ""
           }  w-full resize-none border-x-2 border-b-8 border-white px-2 pt-4 pb-2 `}
@@ -214,6 +219,8 @@ export default function Chat() {
               ? "This user is blocked"
               : data?.blocking === true
               ? "You are blocked by this user"
+              : !(data?.friendStatus === FriendStatus.Friend)
+              ? "You are not friend with this user"
               : "Type your message here ..."
           }`}
           onKeyDown={(e) => {

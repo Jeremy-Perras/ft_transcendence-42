@@ -468,7 +468,8 @@ const UserBanner = ({
         (!admin && changesAuthorizedAsAdmin && !banned) ? (
           <MuteButton id={id} channelId={channelId} muted={muted} />
         ) : null}
-        {changesAuthorizedAsOwner || changesAuthorizedAsAdmin ? (
+        {(admin && changesAuthorizedAsOwner) ||
+        (!admin && changesAuthorizedAsAdmin) ? (
           <BanButton id={id} channelId={channelId} banned={banned} />
         ) : null}
       </div>
@@ -689,17 +690,7 @@ const DeletePopUp = ({
 }) => {
   const navigate = useNavigate();
 
-  const queryClient = useQueryClient();
-  const deleteChannel = useDeleteChannelMutation({
-    onSuccess: () => {
-      queryClient.invalidateQueries(
-        useChannelSettingsQuery.getKey({
-          userId: null,
-          channelId: channelId,
-        })
-      );
-    },
-  });
+  const deleteChannel = useDeleteChannelMutation({});
 
   return (
     <div className="absolute top-0 right-0 z-10 flex h-full w-full flex-col items-center justify-center bg-black bg-opacity-30">

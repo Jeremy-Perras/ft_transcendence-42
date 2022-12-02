@@ -102,7 +102,7 @@ const query = (
       adminIds: channels.channel.admins,
       memberIds: channels.channel.members,
       banned: channels.channel.banned,
-      muted: channels.channel.banned,
+      muted: channels.channel.muted,
       password: channels.channel.passwordProtected,
       private: channels.channel.private,
     }),
@@ -483,7 +483,6 @@ export default function Channel() {
   if (typeof data === "undefined") return <div>Error</div>;
 
   const navigate = useNavigate();
-
   const banned = data?.banned.some((u) => u.id === data.userId);
   const muted = data?.muted.some((u) => u.id === data.userId);
 
