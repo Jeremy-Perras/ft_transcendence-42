@@ -146,6 +146,7 @@ model BannedMember {
 }
 
 model ChannelMessageRead {
+  // id               Int            @id @default(autoincrement())
   channelMessage   ChannelMessage @relation(fields: [channelMessageId], references: [id], onDelete: Cascade)
   channelMessageId Int
 

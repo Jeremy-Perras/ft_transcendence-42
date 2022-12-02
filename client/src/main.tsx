@@ -11,7 +11,7 @@ import { io } from "socket.io-client";
 import { InvalidCacheTarget } from "@apps/shared";
 import {
   useDirectMessagesQuery,
-  useUserChatsAndFriendsQuery,
+  useDiscussionsAndInvitationsQuery,
 } from "./graphql/generated";
 //TODO Mutation direct message invalidate all in once, or it's bugs
 //TODO When submit a message not focus the sideBar
@@ -54,47 +54,47 @@ const App = () => {
                 useDirectMessagesQuery.getKey({ userId: data.targetId })
               );
               queryClient.invalidateQueries(
-                useUserChatsAndFriendsQuery.getKey({})
+                useDiscussionsAndInvitationsQuery.getKey({})
               );
               break;
             case InvalidCacheTarget.BLOCK_USER:
               queryClient.invalidateQueries(
-                useUserChatsAndFriendsQuery.getKey({})
+                useDiscussionsAndInvitationsQuery.getKey({})
               );
               break;
             case InvalidCacheTarget.INVITATION_FRIEND:
               queryClient.invalidateQueries(
-                useUserChatsAndFriendsQuery.getKey({})
+                useDiscussionsAndInvitationsQuery.getKey({})
               );
               break;
             case InvalidCacheTarget.REFUSE_INVITATION_FRIEND:
               queryClient.invalidateQueries(
-                useUserChatsAndFriendsQuery.getKey({})
+                useDiscussionsAndInvitationsQuery.getKey({})
               );
               break;
             case InvalidCacheTarget.UPDATE_USER_NAME:
               queryClient.invalidateQueries(
-                useUserChatsAndFriendsQuery.getKey({})
+                useDiscussionsAndInvitationsQuery.getKey({})
               );
               break;
             case InvalidCacheTarget.FRIEND_USER:
               queryClient.invalidateQueries(
-                useUserChatsAndFriendsQuery.getKey({})
+                useDiscussionsAndInvitationsQuery.getKey({})
               );
               break;
             case InvalidCacheTarget.UNFRIEND_USER:
               queryClient.invalidateQueries(
-                useUserChatsAndFriendsQuery.getKey({})
+                useDiscussionsAndInvitationsQuery.getKey({})
               );
               break;
             case InvalidCacheTarget.CANCEL_INVITATION:
               queryClient.invalidateQueries(
-                useUserChatsAndFriendsQuery.getKey({})
+                useDiscussionsAndInvitationsQuery.getKey({})
               );
               break;
             case InvalidCacheTarget.UNBLOCK_USER:
               queryClient.invalidateQueries(
-                useUserChatsAndFriendsQuery.getKey({})
+                useDiscussionsAndInvitationsQuery.getKey({})
               );
               break;
             case InvalidCacheTarget.READ_DIRECT_MESSAGE:
@@ -102,7 +102,7 @@ const App = () => {
                 useDirectMessagesQuery.getKey({ userId: data.targetId })
               );
               queryClient.invalidateQueries(
-                useUserChatsAndFriendsQuery.getKey({})
+                useDiscussionsAndInvitationsQuery.getKey({})
               );
               break;
             default:

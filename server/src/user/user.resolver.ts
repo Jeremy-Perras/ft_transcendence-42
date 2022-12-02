@@ -479,6 +479,30 @@ export class UserResolver {
     @Root() user: User,
     @CurrentUser() currentUserId: number
   ): Promise<directMessageType[]> {
+    const messagesToUpdate = await this.prisma.user.findUnique({
+      select: {
+        messageReceived: {
+          where: {
+            authorId: user.id,
+          },
+        },
+      },
+      where: {
+        id: currentUserId,
+      },
+    });
+
+    messagesToUpdate?.messageReceived.forEach(async (message) => {
+      if (!message.readAt) {
+        await this.prisma.directMessage.update({
+          where: { id: message.id },
+          data: {
+            readAt: new Date(),
+          },
+        });
+      }
+    });
+
     const u = await this.prisma.user.findUnique({
       select: {
         messageSent: {
@@ -508,30 +532,6 @@ export class UserResolver {
     });
 
     const result = u?.messageReceived.concat(u.messageSent);
-    //broken
-    // const unreadMessages: any[] = []; //TODO : fix this, issue with DirectMessage
-    // result?.forEach((message) => {
-    //   if (message.authorId !== currentUserId && !message.readAt) {
-    //     unreadMessages.push(message);
-    //   }
-    // });
-    // unreadMessages?.forEach(async (message) => {
-    //   if (message.authorId !== currentUserId && !message.readAt) {
-    //     await this.prisma.directMessage.update({
-    //       where: { id: message.id },
-    //       data: {
-    //         readAt: new Date(),
-    //       },
-    //     });
-    //     this.socketService.emitInvalidateCache(
-    //       InvalidCacheTarget.READ_DIRECT_MESSAGE,
-    //       [currentUserId],
-    //       user.id
-    //     );
-    //     //TODO: add cache invalidation on home
-    //   }
-    // });
-
     return result
       ? result
           .sort(

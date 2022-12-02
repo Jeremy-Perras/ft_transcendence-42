@@ -7,7 +7,7 @@ import { ReactComponent as PublicIcon } from "pixelarticons/svg/lock-open.svg";
 import { ReactComponent as MessagePlusIcon } from "pixelarticons/svg/message-plus.svg";
 import {
   useCreateChannelMutation,
-  useUserChatsAndFriendsQuery,
+  useDiscussionsAndInvitationsQuery,
 } from "../../graphql/generated";
 import * as Dialog from "@radix-ui/react-dialog";
 import { AnimatePresence, motion } from "framer-motion";
@@ -89,7 +89,9 @@ export default function CreateChannel({
   const queryClient = useQueryClient();
   const createChannelMutation = useCreateChannelMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries(useUserChatsAndFriendsQuery.getKey({}));
+      queryClient.invalidateQueries(
+        useDiscussionsAndInvitationsQuery.getKey({})
+      );
     },
   });
 

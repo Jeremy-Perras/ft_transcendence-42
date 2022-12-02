@@ -29,6 +29,7 @@ import {
 } from "./channel.model";
 import { Role, RoleGuard, RolesGuard } from "./channel.roles";
 import { ExistingChannelGuard, OwnerGuard } from "./channel.guards";
+import { setMaxIdleHTTPParsers } from "http";
 
 @Resolver(Channel)
 @UseGuards(RolesGuard)
@@ -222,6 +223,49 @@ export class ChannelResolver {
     @Root() channel: Channel,
     @CurrentUser() currentUserId: number
   ): Promise<channelMessageType[]> {
+    const messages = await this.prisma.channel.findFirst({
+      select: {
+        channelMessages: {
+          select: {
+            id: true,
+            readBy: true,
+            author: true,
+          },
+        },
+      },
+      where: {
+        id: channel.id,
+        OR: [
+          {
+            ownerId: currentUserId,
+          },
+          {
+            members: {
+              some: {
+                userId: currentUserId,
+              },
+            },
+          },
+        ],
+      },
+    });
+    /******Unique constraint failed on the fields: (`channelMessageId`,`userId`)******* */
+    messages?.channelMessages.forEach(async (message) => {
+      console.log(message.id, currentUserId);
+      if (
+        !message.readBy.some((u) => u.userId === currentUserId) &&
+        message.author.id !== currentUserId
+      ) {
+        await this.prisma.channelMessageRead.create({
+          data: {
+            channelMessageId: message.id,
+            userId: currentUserId,
+            readAt: new Date(),
+          },
+        });
+      }
+    });
+
     const c = await this.prisma.channel.findFirst({
       select: {
         channelMessages: {
@@ -255,24 +299,6 @@ export class ChannelResolver {
         ],
       },
     });
-
-    //TODO : Unique constraint failed on the fields: (`channelMessageId`,`userId`). breaks everything
-    // const unReadMessages = [];
-
-    // c?.channelMessages.forEach((message) => {
-    //   if (!message.readBy.some((u) => u.userId === currentUserId)) {
-    //     unReadMessages.push(message);
-    //   }
-    // });
-    // unReadMessages?.forEach(async (message) => {
-    //   await this.prisma.channelMessageRead.create({
-    //     data: {
-    //       channelMessageId: message.id,
-    //       userId: currentUserId,
-    //       readAt: new Date(),
-    //     },
-    //   });
-    // });
 
     return c
       ? c.channelMessages.map((message) => ({
