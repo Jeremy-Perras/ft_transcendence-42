@@ -110,17 +110,9 @@ const Invitation = ({
 }) => {
   const queryClient = useQueryClient();
 
-  const addFriend = useAddFriendMutation({
-    onSuccess: () => {
-      queryClient.invalidateQueries(useDiscussionsAndInvitationsQuery.getKey());
-    },
-  });
+  const addFriend = useAddFriendMutation();
 
-  const refuse = useRefuseInvitationMutation({
-    onSuccess: () => {
-      queryClient.invalidateQueries(useDiscussionsAndInvitationsQuery.getKey());
-    },
-  });
+  const refuse = useRefuseInvitationMutation();
 
   return (
     <div className="my-px flex items-center justify-center border bg-slate-100">

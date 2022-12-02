@@ -45,7 +45,7 @@ async function main() {
       data: {
         id: i,
         name: faker.name.fullName(),
-        avatar: `${i % 11}.jpg`,
+        avatar: `${(i % 10) + 1}.jpg`,
         rank: Math.floor(Math.random() * 100),
         achievements: {
           create: [

@@ -86,14 +86,7 @@ export default function CreateChannel({
     formState: { errors },
   } = useForm<formData>();
 
-  const queryClient = useQueryClient();
-  const createChannelMutation = useCreateChannelMutation({
-    onSuccess: () => {
-      queryClient.invalidateQueries(
-        useDiscussionsAndInvitationsQuery.getKey({})
-      );
-    },
-  });
+  const createChannelMutation = useCreateChannelMutation();
 
   return (
     <Dialog.Root open={showChannelCreation} modal={false}>

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "compile:shared": "echo TODO",
+    "compile:shared": "npm run compile:shared -w shared",
     "generate:prisma": "npm run generate:prisma -w server",
     "generate:codegen": "npm run genereate:codegen -w client",
     "dev:studio": "npm run dev:studio -w server",

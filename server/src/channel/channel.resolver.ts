@@ -522,7 +522,11 @@ export class ChannelResolver {
         ownerId: currentUserId,
       },
     });
-
+    this.socketservice.emitInvalidateCache(
+      InvalidCacheTarget.CREATE_CHANNEL,
+      [currentUserId],
+      currentUserId
+    );
     return true;
   }
 

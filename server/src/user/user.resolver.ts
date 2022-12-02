@@ -491,7 +491,6 @@ export class UserResolver {
         id: currentUserId,
       },
     });
-    /************************* CRASHES - simultaneous queries ******************* */
     messagesToUpdate?.messageReceived.forEach(async (message) => {
       if (!message.readAt) {
         await this.prisma.directMessage.update({
@@ -500,11 +499,6 @@ export class UserResolver {
             readAt: new Date(),
           },
         });
-        this.socketService.emitInvalidateCache(
-          InvalidCacheTarget.DIRECT_MESSAGE,
-          [user.id],
-          currentUserId
-        );
       }
     });
 
@@ -535,6 +529,12 @@ export class UserResolver {
         id: currentUserId,
       },
     });
+
+    this.socketService.emitInvalidateCache(
+      InvalidCacheTarget.DIRECT_MESSAGE,
+      [user.id],
+      currentUserId
+    );
 
     const result = u?.messageReceived.concat(u.messageSent);
     return result

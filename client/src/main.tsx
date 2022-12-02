@@ -59,8 +59,11 @@ const App = () => {
               queryClient.invalidateQueries(
                 useDirectMessagesQuery.getKey({ userId: data.targetId })
               );
+
               queryClient.invalidateQueries(
-                useDiscussionsAndInvitationsQuery.getKey({})
+                useDiscussionsAndInvitationsQuery.getKey({
+                  userId: data.targetId,
+                })
               );
               break;
             case InvalidCacheTarget.BLOCK_USER:
@@ -181,9 +184,12 @@ const App = () => {
               queryClient.invalidateQueries(
                 useChannelSettingsQuery.getKey({ channelId: data.targetId })
               );
-
               break;
-
+            case InvalidCacheTarget.CREATE_CHANNEL:
+              queryClient.invalidateQueries(
+                useDiscussionsAndInvitationsQuery.getKey({})
+              );
+              break;
             case InvalidCacheTarget.LEAVE_CHANNEL:
               queryClient.invalidateQueries(
                 useChannelSettingsQuery.getKey({ channelId: data.targetId })

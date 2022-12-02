@@ -145,8 +145,10 @@ export default function Chat() {
   const { data } = useQuery({ ...query(userId), initialData });
 
   const sendMessageMutation = useSendDirectMessageMutation({
+    //THIS ONE IS STILL USEFULL
     onSuccess: () => {
       queryClient.invalidateQueries(useDirectMessagesQuery.getKey({ userId }));
+      queryClient.invalidateQueries(useDirectMessagesQuery.getKey({}));
     },
   });
 

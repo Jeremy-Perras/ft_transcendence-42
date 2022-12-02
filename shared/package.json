@@ -5,7 +5,7 @@
     "module": "./dist/index.mjs",
     "types": "./dist/index.d.ts",
     "scripts": {
-        "compile": "vite build"
+        "compile:shared": "vite build"
     },
     "devDependencies": {
         "@types/node": "^16.0.0"
