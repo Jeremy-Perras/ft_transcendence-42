@@ -1,1 +1,1 @@
-DROP schema app CASCADE;
+DROP schema public CASCADE;

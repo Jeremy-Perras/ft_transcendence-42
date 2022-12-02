@@ -14,7 +14,7 @@ services:
     restart: unless-stopped
   app:
     environment:
-      POSTGRES_URL: "postgresql://postgres:test@postgres:5432/app?schema=app" #TODO: use env
+      POSTGRES_URL: "postgresql://postgres:test@postgres:5432/app?schema=public" #TODO: use env
     networks:
       - postgres
       - app
