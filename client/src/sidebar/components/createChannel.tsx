@@ -1,14 +1,10 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { useForm, UseFormRegister } from "react-hook-form";
 import { ReactComponent as UsersIcon } from "pixelarticons/svg/users.svg";
 import { ReactComponent as PrivateIcon } from "pixelarticons/svg/mail.svg";
 import { ReactComponent as PasswordIcon } from "pixelarticons/svg/lock.svg";
 import { ReactComponent as PublicIcon } from "pixelarticons/svg/lock-open.svg";
 import { ReactComponent as MessagePlusIcon } from "pixelarticons/svg/message-plus.svg";
-import {
-  useCreateChannelMutation,
-  useDiscussionsAndInvitationsQuery,
-} from "../../graphql/generated";
+import { useCreateChannelMutation } from "../../graphql/generated";
 import * as Dialog from "@radix-ui/react-dialog";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -111,7 +107,7 @@ export default function CreateChannel({
               ></div>
               <motion.div
                 key="content"
-                className="absolute bottom-0 w-full shadow-[10px_10px_15px_15px_rgba(0,0,0,0.2)]"
+                className="absolute bottom-0 w-full  shadow-[10px_10px_15px_15px_rgba(0,0,0,0.2)]"
                 initial={{ y: "100%" }}
                 exit={{ y: "100%" }}
                 animate={{ y: 0 }}
