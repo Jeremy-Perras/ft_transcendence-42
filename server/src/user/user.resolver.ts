@@ -90,7 +90,12 @@ export class UserResolver {
         avatar: true,
         rank: true,
       },
-      where: { name: { contains: name !== null ? name : undefined } },
+      where: {
+        name: {
+          mode: "insensitive",
+          contains: name !== null ? name : undefined,
+        },
+      },
     });
 
     return users.map((user) => ({

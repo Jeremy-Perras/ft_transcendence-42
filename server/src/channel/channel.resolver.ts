@@ -93,6 +93,7 @@ export class ChannelResolver {
   ): Promise<channelType[]> {
     const where: Prisma.ChannelWhereInput = {
       name: {
+        mode: "insensitive",
         contains: name !== null ? name : undefined,
       },
       ownerId: ownerId !== null ? ownerId : undefined,
