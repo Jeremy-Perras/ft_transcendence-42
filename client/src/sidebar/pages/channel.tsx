@@ -413,7 +413,7 @@ const DisplayMessage = ({
   useEffect(() => {
     sidebarIsOpen &&
       messagesEndRef?.current?.scrollIntoView({ behavior: "auto" });
-  }, [messages, sidebarIsOpen, messagesEndRef]);
+  }, [messages, messagesEndRef]);
 
   return (
     <>

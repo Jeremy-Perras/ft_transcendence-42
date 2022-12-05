@@ -28,6 +28,7 @@ import {
 } from "../components/header";
 import { RankIcon } from "../utils/rankIcon";
 import { useSidebarStore } from "../../stores";
+import { delay } from "framer-motion";
 
 type ChatQuery = {
   messages: {
@@ -145,7 +146,6 @@ export default function Chat() {
   const { data } = useQuery({ ...query(userId), initialData });
 
   const sendMessageMutation = useSendDirectMessageMutation({
-    //THIS ONE IS STILL USEFULL
     onSuccess: () => {
       queryClient.invalidateQueries(useDirectMessagesQuery.getKey({ userId }));
       queryClient.invalidateQueries(useDirectMessagesQuery.getKey({}));
@@ -158,7 +158,7 @@ export default function Chat() {
   useEffect(() => {
     sidebarIsOpen &&
       messagesEndRef?.current?.scrollIntoView({ behavior: "auto" });
-  }, [sidebarIsOpen, messagesEndRef, data?.messages]);
+  }, [messagesEndRef, data?.messages]);
 
   return (
     <div className="0 flex h-full flex-col">
