@@ -17,7 +17,12 @@ import { ReactComponent as PasswordIcon } from "pixelarticons/svg/lock.svg";
 import { ReactComponent as JoinIcon } from "pixelarticons/svg/users.svg";
 import { useForm } from "react-hook-form";
 import BannedIcon from "/src/assets/images/Banned.svg";
-import { QueryClient, useQuery, UseQueryOptions } from "@tanstack/react-query";
+import {
+  QueryClient,
+  useQuery,
+  useQueryClient,
+  UseQueryOptions,
+} from "@tanstack/react-query";
 import {
   Header,
   HeaderCenterContent,
@@ -147,8 +152,6 @@ type PasswordFormData = {
 };
 
 const AccessProtected = ({ channelId }: { channelId: number }) => {
-  const queryClient = useQueryClient();
-
   const [showPwdError, setShowPwdError] = useState(false);
   const {
     register,
@@ -357,7 +360,7 @@ const Messages = ({
   useEffect(() => {
     sidebarIsOpen &&
       messagesEndRef?.current?.scrollIntoView({ behavior: "auto" });
-  }, [messages, messagesEndRef]);
+  }, [messages, messagesEndRef]); // TODO: check if this is not broken
 
   return (
     <>
@@ -444,7 +447,7 @@ export default function Channel() {
         </>
       </Header>
       {status === Status.BANNED ? (
-        <div className="flex h-full w-full flex-col items-center justify-center pb-60">
+        <div className="flex h-full w-full flex-col items-center justify-center overflow-auto pb-60">
           <img src={BannedIcon} className="w-96 text-slate-100 opacity-30" />
           <span className="mt-10 text-3xl text-neutral-300">
             You are banned.
