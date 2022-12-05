@@ -7,7 +7,7 @@ import {
   Resolver,
   Root,
 } from "@nestjs/graphql";
-import { Prisma } from "@prisma/client";
+import { Prisma, GameMode } from "@prisma/client";
 import { GqlAuthenticatedGuard } from "../auth/authenticated.guard";
 import { PrismaService } from "../prisma/prisma.service";
 import { Game, gameType, playersType } from "./game.model";
@@ -39,7 +39,7 @@ export class GameResolver {
 
     return {
       id: game.id,
-      gamemode: game.mode.name,
+      gameMode: game.mode,
       startAt: game.startedAt,
       finishedAt: game.finishedAt ?? undefined,
       score: {
@@ -53,8 +53,8 @@ export class GameResolver {
   async games(
     @Args("id", { type: () => Int, nullable: true, defaultValue: null })
     id?: number | null,
-    @Args("gameMode", { type: () => Int, nullable: true, defaultValue: null })
-    gameMode?: number | null,
+    @Args("gameMode", { type: () => GameMode, nullable: true })
+    gameMode?: GameMode | null,
     @Args("finished", {
       type: () => Boolean,
       nullable: true,
@@ -68,8 +68,8 @@ export class GameResolver {
         finished ? { NOT: { finishedAt: null } } : { finishedAt: null }
       );
     }
-    if (gameMode !== null) {
-      conditions.push({ gameModeId: gameMode });
+    if (gameMode) {
+      conditions.push({ mode: gameMode });
     }
     if (id !== null) {
       conditions.push({
@@ -100,7 +100,7 @@ export class GameResolver {
 
     return games.map((game) => ({
       id: game.id,
-      gamemode: game.mode.name,
+      gameMode: game.mode,
       startAt: game.startedAt,
       finishedAt: game.finishedAt ?? undefined,
       score: {

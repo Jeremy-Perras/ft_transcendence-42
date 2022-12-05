@@ -417,7 +417,7 @@ export class UserResolver {
     });
     return games.map((game) => ({
       id: game.id,
-      gamemode: game.mode.name,
+      gameMode: game.mode,
       startAt: game.startedAt,
       finishedAt: game.finishedAt ?? undefined,
       score: {

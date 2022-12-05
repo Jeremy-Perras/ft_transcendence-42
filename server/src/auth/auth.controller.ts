@@ -42,8 +42,8 @@ export class AuthController {
 
   @UseGuards(AuthenticatedGuard)
   @Get("/session")
-  session(): string {
-    return "ok";
+  session(@Request() req: RequestExpress) {
+    return { userId: req.session.passport.user };
   }
 
   @UseGuards(AuthenticatedGuard)

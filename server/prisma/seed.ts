@@ -1,5 +1,5 @@
 import { faker } from "@faker-js/faker";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, GameMode, Game } from "@prisma/client";
 import { createWriteStream, mkdir } from "fs";
 import { join } from "path";
 import { pipeline } from "stream";
@@ -8,23 +8,6 @@ import { promisify } from "util";
 const prisma = new PrismaClient();
 
 async function main() {
-  // game modes
-  await prisma.gameMode.create({
-    data: {
-      name: "Classic",
-    },
-  });
-  await prisma.gameMode.create({
-    data: {
-      name: "Speed",
-    },
-  });
-  await prisma.gameMode.create({
-    data: {
-      name: "Random",
-    },
-  });
-
   mkdir(join(__dirname, "../uploads/avatars"), { recursive: true }, (err) => {
     if (err) {
       return console.error(err);
@@ -290,6 +273,11 @@ async function main() {
             id: p1,
           },
         },
+        readBy: {
+          createMany: {
+            data: [...Array(10).keys()].map((i) => ({ userId: i + 1 })),
+          },
+        },
         channel: {
           connect: {
             id: Math.floor(Math.random() * 3) + 1,
@@ -299,23 +287,6 @@ async function main() {
         sentAt: faker.date.recent(),
       },
     });
-    for (let ii = 1; ii <= 50; ii++) {
-      if (ii != p1) {
-        await prisma.channelMessage.update({
-          where: {
-            id: m.id,
-          },
-          data: {
-            readBy: {
-              create: {
-                userId: ii,
-                readAt: faker.date.recent(),
-              },
-            },
-          },
-        });
-      }
-    }
   }
 
   // direct message
@@ -351,11 +322,11 @@ async function main() {
 
     await prisma.game.create({
       data: {
-        mode: {
-          connect: {
-            id: Math.floor(Math.random() * 3) + 1,
-          },
-        },
+        mode: GameMode[
+          Object.keys(GameMode)[
+            Math.floor(Math.random() * 3)
+          ] as keyof typeof GameMode
+        ],
         startedAt: faker.date.recent(),
         finishedAt: faker.date.soon(),
         player1: {

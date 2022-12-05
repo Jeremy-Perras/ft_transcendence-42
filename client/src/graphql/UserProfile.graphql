@@ -6,7 +6,7 @@ query UserProfile($userId: Int) {
     rank
     games {
       finishedAt
-      gamemode
+      gameMode
       players {
         player1 {
           avatar

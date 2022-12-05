@@ -9,7 +9,7 @@ const queryClient = new QueryClient({
   },
   queryCache: new QueryCache({
     onError: () => {
-      useAuthStore.setState({ isLoggedIn: false });
+      useAuthStore.setState({ userId: undefined });
     },
   }),
 });

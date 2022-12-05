@@ -22,7 +22,6 @@ import { SocketService } from "../socket/socket.service";
 import {
   Channel,
   ChannelMessage,
-  channelMessageReadType,
   channelMessageType,
   channelType,
   restrictedMemberType,
@@ -227,78 +226,33 @@ export class ChannelResolver {
     @Root() channel: Channel,
     @CurrentUser() currentUserId: number
   ): Promise<channelMessageType[]> {
-    const messages = await this.prisma.channel.findFirst({
-      select: {
-        channelMessages: {
-          select: {
-            id: true,
-            readBy: true,
-            author: true,
-          },
-        },
-      },
-      where: {
-        id: channel.id,
-        OR: [
-          {
-            ownerId: currentUserId,
-          },
-          {
-            members: {
-              some: {
-                userId: currentUserId,
-              },
-            },
-          },
-        ],
-      },
-    });
-
-    messages?.channelMessages.forEach(async (message) => {
-      if (
-        !message.readBy.some((u) => u.userId === currentUserId) &&
-        message.author.id !== currentUserId
-      ) {
-        await this.prisma.channelMessageRead.create({
-          data: {
-            channelMessageId: message.id,
-            userId: currentUserId,
-            readAt: new Date(),
-          },
-        });
-      }
-    });
-
     const c = await this.prisma.channel.findFirst({
       select: {
+        members: { select: { userId: true } },
+        ownerId: true,
         channelMessages: {
-          orderBy: [
-            {
-              sentAt: "asc",
-            },
-          ],
+          orderBy: { createdAt: "desc" },
           select: {
             id: true,
             content: true,
             sentAt: true,
-            readBy: true,
-            author: { select: { blockedBy: true, id: true } },
+            author: {
+              select: {
+                id: true,
+                blockedBy: {
+                  select: { id: true },
+                  where: { id: currentUserId },
+                },
+              },
+            },
           },
         },
       },
       where: {
         id: channel.id,
         OR: [
-          {
-            ownerId: currentUserId,
-          },
-          {
-            members: {
-              some: {
-                userId: currentUserId,
-              },
-            },
-          },
+          { ownerId: currentUserId },
+          { members: { some: { userId: currentUserId } } },
         ],
       },
     });
@@ -308,12 +262,29 @@ export class ChannelResolver {
       }
     });
 
+    if (!c) {
+      throw new ForbiddenException("You are not a member of this channel");
+    }
+
+    await this.prisma.channelMessageRead.createMany({
+      data: c.channelMessages.map((message) => ({
+        messageId: message.id,
+        userId: currentUserId,
+      })),
+      skipDuplicates: true,
+    });
+
+    const m = c.channelMessages[0];
     return c
       ? c.channelMessages.map((message) => ({
           id: message.id,
-          content: message.content,
+          content:
+            message.author.id === currentUserId
+              ? message.content
+              : message.author.blockedBy.length > 0
+              ? null
+              : message.content,
           sentAt: message.sentAt,
-          author: message.author,
         }))
       : [];
   }
@@ -970,30 +941,33 @@ export class ChannelMessageResolver {
   }
 
   @ResolveField()
-  async readBy(
-    @Root() channelMessage: ChannelMessage
-  ): Promise<channelMessageReadType[]> {
-    const reads = await this.prisma.channelMessageRead.findMany({
+  async readBy(@Root() channelMessage: ChannelMessage): Promise<userType[]> {
+    const reads = await this.prisma.channelMessage.findUnique({
       select: {
-        readAt: true,
-        channelMessageId: true,
-        user: true,
+        readBy: {
+          select: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                rank: true,
+                avatar: true,
+              },
+            },
+          },
+        },
       },
       where: {
-        channelMessageId: channelMessage.id,
+        id: channelMessage.id,
       },
     });
 
     return reads
-      ? reads.map((r) => ({
-          readAt: r.readAt,
-          messageID: r.channelMessageId,
-          user: {
-            id: r.user.id,
-            name: r.user.name,
-            rank: r.user.rank,
-            avatar: r.user.avatar,
-          },
+      ? reads?.readBy.map((r) => ({
+          id: r.user.id,
+          name: r.user.name,
+          rank: r.user.rank,
+          avatar: r.user.avatar,
         }))
       : [];
   }

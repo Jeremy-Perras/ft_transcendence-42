@@ -258,7 +258,7 @@ const renderState = (
 
 export const Home = () => {
   const [state, setState] = useState<State>("idle");
-  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+  const isLoggedIn = !!useAuthStore((state) => state.userId);
   const isSmall = useMediaQuery("(max-height : 1000px)");
 
   return (
