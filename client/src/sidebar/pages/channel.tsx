@@ -20,7 +20,6 @@ import BannedIcon from "/src/assets/images/Banned.svg";
 import {
   QueryClient,
   useQuery,
-  useQueryClient,
   UseQueryOptions,
 } from "@tanstack/react-query";
 import {
@@ -100,15 +99,9 @@ export const channelLoader = async (
 };
 
 const JoinPublicChannel = ({ channelId }: { channelId: number }) => {
-  const queryClient = useQueryClient();
 
-  const joinChannel = useJoinChannelMutation({
-    onSuccess: () => {
-      queryClient.invalidateQueries(
-        useChannelDiscussionQuery.getKey({ channelId: +channelId })
-      );
-    },
-  });
+
+  const joinChannel = useJoinChannelMutation();
 
   return (
     <div className="flex h-full w-full flex-col items-center justify-center pb-60">
@@ -418,11 +411,6 @@ export default function Channel() {
     : channel.muted.some((muted) => muted.id === userId)
     ? Status.MUTED
     : Status.OK;
-
-  const messagesEndRef = useRef<null | HTMLDivElement>(null);
-  useEffect(() => {
-    messagesEndRef?.current?.scrollIntoView({ behavior: "smooth" });
-  }, [channel.messages, messagesEndRef]);
 
   return (
     <>
