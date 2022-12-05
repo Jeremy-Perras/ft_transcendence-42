@@ -13,9 +13,6 @@ export type channelType = Omit<
   "owner" | "messages" | "admins" | "members" | "banned" | "muted"
 >;
 export type channelMessageType = Omit<ChannelMessage, "author" | "readBy">;
-export type channelMessageReadType = Omit<ChannelMessageRead, "user"> & {
-  user: userType;
-};
 export type restrictedMemberType = userType & Restricted;
 
 @ObjectType()
@@ -54,19 +51,6 @@ export class Channel {
 }
 
 @ObjectType()
-export class ChannelMessageRead {
-  @Field((type) => User)
-  user: User;
-
-  @Field((type) => Int)
-  @Min(0)
-  messageID: number;
-
-  @Field((type) => Date)
-  readAt: Date;
-}
-
-@ObjectType()
 export class ChannelMessage {
   @Field((type) => Int)
   @Min(0)
@@ -75,12 +59,11 @@ export class ChannelMessage {
   @Field((type) => User)
   author: User;
 
-  @Field((type) => [ChannelMessageRead])
-  readBy: [ChannelMessageRead | undefined];
+  @Field((type) => [User])
+  readBy: [User | undefined];
 
-  @Field()
-  @IsNotEmpty()
-  content: string;
+  @Field((type) => String, { nullable: true })
+  content: string | null;
 
   @Field((type) => Date)
   sentAt: Date;

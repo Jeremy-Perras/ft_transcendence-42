@@ -14,18 +14,18 @@ const useSidebarStore = create<SidebarStore>((set) => ({
 }));
 
 type AuthStore = {
-  isLoggedIn: boolean;
-  login: () => void;
+  userId: number | undefined;
+  login: (id: number) => void;
   logout: () => void;
 };
 const useAuthStore = create<AuthStore>((set) => ({
-  isLoggedIn: false,
-  login: () => {
-    return set({ isLoggedIn: true });
+  userId: undefined,
+  login: (id: number) => {
+    return set({ userId: id });
   },
   logout: () => {
     fetch("/auth/logout").then(() => {
-      set({ isLoggedIn: false });
+      set({ userId: undefined });
     });
   },
 }));

@@ -22,6 +22,7 @@ import {
   useUpdateUserNameMutation,
   FriendStatus,
   useUserProfileHeaderQuery,
+  GameMode,
 } from "../../graphql/generated";
 import queryClient from "../../query";
 import ClassicIcon from "/src/assets/images/ClassicIcon.svg";
@@ -291,9 +292,9 @@ const GameHistory = ({
               <img
                 className="h-8 w-10 "
                 src={
-                  game.gamemode === "Classic"
+                  game.gameMode === GameMode.Classic
                     ? ClassicIcon
-                    : game.gamemode === "Random"
+                    : game.gameMode === GameMode.Random
                     ? BonusIcon
                     : FireIcon
                 }

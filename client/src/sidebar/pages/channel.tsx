@@ -7,7 +7,6 @@ import {
 } from "react-router-dom";
 import {
   ChannelDiscussionQuery,
-  useBlockingUserQuery,
   useChannelDiscussionQuery,
   useJoinChannelMutation,
   useSendChannelMessageMutation,
@@ -27,40 +26,24 @@ import {
 } from "../components/header";
 import { User } from "../types/user";
 import { getDate } from "../utils/getDate";
-import { useSidebarStore } from "../../stores";
+import { useAuthStore, useSidebarStore } from "../../stores";
 
-type formData = {
-  password?: string;
-};
+enum Role {
+  OWNER,
+  ADMIN,
+  MEMBER,
+  NON_MEMBER,
+}
 
-type ChannelMessage = {
-  id: number;
-  author: User;
-  readBy: {
-    __typename?: "ChannelMessageRead" | undefined;
-    user: User;
-  }[];
-  content: string;
-  sentAt: number;
-};
+enum Status {
+  BANNED,
+  MUTED,
+  OK,
+}
 
-type ChannelDisplayMessage = {
-  userId: number;
-  channelId: number;
-  id: number;
-  author: User;
-  readBy: {
-    __typename?: "ChannelMessageRead" | undefined;
-    user: User;
-  }[];
-  content: string;
-  sentAt: number;
-};
-
-type ChannelQuery = {
-  userId: number;
+type Channel = {
   name: string;
-  messages: ChannelMessage[];
+  messages: ChannelDiscussionQuery["channel"]["messages"];
   owner: { id: number; name: string; avatar: string };
   adminIds: { id: number }[];
   memberIds: { id: number }[];
@@ -69,24 +52,21 @@ type ChannelQuery = {
     id: number;
   }[];
   muted: { __typename?: "RestrictedMember" | undefined; id: number }[];
-  password: boolean;
-  private: boolean;
+  isPasswordProtected: boolean;
+  isPrivate: boolean;
 };
 
 const query = (
   channelId: number
-): UseQueryOptions<ChannelDiscussionQuery, unknown, ChannelQuery> => {
+): UseQueryOptions<ChannelDiscussionQuery, unknown, Channel> => {
   return {
     queryKey: useChannelDiscussionQuery.getKey({
       channelId: channelId,
-      userId: null,
     }),
     queryFn: useChannelDiscussionQuery.fetcher({
       channelId: channelId,
-      userId: null,
     }),
     select: (channels) => ({
-      userId: channels.user.id,
       name: channels.channel.name,
       messages: channels.channel.messages,
       owner: {
@@ -98,8 +78,8 @@ const query = (
       memberIds: channels.channel.members,
       banned: channels.channel.banned,
       muted: channels.channel.muted,
-      password: channels.channel.passwordProtected,
-      private: channels.channel.private,
+      isPasswordProtected: channels.channel.passwordProtected,
+      isPrivate: channels.channel.private,
     }),
   };
 };
@@ -114,132 +94,20 @@ export const channelLoader = async (
   }
 };
 
-const Banned = () => {
-  return (
-    <div className="flex h-full w-full flex-col items-center justify-center overflow-auto pb-60">
-      <img src={BannedIcon} className="w-96 text-slate-100 opacity-30" />
-      <span className="mt-10 text-3xl text-neutral-300">You are banned.</span>
-    </div>
-  );
-};
-
-const ReadBy = ({ users }: { users: User[] }) => {
-  const navigate = useNavigate();
-  return (
-    <div className="flex h-6 w-full shrink-0 flex-row flex-wrap items-center justify-end ">
-      <div className="mb-px mr-1 text-end text-xs text-slate-300 ">
-        {users.length !== 0
-          ? users.length > 20
-            ? `Seen by ${users.length} users`
-            : "Seen by"
-          : ""}
-      </div>
-      {users.length <= 20 &&
-        users.map(({ id, name, avatar }, index) => {
-          return (
-            <div
-              className="group relative flex w-5 shrink-0 grow-0 flex-col justify-center"
-              key={index}
-            >
-              <img
-                className=" h-4 w-4 self-center border border-black transition-all hover:h-5  hover:w-5 hover:cursor-pointer"
-                key={index}
-                src={`/uploads/avatars/${avatar}`}
-                alt="User avatar"
-                onClick={() => navigate(`/profile/${id}`)}
-              />
-              <span className="absolute top-5 right-0 my-1 w-24 grow truncate text-right text-xs text-slate-300 opacity-0 transition-all duration-100 group-hover:opacity-100">
-                {name}
-              </span>
-            </div>
-          );
-        })}
-    </div>
-  );
-};
-
-const ChannelMessage = ({
-  author,
-  readBy,
-  content,
-  sentAt,
-}: ChannelDisplayMessage) => {
-  const navigate = useNavigate();
-  const { data } = useBlockingUserQuery({ userId: author.id });
-  return (
-    <>
-      <span className="left-0 mt-6 text-center text-xs text-slate-300">
-        {getDate(+sentAt)}
-      </span>
-      <div className="flex w-full">
-        <div className="flex w-9 shrink-0 justify-center">
-          <div className="flex self-end">
-            <img
-              className="h-6 w-6 border border-black transition-all hover:h-7 hover:w-7 hover:cursor-pointer"
-              src={`/uploads/avatars/${author.avatar}`}
-              alt="Message author avatar"
-              onClick={() => navigate(`/profile/${author.id}`)}
-            />
-          </div>
-        </div>
-        <div className="flex flex-col">
-          <div className="text-left text-xs tracking-wide text-slate-400">
-            <span>{author.name} </span>
-          </div>
-          <span
-            className={`${
-              data?.user.blocked ? "bg-red-600" : ""
-            } rounded-md bg-slate-200 px-4 py-2 text-left tracking-wide`}
-          >
-            {content}
-          </span>
-        </div>
-      </div>
-      <ReadBy
-        users={readBy.map((Users) => {
-          return Users.user;
-        })}
-      />
-    </>
-  );
-};
-
-const AccessForbidden = ({
-  ownerId,
-  ownerName,
-  ownerAvatar,
-}: {
-  ownerId: number;
-  ownerName: string;
-  ownerAvatar: string;
-}) => {
-  const navigate = useNavigate();
-  return (
-    <div className="flex h-full w-full flex-col items-center justify-center overflow-auto pb-60">
-      <ForbiddenIcon className="w-100 text-slate-100" />
-      <span className="text-2xl text-slate-300">This Channel is private.</span>
-      <div
-        onClick={() => navigate(`/profile/${ownerId}`)}
-        className="mt-5 flex flex-col items-center justify-center border-2 border-slate-200 bg-slate-100 p-2 text-xl text-slate-800 hover:cursor-pointer hover:bg-slate-200"
-      >
-        <span>Ask access to </span>
-        <img
-          src={`/uploads/avatars/${ownerAvatar}`}
-          alt="Owner avatar"
-          className="my-2 h-10 w-10 border border-black"
-        />
-        <span>{`${ownerName} !`}</span>
-      </div>
-    </div>
-  );
-};
-
 const JoinPublicChannel = ({ channelId }: { channelId: number }) => {
-  const joinChannel = useJoinChannelMutation({});
+  const queryClient = useQueryClient();
+
+  const joinChannel = useJoinChannelMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries(
+        useChannelDiscussionQuery.getKey({ channelId: +channelId })
+      );
+    },
+  });
 
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center overflow-auto pb-60">
-      <JoinIcon className="h-80 w-80 text-slate-100" />
+    <div className="flex h-full w-full flex-col items-center justify-center pb-60">
+      <JoinIcon className="w-100 text-slate-100" />
       <div className="text-2xl text-slate-300">This Channel is public.</div>
       <span
         onClick={() => joinChannel.mutate({ channelId: +channelId })}
@@ -251,29 +119,47 @@ const JoinPublicChannel = ({ channelId }: { channelId: number }) => {
   );
 };
 
-const AccessProtected = ({
-  channelId,
-  ownerId,
-  ownerName,
-  ownerAvatar,
-}: {
-  channelId: number;
-  ownerId: number;
-  ownerName: string;
-  ownerAvatar: string;
-}) => {
+const AccessForbidden = ({ owner }: { owner: Channel["owner"] }) => {
+  const navigate = useNavigate();
+
+  return (
+    <div className="flex h-full w-full flex-col items-center justify-center overflow-auto pb-60">
+      <ForbiddenIcon className="w-100 text-slate-100" />
+      <span className="text-2xl text-slate-300">This Channel is private.</span>
+      <div
+        onClick={() => navigate(`/profile/${owner.id}`)}
+        className="mt-5 flex flex-col items-center justify-center border-2 border-slate-200 bg-slate-100 p-2 text-xl text-slate-800 hover:cursor-pointer hover:bg-slate-200"
+      >
+        <span>Ask access to </span>
+        <img
+          src={`/uploads/avatars/${owner.avatar}`}
+          alt={`${owner.name}'s avatar`}
+          className="my-2 h-10 w-10 border border-black"
+        />
+        <span>{owner.name} !</span>
+      </div>
+    </div>
+  );
+};
+
+type PasswordFormData = {
+  password?: string;
+};
+
+const AccessProtected = ({ channelId }: { channelId: number }) => {
+  const queryClient = useQueryClient();
+
+  const [showPwdError, setShowPwdError] = useState(false);
   const {
     register,
     formState: { errors },
     handleSubmit,
-  } = useForm<formData>();
+  } = useForm<PasswordFormData>();
 
-  const [showPwdError, setShowPwdError] = useState(false);
   const joinChannel = useJoinChannelMutation({
     onError: () => setShowPwdError(true),
   });
 
-  const navigate = useNavigate();
   return (
     <div className="flex h-full w-full shrink flex-col items-center justify-center overflow-auto pb-20">
       <PasswordIcon className="h-80 w-80 text-slate-100" />
@@ -324,55 +210,42 @@ const AccessProtected = ({
           />
         </form>
       </div>
-      <div className="mt-10 text-lg text-slate-700">Forgot password?</div>
-      <div
-        onClick={() => navigate(`/profile/${ownerId}`)}
-        className="mt-2 flex flex-col items-center justify-center border-2 border-slate-200 bg-slate-100 p-2 text-lg text-slate-800 hover:cursor-pointer hover:bg-slate-200"
-      >
-        <div>Ask to</div>
-        <img
-          src={`/uploads/avatars/${ownerAvatar}`}
-          alt="Owner avatar"
-          className="my-2 h-10 w-10 border border-black"
-        />
-        <div>{`${ownerName} !`}</div>
-      </div>
     </div>
   );
 };
 
-const SendMessageElement = ({
-  banned,
-  muted,
+const MessageInput = ({
   channelId,
+  status,
 }: {
-  banned: boolean | undefined;
-  muted: boolean | undefined;
   channelId: number;
+  status: Status;
 }) => {
   const [content, setContent] = useState("");
 
   const messageMutation = useSendChannelMessageMutation({});
 
+  const cannotSendMessage = status === Status.BANNED || status === Status.MUTED;
+
   return (
     <div className="flex w-full bg-white px-[2px]">
       <textarea
         autoFocus={true}
-        disabled={banned || muted}
+        disabled={cannotSendMessage}
         rows={2}
         className={`${
-          banned || muted ? "hover:cursor-not-allowed" : ""
+          cannotSendMessage ? "hover:cursor-not-allowed" : ""
         }  w-full resize-none border-x-2 border-b-8 border-white px-2 pt-4 pb-2 `}
         onChange={(e) => setContent(e.target.value)}
         placeholder={`${
-          banned
+          status === Status.BANNED
             ? "You are banned"
-            : muted
+            : status === Status.MUTED
             ? "You are muted"
             : "Type your message here ..."
         }`}
         onKeyDown={(e) => {
-          if (banned === false && muted === false) {
+          if (!cannotSendMessage) {
             if (e.code == "Enter" && !e.getModifierState("Shift")) {
               messageMutation.mutate({
                 message: content,
@@ -389,18 +262,94 @@ const SendMessageElement = ({
   );
 };
 
-const DisplayMessage = ({
-  messages,
+const ReadBy = ({ users }: { users: User[] }) => {
+  const navigate = useNavigate();
+  const [hoverUser, setHoverUser] = useState("");
+
+  return (
+    <div className="relative flex h-6 w-full shrink-0 flex-row flex-wrap items-center justify-end ">
+      <span className="mb-px mr-1 text-end text-xs text-slate-300 ">
+        {users.length > 20 ? `Seen by ${users.length} users` : "Seen by"}
+      </span>
+      <ul className="flex items-center">
+        {users.slice(0, 20).map(({ id, name, avatar }, index) => {
+          return (
+            <li
+              className="flex h-5 w-5 shrink-0 grow-0 items-center justify-center"
+              key={index}
+            >
+              <img
+                className="h-4 w-4 border border-black transition-all hover:h-5 hover:w-5 hover:cursor-pointer"
+                src={`/uploads/avatars/${avatar}`}
+                alt={`${name}'s avatar`}
+                onMouseEnter={() => setHoverUser(name)}
+                onMouseLeave={() => setHoverUser("")}
+                onClick={() => navigate(`/profile/${id}`)}
+              />
+            </li>
+          );
+        })}
+      </ul>
+      {hoverUser ? (
+        <span className="absolute top-5 right-0 my-1 w-24 grow truncate text-right text-xs text-slate-300 opacity-0 transition-all duration-100 group-hover:opacity-100">
+          {hoverUser}
+        </span>
+      ) : null}
+    </div>
+  );
+};
+
+const Message = ({
+  author,
+  readBy,
+  content,
+  sentAt,
+}: ChannelDiscussionQuery["channel"]["messages"][number]) => {
+  const navigate = useNavigate();
+  return (
+    <li className="flex flex-col">
+      <span className="left-0 mt-6 text-center text-xs text-slate-300">
+        {getDate(+sentAt)}
+      </span>
+      <div className="flex w-full">
+        <div className="flex w-9 shrink-0 justify-center">
+          <div className="flex self-end">
+            <img
+              className="h-6 w-6 border border-black transition-all hover:h-7 hover:w-7 hover:cursor-pointer"
+              src={`/uploads/avatars/${author.avatar}`}
+              alt="Message author avatar"
+              onClick={() => navigate(`/profile/${author.id}`)}
+            />
+          </div>
+        </div>
+        <div className="flex flex-col">
+          <div className="text-left text-xs tracking-wide text-slate-400">
+            <span>{author.name} </span>
+          </div>
+          {content ? (
+            <span className="rounded-md bg-slate-200 px-4 py-2 text-left tracking-wide">
+              {content}
+            </span>
+          ) : (
+            <span className="rounded-md bg-red-200 px-4 py-2 text-left italic tracking-wide">
+              You must unblock this user to see their messages
+            </span>
+          )}
+        </div>
+      </div>
+      {readBy.length > 0 && <ReadBy users={readBy} />}
+    </li>
+  );
+};
+
+const Messages = ({
   channelId,
-  muted,
-  banned,
-  userId,
+  status,
+  messages,
 }: {
-  messages: ChannelMessage[] | undefined;
   channelId: number;
-  muted: boolean | undefined;
-  banned: boolean | undefined;
-  userId: number;
+  status: Status;
+  messages: ChannelDiscussionQuery["channel"]["messages"] | undefined;
 }) => {
   const sidebarIsOpen = useSidebarStore((state) => state.isOpen);
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
@@ -412,55 +361,65 @@ const DisplayMessage = ({
 
   return (
     <>
-      <div className="mt-px flex w-full grow flex-col overflow-auto pr-2 pl-px">
+      <div className="mt-px flex w-full grow flex-col overflow-auto pb-2 pr-2 pl-px">
         {messages?.length === 0 ? (
           <div className="mb-48 flex h-full flex-col items-center justify-center text-center text-slate-300">
             <EmptyChatIcon className="w-96 text-slate-200" />
             Seems a little bit too silent here... Send the first message !
           </div>
         ) : null}
-        {messages?.map((message, index) => (
-          <ChannelMessage
-            key={index}
-            userId={userId}
-            channelId={channelId}
-            {...message}
-          />
-        ))}
+        <ul>
+          {messages?.map((message, index) => (
+            <Message key={index} {...message} />
+          ))}
+        </ul>
         <div ref={messagesEndRef} />
       </div>
-      <SendMessageElement
-        channelId={+channelId}
-        muted={muted}
-        banned={banned}
-      />
+      <MessageInput status={status} channelId={channelId} />
     </>
   );
 };
 
 export default function Channel() {
+  const navigate = useNavigate();
   const params = useParams();
+  const userId = useAuthStore((state) => state.userId);
 
-  if (typeof params.channelId === "undefined") return <div>No channel Id</div>;
+  if (!userId) {
+    navigate("/");
+    return;
+  }
+
+  if (typeof params.channelId === "undefined") return <div>No channel Id</div>; // TODO
   const channelId = +params.channelId;
-
   const initialData = useLoaderData() as Awaited<
     ReturnType<typeof channelLoader>
   >;
-  const { data } = useQuery({
-    ...query(+channelId),
+  const { data: channel } = useQuery({
+    ...query(channelId),
     initialData,
   });
-  if (typeof data === "undefined") return <div>Error</div>;
+  if (typeof channel === "undefined") return <div>Error</div>; // TODO
 
-  const navigate = useNavigate();
-  const banned = data?.banned.some((u) => u.id === data.userId);
-  const muted = data?.muted.some((u) => u.id === data.userId);
+  const role =
+    channel.owner.id === userId
+      ? Role.OWNER
+      : channel.adminIds.some((admin) => admin.id === userId)
+      ? Role.ADMIN
+      : channel.memberIds.some((member) => member.id === userId)
+      ? Role.MEMBER
+      : Role.NON_MEMBER;
 
-  const settingsLinkAuthorized =
-    data?.owner.id === data?.userId ||
-    data?.adminIds.some((admin) => admin.id === data.userId) ||
-    data?.memberIds.some((member) => member.id === data.userId);
+  const status = channel.banned.some((banned) => banned.id === userId)
+    ? Status.BANNED
+    : channel.muted.some((muted) => muted.id === userId)
+    ? Status.MUTED
+    : Status.OK;
+
+  const messagesEndRef = useRef<null | HTMLDivElement>(null);
+  useEffect(() => {
+    messagesEndRef?.current?.scrollIntoView({ behavior: "smooth" });
+  }, [channel.messages, messagesEndRef]);
 
   return (
     <>
@@ -471,74 +430,39 @@ export default function Channel() {
           </HeaderLeftBtn>
           <HeaderCenterContent>
             <div
-              className={`${
-                settingsLinkAuthorized ? "hover:cursor-pointer" : ""
-              } flex h-full items-center justify-center`}
+              className={`flex h-full items-center justify-center ${
+                status !== Status.BANNED ? "hover:cursor-pointer" : ""
+              }`}
               onClick={() =>
-                navigate(
-                  `${
-                    settingsLinkAuthorized
-                      ? `/settings/channel/${channelId}`
-                      : ""
-                  }`
-                )
+                status !== Status.BANNED &&
+                navigate(`/settings/channel/${channelId}`)
               }
             >
-              <span className="select-none truncate">{data?.name}</span>
+              <span className="select-none truncate">{channel.name}</span>
             </div>
           </HeaderCenterContent>
         </>
       </Header>
-      {banned ? (
-        <Banned />
-      ) : data?.private ? (
-        !data.adminIds.some((admin) => admin.id === data.userId) &&
-        !data.memberIds.some((member) => member.id === data.userId) &&
-        !(data.owner.id === data.userId) ? (
-          <AccessForbidden
-            ownerId={data?.owner.id}
-            ownerAvatar={data.owner.avatar}
-            ownerName={data.owner.name}
-          />
+      {status === Status.BANNED ? (
+        <div className="flex h-full w-full flex-col items-center justify-center pb-60">
+          <img src={BannedIcon} className="w-96 text-slate-100 opacity-30" />
+          <span className="mt-10 text-3xl text-neutral-300">
+            You are banned.
+          </span>
+        </div>
+      ) : role === Role.NON_MEMBER ? (
+        channel.isPrivate ? (
+          <AccessForbidden owner={channel.owner} />
+        ) : channel.isPasswordProtected ? (
+          <AccessProtected channelId={channelId} />
         ) : (
-          <DisplayMessage
-            banned={banned}
-            channelId={+channelId}
-            messages={data?.messages}
-            muted={muted}
-            userId={data.userId}
-          />
+          <JoinPublicChannel channelId={channelId} />
         )
-      ) : data.password ? (
-        !data.adminIds.some((admin) => admin.id === data.userId) &&
-        !data.memberIds.some((member) => member.id === data.userId) &&
-        !(data.owner.id === data.userId) ? (
-          <AccessProtected
-            channelId={+channelId}
-            ownerId={data?.owner.id}
-            ownerAvatar={data.owner.avatar}
-            ownerName={data.owner.name}
-          />
-        ) : (
-          <DisplayMessage
-            banned={banned}
-            channelId={+channelId}
-            messages={data?.messages}
-            muted={muted}
-            userId={data.userId}
-          />
-        )
-      ) : !data.adminIds.some((admin) => admin.id === data.userId) &&
-        !data.memberIds.some((member) => member.id === data.userId) &&
-        !(data.owner.id === data.userId) ? (
-        <JoinPublicChannel channelId={channelId} />
       ) : (
-        <DisplayMessage
-          banned={banned}
-          channelId={+channelId}
-          messages={data?.messages}
-          muted={muted}
-          userId={data.userId}
+        <Messages
+          channelId={channelId}
+          status={status}
+          messages={channel.messages}
         />
       )}
     </>

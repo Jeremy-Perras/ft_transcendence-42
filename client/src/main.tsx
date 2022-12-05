@@ -21,16 +21,17 @@ import {
 //TODO if ban not show the change inside channel ?
 let init = false;
 const App = () => {
-  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+  const isLoggedIn = !!useAuthStore((state) => state.userId);
 
   useEffect(() => {
     if (!init) {
       init = true;
       fetch("/auth/session").then(async (res) => {
         if (res.status === 200) {
-          const data = await res.text();
-          if (data === "ok") {
-            useAuthStore.getState().login();
+          const data = await res.json();
+          const userId = data?.userId;
+          if (userId) {
+            useAuthStore.getState().login(userId);
           }
         }
       });
