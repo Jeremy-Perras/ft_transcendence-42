@@ -592,9 +592,10 @@ export class UserResolver {
       },
     });
 
+    const users = [userId, currentUserId];
     this.socketService.emitInvalidateCache(
       InvalidCacheTarget.BLOCK_USER,
-      [userId],
+      users,
       currentUserId
     );
     return true;
@@ -616,9 +617,10 @@ export class UserResolver {
       },
     });
 
+    const users = [userId, currentUserId];
     this.socketService.emitInvalidateCache(
       InvalidCacheTarget.UNBLOCK_USER,
-      [userId],
+      users,
       currentUserId
     );
 
@@ -696,9 +698,10 @@ export class UserResolver {
       },
     });
 
+    const users = [currentUserId, userId];
     this.socketService.emitInvalidateCache(
       InvalidCacheTarget.CANCEL_INVITATION,
-      [userId],
+      users,
       currentUserId
     );
 

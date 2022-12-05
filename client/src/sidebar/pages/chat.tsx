@@ -28,7 +28,6 @@ import {
 } from "../components/header";
 import { RankIcon } from "../utils/rankIcon";
 import { useSidebarStore } from "../../stores";
-import { delay } from "framer-motion";
 
 type ChatQuery = {
   messages: {

@@ -70,15 +70,18 @@ const App = () => {
               queryClient.invalidateQueries(
                 useDiscussionsAndInvitationsQuery.getKey({})
               );
+              queryClient.invalidateQueries(useUserProfileQuery.getKey({}));
               queryClient.invalidateQueries(
                 useUserProfileQuery.getKey({ userId: data.targetId })
               );
+              queryClient.invalidateQueries(useUserProfileQuery.getKey({}));
               queryClient.invalidateQueries(useDirectMessagesQuery.getKey({}));
               break;
             case InvalidCacheTarget.INVITATION_FRIEND:
               queryClient.invalidateQueries(
                 useDiscussionsAndInvitationsQuery.getKey({})
               );
+              queryClient.invalidateQueries(useUserProfileQuery.getKey({}));
               queryClient.invalidateQueries(
                 useUserProfileQuery.getKey({ userId: data.targetId })
               );
@@ -87,6 +90,7 @@ const App = () => {
               queryClient.invalidateQueries(
                 useDiscussionsAndInvitationsQuery.getKey({})
               );
+              queryClient.invalidateQueries(useUserProfileQuery.getKey({}));
               queryClient.invalidateQueries(
                 useUserProfileQuery.getKey({ userId: data.targetId })
               );
@@ -103,6 +107,7 @@ const App = () => {
               queryClient.invalidateQueries(
                 useDiscussionsAndInvitationsQuery.getKey({})
               );
+              queryClient.invalidateQueries(useUserProfileQuery.getKey({}));
               queryClient.invalidateQueries(
                 useUserProfileQuery.getKey({ userId: data.targetId })
               );
@@ -111,6 +116,7 @@ const App = () => {
               queryClient.invalidateQueries(
                 useDiscussionsAndInvitationsQuery.getKey({})
               );
+              queryClient.invalidateQueries(useUserProfileQuery.getKey({}));
               queryClient.invalidateQueries(
                 useUserProfileQuery.getKey({ userId: data.targetId })
               );
@@ -120,6 +126,7 @@ const App = () => {
               queryClient.invalidateQueries(
                 useDiscussionsAndInvitationsQuery.getKey({})
               );
+              queryClient.invalidateQueries(useUserProfileQuery.getKey({}));
               queryClient.invalidateQueries(
                 useUserProfileQuery.getKey({ userId: data.targetId })
               );
@@ -128,6 +135,7 @@ const App = () => {
               queryClient.invalidateQueries(
                 useDiscussionsAndInvitationsQuery.getKey({})
               );
+              queryClient.invalidateQueries(useUserProfileQuery.getKey({}));
               queryClient.invalidateQueries(
                 useUserProfileQuery.getKey({ userId: data.targetId })
               );
