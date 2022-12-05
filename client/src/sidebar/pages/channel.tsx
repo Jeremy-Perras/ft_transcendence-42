@@ -464,13 +464,6 @@ export default function Channel() {
     data?.adminIds.some((admin) => admin.id === data.userId) ||
     data?.memberIds.some((member) => member.id === data.userId);
 
-  const messagesEndRef = useRef<null | HTMLDivElement>(null);
-  const scrollToBottom = () => {
-    messagesEndRef?.current?.scrollIntoView({ behavior: "smooth" });
-  };
-  useEffect(() => {
-    scrollToBottom();
-  }, [data?.messages]);
   return (
     <>
       <Header>
