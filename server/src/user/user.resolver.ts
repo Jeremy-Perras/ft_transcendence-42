@@ -247,12 +247,13 @@ export class UserResolver {
         id: f.id,
         name: f.name,
         avatar: f.avatar,
-        hasUnreadMessages:
-          lastMessage?.authorId === currentUserId
-            ? false
-            : lastMessage?.readAt
-            ? false
-            : true,
+        hasUnreadMessages: !lastMessage
+          ? false
+          : lastMessage?.authorId === currentUserId
+          ? false
+          : lastMessage?.readAt
+          ? false
+          : true,
         lastMessageContent: lastMessage?.content,
         lastMessageDate: lastMessage?.sentAt,
       });

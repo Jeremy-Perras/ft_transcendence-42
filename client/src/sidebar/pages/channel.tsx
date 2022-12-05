@@ -116,7 +116,7 @@ export const channelLoader = async (
 
 const Banned = () => {
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center pb-60">
+    <div className="flex h-full w-full flex-col items-center justify-center overflow-auto pb-60">
       <img src={BannedIcon} className="w-96 text-slate-100 opacity-30" />
       <span className="mt-10 text-3xl text-neutral-300">You are banned.</span>
     </div>
@@ -217,7 +217,7 @@ const AccessForbidden = ({
 }) => {
   const navigate = useNavigate();
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center pb-60">
+    <div className="flex h-full w-full flex-col items-center justify-center overflow-auto pb-60">
       <ForbiddenIcon className="w-100 text-slate-100" />
       <span className="text-2xl text-slate-300">This Channel is private.</span>
       <div
@@ -232,6 +232,23 @@ const AccessForbidden = ({
         />
         <span>{`${ownerName} !`}</span>
       </div>
+    </div>
+  );
+};
+
+const JoinPublicChannel = ({ channelId }: { channelId: number }) => {
+  const joinChannel = useJoinChannelMutation({});
+
+  return (
+    <div className="flex h-full w-full flex-col items-center justify-center overflow-auto pb-60">
+      <JoinIcon className="h-80 w-80 text-slate-100" />
+      <div className="text-2xl text-slate-300">This Channel is public.</div>
+      <span
+        onClick={() => joinChannel.mutate({ channelId: +channelId })}
+        className="mt-5 flex h-24 w-24 flex-col items-center justify-center border-2 border-slate-200 bg-slate-100 p-2 text-xl text-slate-800 hover:cursor-pointer hover:bg-slate-200"
+      >
+        Join ?
+      </span>
     </div>
   );
 };
@@ -260,9 +277,9 @@ const AccessProtected = ({
 
   const navigate = useNavigate();
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center pb-60">
-      <PasswordIcon className="w-100 text-slate-100" />
-      <span className="text-2xl text-slate-300">
+    <div className="flex h-full w-full shrink flex-col items-center justify-center overflow-auto pb-20">
+      <PasswordIcon className="h-80 w-80 text-slate-100" />
+      <span className="mt-20 h-16 text-2xl text-slate-300">
         Access to this channel is protected.
       </span>
       <div className="flex w-full flex-col items-center justify-center">
@@ -420,23 +437,6 @@ const DisplayMessage = ({
         banned={banned}
       />
     </>
-  );
-};
-
-const JoinPublicChannel = ({ channelId }: { channelId: number }) => {
-  const joinChannel = useJoinChannelMutation({});
-
-  return (
-    <div className="flex h-full w-full flex-col items-center justify-center pb-60">
-      <JoinIcon className="w-100 text-slate-100" />
-      <div className="text-2xl text-slate-300">This Channel is public.</div>
-      <span
-        onClick={() => joinChannel.mutate({ channelId: +channelId })}
-        className="mt-5 flex h-24 w-24 flex-col items-center justify-center border-2 border-slate-200 bg-slate-100 p-2 text-xl text-slate-800 hover:cursor-pointer hover:bg-slate-200"
-      >
-        Join ?
-      </span>
-    </div>
   );
 };
 
