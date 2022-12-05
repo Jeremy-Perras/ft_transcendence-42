@@ -157,7 +157,6 @@ const App = () => {
               );
               break;
             case InvalidCacheTarget.JOIN_CHANNEL:
-              console.log(data.targetId);
               queryClient.invalidateQueries(
                 useChannelSettingsQuery.getKey({ channelId: data.targetId })
               );
@@ -218,6 +217,12 @@ const App = () => {
             case InvalidCacheTarget.INVITE_USER:
               queryClient.invalidateQueries(
                 useDiscussionsAndInvitationsQuery.getKey({})
+              );
+              queryClient.invalidateQueries(
+                useChannelSettingsQuery.getKey({
+                  userId: null,
+                  channelId: data.targetId,
+                })
               );
               break;
             case InvalidCacheTarget.ADD_ADMIN:

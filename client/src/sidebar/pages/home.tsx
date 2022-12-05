@@ -1,9 +1,4 @@
-import {
-  QueryClient,
-  useQuery,
-  useQueryClient,
-  UseQueryOptions,
-} from "@tanstack/react-query";
+import { QueryClient, useQuery, UseQueryOptions } from "@tanstack/react-query";
 import { useState } from "react";
 
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";

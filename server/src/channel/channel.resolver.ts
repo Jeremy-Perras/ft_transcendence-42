@@ -793,7 +793,8 @@ export class ChannelResolver {
   @Mutation((returns) => Boolean)
   async inviteUser(
     @Args("channelId", { type: () => Int }) channelId: number,
-    @Args("userId", { type: () => Int }) userId: number
+    @Args("userId", { type: () => Int }) userId: number,
+    @CurrentUser() currentUserId: number
   ) {
     const isbanned = await this.prisma.bannedMember.findUnique({
       where: {
@@ -812,11 +813,22 @@ export class ChannelResolver {
       data: { channelId, userId },
     });
 
-    this.socketservice.emitInvalidateCache(
-      InvalidCacheTarget.INVITE_USER,
-      [userId],
-      userId
-    );
+    const usersChannel = await this.prisma.channel.findUnique({
+      select: { members: true, ownerId: true, banned: true },
+      where: { id: channelId },
+    });
+
+    const users = usersChannel?.members.map((u) => u.userId);
+    if (usersChannel?.ownerId) users?.push(usersChannel?.ownerId);
+    if (usersChannel?.banned)
+      usersChannel.banned.forEach((u) => users?.push(u.userId));
+    if (users) {
+      this.socketservice.emitInvalidateCache(
+        InvalidCacheTarget.INVITE_USER,
+        users,
+        channelId
+      );
+    }
 
     return true;
   }
