@@ -14,7 +14,6 @@ import {
   useDirectMessagesQuery,
   useDiscussionsAndInvitationsQuery,
   useUserProfileQuery,
-  useUpdateStatusMutation,
 } from "./graphql/generated";
 import queryClient from "./query";
 // TODO Leave channel as owner make a other member owner randomly ?

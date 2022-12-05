@@ -324,12 +324,15 @@ export class UserResolver {
   }
 
   @ResolveField()
-  async status(@Root() user: User): Promise<status | undefined> {
+  async status(@Root() user: User): Promise<status> {
     const s = await this.prisma.user.findUnique({
       select: { status: true },
       where: { id: user.id },
     });
-    return s?.status;
+
+    if (s?.status === "OFFLINE") return status.OFFLINE;
+    if (s?.status === "ONLINE") return status.ONLINE;
+    return status.PLAYING;
   }
 
   @ResolveField()
@@ -796,14 +799,14 @@ export class UserResolver {
   @Mutation((returns) => Boolean)
   async updateStatus(
     @CurrentUser() currentUserId: number,
-    @Args("status", { type: () => String }) s: string
+    @Args("status", { type: () => String }) s: status
   ) {
     await this.prisma.user.update({
       where: {
         id: currentUserId,
       },
       data: {
-        status: s,
+        status: "ONLINE",
       },
     });
 
