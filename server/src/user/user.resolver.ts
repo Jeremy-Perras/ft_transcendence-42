@@ -117,6 +117,7 @@ export class UserResolver {
     const res = await this.prisma.user.findUnique({
       where: { id: currentUserId },
       select: {
+        blocking: true,
         friends: {
           where: {
             friends: {
@@ -214,7 +215,11 @@ export class UserResolver {
         id: channel.id,
         name: channel.name,
         avatar: undefined,
-        lastMessageContent: channel.channelMessages[0]?.content,
+        lastMessageContent: res.blocking.some(
+          (u) => u.id === channel.channelMessages[0]?.authorId
+        )
+          ? "Unblock this user to see this message"
+          : channel.channelMessages[0]?.content,
         lastMessageDate: channel.channelMessages[0]?.sentAt,
         hasUnreadMessages: !channel.channelMessages[0]
           ? false

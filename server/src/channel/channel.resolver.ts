@@ -282,7 +282,7 @@ export class ChannelResolver {
             content: true,
             sentAt: true,
             readBy: true,
-            author: true,
+            author: { select: { blockedBy: true, id: true } },
           },
         },
       },
@@ -301,6 +301,11 @@ export class ChannelResolver {
           },
         ],
       },
+    });
+    c?.channelMessages.forEach((message) => {
+      if (message.author.blockedBy.some((u) => u.id === currentUserId)) {
+        message.content = "Unblock user to see this message";
+      }
     });
 
     return c

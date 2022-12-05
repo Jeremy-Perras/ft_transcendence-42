@@ -191,9 +191,7 @@ const ChannelMessage = ({
               data?.user.blocked ? "bg-red-600" : ""
             } rounded-md bg-slate-200 px-4 py-2 text-left tracking-wide`}
           >
-            {data?.user.blocked
-              ? "Unblock this user to see this message"
-              : content}
+            {content}
           </span>
         </div>
       </div>
