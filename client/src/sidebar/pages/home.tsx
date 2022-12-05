@@ -108,8 +108,6 @@ const Invitation = ({
   avatar: string | undefined;
   name: string;
 }) => {
-  const queryClient = useQueryClient();
-
   const addFriend = useAddFriendMutation();
 
   const refuse = useRefuseInvitationMutation();

@@ -226,12 +226,16 @@ export class UserResolver {
     res?.channels.forEach((c) => formatChannel(c.channel));
 
     res.friends.forEach((f) => {
-      const lastMessage = f.messageReceived[0] ?? f.messageSent[0];
-      f.messageReceived[0] && f.messageSent[0]
-        ? f.messageReceived[0].sentAt > f.messageSent[0]?.sentAt
-          ? f.messageReceived[0]
-          : f.messageSent[0]
-        : f.messageReceived[0] ?? f.messageSent[0];
+      let lastMessage;
+      if (f.messageReceived[0] && f.messageSent[0]) {
+        f.messageReceived[0]?.sentAt < f.messageSent[0]?.sentAt
+          ? (lastMessage = f.messageSent[0])
+          : (lastMessage = f.messageReceived[0]);
+      } else if (f.messageReceived[0] && !f.messageSent[0])
+        lastMessage = f.messageReceived[0];
+      else if (f.messageSent[0] && !f.messageReceived[0])
+        lastMessage = f.messageSent[0];
+      else lastMessage = undefined;
 
       mergeResult.push({
         type: chatType.USER,
