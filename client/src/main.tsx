@@ -3,7 +3,6 @@ import ReactDOM from "react-dom/client";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { GameRouter } from "./game/router";
 import SideBar from "./sidebar/sidebar";
-import queryClient from "./query";
 import { useAuthStore } from "./stores";
 import "./index.css";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
@@ -15,7 +14,9 @@ import {
   useDirectMessagesQuery,
   useDiscussionsAndInvitationsQuery,
   useUserProfileQuery,
+  useUpdateStatusMutation,
 } from "./graphql/generated";
+import queryClient from "./query";
 // TODO Leave channel as owner make a other member owner randomly ?
 //TODO how does it knows delete channel when nobody in
 //TODO if ban not show the change inside channel ?
@@ -46,6 +47,7 @@ const App = () => {
       });
 
       socket.on("disconnect", () => {
+        // updateStatus.mutate({ status: "OFFLINE" });
         console.log("disconnected", socket);
       });
 
@@ -254,6 +256,17 @@ const App = () => {
                   userId: null,
                   channelId: data.targetId,
                 })
+              );
+              break;
+            case InvalidCacheTarget.UPDATE_STATUS:
+              queryClient.invalidateQueries(
+                useDiscussionsAndInvitationsQuery.getKey({})
+              );
+              queryClient.invalidateQueries(
+                useUserProfileQuery.getKey({ userId: data.targetId })
+              );
+              queryClient.invalidateQueries(
+                useDirectMessagesQuery.getKey({ userId: data.targetId })
               );
               break;
             default:

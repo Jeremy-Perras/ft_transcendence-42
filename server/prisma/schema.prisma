@@ -7,6 +7,12 @@ datasource db {
   url      = env("POSTGRES_URL")
 }
 
+enum status {
+  ONLINE
+  OFFLINE
+  PLAYING
+}
+
 model User {
   id          Int     @id @unique
   name        String  @unique
@@ -14,6 +20,8 @@ model User {
   twoFASecret String?
 
   rank Int @default(0)
+
+  status status @default(OFFLINE)
 
   friendedBy User[] @relation("UserFriends")
   friends    User[] @relation("UserFriends")

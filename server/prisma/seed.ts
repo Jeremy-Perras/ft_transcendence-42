@@ -47,6 +47,7 @@ async function main() {
         name: faker.name.fullName(),
         avatar: `${(i % 10) + 1}.jpg`,
         rank: Math.floor(Math.random() * 100),
+        status: "OFFLINE",
         achievements: {
           create: [
             {

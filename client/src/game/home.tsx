@@ -10,6 +10,7 @@ import {
 } from "framer-motion";
 import LogoImage from "../assets/images/logo.svg";
 import ArrowImage from "../assets/game_modes/arrow.svg";
+import { useUpdateStatusMutation } from "../graphql/generated";
 
 type State = "idle" | "selecting" | "waiting";
 
@@ -260,7 +261,10 @@ export const Home = () => {
   const [state, setState] = useState<State>("idle");
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
   const isSmall = useMediaQuery("(max-height : 1000px)");
-
+  const updateStatus = useUpdateStatusMutation();
+  useEffect(() => {
+    if (isLoggedIn) updateStatus.mutate({ status: "ONLINE" });
+  }, [isLoggedIn]);
   return (
     <>
       <img

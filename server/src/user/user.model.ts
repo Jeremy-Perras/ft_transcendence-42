@@ -20,6 +20,12 @@ export enum friendStatus {
   FRIEND,
 }
 
+export enum status {
+  ONLINE,
+  OFFLINE,
+  PLAYING,
+}
+
 export type userType = Omit<
   User,
   | "friends"
@@ -28,12 +34,14 @@ export type userType = Omit<
   | "messages"
   | "channels"
   | "games"
-  | "status"
   | "achievements"
   | "pendingFriends"
   | "chats"
+  | "status"
 >;
-
+registerEnumType(status, {
+  name: "status",
+});
 registerEnumType(friendStatus, {
   name: "friendStatus",
 });
@@ -87,6 +95,9 @@ export class User {
 
   @Field((type) => friendStatus, { nullable: true })
   friendStatus?: friendStatus;
+
+  @Field((type) => status)
+  status: status;
 
   @Field((type) => [DirectMessage])
   messages: [DirectMessage | undefined];

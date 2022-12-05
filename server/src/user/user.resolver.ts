@@ -14,6 +14,7 @@ import {
   Mutation,
 } from "@nestjs/graphql";
 import { Prisma } from "@prisma/client";
+import { use } from "passport";
 import { GqlAuthenticatedGuard } from "../auth/authenticated.guard";
 import { CurrentUser } from "../auth/currentUser.decorator";
 import { channelType } from "../channel/channel.model";
@@ -36,6 +37,7 @@ import {
   userType,
   Chat,
   chatType,
+  status,
 } from "./user.model";
 @Resolver(User)
 @UseGuards(GqlAuthenticatedGuard)
@@ -319,6 +321,15 @@ export class UserResolver {
       where: { userId: user.id },
     });
     return achievements;
+  }
+
+  @ResolveField()
+  async status(@Root() user: User): Promise<status | undefined> {
+    const s = await this.prisma.user.findUnique({
+      select: { status: true },
+      where: { id: user.id },
+    });
+    return s?.status;
   }
 
   @ResolveField()
@@ -779,6 +790,36 @@ export class UserResolver {
       friend.map((f) => f.id),
       currentUserId
     );
+    return true;
+  }
+
+  @Mutation((returns) => Boolean)
+  async updateStatus(
+    @CurrentUser() currentUserId: number,
+    @Args("status", { type: () => String }) s: string
+  ) {
+    await this.prisma.user.update({
+      where: {
+        id: currentUserId,
+      },
+      data: {
+        status: s,
+      },
+    });
+
+    const users = await this.prisma.user.findUnique({
+      select: { friends: { select: { id: true } } },
+      where: {
+        id: currentUserId,
+      },
+    });
+    if (users?.friends) {
+      this.socketService.emitInvalidateCache(
+        InvalidCacheTarget.UPDATE_STATUS,
+        users?.friends.map((u) => u.id),
+        currentUserId
+      );
+    }
     return true;
   }
 }
