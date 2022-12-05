@@ -29,6 +29,8 @@
     "esbenp.prettier-vscode",
     "Prisma.prisma",
     "bradlc.vscode-tailwindcss",
-    "Gruntfuggly.todo-tree"
+    "Gruntfuggly.todo-tree",
+    "pascalsenn.keyboard-quickfix",
+    "GitHub.copilot"
   ]
 }

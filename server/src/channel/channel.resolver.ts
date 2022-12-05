@@ -256,11 +256,6 @@ export class ChannelResolver {
         ],
       },
     });
-    c?.channelMessages.forEach((message) => {
-      if (message.author.blockedBy.some((u) => u.id === currentUserId)) {
-        message.content = "Unblock user to see this message";
-      }
-    });
 
     if (!c) {
       throw new ForbiddenException("You are not a member of this channel");
@@ -769,8 +764,7 @@ export class ChannelResolver {
   @Mutation((returns) => Boolean)
   async inviteUser(
     @Args("channelId", { type: () => Int }) channelId: number,
-    @Args("userId", { type: () => Int }) userId: number,
-    @CurrentUser() currentUserId: number
+    @Args("userId", { type: () => Int }) userId: number
   ) {
     const isbanned = await this.prisma.bannedMember.findUnique({
       where: {
