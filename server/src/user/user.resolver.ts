@@ -212,14 +212,15 @@ export class UserResolver {
         avatar: undefined,
         lastMessageContent: channel.channelMessages[0]?.content,
         lastMessageDate: channel.channelMessages[0]?.sentAt,
-        hasUnreadMessages:
-          channel.channelMessages[0]?.authorId === currentUserId
-            ? false
-            : channel.channelMessages[0]?.readBy.some(
-                (id) => id.userId === currentUserId
-              )
-            ? false
-            : true,
+        hasUnreadMessages: !channel.channelMessages[0]
+          ? false
+          : channel.channelMessages[0]?.authorId === currentUserId
+          ? false
+          : channel.channelMessages[0]?.readBy.some(
+              (id) => id.userId === currentUserId
+            )
+          ? false
+          : true,
       });
     };
     res?.ownedChannels.forEach(formatChannel);
