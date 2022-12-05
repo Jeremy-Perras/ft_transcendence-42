@@ -36,12 +36,7 @@ import { useRef, useState } from "react";
 import * as Avatar from "@radix-ui/react-avatar";
 import { useForm } from "react-hook-form";
 
-import {
-  QueryClient,
-  useQuery,
-  useQueryClient,
-  UseQueryOptions,
-} from "@tanstack/react-query";
+import { QueryClient, useQuery, UseQueryOptions } from "@tanstack/react-query";
 
 import {
   Header,
@@ -140,27 +135,8 @@ const MuteButton = ({
   muted: boolean | undefined;
 }) => {
   const [showInfoMute, setShowInfoMute] = useState(false);
-  const queryClient = useQueryClient();
-  const muteUser = useMuteUserMutation({
-    onSuccess: () => {
-      queryClient.invalidateQueries(
-        useChannelSettingsQuery.getKey({
-          userId: null,
-          channelId: channelId,
-        })
-      );
-    },
-  });
-  const unmuteUser = useUnmuteUserMutation({
-    onSuccess: () => {
-      queryClient.invalidateQueries(
-        useChannelSettingsQuery.getKey({
-          userId: null,
-          channelId: channelId,
-        })
-      );
-    },
-  });
+  const muteUser = useMuteUserMutation({});
+  const unmuteUser = useUnmuteUserMutation({});
 
   return (
     <div className="relative flex w-8 flex-col justify-end text-center transition-all hover:cursor-pointer">
@@ -213,27 +189,8 @@ const BanButton = ({
 }) => {
   const [showInfoBan, setShowInfoBan] = useState(false);
 
-  const queryClient = useQueryClient();
-  const banUser = useBanUserMutation({
-    onSuccess: () => {
-      queryClient.invalidateQueries(
-        useChannelSettingsQuery.getKey({
-          userId: null,
-          channelId: channelId,
-        })
-      );
-    },
-  });
-  const unbanUser = useUnbanUserMutation({
-    onSuccess: () => {
-      queryClient.invalidateQueries(
-        useChannelSettingsQuery.getKey({
-          userId: null,
-          channelId: channelId,
-        })
-      );
-    },
-  });
+  const banUser = useBanUserMutation({});
+  const unbanUser = useUnbanUserMutation({});
 
   return (
     <div className="relative flex w-8 flex-col justify-end text-center transition-all hover:cursor-pointer">
@@ -284,17 +241,7 @@ const SetAsAdminButton = ({
 }) => {
   const [showInfoAdmin, setShowInfoAdmin] = useState(false);
 
-  const queryClient = useQueryClient();
-  const addAdmin = useAddAdminMutation({
-    onSuccess: () => {
-      queryClient.invalidateQueries(
-        useChannelSettingsQuery.getKey({
-          userId: null,
-          channelId: channelId,
-        })
-      );
-    },
-  });
+  const addAdmin = useAddAdminMutation({});
 
   return (
     <div
@@ -334,17 +281,7 @@ const UnsetAdminButton = ({
 }) => {
   const [showInfoAdmin, setShowInfoAdmin] = useState(false);
 
-  const queryClient = useQueryClient();
-  const removeAdmin = useRemoveAdminMutation({
-    onSuccess: () => {
-      queryClient.invalidateQueries(
-        useChannelSettingsQuery.getKey({
-          userId: null,
-          channelId: channelId,
-        })
-      );
-    },
-  });
+  const removeAdmin = useRemoveAdminMutation({});
 
   return (
     <div
@@ -532,7 +469,6 @@ const Search = ({
   channelId: number;
   userId: number;
 }) => {
-  const queryClient = useQueryClient();
   const { data } = useSearchUsersQuery(
     { name: search },
     {
@@ -543,16 +479,7 @@ const Search = ({
       },
     }
   );
-  const updateMembers = useInviteUserMutation({
-    onSuccess: () => {
-      queryClient.invalidateQueries(
-        useChannelSettingsQuery.getKey({
-          userId: null,
-          channelId: channelId,
-        })
-      );
-    },
-  });
+  const updateMembers = useInviteUserMutation({});
 
   return (
     <div className="flex flex-col  divide-y divide-slate-200 overflow-y-scroll">
@@ -621,17 +548,7 @@ const LeaveChannelPopUp = ({
 }) => {
   const navigate = useNavigate();
 
-  const queryClient = useQueryClient();
-  const leaveChannel = useLeaveChannelMutation({
-    onSuccess: () => {
-      queryClient.invalidateQueries(
-        useChannelSettingsQuery.getKey({
-          userId: null,
-          channelId: channelId,
-        })
-      );
-    },
-  });
+  const leaveChannel = useLeaveChannelMutation({});
 
   return (
     <div className="absolute top-0 right-0 z-10 flex h-full w-full flex-col items-center justify-center bg-black bg-opacity-30">
@@ -752,22 +669,14 @@ const ChannelMode = ({
   activeMode: string;
   changesAuthorized: boolean;
 }) => {
-  const queryClient = useQueryClient();
   const {
     register,
     handleSubmit,
     formState: { errors },
     reset,
   } = useForm<formData>();
-
   const updatePassword = useUpdateChannelPasswordMutation({
     onSuccess: () => {
-      queryClient.invalidateQueries(
-        useChannelSettingsQuery.getKey({
-          userId: null,
-          channelId: channelId,
-        })
-      );
       setShowPasswordField(false);
       reset();
     },

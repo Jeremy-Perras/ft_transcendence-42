@@ -109,7 +109,6 @@ const Invitation = ({
   name: string;
 }) => {
   const addFriend = useAddFriendMutation();
-
   const refuse = useRefuseInvitationMutation();
 
   return (

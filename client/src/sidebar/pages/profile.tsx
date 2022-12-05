@@ -315,34 +315,10 @@ const AddFriend = ({
   pendingInvitation: boolean | undefined;
   pendingAccept: boolean | undefined;
 }) => {
-  const queryClient = useQueryClient();
-  const addFriend = useAddFriendMutation({
-    onSuccess: () => {
-      queryClient.invalidateQueries(useUserProfileQuery.getKey());
-      queryClient.invalidateQueries(useUserProfileQuery.getKey({ userId }));
-    },
-  });
-  const block = useBlockUserMutation({
-    onSuccess: () => {
-      queryClient.invalidateQueries(useUserProfileQuery.getKey({ userId }));
-    },
-  });
-  const cancelInvation = useCancelInvitationMutation({
-    onSuccess: () => {
-      queryClient.invalidateQueries(useUserProfileQuery.getKey());
-      queryClient.invalidateQueries(
-        useUserProfileQuery.getKey({ userId: userId })
-      );
-    },
-  });
-  const refuseInvation = useRefuseInvitationMutation({
-    onSuccess: () => {
-      queryClient.invalidateQueries(useUserProfileQuery.getKey());
-      queryClient.invalidateQueries(
-        useUserProfileQuery.getKey({ userId: userId })
-      );
-    },
-  });
+  const addFriend = useAddFriendMutation({});
+  const block = useBlockUserMutation({});
+  const cancelInvation = useCancelInvitationMutation({});
+  const refuseInvation = useRefuseInvitationMutation({});
 
   return (
     <div className="flex w-full select-none">
@@ -399,13 +375,7 @@ const AddFriend = ({
 };
 
 const Unblock = ({ userId }: { userId: number }) => {
-  const queryClient = useQueryClient();
-
-  const unblock = useUnblockUserMutation({
-    onSuccess: () => {
-      queryClient.invalidateQueries(useUserProfileQuery.getKey({ userId }));
-    },
-  });
+  const unblock = useUnblockUserMutation({});
   return (
     <div
       className="flex h-24 w-full select-none flex-col items-center justify-center border-2 border-red-500 bg-red-400 p-4 font-bold text-slate-800 transition-all hover:cursor-pointer hover:bg-red-500 "
@@ -442,24 +412,9 @@ const Blocked = () => {
 };
 
 const FriendButtons = ({ data }: { data: UserProfileQuery }) => {
-  const queryClient = useQueryClient();
+  const unfriend = useUnfriendUserMutation({});
 
-  const unfriend = useUnfriendUserMutation({
-    onSuccess: () => {
-      queryClient.invalidateQueries(useUserProfileQuery.getKey());
-      queryClient.invalidateQueries(
-        useUserProfileQuery.getKey({ userId: data.user.id })
-      );
-    },
-  });
-
-  const block = useBlockUserMutation({
-    onSuccess: () => {
-      queryClient.invalidateQueries(
-        useUserProfileQuery.getKey({ userId: data.user.id })
-      );
-    },
-  });
+  const block = useBlockUserMutation({});
 
   return (
     <div className="flex h-24 select-none bg-slate-100 text-2xl font-bold text-slate-600">
@@ -517,12 +472,7 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
     defaultValue: data.user.name,
   });
 
-  const queryClient = useQueryClient();
   const changeName = useUpdateUserNameMutation({
-    onSuccess: () => {
-      queryClient.invalidateQueries(useUserProfileQuery.getKey({}));
-      setShowNameError(false);
-    },
     onError: () => setShowNameError(true),
   });
 

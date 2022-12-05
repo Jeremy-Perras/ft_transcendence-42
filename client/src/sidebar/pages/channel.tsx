@@ -18,12 +18,7 @@ import { ReactComponent as PasswordIcon } from "pixelarticons/svg/lock.svg";
 import { ReactComponent as JoinIcon } from "pixelarticons/svg/users.svg";
 import { useForm } from "react-hook-form";
 import BannedIcon from "/src/assets/images/Banned.svg";
-import {
-  QueryClient,
-  useQuery,
-  useQueryClient,
-  UseQueryOptions,
-} from "@tanstack/react-query";
+import { QueryClient, useQuery, UseQueryOptions } from "@tanstack/react-query";
 import {
   Header,
   HeaderCenterContent,
@@ -259,13 +254,7 @@ const AccessProtected = ({
   } = useForm<formData>();
 
   const [showPwdError, setShowPwdError] = useState(false);
-  const queryClient = useQueryClient();
   const joinChannel = useJoinChannelMutation({
-    onSuccess: () => {
-      queryClient.invalidateQueries(
-        useChannelDiscussionQuery.getKey({ channelId: channelId })
-      );
-    },
     onError: () => setShowPwdError(true),
   });
 
@@ -348,16 +337,7 @@ const SendMessageElement = ({
 }) => {
   const [content, setContent] = useState("");
 
-  const queryClient = useQueryClient();
-  const messageMutation = useSendChannelMessageMutation({
-    onSuccess: () => {
-      queryClient.invalidateQueries(
-        useChannelDiscussionQuery.getKey({
-          channelId: +channelId,
-        })
-      );
-    },
-  });
+  const messageMutation = useSendChannelMessageMutation({});
 
   return (
     <div className="flex w-full bg-white px-[2px]">
@@ -444,14 +424,7 @@ const DisplayMessage = ({
 };
 
 const JoinPublicChannel = ({ channelId }: { channelId: number }) => {
-  const queryClient = useQueryClient();
-  const joinChannel = useJoinChannelMutation({
-    onSuccess: () => {
-      queryClient.invalidateQueries(
-        useChannelDiscussionQuery.getKey({ channelId: +channelId })
-      );
-    },
-  });
+  const joinChannel = useJoinChannelMutation({});
 
   return (
     <div className="flex h-full w-full flex-col items-center justify-center pb-60">

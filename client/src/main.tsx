@@ -16,9 +16,7 @@ import {
   useDiscussionsAndInvitationsQuery,
   useUserProfileQuery,
 } from "./graphql/generated";
-//TODO Mutation direct message invalidate all in once, or it's bugs
 // TODO Leave channel as owner make a other member owner randomly ?
-// TODOFirefox localhost:5555 bug
 //TODO how does it knows delete channel when nobody in
 //TODO if ban not show the change inside channel ?
 let init = false;
@@ -59,7 +57,9 @@ const App = () => {
               queryClient.invalidateQueries(
                 useDirectMessagesQuery.getKey({ userId: data.targetId })
               );
-
+              queryClient.invalidateQueries(
+                useDiscussionsAndInvitationsQuery.getKey({})
+              );
               queryClient.invalidateQueries(
                 useDiscussionsAndInvitationsQuery.getKey({
                   userId: data.targetId,
@@ -73,17 +73,11 @@ const App = () => {
               queryClient.invalidateQueries(
                 useUserProfileQuery.getKey({ userId: data.targetId })
               );
-              queryClient.invalidateQueries(
-                useUserProfileQuery.getKey({ userId: data.targetId })
-              );
               queryClient.invalidateQueries(useDirectMessagesQuery.getKey({}));
               break;
             case InvalidCacheTarget.INVITATION_FRIEND:
               queryClient.invalidateQueries(
                 useDiscussionsAndInvitationsQuery.getKey({})
-              );
-              queryClient.invalidateQueries(
-                useUserProfileQuery.getKey({ userId: data.targetId })
               );
               queryClient.invalidateQueries(
                 useUserProfileQuery.getKey({ userId: data.targetId })
@@ -96,16 +90,10 @@ const App = () => {
               queryClient.invalidateQueries(
                 useUserProfileQuery.getKey({ userId: data.targetId })
               );
-              queryClient.invalidateQueries(
-                useUserProfileQuery.getKey({ userId: data.targetId })
-              );
               break;
             case InvalidCacheTarget.UPDATE_USER_NAME:
               queryClient.invalidateQueries(
                 useDiscussionsAndInvitationsQuery.getKey({})
-              );
-              queryClient.invalidateQueries(
-                useUserProfileQuery.getKey({ userId: data.targetId })
               );
               queryClient.invalidateQueries(
                 useUserProfileQuery.getKey({ userId: data.targetId })
@@ -118,16 +106,10 @@ const App = () => {
               queryClient.invalidateQueries(
                 useUserProfileQuery.getKey({ userId: data.targetId })
               );
-              queryClient.invalidateQueries(
-                useUserProfileQuery.getKey({ userId: data.targetId })
-              );
               break;
             case InvalidCacheTarget.UNFRIEND_USER:
               queryClient.invalidateQueries(
                 useDiscussionsAndInvitationsQuery.getKey({})
-              );
-              queryClient.invalidateQueries(
-                useUserProfileQuery.getKey({ userId: data.targetId })
               );
               queryClient.invalidateQueries(
                 useUserProfileQuery.getKey({ userId: data.targetId })
@@ -141,24 +123,10 @@ const App = () => {
               queryClient.invalidateQueries(
                 useUserProfileQuery.getKey({ userId: data.targetId })
               );
-              queryClient.invalidateQueries(
-                useUserProfileQuery.getKey({ userId: data.targetId })
-              );
               break;
             case InvalidCacheTarget.UNBLOCK_USER:
               queryClient.invalidateQueries(
                 useDiscussionsAndInvitationsQuery.getKey({})
-              );
-              break;
-            case InvalidCacheTarget.CHANNEL_MESSAGE:
-              queryClient.invalidateQueries(
-                useDiscussionsAndInvitationsQuery.getKey({})
-              );
-              queryClient.invalidateQueries(
-                useChannelDiscussionQuery.getKey({ channelId: data.targetId })
-              );
-              queryClient.invalidateQueries(
-                useUserProfileQuery.getKey({ userId: data.targetId })
               );
               queryClient.invalidateQueries(
                 useUserProfileQuery.getKey({ userId: data.targetId })
@@ -181,8 +149,12 @@ const App = () => {
               );
               break;
             case InvalidCacheTarget.JOIN_CHANNEL:
+              console.log(data.targetId);
               queryClient.invalidateQueries(
                 useChannelSettingsQuery.getKey({ channelId: data.targetId })
+              );
+              queryClient.invalidateQueries(
+                useChannelDiscussionQuery.getKey({ channelId: data.targetId })
               );
               break;
             case InvalidCacheTarget.CREATE_CHANNEL:
@@ -254,10 +226,21 @@ const App = () => {
               queryClient.invalidateQueries(
                 useChannelDiscussionQuery.getKey({ channelId: data.targetId })
               );
+              queryClient.invalidateQueries(
+                useDiscussionsAndInvitationsQuery.getKey({})
+              );
               break;
             case InvalidCacheTarget.CREATE_CHANNEL_MESSAGE_READ:
               queryClient.invalidateQueries(
                 useChannelDiscussionQuery.getKey({ channelId: data.targetId })
+              );
+              break;
+            case InvalidCacheTarget.UPDATE_PASSWORD:
+              queryClient.invalidateQueries(
+                useChannelSettingsQuery.getKey({
+                  userId: null,
+                  channelId: data.targetId,
+                })
               );
               break;
             default:

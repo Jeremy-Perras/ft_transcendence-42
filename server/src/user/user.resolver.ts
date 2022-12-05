@@ -37,7 +37,6 @@ import {
   Chat,
   chatType,
 } from "./user.model";
-//TODO accpet invitation reload cache
 @Resolver(User)
 @UseGuards(GqlAuthenticatedGuard)
 export class UserResolver {
@@ -643,9 +642,11 @@ export class UserResolver {
       },
     });
 
+    const users = [userId, currentUserId];
+
     this.socketService.emitInvalidateCache(
       InvalidCacheTarget.FRIEND_USER,
-      [userId],
+      users,
       currentUserId
     );
 
@@ -719,10 +720,10 @@ export class UserResolver {
         friends: { disconnect: { id: currentUserId } },
       },
     });
-
+    const users = [userId, currentUserId];
     this.socketService.emitInvalidateCache(
       InvalidCacheTarget.REFUSE_INVITATION_FRIEND,
-      [userId],
+      users,
       currentUserId
     );
 

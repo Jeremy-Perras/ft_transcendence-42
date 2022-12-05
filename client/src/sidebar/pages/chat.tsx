@@ -132,8 +132,6 @@ const DirectMessage = ({
 };
 
 export default function Chat() {
-  const queryClient = useQueryClient();
-
   const params = useParams();
   if (typeof params.userId === "undefined") return <div></div>; // TODO: 404
   const userId = +params.userId;
@@ -145,12 +143,7 @@ export default function Chat() {
   const initialData = useLoaderData() as Awaited<ReturnType<typeof chatLoader>>;
   const { data } = useQuery({ ...query(userId), initialData });
 
-  const sendMessageMutation = useSendDirectMessageMutation({
-    onSuccess: () => {
-      queryClient.invalidateQueries(useDirectMessagesQuery.getKey({ userId }));
-      queryClient.invalidateQueries(useDirectMessagesQuery.getKey({}));
-    },
-  });
+  const sendMessageMutation = useSendDirectMessageMutation({});
 
   const sidebarIsOpen = useSidebarStore((state) => state.isOpen);
 

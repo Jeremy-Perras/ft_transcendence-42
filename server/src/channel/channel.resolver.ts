@@ -253,7 +253,6 @@ export class ChannelResolver {
         ],
       },
     });
-    /******Unique constraint failed on the fields: (`channelMessageId`,`userId`)******* */
 
     messages?.channelMessages.forEach(async (message) => {
       if (
@@ -269,22 +268,6 @@ export class ChannelResolver {
         });
       }
     });
-
-    // const usersChannel = await this.prisma.channel.findUnique({
-    //   select: { members: true, ownerId: true },
-    //   where: { id: channel.id },
-    // });
-
-    // const users = usersChannel?.members.map((u) => u.userId);
-    // if (usersChannel?.ownerId) users?.push(usersChannel?.ownerId);
-
-    // if (users) {
-    //   this.socketservice.emitInvalidateCache(
-    //     InvalidCacheTarget.CREATE_CHANNEL_MESSAGE_READ,
-    //     users,
-    //     channel.id
-    //   );
-    // }
 
     const c = await this.prisma.channel.findFirst({
       select: {
@@ -786,14 +769,21 @@ export class ChannelResolver {
   async updatePassword(
     @Args("channelId", { type: () => Int }) channelId: number,
     @Args("password", { type: () => String, nullable: true })
-    password: string | null
+    password: string | null,
+    @CurrentUser() currentUserId: number
   ) {
     const hash = password ? bcrypt.hashSync(password, 10) : null;
-
     await this.prisma.channel.update({
       where: { id: channelId },
       data: { password: hash },
     });
+
+    this.socketservice.emitInvalidateCache(
+      InvalidCacheTarget.UPDATE_PASSWORD,
+      [currentUserId],
+      channelId
+    );
+
     return true;
   }
 
@@ -1020,7 +1010,6 @@ export class ChannelMessageResolver {
 
     const users = usersChannel?.members.map((u) => u.userId);
     if (usersChannel?.ownerId) users?.push(usersChannel?.ownerId);
-
     if (users) {
       this.socketservice.emitInvalidateCache(
         InvalidCacheTarget.SEND_CHANNEL_MESSAGE,
