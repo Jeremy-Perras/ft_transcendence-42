@@ -269,7 +269,6 @@ export class ChannelResolver {
       skipDuplicates: true,
     });
 
-    const m = c.channelMessages[0];
     return c
       ? c.channelMessages.map((message) => ({
           id: message.id,
