@@ -20,12 +20,12 @@ const CurrentUserProfile = () => {
       <Avatar.Root>
         {isFetched ? (
           <Avatar.Image
-            className="w-10 transition-all hover:brightness-90"
+            className="h-9 w-10 border-l-2 transition-all hover:brightness-90"
             src={`/uploads/avatars/${data?.user.avatar}`}
           />
         ) : null}
         <Avatar.Fallback delayMs={0}>
-          <UserIcon className="w-10 border-l-2 transition-colors duration-200 hover:text-slate-500" />
+          <UserIcon className="h-9 border-l-2 transition-colors duration-200 hover:text-slate-500" />
         </Avatar.Fallback>
       </Avatar.Root>
     </div>
