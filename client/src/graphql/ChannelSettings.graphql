@@ -1,4 +1,4 @@
-query ChannelSettings($channelId: Int!, $userId: Int) {
+query ChannelSettings($channelId: Int!) {
   channel(id: $channelId) {
     id
     name
@@ -9,8 +9,6 @@ query ChannelSettings($channelId: Int!, $userId: Int) {
     }
     admins {
       id
-      avatar
-      name
     }
     members {
       id
@@ -29,8 +27,5 @@ query ChannelSettings($channelId: Int!, $userId: Int) {
     }
     passwordProtected
     private
-  }
-  user(id: $userId) {
-    id
   }
 }

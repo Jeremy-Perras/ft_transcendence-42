@@ -9,6 +9,7 @@ query DiscussionsAndInvitations($userId: Int) {
       lastMessageDate
       name
       type
+      status
     }
     pendingFriends {
       id

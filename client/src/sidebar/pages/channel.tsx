@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
   LoaderFunctionArgs,
+  Navigate,
   useLoaderData,
   useNavigate,
   useParams,
@@ -17,11 +18,7 @@ import { ReactComponent as PasswordIcon } from "pixelarticons/svg/lock.svg";
 import { ReactComponent as JoinIcon } from "pixelarticons/svg/users.svg";
 import { useForm } from "react-hook-form";
 import BannedIcon from "/src/assets/images/Banned.svg";
-import {
-  QueryClient,
-  useQuery,
-  UseQueryOptions,
-} from "@tanstack/react-query";
+import { QueryClient, useQuery, UseQueryOptions } from "@tanstack/react-query";
 import {
   Header,
   HeaderCenterContent,
@@ -31,19 +28,8 @@ import {
 import { User } from "../types/user";
 import { getDate } from "../utils/getDate";
 import { useAuthStore, useSidebarStore } from "../../stores";
-
-enum Role {
-  OWNER,
-  ADMIN,
-  MEMBER,
-  NON_MEMBER,
-}
-
-enum Status {
-  BANNED,
-  MUTED,
-  OK,
-}
+import { ChannelUserRole } from "../types/channelUserRole";
+import { ChannelUserStatus } from "../types/channelUserStatus";
 
 type Channel = {
   name: string;
@@ -99,8 +85,6 @@ export const channelLoader = async (
 };
 
 const JoinPublicChannel = ({ channelId }: { channelId: number }) => {
-
-
   const joinChannel = useJoinChannelMutation();
 
   return (
@@ -215,13 +199,14 @@ const MessageInput = ({
   status,
 }: {
   channelId: number;
-  status: Status;
+  status: ChannelUserStatus;
 }) => {
   const [content, setContent] = useState("");
 
   const messageMutation = useSendChannelMessageMutation({});
 
-  const cannotSendMessage = status === Status.BANNED || status === Status.MUTED;
+  const cannotSendMessage =
+    status === ChannelUserStatus.BANNED || status === ChannelUserStatus.MUTED;
 
   return (
     <div className="flex w-full bg-white px-[2px]">
@@ -234,9 +219,9 @@ const MessageInput = ({
         }  w-full resize-none border-x-2 border-b-8 border-white px-2 pt-4 pb-2 `}
         onChange={(e) => setContent(e.target.value)}
         placeholder={`${
-          status === Status.BANNED
+          status === ChannelUserStatus.BANNED
             ? "You are banned"
-            : status === Status.MUTED
+            : status === ChannelUserStatus.MUTED
             ? "You are muted"
             : "Type your message here ..."
         }`}
@@ -344,7 +329,7 @@ const Messages = ({
   messages,
 }: {
   channelId: number;
-  status: Status;
+  status: ChannelUserStatus;
   messages: ChannelDiscussionQuery["channel"]["messages"] | undefined;
 }) => {
   const sidebarIsOpen = useSidebarStore((state) => state.isOpen);
@@ -379,14 +364,14 @@ const Messages = ({
 export default function Channel() {
   const navigate = useNavigate();
   const params = useParams();
-  const userId = useAuthStore((state) => state.userId);
 
+  const userId = useAuthStore((state) => state.userId);
   if (!userId) {
-    navigate("/");
-    return;
+    return <Navigate to={"/"} replace={true} />;
   }
 
-  if (typeof params.channelId === "undefined") return <div>No channel Id</div>; // TODO
+  if (typeof params.channelId === "undefined")
+    return <Navigate to={"/"} replace={true} />;
   const channelId = +params.channelId;
   const initialData = useLoaderData() as Awaited<
     ReturnType<typeof channelLoader>
@@ -395,22 +380,23 @@ export default function Channel() {
     ...query(channelId),
     initialData,
   });
-  if (typeof channel === "undefined") return <div>Error</div>; // TODO
+  if (typeof channel === "undefined")
+    return <Navigate to={"/"} replace={true} />;
 
   const role =
     channel.owner.id === userId
-      ? Role.OWNER
+      ? ChannelUserRole.OWNER
       : channel.adminIds.some((admin) => admin.id === userId)
-      ? Role.ADMIN
+      ? ChannelUserRole.ADMIN
       : channel.memberIds.some((member) => member.id === userId)
-      ? Role.MEMBER
-      : Role.NON_MEMBER;
+      ? ChannelUserRole.MEMBER
+      : ChannelUserRole.NON_MEMBER;
 
   const status = channel.banned.some((banned) => banned.id === userId)
-    ? Status.BANNED
+    ? ChannelUserStatus.BANNED
     : channel.muted.some((muted) => muted.id === userId)
-    ? Status.MUTED
-    : Status.OK;
+    ? ChannelUserStatus.MUTED
+    : ChannelUserStatus.OK;
 
   return (
     <>
@@ -422,10 +408,12 @@ export default function Channel() {
           <HeaderCenterContent>
             <div
               className={`flex h-full items-center justify-center ${
-                status !== Status.BANNED ? "hover:cursor-pointer" : ""
+                status !== ChannelUserStatus.BANNED
+                  ? "hover:cursor-pointer"
+                  : ""
               }`}
               onClick={() =>
-                status !== Status.BANNED &&
+                status !== ChannelUserStatus.BANNED &&
                 navigate(`/settings/channel/${channelId}`)
               }
             >
@@ -434,14 +422,14 @@ export default function Channel() {
           </HeaderCenterContent>
         </>
       </Header>
-      {status === Status.BANNED ? (
+      {status === ChannelUserStatus.BANNED ? (
         <div className="flex h-full w-full flex-col items-center justify-center overflow-auto pb-60">
           <img src={BannedIcon} className="w-96 text-slate-100 opacity-30" />
           <span className="mt-10 text-3xl text-neutral-300">
             You are banned.
           </span>
         </div>
-      ) : role === Role.NON_MEMBER ? (
+      ) : role === ChannelUserRole.NON_MEMBER ? (
         channel.isPrivate ? (
           <AccessForbidden owner={channel.owner} />
         ) : channel.isPasswordProtected ? (

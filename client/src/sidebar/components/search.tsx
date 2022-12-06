@@ -3,10 +3,16 @@ import { ReactComponent as CloseIcon } from "pixelarticons/svg/close.svg";
 import { ReactComponent as SearchIcon } from "pixelarticons/svg/search.svg";
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { ReactComponent as UsersIcon } from "pixelarticons/svg/users.svg";
-import { useNavigate } from "react-router-dom";
+import { ReactComponent as ConnectionErrorIcon } from "pixelarticons/svg/downasaur.svg";
+import { Navigate, useNavigate } from "react-router-dom";
 import * as Avatar from "@radix-ui/react-avatar";
-import { useSearchUsersAndChannelsQuery } from "../../graphql/generated";
+import {
+  SearchUsersAndChannelsQuery,
+  useSearchUsersAndChannelsQuery,
+} from "../../graphql/generated";
 import { Empty } from "./Empty";
+import { Highlight } from "./highlight";
+import { useAuthStore } from "../../stores";
 
 export const SearchBar = ({
   searchInput,
@@ -53,28 +59,6 @@ export const SearchBar = ({
   );
 };
 
-const Highlight = ({
-  content,
-  searchInput,
-}: {
-  content: string | undefined;
-  searchInput: string;
-}) => {
-  if (typeof content === "undefined") return <></>;
-  const index = content.toLowerCase().indexOf(searchInput.toLowerCase());
-  const before = content.slice(0, index);
-  const match = content.slice(index, index + searchInput.length);
-  const after = content.slice(index + searchInput.length);
-
-  return (
-    <span className="ml-2">
-      <span>{before}</span>
-      <span className="bg-amber-300">{match}</span>
-      <span>{after}</span>
-    </span>
-  );
-};
-
 export const SearchResults = ({
   searchInput,
   setSearchInput,
@@ -82,10 +66,22 @@ export const SearchResults = ({
   searchInput: string;
   setSearchInput: (value: string) => void;
 }) => {
+  const userId = useAuthStore((state) => state.userId);
+  if (!userId) {
+    return <Navigate to={"/"} replace={true} />;
+  }
+
   const navigate = useNavigate();
 
-  const { data } = useSearchUsersAndChannelsQuery(
-    { name: searchInput, userId: null },
+  type ResultsType = (
+    | Exclude<SearchUsersAndChannelsQuery["channels"][number], null>
+    | Exclude<SearchUsersAndChannelsQuery["users"][number], null>
+  )[];
+  const { data: searchResults } = useSearchUsersAndChannelsQuery<
+    ResultsType,
+    unknown
+  >(
+    { name: searchInput },
     {
       select(data) {
         const { users, channels } = data;
@@ -93,55 +89,61 @@ export const SearchResults = ({
           ...users,
           ...channels,
         ];
-        for (let i = 0; i < results.length; i++) {
-          if (results[i]?.id === data.user.id) {
-            results.splice(i, 1);
-          }
-        }
-        return results;
+        return results.filter((u) => {
+          if (u === null) return false;
+          if (u.__typename === "User") return u.id !== userId;
+          return true;
+        }) as ResultsType;
       },
     }
   );
   return (
     <>
-      {data?.length === 0 ? (
+      {typeof searchResults === "undefined" ? (
         <div className="relative flex h-full flex-col">
           <div className="flex h-full flex-col overflow-y-auto">
-            <Empty Message="No result for the research!" Icon={SearchIcon} />
+            <Empty message="Connection error" Icon={ConnectionErrorIcon} />
           </div>
         </div>
-      ) : null}
-      <ul className="flex flex-col divide-y divide-slate-200">
-        {data?.map((result) => (
-          <li
-            className="flex items-center p-2 even:bg-white hover:cursor-pointer hover:bg-blue-100"
-            key={`${result?.id}_${result?.__typename}`}
-            onClick={() => {
-              navigate(
-                `${result?.__typename === "Channel" ? "channel" : "profile"}/${
-                  result?.id
-                }`
-              );
-              setSearchInput("");
-            }}
-          >
-            {result?.__typename === "User" ? (
-              <Avatar.Root>
-                <Avatar.Image
-                  className="h-10 w-10 border border-black object-cover"
-                  src={`/uploads/avatars/${result?.avatar}`}
-                />
-                <Avatar.Fallback>
-                  <UserIcon className="h-10 w-10" />
-                </Avatar.Fallback>
-              </Avatar.Root>
-            ) : (
-              <UsersIcon className="h-10 w-10 border border-black p-1 pt-2" />
-            )}
-            <Highlight content={result?.name} searchInput={searchInput} />
-          </li>
-        ))}
-      </ul>
+      ) : searchResults.length === 0 ? (
+        <div className="relative flex h-full flex-col">
+          <div className="flex h-full flex-col overflow-y-auto">
+            <Empty message="No result for the research!" Icon={SearchIcon} />
+          </div>
+        </div>
+      ) : (
+        <ul className="flex flex-col divide-y divide-slate-200">
+          {searchResults.map((result) => (
+            <li
+              className="flex items-center p-2 even:bg-white hover:cursor-pointer hover:bg-blue-100"
+              key={`${result?.id}_${result?.__typename}`}
+              onClick={() => {
+                navigate(
+                  `${
+                    result?.__typename === "Channel" ? "channel" : "profile"
+                  }/${result?.id}`
+                );
+                setSearchInput("");
+              }}
+            >
+              {result?.__typename === "User" ? (
+                <Avatar.Root>
+                  <Avatar.Image
+                    className="h-10 w-10 border border-black object-cover"
+                    src={`/uploads/avatars/${result?.avatar}`}
+                  />
+                  <Avatar.Fallback>
+                    <UserIcon className="h-10 w-10" />
+                  </Avatar.Fallback>
+                </Avatar.Root>
+              ) : (
+                <UsersIcon className="h-10 w-10 border border-black p-1 pt-2" />
+              )}
+              <Highlight content={result?.name} searchInput={searchInput} />
+            </li>
+          ))}
+        </ul>
+      )}
     </>
   );
 };

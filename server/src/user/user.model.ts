@@ -132,6 +132,9 @@ export class Chat {
 
   @Field((type) => Boolean)
   hasUnreadMessages: boolean;
+
+  @Field((type) => userStatus, { nullable: true })
+  status?: userStatus;
 }
 @ObjectType()
 export class Achievement {

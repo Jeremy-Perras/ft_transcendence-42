@@ -232,6 +232,7 @@ export class UserResolver {
             )
           ? false
           : true,
+        status: undefined,
       });
     };
     res?.ownedChannels.forEach(formatChannel);
@@ -263,6 +264,9 @@ export class UserResolver {
           : true,
         lastMessageContent: lastMessage?.content,
         lastMessageDate: lastMessage?.sentAt,
+        status: this.socketService.isUserConnected(f.id)
+          ? userStatus.ONLINE
+          : userStatus.OFFLINE,
       });
     });
     return mergeResult.sort((x, y) => {

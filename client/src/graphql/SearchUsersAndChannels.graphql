@@ -1,4 +1,4 @@
-query SearchUsersAndChannels($name: String, $userId: Int) {
+query SearchUsersAndChannels($name: String) {
   users(name: $name) {
     __typename
     avatar
@@ -9,9 +9,6 @@ query SearchUsersAndChannels($name: String, $userId: Int) {
   channels(name: $name) {
     __typename
     name
-    id
-  }
-  user(id: $userId) {
     id
   }
 }

@@ -1,10 +1,13 @@
 import {
   LoaderFunctionArgs,
+  Navigate,
   useLoaderData,
   useNavigate,
   useParams,
 } from "react-router-dom";
 import {
+  ChannelSettingsQuery,
+  SearchUsersQuery,
   useAddAdminMutation,
   useBanUserMutation,
   useChannelSettingsQuery,
@@ -32,85 +35,53 @@ import { ReactComponent as SearchIcon } from "pixelarticons/svg/search.svg";
 import { ReactComponent as SettingsIcon } from "pixelarticons/svg/sliders.svg";
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { ReactComponent as LeaveIcon } from "pixelarticons/svg/logout.svg";
+import { ReactComponent as ConnectionErrorIcon } from "pixelarticons/svg/downasaur.svg";
+
 import { useRef, useState } from "react";
 import * as Avatar from "@radix-ui/react-avatar";
 import { useForm } from "react-hook-form";
-
 import { QueryClient, useQuery, UseQueryOptions } from "@tanstack/react-query";
-
 import {
   Header,
   HeaderCenterContent,
   HeaderLeftBtn,
   HeaderNavigateBack,
 } from "../components/header";
+import { ChannelUserRole } from "../types/channelUserRole";
+import { User } from "../types/user";
+import { useAuthStore } from "../../stores";
+import { Empty } from "../components/Empty";
+import { Highlight } from "../components/highlight";
+import { ChannelUserStatus } from "../types/channelUserStatus";
 
-type formData = {
-  password?: string;
-};
-
-type ChannelSettingsQuery = {
-  user: {
-    id: number;
-  };
-  channel: ChannelInfo;
-};
-
-type ChannelInfo = {
-  __typename?: "Channel";
-  name: string;
-  id: number;
-  private: boolean;
-  passwordProtected: boolean;
-  owner: {
-    __typename?: "User";
-    id: number;
-    name: string;
-    avatar: string;
-  };
-  admins: {
-    __typename?: "User";
-    id: number;
-    name: string;
-    avatar: string;
-  }[];
-  members: {
-    __typename?: "User";
-    id: number;
-    name: string;
-    avatar: string;
-  }[];
-  banned: {
-    __typename?: "RestrictedMember";
-    id: number;
-    name: string;
-    avatar: string;
-    endAt?: number | null;
-  }[];
-  muted: {
-    __typename?: "RestrictedMember";
-    id: number;
-    endAt?: number | null;
-  }[];
+type ChannelQueryResult = Omit<ChannelSettingsQuery["channel"], "admins"> & {
+  admins: ChannelSettingsQuery["channel"]["members"];
 };
 
 const query = (
   channelId: number
-): UseQueryOptions<ChannelSettingsQuery, unknown, ChannelSettingsQuery> => {
+): UseQueryOptions<ChannelSettingsQuery, unknown, ChannelQueryResult> => {
   return {
     queryKey: useChannelSettingsQuery.getKey({
-      userId: null,
       channelId: channelId,
     }),
     queryFn: useChannelSettingsQuery.fetcher({
-      userId: null,
       channelId: channelId,
     }),
     select: (data) => ({
-      user: {
-        id: data.user.id,
-      },
-      channel: data.channel,
+      id: data.channel.id,
+      name: data.channel.name,
+      passwordProtected: data.channel.passwordProtected,
+      private: data.channel.private,
+      owner: data.channel.owner,
+      admins: data.channel.members.filter((m) =>
+        data.channel.admins.some((a) => a.id === m.id)
+      ),
+      members: data.channel.members.filter(
+        (m) => !data.channel.admins.some((a) => a.id === m.id)
+      ),
+      banned: data.channel.banned,
+      muted: data.channel.muted,
     }),
   };
 };
@@ -125,23 +96,24 @@ export const channelSettingsLoader = async (
   }
 };
 
-const MuteButton = ({
+const ToggleMuteStatus = ({
   id,
   channelId,
-  muted,
+  userStatus,
 }: {
   id: number;
   channelId: number;
-  muted: boolean | undefined;
+  userStatus: ChannelUserStatus;
 }) => {
   const [showInfoMute, setShowInfoMute] = useState(false);
+
   const muteUser = useMuteUserMutation({});
   const unmuteUser = useUnmuteUserMutation({});
 
   return (
     <div className="relative flex w-8 flex-col justify-end text-center transition-all hover:cursor-pointer">
       <div className="flex flex-col items-center justify-center">
-        {muted ? (
+        {userStatus === ChannelUserStatus.MUTED ? (
           <UnmuteIcon
             onMouseOver={() => setShowInfoMute(true)}
             onMouseOut={() => setShowInfoMute(false)}
@@ -171,21 +143,21 @@ const MuteButton = ({
             showInfoMute ? "opacity-100" : "opacity-0 "
           } absolute top-6 w-8 text-center text-xs text-slate-400`}
         >
-          {muted ? "Unmute" : "Mute"}
+          {userStatus === ChannelUserStatus.MUTED ? "Unmute" : "Mute"}
         </span>
       </div>
     </div>
   );
 };
 
-const BanButton = ({
+const ToggleBanStatus = ({
   id,
   channelId,
-  banned,
+  userStatus,
 }: {
   id: number;
   channelId: number;
-  banned: boolean | undefined;
+  userStatus: ChannelUserStatus;
 }) => {
   const [showInfoBan, setShowInfoBan] = useState(false);
 
@@ -195,7 +167,7 @@ const BanButton = ({
   return (
     <div className="relative flex w-8 flex-col justify-end text-center transition-all hover:cursor-pointer">
       <div className="flex flex-col items-center justify-center">
-        {banned ? (
+        {userStatus === ChannelUserStatus.BANNED ? (
           <UnbanIcon
             onMouseOver={() => setShowInfoBan(true)}
             onMouseOut={() => setShowInfoBan(false)}
@@ -222,133 +194,115 @@ const BanButton = ({
         )}
         <span
           className={`${showInfoBan ? "opacity-100" : "opacity-0 "} ${
-            banned ? "text-red-500" : "text-slate-400"
+            userStatus === ChannelUserStatus.BANNED
+              ? "text-red-500"
+              : "text-slate-400"
           } absolute top-6 w-8 text-center text-xs`}
         >
-          {banned ? "Unban" : "Ban"}
+          {userStatus === ChannelUserStatus.BANNED ? "Unban" : "Ban"}
         </span>
       </div>
     </div>
   );
 };
 
-const SetAsAdminButton = ({
+const ToggleAdminRole = ({
   id,
   channelId,
+  userRole,
 }: {
   id: number;
   channelId: number;
-}) => {
-  const [showInfoAdmin, setShowInfoAdmin] = useState(false);
-
-  const addAdmin = useAddAdminMutation({});
-
-  return (
-    <div
-      className="relative flex w-8 flex-col items-center justify-start"
-      onClick={() => {
-        addAdmin.mutate({
-          channelId: channelId,
-          userId: id,
-        });
-      }}
-    >
-      {" "}
-      <AdminIcon
-        onMouseOver={() => setShowInfoAdmin(true)}
-        onMouseOut={() => {
-          setShowInfoAdmin(false);
-        }}
-        className="w-6 border-2 border-slate-300 text-neutral-600 hover:cursor-pointer hover:border-slate-700 hover:text-black"
-      />
-      <div
-        className={`${
-          showInfoAdmin ? "opacity-100" : "opacity-0 "
-        } absolute top-6 w-24 text-center text-xs text-slate-400 `}
-      >
-        Set as admin
-      </div>
-    </div>
-  );
-};
-
-const UnsetAdminButton = ({
-  id,
-  channelId,
-}: {
-  id: number;
-  channelId: number;
+  userRole: ChannelUserRole;
 }) => {
   const [showInfoAdmin, setShowInfoAdmin] = useState(false);
 
   const removeAdmin = useRemoveAdminMutation({});
+  const addAdmin = useAddAdminMutation({});
 
   return (
-    <div
-      className="relative flex w-8 flex-col items-center justify-start"
-      onClick={() => {
-        removeAdmin.mutate({
-          channelId: channelId,
-          userId: id,
-        });
-      }}
-    >
-      <RemoveAdminIcon
-        onMouseOver={() => setShowInfoAdmin(true)}
-        onMouseOut={() => {
-          setShowInfoAdmin(false);
-        }}
-        className="w-6 border-2 border-slate-300 text-neutral-600 hover:cursor-pointer hover:border-slate-700 hover:text-black"
-      />
+    <div className="relative flex w-8 flex-col items-center justify-start">
+      {userRole === ChannelUserRole.ADMIN ? (
+        <RemoveAdminIcon
+          onMouseOver={() => setShowInfoAdmin(true)}
+          onMouseOut={() => {
+            setShowInfoAdmin(false);
+          }}
+          onClick={() => {
+            removeAdmin.mutate({
+              channelId: channelId,
+              userId: id,
+            });
+          }}
+          className="w-6 border-2 border-slate-300 text-neutral-600 hover:cursor-pointer hover:border-slate-700 hover:text-black"
+        />
+      ) : (
+        <AdminIcon
+          onClick={() => {
+            addAdmin.mutate({
+              channelId: channelId,
+              userId: id,
+            });
+          }}
+          onMouseOver={() => setShowInfoAdmin(true)}
+          onMouseOut={() => {
+            setShowInfoAdmin(false);
+          }}
+          className="w-6 border-2 border-slate-300 text-neutral-600 hover:cursor-pointer hover:border-slate-700 hover:text-black"
+        />
+      )}
       <span
         className={`${
           showInfoAdmin ? "opacity-100" : "opacity-0 "
         } absolute top-6 w-24 text-center text-xs text-slate-400 `}
       >
-        Remove admin
+        {userRole === ChannelUserRole.ADMIN ? "Remove admin" : "Add as admin"}
       </span>
     </div>
   );
 };
 
 const UserHeader = ({
-  id,
-  name,
-  avatar,
-  banned,
-  muted,
-  owner,
-  admin,
+  user,
+  userRole,
+  userStatus,
 }: {
-  id: number | undefined;
-  name: string | undefined;
-  avatar: string | undefined;
-  banned: boolean | undefined;
-  muted: boolean | undefined;
-  owner: boolean;
-  admin: boolean;
+  user:
+    | ChannelSettingsQuery["channel"]["members"][number]
+    | ChannelSettingsQuery["channel"]["banned"][number];
+  userRole: ChannelUserRole;
+  userStatus: ChannelUserStatus;
 }) => {
   const navigate = useNavigate();
+
   return (
     <div
       className="flex grow hover:cursor-pointer"
-      onClick={() => navigate(`/profile/${id}`)}
+      onClick={() => navigate(`/profile/${user.id}`)}
     >
       <img
-        src={`/uploads/avatars/${avatar}`}
+        src={`/uploads/avatars/${user.avatar}`}
         alt="Player avatar"
         className="my-1 ml-1 h-12 w-12 border border-black"
       />
       <div className="ml-2 flex flex-col justify-center text-xs">
         <div className="flex">
-          <span className="truncate text-base font-bold">{name}</span>
+          <span className="truncate text-base font-bold">{user.name}</span>
           <div className="mx-2 flex shrink-0">
-            {banned ? <BanIcon className="w-4 text-red-600" /> : null}
-            {muted ? <MuteIcon className="w-4 text-orange-300" /> : null}
+            {userStatus === ChannelUserStatus.BANNED ? (
+              <BanIcon className="w-4 text-red-600" />
+            ) : null}
+            {userStatus === ChannelUserStatus.MUTED ? (
+              <MuteIcon className="w-4 text-orange-300" />
+            ) : null}
           </div>
         </div>
         <span className="text-xs">
-          {owner ? "Owner" : admin ? "Admin" : "Member"}
+          {userRole === ChannelUserRole.OWNER
+            ? "Owner"
+            : userRole === ChannelUserRole.ADMIN
+            ? "Admin"
+            : "Member"}
         </span>
       </div>
     </div>
@@ -356,61 +310,65 @@ const UserHeader = ({
 };
 
 const UserBanner = ({
-  id,
-  name,
-  avatar,
-  admin,
-  owner,
-  muted,
-  banned,
-  changesAuthorizedAsAdmin,
-  changesAuthorizedAsOwner,
   channelId,
+  user,
+  userRole,
+  userStatus,
+  currentUserRole,
 }: {
   channelId: number;
-  id: number;
-  name: string | undefined;
-  avatar: string | undefined;
-  admin: boolean;
-  owner: boolean;
-  muted: boolean | undefined;
-  banned: boolean | undefined;
-  changesAuthorizedAsAdmin: boolean;
-  changesAuthorizedAsOwner: boolean;
+  user:
+    | ChannelSettingsQuery["channel"]["members"][number]
+    | ChannelSettingsQuery["channel"]["banned"][number];
+  userRole: ChannelUserRole;
+  userStatus: ChannelUserStatus;
+  currentUserRole: ChannelUserRole;
 }) => {
   return (
-    <div
+    <li
       className={`${
-        banned
+        userStatus === ChannelUserStatus.BANNED
           ? "bg-red-200 hover:bg-red-300"
           : "bg-slate-50 hover:bg-slate-100"
       } flex w-full shrink-0 items-end justify-center pr-2 transition-all `}
     >
-      <UserHeader
-        id={id}
-        name={name}
-        avatar={avatar}
-        admin={admin}
-        owner={owner}
-        banned={banned}
-        muted={muted}
-      />
+      <UserHeader user={user} userRole={userRole} userStatus={userStatus} />
       <div className="flex justify-center self-center">
-        {changesAuthorizedAsOwner && !admin && !owner && !banned ? (
-          <SetAsAdminButton id={id} channelId={channelId} />
-        ) : changesAuthorizedAsOwner && admin && !owner && !banned ? (
-          <UnsetAdminButton id={id} channelId={channelId} />
+        {userStatus !== ChannelUserStatus.BANNED ? (
+          <>
+            {currentUserRole === ChannelUserRole.OWNER &&
+            userRole !== ChannelUserRole.OWNER ? (
+              <ToggleAdminRole
+                id={user.id}
+                channelId={channelId}
+                userRole={userRole}
+              />
+            ) : null}
+            {(currentUserRole === ChannelUserRole.OWNER &&
+              userRole !== ChannelUserRole.OWNER) ||
+            (currentUserRole === ChannelUserRole.ADMIN &&
+              userRole === ChannelUserRole.MEMBER) ? (
+              <ToggleMuteStatus
+                id={user.id}
+                channelId={channelId}
+                userStatus={userStatus}
+              />
+            ) : null}
+          </>
         ) : null}
-        {(admin && changesAuthorizedAsOwner && !banned) ||
-        (!admin && changesAuthorizedAsAdmin && !banned) ? (
-          <MuteButton id={id} channelId={channelId} muted={muted} />
-        ) : null}
-        {(admin && changesAuthorizedAsOwner) ||
-        (!admin && changesAuthorizedAsAdmin) ? (
-          <BanButton id={id} channelId={channelId} banned={banned} />
+        {(currentUserRole === ChannelUserRole.OWNER &&
+          userRole !== ChannelUserRole.OWNER) ||
+        (currentUserRole === ChannelUserRole.ADMIN &&
+          userRole === ChannelUserRole.MEMBER) ||
+        userRole === ChannelUserRole.NON_MEMBER ? (
+          <ToggleBanStatus
+            id={user.id}
+            channelId={channelId}
+            userStatus={userStatus}
+          />
         ) : null}
       </div>
-    </div>
+    </li>
   );
 };
 
@@ -459,43 +417,48 @@ const SearchBar = ({
   );
 };
 
-const Search = ({
-  search,
-  queryData,
-  channelId,
+const SearchResults = ({
+  searchInput,
+  channel,
 }: {
-  search: string;
-  queryData: ChannelSettingsQuery;
-  channelId: number;
-  userId: number;
+  searchInput: string;
+  channel: ChannelQueryResult;
 }) => {
-  const { data } = useSearchUsersQuery(
-    { name: search },
+  const { data: searchResults } = useSearchUsersQuery<
+    Exclude<SearchUsersQuery["users"][number], null>[],
+    unknown
+  >(
+    { name: searchInput },
     {
       select(data) {
-        const { users } = data;
-        const results: typeof users[number][] = [...users];
-        return results;
+        return data.users.filter((u) => {
+          if (u === null) return false;
+          const pred = (m: typeof channel.members[number]) => m.id !== u.id;
+          return !channel.members.some(pred) && !channel.admins.some(pred);
+        }) as Exclude<SearchUsersQuery["users"][number], null>[];
       },
     }
   );
+
   const updateMembers = useInviteUserMutation({});
 
   return (
     <div className="flex flex-col  divide-y divide-slate-200 overflow-y-scroll">
-      {data?.map((result, index) => (
-        <div key={index}>
-          {!queryData.channel.members.some((u) => u.id === result?.id) &&
-          !queryData.channel.admins.some((u) => u.id === result?.id) ? (
-            <div
+      {typeof searchResults === "undefined" ? (
+        <Empty message="Connection error" Icon={ConnectionErrorIcon} />
+      ) : searchResults.length === 0 ? (
+        <Empty message="No result" Icon={SearchIcon} />
+      ) : (
+        <ul>
+          {searchResults.map((result, index) => (
+            <li
+              key={index}
               className="flex items-center bg-slate-100 p-2 even:bg-white hover:cursor-pointer hover:bg-blue-100"
               onClick={() => {
-                result?.id !== undefined
-                  ? updateMembers.mutate({
-                      channelId: channelId,
-                      userId: result?.id,
-                    })
-                  : "";
+                updateMembers.mutate({
+                  channelId: channel.id,
+                  userId: result?.id,
+                });
               }}
             >
               <Avatar.Root>
@@ -508,38 +471,17 @@ const Search = ({
                 </Avatar.Fallback>
               </Avatar.Root>
               {result?.name !== undefined ? (
-                <Highlight content={result?.name} search={search} />
+                <Highlight content={result.name} searchInput={searchInput} />
               ) : null}
-            </div>
-          ) : null}
-        </div>
-      ))}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 };
 
-const Highlight = ({
-  content,
-  search,
-}: {
-  content: string;
-  search: string;
-}) => {
-  const index = content.toLowerCase().indexOf(search.toLowerCase());
-  const before = content.slice(0, index);
-  const match = content.slice(index, index + search.length);
-  const after = content.slice(index + search.length);
-
-  return (
-    <span className="ml-2">
-      <span>{before}</span>
-      <span className="bg-amber-300">{match}</span>
-      <span>{after}</span>
-    </span>
-  );
-};
-
-const LeaveChannelPopUp = ({
+const LeaveChannelConfirm = ({
   channelId,
   setConfirmation,
 }: {
@@ -598,7 +540,7 @@ const LeaveChannelPopUp = ({
   );
 };
 
-const DeletePopUp = ({
+const DeleteConfirm = ({
   channelId,
   setConfirmation,
 }: {
@@ -660,6 +602,9 @@ const DeletePopUp = ({
   );
 };
 
+type ChangePasswordFormData = {
+  password?: string;
+};
 const ChannelMode = ({
   channelId,
   activeMode,
@@ -674,7 +619,7 @@ const ChannelMode = ({
     handleSubmit,
     formState: { errors },
     reset,
-  } = useForm<formData>();
+  } = useForm<ChangePasswordFormData>();
   const updatePassword = useUpdateChannelPasswordMutation({
     onSuccess: () => {
       setShowPasswordField(false);
@@ -849,82 +794,75 @@ const ChannelHeader = ({
 
 const MemberList = ({
   channel,
-  isAdmin,
-  isOwner,
+  currentUserRole,
 }: {
-  channel: ChannelInfo;
-  isAdmin: boolean;
-  isOwner: boolean;
+  channel: ChannelQueryResult;
+  currentUserRole: ChannelUserRole;
 }) => {
+  const isInList = (
+    id: number,
+    userList: typeof channel.banned | typeof channel.muted
+  ) => {
+    return userList.some((u) => u.id === id);
+  };
+
   return (
     <div className="flex h-full w-full flex-col overflow-auto">
       <span className="ml-1 pt-5 text-left text-xl font-bold text-slate-700">
         MEMBERS
       </span>
-      <UserBanner
-        id={channel.owner.id}
-        name={channel.owner.name}
-        avatar={channel.owner.avatar}
-        channelId={channel.id}
-        admin={false}
-        owner={true}
-        muted={false}
-        banned={false}
-        changesAuthorizedAsAdmin={false}
-        changesAuthorizedAsOwner={false}
-      />
-      {channel.admins.map((user, index) => {
-        return !(user.id === channel.owner.id) ? (
+      <ul>
+        <UserBanner
+          channelId={channel.id}
+          user={channel.owner}
+          userRole={ChannelUserRole.OWNER}
+          userStatus={ChannelUserStatus.OK}
+          currentUserRole={currentUserRole}
+        />
+        {channel.admins.map((user, index) => (
           <UserBanner
             key={index}
             channelId={channel.id}
-            id={user.id}
-            name={user.name}
-            avatar={user.avatar}
-            admin={true}
-            owner={false}
-            muted={channel.muted?.some((u) => u.id === user.id)}
-            banned={channel.banned?.some((u) => u.id === user.id)}
-            changesAuthorizedAsAdmin={isAdmin}
-            changesAuthorizedAsOwner={isOwner}
+            user={user}
+            userRole={ChannelUserRole.ADMIN}
+            userStatus={
+              isInList(user.id, channel.muted)
+                ? ChannelUserStatus.MUTED
+                : ChannelUserStatus.OK
+            }
+            currentUserRole={currentUserRole}
           />
-        ) : null;
-      })}
-      {channel.members.map((user, index) => {
-        return !channel.admins.some((admin) => admin.id === user.id) ? (
+        ))}
+        {channel.members.map((user, index) => (
           <UserBanner
             key={index}
             channelId={channel.id}
-            id={user.id}
-            name={user.name}
-            avatar={user.avatar}
-            admin={false}
-            owner={false}
-            changesAuthorizedAsAdmin={isAdmin || isOwner}
-            changesAuthorizedAsOwner={isOwner}
-            muted={channel.muted?.some((u) => u.id === user.id)}
-            banned={channel.banned?.some((u) => u.id === user.id)}
+            user={user}
+            userRole={ChannelUserRole.MEMBER}
+            userStatus={
+              isInList(user.id, channel.muted)
+                ? ChannelUserStatus.MUTED
+                : ChannelUserStatus.OK
+            }
+            currentUserRole={currentUserRole}
           />
-        ) : null;
-      })}
+        ))}
+      </ul>
       <span className="ml-1 pt-5 text-left text-xl font-bold text-slate-700">
         BANNED USERS
       </span>
-      {channel.banned.map((user, index) => (
-        <UserBanner
-          key={index}
-          channelId={channel.id}
-          id={user.id}
-          name={user.name}
-          avatar={user.avatar}
-          admin={false}
-          owner={false}
-          changesAuthorizedAsAdmin={isAdmin || isOwner}
-          changesAuthorizedAsOwner={isOwner}
-          muted={false}
-          banned={true}
-        />
-      ))}
+      <ul>
+        {channel.banned.map((user, index) => (
+          <UserBanner
+            key={index}
+            channelId={channel.id}
+            user={user}
+            userRole={ChannelUserRole.NON_MEMBER}
+            userStatus={ChannelUserStatus.BANNED}
+            currentUserRole={currentUserRole}
+          />
+        ))}
+      </ul>
       {channel.banned.length === 0 ? (
         <span className="mt-4 w-full text-center text-lg text-slate-300">
           No one is banned
@@ -935,26 +873,36 @@ const MemberList = ({
 };
 
 export default function ChannelSettings() {
+  const [deleteConfirmation, setDeleteConfirmation] = useState(false);
+  const [leaveConfirmation, setLeaveConfirmation] = useState(false);
+  const [search, setSearch] = useState("");
+
+  const userId = useAuthStore((state) => state.userId);
+  if (!userId) {
+    return <Navigate to={"/"} replace={true} />;
+  }
+
   const params = useParams();
-  if (typeof params.channelId === "undefined") return <div>No channel Id</div>; // TODO: 404
+  if (typeof params.channelId === "undefined")
+    return <Navigate to={"/"} replace={true} />;
   const channelId = +params.channelId;
 
   const initialData = useLoaderData() as Awaited<
     ReturnType<typeof channelSettingsLoader>
   >;
-  const { data } = useQuery({ ...query(channelId), initialData });
-  if (typeof data === "undefined") return <>Error</>;
+  const { data: channel } = useQuery({ ...query(channelId), initialData });
+  if (typeof channel === "undefined")
+    return <Navigate to={"/"} replace={true} />;
 
-  const isOwner = data?.user.id === data?.channel.owner.id;
-  const isAdmin = data?.channel.admins.some(
-    (admin) => admin.id === data.user.id
-  )
-    ? true
-    : false;
+  const currentUserRole =
+    channel.owner.id === userId
+      ? ChannelUserRole.OWNER
+      : channel.admins.some((admin) => admin.id === userId)
+      ? ChannelUserRole.ADMIN
+      : channel.members.some((member) => member.id === userId)
+      ? ChannelUserRole.MEMBER
+      : ChannelUserRole.NON_MEMBER;
 
-  const [deleteConfirmation, setDeleteConfirmation] = useState(false);
-  const [leaveConfirmation, setLeaveConfirmation] = useState(false);
-  const [search, setSearch] = useState("");
   return (
     <>
       <Header>
@@ -965,19 +913,19 @@ export default function ChannelSettings() {
           <HeaderCenterContent>
             <div className="flex h-full items-center justify-center">
               <SettingsIcon className="mr-2 w-6" />
-              <div className="select-none truncate ">{data?.channel.name}</div>
+              <div className="select-none truncate ">{channel.name}</div>
             </div>
           </HeaderCenterContent>
         </>
       </Header>
       <div className="relative flex h-full w-full flex-col ">
         {deleteConfirmation ? (
-          <DeletePopUp
+          <DeleteConfirm
             channelId={channelId}
             setConfirmation={setDeleteConfirmation}
           />
         ) : leaveConfirmation ? (
-          <LeaveChannelPopUp
+          <LeaveChannelConfirm
             channelId={channelId}
             setConfirmation={setLeaveConfirmation}
           />
@@ -988,20 +936,17 @@ export default function ChannelSettings() {
           }  flex h-full w-full flex-col`}
         >
           <ChannelHeader
-            isOwner={isOwner}
-            channelId={data.channel.id}
-            channelName={data.channel.name}
-            privateMode={data.channel.private}
-            passwordProtected={data.channel.passwordProtected}
+            isOwner={currentUserRole === ChannelUserRole.OWNER}
+            channelId={channel.id}
+            channelName={channel.name}
+            privateMode={channel.private}
+            passwordProtected={channel.passwordProtected}
             setDeleteConfirmation={setDeleteConfirmation}
             setLeaveConfirmation={setLeaveConfirmation}
           />
-          <MemberList
-            channel={data.channel}
-            isAdmin={isAdmin}
-            isOwner={isOwner}
-          />
-          {isOwner || isAdmin ? (
+          <MemberList channel={channel} currentUserRole={currentUserRole} />
+          {currentUserRole === ChannelUserRole.OWNER ||
+          currentUserRole === ChannelUserRole.ADMIN ? (
             <div
               className={`${
                 search.length === 0
@@ -1009,15 +954,8 @@ export default function ChannelSettings() {
                   : "absolute bottom-0 z-10 max-h-80 border-t-2 border-slate-200 shadow-[0_10px_10px_10px_rgba(0,0,0,0.5)]"
               }  mt-5 flex w-full flex-col justify-end `}
             >
-              {search.length === 0 ? (
-                ""
-              ) : data ? (
-                <Search
-                  userId={data.user.id}
-                  search={search}
-                  queryData={data}
-                  channelId={data?.channel.id ? data?.channel.id : 0}
-                />
+              {search.length > 0 ? (
+                <SearchResults searchInput={search} channel={channel} />
               ) : null}
               <SearchBar search={search} setSearch={setSearch} />
             </div>

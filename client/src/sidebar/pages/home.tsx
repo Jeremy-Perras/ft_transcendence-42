@@ -11,6 +11,7 @@ import {
   useAddFriendMutation,
   useDiscussionsAndInvitationsQuery,
   useRefuseInvitationMutation,
+  UserStatus,
 } from "../../graphql/generated";
 import CreateChannel, { CreateChannelBtn } from "../components/createChannel";
 import { SearchBar, SearchResults } from "../components/search";
@@ -48,7 +49,7 @@ const ChannelAndFriendBanner = ({
   chat: DiscussionsAndInvitationsQuery["user"]["chats"][number];
 }) => {
   const navigate = useNavigate();
-
+  console.log(chat.status);
   return (
     <div
       onClick={() =>
@@ -62,9 +63,12 @@ const ChannelAndFriendBanner = ({
         {chat.type === ChatType.User ? (
           <Avatar.Root>
             <Avatar.Image
-              className="h-16 w-16 border border-black object-cover"
+              className="relative h-16 w-16 border border-black object-cover"
               src={`/uploads/avatars/${chat.avatar}`}
             />
+            {chat.status === UserStatus.Online ? (
+              <div className="absolute top-0 left-0 h-2 w-2 bg-green-500 " />
+            ) : null}
             <Avatar.Fallback delayMs={0}>
               <UserIcon className="h-16 w-16 border border-black bg-slate-50 p-1 text-neutral-700" />
             </Avatar.Fallback>
@@ -183,7 +187,7 @@ export const Home = () => {
             ))}
             {data?.user.chats.length === 0 ? (
               <Empty
-                Message="Add your friends to play with them!"
+                message="Add your friends to play with them!"
                 Icon={GamePadIcon}
               />
             ) : (

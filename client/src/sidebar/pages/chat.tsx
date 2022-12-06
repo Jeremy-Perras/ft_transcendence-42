@@ -1,8 +1,4 @@
-import {
-  QueryClient,
-  useQueryClient,
-  UseQueryOptions,
-} from "@tanstack/react-query";
+import { QueryClient, UseQueryOptions } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import {
   LoaderFunctionArgs,
