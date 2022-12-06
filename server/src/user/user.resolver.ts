@@ -269,6 +269,7 @@ export class UserResolver {
           : userStatus.OFFLINE,
       });
     });
+
     return mergeResult.sort((x, y) => {
       const x_val = x.lastMessageDate ? x.lastMessageDate.valueOf() : -1;
       const y_val = y.lastMessageDate ? y.lastMessageDate.valueOf() : -1;
@@ -329,6 +330,19 @@ export class UserResolver {
 
   @ResolveField()
   async status(@Root() user: User): Promise<userStatus> {
+    const users = await this.prisma.user.findUnique({
+      select: { friends: { select: { id: true } } },
+      where: { id: user.id },
+    });
+
+    if (users?.friends) {
+      this.socketService.emitInvalidateCache(
+        InvalidCacheTarget.CONNECTION,
+        users?.friends.map((u) => u.id),
+        user.id
+      );
+    }
+
     return this.socketService.isUserConnected(user.id)
       ? userStatus.ONLINE
       : userStatus.OFFLINE;

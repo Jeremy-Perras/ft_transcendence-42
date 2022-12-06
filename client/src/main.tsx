@@ -103,6 +103,7 @@ const App = () => {
               queryClient.invalidateQueries(
                 useUserProfileQuery.getKey({ userId: data.targetId })
               );
+              queryClient.invalidateQueries(useUserProfileQuery.getKey({}));
               break;
             case InvalidCacheTarget.FRIEND_USER:
               queryClient.invalidateQueries(
@@ -221,7 +222,6 @@ const App = () => {
               );
               queryClient.invalidateQueries(
                 useChannelSettingsQuery.getKey({
-                  userId: null,
                   channelId: data.targetId,
                 })
               );
@@ -252,9 +252,16 @@ const App = () => {
             case InvalidCacheTarget.UPDATE_PASSWORD:
               queryClient.invalidateQueries(
                 useChannelSettingsQuery.getKey({
-                  userId: null,
                   channelId: data.targetId,
                 })
+              );
+              break;
+            case InvalidCacheTarget.CONNECTION:
+              queryClient.invalidateQueries(
+                useChannelDiscussionQuery.getKey({ channelId: data.targetId })
+              );
+              queryClient.invalidateQueries(
+                useDiscussionsAndInvitationsQuery.getKey({})
               );
               break;
             default:
