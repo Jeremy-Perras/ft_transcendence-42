@@ -2,6 +2,7 @@ import { QueryClient, UseQueryOptions } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import {
   LoaderFunctionArgs,
+  Navigate,
   useLoaderData,
   useNavigate,
   useParams,
@@ -25,6 +26,7 @@ import {
 } from "../components/header";
 import { RankIcon } from "../utils/rankIcon";
 import { useAuthStore, useSidebarStore } from "../../stores";
+import { IsOnline } from "../components/isOnline";
 
 type ChatQuery = {
   messages: {
@@ -114,19 +116,7 @@ const DirectMessage = ({
               alt="Message author avatar"
               onClick={() => navigate(`/profile/${author.id}`)}
             />
-            {currentUserId !== author.id ? (
-              status === UserStatus.Online ? (
-                <span className="absolute top-0 left-0 flex h-1 w-1">
-                  <span className="absolute inline-flex h-full w-full animate-ping bg-green-400 opacity-75"></span>
-                  <span className="relative inline-flex h-1 w-1 bg-green-500"></span>
-                </span>
-              ) : (
-                <span className="absolute top-0 left-0 flex h-1 w-1">
-                  <span className="absolute inline-flex h-full w-full animate-ping bg-red-400 opacity-75"></span>
-                  <span className="relative inline-flex h-1 w-1 bg-red-500"></span>
-                </span>
-              )
-            ) : null}
+            <IsOnline userStatus={status} />
           </div>
         </div>
         <span
@@ -148,25 +138,24 @@ const DirectMessage = ({
 
 export default function Chat() {
   const params = useParams();
-  if (typeof params.userId === "undefined") return <div></div>; // TODO: 404
-  const userId = +params.userId;
-
+  const sendMessageMutation = useSendDirectMessageMutation({});
+  const sidebarIsOpen = useSidebarStore((state) => state.isOpen);
   const navigate = useNavigate();
-
   const [content, setContent] = useState("");
+
+  if (typeof params.userId === "undefined")
+    return <Navigate to={"/"} replace={true} />;
+  const userId = +params.userId;
 
   const initialData = useLoaderData() as Awaited<ReturnType<typeof chatLoader>>;
   const { data } = useQuery({ ...query(userId), initialData });
-
-  const sendMessageMutation = useSendDirectMessageMutation({});
-
-  const sidebarIsOpen = useSidebarStore((state) => state.isOpen);
+  if (typeof data === "undefined") return <Navigate to={"/"} replace={true} />;
 
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
   useEffect(() => {
     sidebarIsOpen &&
       messagesEndRef?.current?.scrollIntoView({ behavior: "auto" });
-  }, [messagesEndRef, data?.messages]);
+  }, [messagesEndRef, data.messages]);
 
   return (
     <div className="0 flex h-full flex-col">
@@ -185,38 +174,28 @@ export default function Chat() {
               <div className="relative mr-4 h-8 w-8 shrink-0">
                 <img
                   className="h-8 w-8 border border-black"
-                  src={`/uploads/avatars/${data?.avatar}`}
+                  src={`/uploads/avatars/${data.avatar}`}
                 />
-                {data?.status === UserStatus.Online ? (
-                  <span className="absolute top-0 left-0 flex h-1 w-1">
-                    <span className="absolute inline-flex h-full w-full animate-ping bg-green-400 opacity-75"></span>
-                    <span className="relative inline-flex h-1 w-1 bg-green-500"></span>
-                  </span>
-                ) : (
-                  <span className="absolute top-0 left-0 flex h-1 w-1">
-                    <span className="absolute inline-flex h-full w-full animate-ping bg-red-400 opacity-75"></span>
-                    <span className="relative inline-flex h-1 w-1 bg-red-500"></span>
-                  </span>
-                )}
+                <IsOnline userStatus={data.status} />
                 <img
                   className="absolute -top-1 -right-2 h-4"
-                  src={RankIcon(data?.rank)}
+                  src={RankIcon(data.rank)}
                 />
               </div>
-              <span className="select-none truncate ">{data?.name}</span>
+              <span className="select-none truncate ">{data.name}</span>
             </div>
           </HeaderCenterContent>
         </>
       </Header>
       <ul className="mt-4 flex h-fit w-full grow flex-col overflow-auto pr-2 pl-px ">
-        {data?.messages.length === 0 ? (
+        {data.messages.length === 0 ? (
           <div className="mb-48 flex h-full flex-col items-center justify-center overflow-auto text-center text-slate-300">
             <EmptyChatIcon className="w-96 text-slate-200" />
             Seems a little bit too silent here... Send the first message !
           </div>
         ) : null}
 
-        {data?.messages.map((message, index) => {
+        {data.messages.map((message, index) => {
           return (
             <DirectMessage
               key={index}
@@ -232,27 +211,27 @@ export default function Chat() {
       <div className="flex w-full bg-white px-[2px]">
         <textarea
           autoFocus={sidebarIsOpen}
-          disabled={data?.blocking == true || data?.blocked === true}
+          disabled={data.blocking == true || data.blocked === true}
           rows={2}
           className={`${
-            data?.blocking == true ||
-            data?.blocked === true ||
-            !(data?.friendStatus === FriendStatus.Friend)
+            data.blocking == true ||
+            data.blocked === true ||
+            !(data.friendStatus === FriendStatus.Friend)
               ? "hover:cursor-not-allowed"
               : ""
           }  w-full resize-none border-x-2 border-b-8 border-white px-2 pt-4 pb-2 `}
           onChange={(e) => setContent(e.target.value)}
           placeholder={`${
-            data?.blocked === true
+            data.blocked === true
               ? "This user is blocked"
-              : data?.blocking === true
+              : data.blocking === true
               ? "You are blocked by this user"
-              : !(data?.friendStatus === FriendStatus.Friend)
+              : !(data.friendStatus === FriendStatus.Friend)
               ? "You are not friend with this user"
               : "Type your message here ..."
           }`}
           onKeyDown={(e) => {
-            if (data?.blocking === false && data?.blocked === false) {
+            if (data.blocking === false && data.blocked === false) {
               if (e.code == "Enter" && !e.getModifierState("Shift")) {
                 sendMessageMutation.mutate({
                   message: content,

@@ -27,6 +27,7 @@ import {
 } from "../../graphql/generated";
 import { Empty } from "../components/Empty";
 import { ReactComponent as GamePadIcon } from "pixelarticons/svg/gamepad.svg";
+import { IsOnline } from "../components/isOnline";
 
 const query = (): UseQueryOptions<
   DiscussionsAndInvitationsQuery,
@@ -66,9 +67,7 @@ const ChannelAndFriendBanner = ({
               className="h-16 w-16 border border-black object-cover"
               src={`/uploads/avatars/${chat.avatar}`}
             />
-            {chat.status === UserStatus.Online ? (
-              <div className="absolute top-0 left-0 h-2 w-2 bg-green-500 " />
-            ) : null}
+            <IsOnline userStatus={chat.status!} />
             <Avatar.Fallback delayMs={0}>
               <UserIcon className="h-16 w-16 border border-black bg-slate-50 p-1 text-neutral-700" />
             </Avatar.Fallback>
