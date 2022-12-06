@@ -59,11 +59,11 @@ const ChannelAndFriendBanner = ({
       }
       className="flex justify-center transition-all hover:cursor-pointer  hover:bg-slate-100"
     >
-      <div className="m-2 flex h-16 w-16 shrink-0 justify-center   text-white">
+      <div className="relative m-2 flex h-16 w-16 shrink-0 justify-center   text-white">
         {chat.type === ChatType.User ? (
           <Avatar.Root>
             <Avatar.Image
-              className="relative h-16 w-16 border border-black object-cover"
+              className="h-16 w-16 border border-black object-cover"
               src={`/uploads/avatars/${chat.avatar}`}
             />
             {chat.status === UserStatus.Online ? (
