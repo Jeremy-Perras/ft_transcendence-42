@@ -45,6 +45,7 @@ import { RankIcon } from "../utils/rankIcon";
 import BannedDarkIcon from "/src/assets/images/Banned_dark.svg";
 import { useForm, useWatch } from "react-hook-form";
 import { useAuthStore } from "../../stores";
+import { IsOnline } from "../components/isOnline";
 
 type formData = {
   name: string;
@@ -164,19 +165,7 @@ const UserProfileHeader = ({
           ) : (
             <UserIcon className="h-28 w-28 border border-black text-neutral-700" />
           )}
-          {data.user.id !== currentUserId ? (
-            data.user.status === UserStatus.Online ? (
-              <span className="absolute top-0 left-0 flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping bg-green-400 opacity-75"></span>
-                <span className="relative inline-flex h-2 w-2 bg-green-500"></span>
-              </span>
-            ) : (
-              <span className="absolute top-0 left-0 flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping bg-red-400 opacity-75"></span>
-                <span className="relative inline-flex h-2 w-2 bg-red-500"></span>
-              </span>
-            )
-          ) : null}
+          <IsOnline userStatus={data.user.status} />
           {data.user.id === currentUserId ? (
             <div>
               <AddAvatarIcon
@@ -257,28 +246,16 @@ const GameHistory = ({
         return (
           <div
             key={index}
-            className="mt-1 flex h-12 w-full items-center border border-slate-700 bg-slate-200 "
+            className="mt-1 flex h-12 w-full items-center border border-slate-700 bg-slate-200  pl-1"
           >
-            <div className="relative flex w-full ">
+            <div className="relative flex w-full">
               <img
                 onClick={() => navigate(`/profile/${game.players.player1.id}`)}
-                className="ml-1 h-10 w-10 border border-black object-cover hover:cursor-pointer "
+                className=" h-10 w-10 border border-black object-cover hover:cursor-pointer "
                 src={`/uploads/avatars/${game.players.player1.avatar}`}
                 alt="Player 1 avatar"
               />
-              {game.players.player1.id !== currentUserId ? (
-                game.players.player1.status === UserStatus.Online ? (
-                  <span className="absolute top-0 left-1 flex h-1 w-1">
-                    <span className="absolute inline-flex h-full w-full animate-ping bg-green-400 opacity-75"></span>
-                    <span className="relative inline-flex h-1 w-1 bg-green-500"></span>
-                  </span>
-                ) : (
-                  <span className="absolute top-0 left-1 flex h-1 w-1">
-                    <span className="absolute inline-flex h-full w-full animate-ping bg-red-400 opacity-75"></span>
-                    <span className="relative inline-flex h-1 w-1 bg-red-500"></span>
-                  </span>
-                )
-              ) : null}
+              <IsOnline userStatus={game.players.player1.status} />
               <div className="ml-2 w-32 self-center truncate text-left ">
                 {game.players.player1.name}
               </div>
@@ -297,19 +274,7 @@ const GameHistory = ({
                   src={`/uploads/avatars/${game.players.player2.avatar}`}
                   alt="Player 2 avatar"
                 />
-                {game.players.player2.id !== currentUserId ? (
-                  game.players.player2.status === UserStatus.Online ? (
-                    <span className="absolute top-0 left-0 flex h-1 w-1">
-                      <span className="absolute inline-flex h-full w-full animate-ping bg-green-400 opacity-75"></span>
-                      <span className="relative inline-flex h-1 w-1 bg-green-500"></span>
-                    </span>
-                  ) : (
-                    <span className="absolute top-0 left-0 flex h-1 w-1">
-                      <span className="absolute inline-flex h-full w-full animate-ping bg-red-400 opacity-75"></span>
-                      <span className="relative inline-flex h-1 w-1 bg-red-500"></span>
-                    </span>
-                  )
-                ) : null}
+                <IsOnline userStatus={game.players.player2.status} />
               </div>
             </div>
             <div
@@ -491,7 +456,6 @@ const FriendButtons = ({ data }: { data: UserProfileQuery }) => {
 };
 
 const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
-  const currentuserId = useAuthStore().userId;
   const CurrentUserData = () => {
     const { data } = useUserProfileQuery();
     return data;
@@ -607,19 +571,7 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
                       className="h-8 w-8 border border-black"
                       src={`/uploads/avatars/${data?.user.avatar}`}
                     />
-                    {data?.user.id !== currentuserId ? (
-                      data?.user.status === UserStatus.Online ? (
-                        <span className="absolute top-0 left-0 flex h-2 w-2">
-                          <span className="absolute inline-flex h-full w-full animate-ping bg-green-400 opacity-75"></span>
-                          <span className="relative inline-flex h-1 w-1 bg-green-500"></span>
-                        </span>
-                      ) : (
-                        <span className="absolute top-0 left-0 flex h-2 w-2">
-                          <span className="absolute inline-flex h-full w-full animate-ping bg-red-400 opacity-75"></span>
-                          <span className="relative inline-flex h-1 w-1 bg-red-500"></span>
-                        </span>
-                      )
-                    ) : null}
+                    <IsOnline userStatus={data?.user.status} />
                     <img
                       className="absolute -top-1 -right-2 h-4"
                       src={RankIcon(data?.user.rank)}
