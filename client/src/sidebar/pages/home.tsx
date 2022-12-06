@@ -5,7 +5,7 @@ import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { ReactComponent as UsersIcon } from "pixelarticons/svg/users.svg";
 import { ReactComponent as AcceptIcon } from "pixelarticons/svg/check.svg";
 import { ReactComponent as RefuseIcon } from "pixelarticons/svg/close.svg";
-import { useLoaderData, useNavigate } from "react-router-dom";
+import { Navigate, useLoaderData, useNavigate } from "react-router-dom";
 import * as Avatar from "@radix-ui/react-avatar";
 import {
   useAddFriendMutation,
@@ -143,10 +143,13 @@ const Invitation = ({
 };
 
 export const Home = () => {
-  const initialData = useLoaderData() as Awaited<ReturnType<typeof homeLoader>>;
-  const { data } = useQuery({ ...query(), initialData });
   const [searchInput, setSearchInput] = useState("");
   const [showChannelCreation, setShowChannelCreation] = useState(false);
+
+  const initialData = useLoaderData() as Awaited<ReturnType<typeof homeLoader>>;
+  const { data: chatsAndInvitations } = useQuery({ ...query(), initialData });
+  if (typeof chatsAndInvitations === "undefined")
+    return <Navigate to={"/"} replace={true} />;
 
   return (
     <div className="relative flex h-full flex-col">
@@ -175,7 +178,7 @@ export const Home = () => {
           />
         ) : (
           <>
-            {data.user.pendingFriends.map((user, index) => (
+            {chatsAndInvitations.user.pendingFriends.map((user, index) => (
               <Invitation
                 key={index}
                 userId={user.id}
@@ -183,13 +186,13 @@ export const Home = () => {
                 name={user.name}
               />
             ))}
-            {data?.user.chats.length === 0 ? (
+            {chatsAndInvitations.user.chats.length === 0 ? (
               <Empty
                 message="Add your friends to play with them!"
                 Icon={GamePadIcon}
               />
             ) : (
-              data.user.chats.map((chat, index) => (
+              chatsAndInvitations.user.chats.map((chat, index) => (
                 <ChannelAndFriendBanner key={index} chat={chat} />
               ))
             )}
