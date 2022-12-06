@@ -16,10 +16,9 @@ import {
   useDiscussionsAndInvitationsQuery,
   useUserProfileQuery,
 } from "./graphql/generated";
-// TODO Leave channel as owner make a other member owner randomly ?
-//TODO how does it knows delete channel when nobody in
-//TODO if ban not show the change inside channel ?
+
 let init = false;
+
 const App = () => {
   const isLoggedIn = !!useAuthStore((state) => state.userId);
 
