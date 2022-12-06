@@ -360,7 +360,9 @@ const UserBanner = ({
           userRole !== ChannelUserRole.OWNER) ||
         (currentUserRole === ChannelUserRole.ADMIN &&
           userRole === ChannelUserRole.MEMBER) ||
-        userRole === ChannelUserRole.NON_MEMBER ? (
+        ((currentUserRole === ChannelUserRole.OWNER ||
+          currentUserRole === ChannelUserRole.ADMIN) &&
+          userRole === ChannelUserRole.NON_MEMBER) ? (
           <ToggleBanStatus
             id={user.id}
             channelId={channelId}
