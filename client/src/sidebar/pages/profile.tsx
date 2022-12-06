@@ -576,7 +576,7 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
                     />
                     <IsOnline userStatus={data?.user.status} />
                     <img
-                      className="absolute -top-1 -right-2 h-4"
+                      className="absolute top-0 -right-2 h-4"
                       src={RankIcon(data?.user.rank)}
                     />
                   </div>

@@ -178,7 +178,7 @@ export default function Chat() {
                 />
                 <IsOnline userStatus={data.status} />
                 <img
-                  className="absolute -top-1 -right-2 h-4"
+                  className="absolute top-0 -right-2 h-4"
                   src={RankIcon(data.rank)}
                 />
               </div>
