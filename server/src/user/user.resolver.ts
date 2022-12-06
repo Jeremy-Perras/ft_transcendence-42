@@ -14,6 +14,7 @@ import {
   Mutation,
 } from "@nestjs/graphql";
 import { Prisma } from "@prisma/client";
+
 import { GqlAuthenticatedGuard } from "../auth/authenticated.guard";
 import { CurrentUser } from "../auth/currentUser.decorator";
 import { channelType } from "../channel/channel.model";
@@ -36,6 +37,7 @@ import {
   userType,
   Chat,
   chatType,
+  userStatus,
 } from "./user.model";
 @Resolver(User)
 @UseGuards(GqlAuthenticatedGuard)
@@ -319,6 +321,13 @@ export class UserResolver {
       where: { userId: user.id },
     });
     return achievements;
+  }
+
+  @ResolveField()
+  async status(@Root() user: User): Promise<userStatus> {
+    return this.socketService.isUserConnected(user.id)
+      ? userStatus.ONLINE
+      : userStatus.OFFLINE;
   }
 
   @ResolveField()

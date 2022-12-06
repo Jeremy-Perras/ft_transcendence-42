@@ -614,5 +614,6 @@ export default function Profile() {
   >;
   const { data } = useQuery({ ...query(userId), initialData });
   if (typeof data === "undefined") return <div>Error</div>;
+  console.log(data.user.status);
   return <DisplayUserProfile data={data} />;
 }

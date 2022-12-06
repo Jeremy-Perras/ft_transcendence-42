@@ -3,6 +3,7 @@ query SearchUsers($name: String) {
     id
     name
     avatar
+    status
     channels {
       id
     }

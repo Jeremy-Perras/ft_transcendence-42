@@ -21,4 +21,9 @@ export class SocketService {
     });
     return;
   }
+
+  isUserConnected(userId: number) {
+    const rooms = this.socketGateway.server.sockets.adapter.rooms;
+    return !!rooms.get(userId.toString());
+  }
 }

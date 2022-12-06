@@ -3,6 +3,7 @@ query DirectMessages($userId: Int) {
     rank
     name
     avatar
+    status
     messages {
       id
       content
