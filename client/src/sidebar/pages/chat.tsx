@@ -25,7 +25,7 @@ import {
   HeaderLeftBtn,
 } from "../components/header";
 import { RankIcon } from "../utils/rankIcon";
-import { useAuthStore, useSidebarStore } from "../../stores";
+import { useSidebarStore } from "../../stores";
 import { IsOnline } from "../components/isOnline";
 
 type ChatQuery = {
@@ -93,7 +93,7 @@ const DirectMessage = ({
   status,
 }: DirectMessage) => {
   const navigate = useNavigate();
-  const currentUserId = useAuthStore().userId;
+
   return (
     <li className="mx-2 mb-5 flex flex-col ">
       <span className="mb-2 text-center text-xs text-slate-300">
@@ -138,10 +138,10 @@ const DirectMessage = ({
 
 export default function Chat() {
   const params = useParams();
-  const sendMessageMutation = useSendDirectMessageMutation({});
-  const sidebarIsOpen = useSidebarStore((state) => state.isOpen);
   const navigate = useNavigate();
+  const sidebarIsOpen = useSidebarStore((state) => state.isOpen);
   const [content, setContent] = useState("");
+  const sendMessageMutation = useSendDirectMessageMutation({});
 
   if (typeof params.userId === "undefined")
     return <Navigate to={"/"} replace={true} />;

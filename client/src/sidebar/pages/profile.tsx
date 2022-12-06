@@ -1,6 +1,7 @@
 import { QueryClient, useQuery, UseQueryOptions } from "@tanstack/react-query";
 import {
   LoaderFunctionArgs,
+  Navigate,
   useLoaderData,
   useNavigate,
   useParams,
@@ -18,7 +19,6 @@ import {
   FriendStatus,
   useUserProfileHeaderQuery,
   GameMode,
-  UserStatus,
 } from "../../graphql/generated";
 import queryClient from "../../query";
 import ClassicIcon from "/src/assets/images/ClassicIcon.svg";
@@ -456,11 +456,10 @@ const FriendButtons = ({ data }: { data: UserProfileQuery }) => {
 };
 
 const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
-  const CurrentUserData = () => {
-    const { data } = useUserProfileQuery();
-    return data;
-  };
-  const currentUserData = CurrentUserData();
+  const currentUserId = useAuthStore((state) => state.userId);
+  if (!currentUserId) {
+    return <Navigate to={"/"} replace={true} />;
+  }
 
   const [showNameError, setShowNameError] = useState(false);
 
@@ -470,6 +469,7 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
     control,
     formState: { errors },
     setFocus,
+    watch,
   } = useForm<formData>();
 
   const watchName = useWatch({
@@ -499,7 +499,7 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
       return spanEl.current?.offsetWidth ? spanEl.current?.offsetWidth + 1 : w;
     });
   }, [setSpan, watchName]);
-  if (typeof currentUserData === "undefined") return <>Error</>;
+
   return (
     <div className="flex h-full w-full flex-col ">
       <Header>
@@ -509,7 +509,7 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
           </HeaderLeftBtn>
           <HeaderCenterContent>
             <div className="relative flex h-full items-center justify-center">
-              {currentUserData.user.id === data.user.id ? (
+              {currentUserId === data.user.id ? (
                 <>
                   <img className="mr-2 h-8" src={RankIcon(data?.user.rank)} />
                   <div className="relative flex w-fit">
@@ -530,15 +530,18 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
                           maxLength: 100,
                           required: true,
                         })}
+                        onFocus={() => setShowNameError(false)}
                         autoComplete="off"
                         defaultValue={data.user.name}
                         className="peer h-8 max-w-fit self-center text-ellipsis bg-slate-50 px-2"
                         style={{ width }}
-                        onBlur={handleSubmit((param) => {
-                          param.name !== data?.user.name
-                            ? changeName.mutate({ name: param.name })
-                            : null;
-                        })}
+                        onBlur={
+                          watch("name") !== data?.user.name
+                            ? handleSubmit((param) => {
+                                changeName.mutate({ name: param.name });
+                              })
+                            : () => null
+                        }
                       />
                       {errors.name?.type === "required" ? (
                         <p className="absolute left-1 -bottom-5 w-32 border border-red-500 bg-red-50 text-xs text-red-300 before:content-['⚠']">
@@ -586,9 +589,9 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
           </HeaderCenterContent>
         </>
       </Header>
-      <UserProfileHeader data={data} currentUserId={currentUserData?.user.id} />
-      <GameHistory data={data} currentUserId={currentUserData?.user.id} />
-      {currentUserData?.user.id === data.user.id ? (
+      <UserProfileHeader data={data} currentUserId={currentUserId} />
+      <GameHistory data={data} currentUserId={currentUserId} />
+      {currentUserId === data.user.id ? (
         <Disconnect />
       ) : data.user.blocked ? (
         <Unblock userId={data.user.id} />

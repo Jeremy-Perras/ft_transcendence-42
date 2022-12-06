@@ -48,7 +48,6 @@ import {
   HeaderNavigateBack,
 } from "../components/header";
 import { ChannelUserRole } from "../types/channelUserRole";
-import { User } from "../types/user";
 import { useAuthStore } from "../../stores";
 import { Empty } from "../components/Empty";
 import { Highlight } from "../components/highlight";

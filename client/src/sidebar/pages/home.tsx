@@ -11,7 +11,6 @@ import {
   useAddFriendMutation,
   useDiscussionsAndInvitationsQuery,
   useRefuseInvitationMutation,
-  UserStatus,
 } from "../../graphql/generated";
 import CreateChannel, { CreateChannelBtn } from "../components/createChannel";
 import { SearchBar, SearchResults } from "../components/search";
@@ -50,7 +49,7 @@ const ChannelAndFriendBanner = ({
   chat: DiscussionsAndInvitationsQuery["user"]["chats"][number];
 }) => {
   const navigate = useNavigate();
-  console.log(chat.status);
+
   return (
     <div
       onClick={() =>
@@ -61,13 +60,13 @@ const ChannelAndFriendBanner = ({
       className="flex justify-center transition-all hover:cursor-pointer  hover:bg-slate-100"
     >
       <div className="relative m-2 flex h-16 w-16 shrink-0 justify-center   text-white">
-        {chat.type === ChatType.User ? (
+        {chat.type === ChatType.User && chat.status ? (
           <Avatar.Root>
             <Avatar.Image
               className="h-16 w-16 border border-black object-cover"
               src={`/uploads/avatars/${chat.avatar}`}
             />
-            <IsOnline userStatus={chat.status!} />
+            <IsOnline userStatus={chat.status} />
             <Avatar.Fallback delayMs={0}>
               <UserIcon className="h-16 w-16 border border-black bg-slate-50 p-1 text-neutral-700" />
             </Avatar.Fallback>
