@@ -25,4 +25,5 @@ export enum InvalidCacheTarget {
   CREATE_CHANNEL,
   UPDATE_PASSWORD,
   CONNECTION,
+  LOGOUT,
 }

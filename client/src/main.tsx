@@ -257,7 +257,19 @@ const App = () => {
               break;
             case InvalidCacheTarget.CONNECTION:
               queryClient.invalidateQueries(
-                useChannelDiscussionQuery.getKey({ channelId: data.targetId })
+                useDiscussionsAndInvitationsQuery.getKey({
+                  userId: data.targetId,
+                })
+              );
+              queryClient.invalidateQueries(
+                useDiscussionsAndInvitationsQuery.getKey({})
+              );
+              break;
+            case InvalidCacheTarget.LOGOUT:
+              queryClient.invalidateQueries(
+                useDiscussionsAndInvitationsQuery.getKey({
+                  userId: data.targetId,
+                })
               );
               queryClient.invalidateQueries(
                 useDiscussionsAndInvitationsQuery.getKey({})
