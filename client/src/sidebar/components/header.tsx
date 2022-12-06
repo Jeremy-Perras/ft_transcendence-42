@@ -11,6 +11,7 @@ import * as Avatar from "@radix-ui/react-avatar";
 const CurrentUserProfile = () => {
   const navigate = useNavigate();
   const { data, isFetched } = useUserProfileHeaderQuery();
+
   return (
     <div
       className="flex w-10 shrink-0 grow-0 cursor-pointer flex-col justify-center"

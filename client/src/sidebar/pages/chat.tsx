@@ -10,6 +10,7 @@ import {
   DirectMessagesQuery,
   FriendStatus,
   useDirectMessagesQuery,
+  UserStatus,
   useSendDirectMessageMutation,
 } from "../../graphql/generated";
 import { User } from "../types/user";
@@ -23,7 +24,7 @@ import {
   HeaderLeftBtn,
 } from "../components/header";
 import { RankIcon } from "../utils/rankIcon";
-import { useSidebarStore } from "../../stores";
+import { useAuthStore, useSidebarStore } from "../../stores";
 
 type ChatQuery = {
   messages: {
@@ -39,6 +40,7 @@ type ChatQuery = {
   blocked: boolean;
   blocking: boolean;
   friendStatus: FriendStatus | undefined | null;
+  status: UserStatus;
 };
 
 type DirectMessage = {
@@ -48,6 +50,7 @@ type DirectMessage = {
   sentAt: number;
   readAt?: number | null | undefined;
   author: User;
+  status: UserStatus;
 };
 
 const query = (
@@ -64,6 +67,7 @@ const query = (
       blocked: user.user.blocked,
       blocking: user.user.blocking,
       friendStatus: user.user.friendStatus,
+      status: user.user.status,
     }),
   };
 };
@@ -84,9 +88,10 @@ const DirectMessage = ({
   sentAt,
   readAt,
   author,
+  status,
 }: DirectMessage) => {
   const navigate = useNavigate();
-
+  const currentUserId = useAuthStore().userId;
   return (
     <li className="mx-2 mb-5 flex flex-col ">
       <span className="mb-2 text-center text-xs text-slate-300">
@@ -100,14 +105,29 @@ const DirectMessage = ({
         <div
           className={`${
             author.id === userId ? "order-first mr-1" : "order-last ml-1"
-          } flex h-full w-7 shrink-0 items-end justify-center`}
+          }  flex h-full w-7 shrink-0 items-end justify-center`}
         >
-          <img
-            className="flex h-6 w-6 border border-black hover:h-7 hover:w-7 hover:cursor-pointer"
-            src={`/uploads/avatars/${author.avatar}`}
-            alt="Message author avatar"
-            onClick={() => navigate(`/profile/${author.id}`)}
-          />
+          <div className="relative">
+            <img
+              className="flex h-6 w-6 border border-black hover:h-7 hover:w-7 hover:cursor-pointer"
+              src={`/uploads/avatars/${author.avatar}`}
+              alt="Message author avatar"
+              onClick={() => navigate(`/profile/${author.id}`)}
+            />
+            {currentUserId !== author.id ? (
+              status === UserStatus.Online ? (
+                <span className="absolute top-0 left-0 flex h-1 w-1">
+                  <span className="absolute inline-flex h-full w-full animate-ping bg-green-400 opacity-75"></span>
+                  <span className="relative inline-flex h-1 w-1 bg-green-500"></span>
+                </span>
+              ) : (
+                <span className="absolute top-0 left-0 flex h-1 w-1">
+                  <span className="absolute inline-flex h-full w-full animate-ping bg-red-400 opacity-75"></span>
+                  <span className="relative inline-flex h-1 w-1 bg-red-500"></span>
+                </span>
+              )
+            ) : null}
+          </div>
         </div>
         <span
           className={`max-w-sm break-words px-4 py-2 tracking-wide ${
@@ -167,6 +187,17 @@ export default function Chat() {
                   className="h-8 w-8 border border-black"
                   src={`/uploads/avatars/${data?.avatar}`}
                 />
+                {data?.status === UserStatus.Online ? (
+                  <span className="absolute top-0 left-0 flex h-1 w-1">
+                    <span className="absolute inline-flex h-full w-full animate-ping bg-green-400 opacity-75"></span>
+                    <span className="relative inline-flex h-1 w-1 bg-green-500"></span>
+                  </span>
+                ) : (
+                  <span className="absolute top-0 left-0 flex h-1 w-1">
+                    <span className="absolute inline-flex h-full w-full animate-ping bg-red-400 opacity-75"></span>
+                    <span className="relative inline-flex h-1 w-1 bg-red-500"></span>
+                  </span>
+                )}
                 <img
                   className="absolute -top-1 -right-2 h-4"
                   src={RankIcon(data?.rank)}
@@ -186,7 +217,14 @@ export default function Chat() {
         ) : null}
 
         {data?.messages.map((message, index) => {
-          return <DirectMessage key={index} userId={userId} {...message} />;
+          return (
+            <DirectMessage
+              key={index}
+              status={data.status}
+              userId={userId}
+              {...message}
+            />
+          );
         })}
         <div ref={messagesEndRef} />
       </ul>

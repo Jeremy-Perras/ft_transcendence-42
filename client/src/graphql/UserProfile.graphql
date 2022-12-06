@@ -10,12 +10,14 @@ query UserProfile($userId: Int) {
       players {
         player1 {
           avatar
+          status
           name
           rank
           id
         }
         player2 {
           avatar
+          status
           name
           rank
           id

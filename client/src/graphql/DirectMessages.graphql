@@ -4,6 +4,7 @@ query DirectMessages($userId: Int) {
     name
     avatar
     status
+    status
     messages {
       id
       content
