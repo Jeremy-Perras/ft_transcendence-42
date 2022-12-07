@@ -256,6 +256,7 @@ const App = () => {
               );
               break;
             case InvalidCacheTarget.CONNECTION:
+              console.log("login");
               queryClient.invalidateQueries(
                 useDiscussionsAndInvitationsQuery.getKey({
                   userId: data.targetId,
@@ -266,6 +267,7 @@ const App = () => {
               );
               break;
             case InvalidCacheTarget.LOGOUT:
+              console.log("logout");
               queryClient.invalidateQueries(
                 useDiscussionsAndInvitationsQuery.getKey({
                   userId: data.targetId,
