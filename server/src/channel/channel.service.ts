@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import { Achievement, DirectMessage, Channel } from "@prisma/client";
+import { Achievement, DirectMessage, Channel, User } from "@prisma/client";
 import DataLoader from "dataloader";
 import { PrismaService } from "../prisma/prisma.service";
 
@@ -19,6 +19,14 @@ export class ChannelService {
       private: channel.inviteOnly,
     };
   }
+  private static formatUser(user: User) {
+    return {
+      id: user.id,
+      name: user.name,
+      avatar: user.avatar,
+      rank: user.rank,
+    };
+  }
 
   async getChannelBy(
     dataloader: DataLoader<Channel["id"], Channel>,
@@ -29,5 +37,14 @@ export class ChannelService {
     } catch (error) {
       throw new NotFoundException("User not found");
     }
+  }
+  async getOwner(dataloader: DataLoader<Channel["id"], User[]>, id: number) {
+    const owner = await dataloader.load(id);
+    return owner.map(ChannelService.formatUser);
+  }
+
+  async getAdmins(dataloader: DataLoader<Channel["id"], User[]>, id: number) {
+    const owner = await dataloader.load(id);
+    return owner.map(ChannelService.formatUser);
   }
 }

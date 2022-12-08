@@ -1,3 +1,4 @@
+import { InvalidCacheTarget } from "@apps/shared";
 import {
   ForbiddenException,
   Injectable,
@@ -6,12 +7,16 @@ import {
 import { Achievement, DirectMessage, User } from "@prisma/client";
 import DataLoader from "dataloader";
 import { PrismaService } from "../prisma/prisma.service";
+import { SocketService } from "../socket/socket.service";
 
 // TODO: pass UserLoader to prime cache when possible
 
 @Injectable()
 export class UserService {
-  constructor(private prismaService: PrismaService) {}
+  constructor(
+    private prismaService: PrismaService,
+    private socketService: SocketService
+  ) {}
 
   private static formatUser(user: User) {
     return {
@@ -220,16 +225,17 @@ export class UserService {
         content: message,
         authorId: currentUserId,
         recipientId: userId,
+        sentAt: new Date(),
       },
     });
   }
 
-  async emitUserCacheInvalidation() {
-    // TODO: broadcast to all connected users
-    // this.socketService.emitInvalidateCache(
-    //   InvalidCacheTarget.UPDATE_USER_NAME,
-    //   friend.map((f) => f.id),
-    //   currentUserId
-    // );
+  async emitUserCacheInvalidation(currentUserId: number) {
+    const users = await this.prismaService.user.findMany();
+    this.socketService.emitInvalidateCache(
+      InvalidCacheTarget.UPDATE_USER_NAME,
+      users.map((u) => u.id),
+      currentUserId
+    );
   }
 }

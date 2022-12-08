@@ -13,7 +13,11 @@ import {
   Resolver,
   Root,
 } from "@nestjs/graphql";
-import { Prisma, Channel as PrismaChannel } from "@prisma/client";
+import {
+  Prisma,
+  Channel as PrismaChannel,
+  User as PrismaUser,
+} from "@prisma/client";
 import { GqlAuthenticatedGuard } from "../auth/authenticated.guard";
 import { CurrentUser } from "../auth/currentUser.decorator";
 import { PrismaService } from "../prisma/prisma.service";
@@ -30,7 +34,7 @@ import { Role, RoleGuard, RolesGuard } from "./channel.roles";
 import { ExistingChannelGuard, OwnerGuard } from "./channel.guards";
 import { InvalidCacheTarget } from "@apps/shared";
 import { Loader } from "../dataloader";
-import { ChannelLoader } from "./channel.loaders";
+import { ChannelLoader, OwnerByLoader } from "./channel.loaders";
 import DataLoader from "dataloader";
 import { ChannelService } from "./channel.service";
 @Resolver(Channel)
@@ -114,40 +118,17 @@ export class ChannelResolver {
   async owner(
     @Root() channel: Channel,
     @Loader()
-    ownerLoader: DataLoader<PrismaChannel["id"], PrismaChannel[]>
+    ownerLoader: DataLoader<PrismaChannel["id"], PrismaUser[]>
   ): Promise<userType> {
-    if (!owner) {
-      throw new NotFoundException("Channel not found");
-    }
+    // if (!owner) {
+    //   throw new NotFoundException("Channel not found");
+    // }
 
-    return {
-      id: owner.id,
-      name: owner.name,
-      avatar: owner.avatar,
-      rank: owner.rank,
-    };
+    return this.channelService.getOwner(OwnerByLoader, id);
   }
 
   @ResolveField()
-  async admins(@Root() channel: Channel): Promise<userType[]> {
-    const admins = await this.prisma.channelMember.findMany({
-      select: { user: true },
-      where: {
-        AND: {
-          channelId: channel.id,
-          isAdministrator: true,
-        },
-      },
-    });
-    return admins
-      ? admins.map((admin) => ({
-          id: admin.user.id,
-          name: admin.user.name,
-          avatar: admin.user.avatar,
-          rank: admin.user.rank,
-        }))
-      : [];
-  }
+  async admins(@Root() channel: Channel): Promise<userType[]> {}
 
   @ResolveField()
   async members(@Root() channel: Channel): Promise<userType[]> {

@@ -23,7 +23,7 @@ export class ChannelLoader implements NestDataLoader<number, Channel> {
 }
 
 @Injectable()
-export class OwnerByLoader implements NestDataLoader<number, Channel[]> {
+export class OwnerByLoader implements NestDataLoader<number, User[]> {
   constructor(private prismaService: PrismaService) {}
 
   generateDataLoader(): DataLoader<number, User[]> {
@@ -37,7 +37,38 @@ export class OwnerByLoader implements NestDataLoader<number, Channel[]> {
             },
           },
         })
-      ).map((channel) => channel)
+      ).map((channel) => channel.owner)
     );
   }
 }
+
+@Injectable()
+export class AdminsByLoader implements NestDataLoader<number, User[]> {
+  constructor(private prismaService: PrismaService) {}
+
+  generateDataLoader(): DataLoader<number, User[]> {
+    return new DataLoader<number, User[]>(async (keys) => {
+      (
+        await this.prismaService.channelMember.findMany({
+          select: { user: true },
+          where: {
+            AND: {
+              channelId: { in: [...keys] },
+              isAdministrator: true,
+            },
+          },
+        })
+      ).map((channel) => {
+        channel.user;
+      });
+    });
+  }
+}
+// return admins
+// ? admins.map((admin) => ({
+//     id: admin.user.id,
+//     name: admin.user.name,
+//     avatar: admin.user.avatar,
+//     rank: admin.user.rank,
+//   }))
+// : [];})
