@@ -10,8 +10,16 @@ import { GameModule } from "./game/game.module";
 import { AuthModule } from "./auth/auth.module";
 import { UploadModule } from "./upload/upload.module";
 import { SocketModule } from "./socket/socket.module";
+import { DataLoaderInterceptor } from "./dataloader";
+import { APP_INTERCEPTOR } from "@nestjs/core";
 
 @Module({
+  providers: [
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: DataLoaderInterceptor,
+    },
+  ],
   imports: [
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, "../../", "client/dist"), // TODO: use env var

@@ -66,7 +66,7 @@ model DirectMessage {
   recipientId Int
 
   content String
-  sentAt  DateTime
+  sentAt  DateTime  @default(now())
   readAt  DateTime?
 
   createdAt DateTime @default(now())
@@ -160,7 +160,7 @@ model ChannelMessage {
   channelId Int
 
   content String
-  sentAt  DateTime
+  sentAt  DateTime @default(now())
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

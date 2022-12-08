@@ -13,21 +13,35 @@ import {
   Root,
   Mutation,
 } from "@nestjs/graphql";
-import { Prisma } from "@prisma/client";
-
+import {
+  Prisma,
+  User as PrismaUser,
+  Achievement as PrismaAchievement,
+  DirectMessage as PrismaDirectMessage,
+} from "@prisma/client";
+import DataLoader from "dataloader";
 import { GqlAuthenticatedGuard } from "../auth/authenticated.guard";
 import { CurrentUser } from "../auth/currentUser.decorator";
 import { channelType } from "../channel/channel.model";
+import { Loader } from "../dataloader";
 import { gameType } from "../game/game.model";
-import { PrismaService } from "../prisma/prisma.service";
 import { SocketService } from "../socket/socket.service";
-
 import {
   BlockGuard,
   ExistingUserGuard,
   FriendGuard,
   SelfGuard,
 } from "./user.guards";
+import {
+  AchivementsLoader,
+  BlockedByLoader,
+  BlockingLoader,
+  DirectMessagesReceivedLoader,
+  DirectMessagesSentLoader,
+  FriendedByLoader,
+  FriendsLoader,
+  UserLoader,
+} from "./user.loaders";
 import {
   DirectMessage,
   directMessageType,
@@ -39,44 +53,31 @@ import {
   chatType,
   userStatus,
 } from "./user.model";
+import { UserService } from "./user.services";
+
 @Resolver(User)
 @UseGuards(GqlAuthenticatedGuard)
 export class UserResolver {
   constructor(
-    private prisma: PrismaService,
+    private userService: UserService,
     private socketService: SocketService
   ) {}
 
   @Query((returns) => User)
   async user(
+    @Loader(UserLoader)
+    userLoader: DataLoader<PrismaUser["id"], PrismaUser>,
     @CurrentUser() currentUserId: number,
     @Args("id", { type: () => Int, nullable: true, defaultValue: null })
     id?: number | null
   ): Promise<userType> {
-    const user = await this.prisma.user.findUnique({
-      select: {
-        id: true,
-        name: true,
-        avatar: true,
-        rank: true,
-      },
-      where: { id: id !== null ? id : currentUserId },
-    });
-
-    if (!user) {
-      throw new NotFoundException("User not found");
-    }
-
-    return {
-      id: user.id,
-      name: user.name,
-      avatar: user.avatar,
-      rank: user.rank,
-    };
+    return this.userService.getUserById(userLoader, currentUserId ?? id);
   }
 
   @Query((returns) => [User], { nullable: "items" })
   async users(
+    @Loader(UserLoader)
+    userLoader: DataLoader<PrismaUser["id"], PrismaUser>,
     @Args("name", {
       type: () => String,
       nullable: true,
@@ -84,28 +85,10 @@ export class UserResolver {
     })
     name?: string | null
   ): Promise<userType[]> {
-    const users = await this.prisma.user.findMany({
-      select: {
-        id: true,
-        name: true,
-        avatar: true,
-        rank: true,
-      },
-      where: {
-        name: {
-          mode: "insensitive",
-          contains: name !== null ? name : undefined,
-        },
-      },
-    });
-
-    return users.map((user) => ({
-      typename: "User",
-      id: user.id,
-      name: user.name,
-      avatar: user.avatar,
-      rank: user.rank,
-    }));
+    if (name) {
+      return this.userService.searchUsersByName(userLoader, name);
+    }
+    return [];
   }
 
   @ResolveField()
@@ -279,70 +262,51 @@ export class UserResolver {
 
   @ResolveField()
   async friendStatus(
+    @Loader(FriendsLoader)
+    friendsLoader: DataLoader<PrismaUser["id"], PrismaUser[]>,
+    @Loader(FriendedByLoader)
+    friendedByLoader: DataLoader<PrismaUser["id"], PrismaUser[]>,
     @CurrentUser() currentUserId: number,
     @Root() user: User
   ): Promise<friendStatus | undefined> {
     if (currentUserId === user.id) {
       return undefined;
     }
-    const u = await this.prisma.user.findUnique({
-      select: {
-        friendedBy: {
-          where: {
-            id: currentUserId,
-          },
-        },
-        friends: {
-          where: {
-            id: currentUserId,
-          },
-        },
-      },
-      where: {
-        id: user.id,
-      },
-    });
-    if (
-      u?.friendedBy &&
-      u.friendedBy.length > 0 &&
-      u.friends &&
-      u.friends.length > 0
-    ) {
+
+    const [friendedBy, friends] = await Promise.all([
+      this.userService.getFriendedBy(friendsLoader, user.id),
+      this.userService.getFriends(friendedByLoader, user.id),
+    ]);
+
+    const isFriendedBy = !!friendedBy.find((u) => u.id === currentUserId);
+    const isFriends = !!friends.find((u) => u.id === currentUserId);
+
+    if (isFriendedBy && isFriends) {
       return friendStatus.FRIEND;
     }
-    if (u?.friendedBy && u.friendedBy.length > 0) {
+
+    if (isFriendedBy) {
       return friendStatus.INVITATION_SEND;
     }
-    if (u?.friends && u.friends.length > 0) {
+
+    if (isFriends) {
       return friendStatus.INVITATION_RECEIVED;
     }
+
     return friendStatus.NOT_FRIEND;
   }
 
   @ResolveField()
-  async achievements(@Root() user: User): Promise<Achievement[]> {
-    const achievements = await this.prisma.achievement.findMany({
-      select: { icon: true, name: true },
-      where: { userId: user.id },
-    });
-    return achievements;
+  async achievements(
+    @Loader(AchivementsLoader)
+    achievementsLoader: DataLoader<PrismaUser["id"], PrismaAchievement[]>,
+    @Root() user: User
+  ): Promise<Achievement[]> {
+    return this.userService.getAchievements(achievementsLoader, user.id);
   }
 
   @ResolveField()
   async status(@Root() user: User): Promise<userStatus> {
-    const users = await this.prisma.user.findUnique({
-      select: { friends: { select: { id: true } } },
-      where: { id: user.id },
-    });
-
-    if (users?.friends) {
-      this.socketService.emitInvalidateCache(
-        InvalidCacheTarget.CONNECTION,
-        users?.friends.map((u) => u.id),
-        user.id
-      );
-    }
-
     return this.socketService.isUserConnected(user.id)
       ? userStatus.ONLINE
       : userStatus.OFFLINE;
@@ -350,54 +314,40 @@ export class UserResolver {
 
   @ResolveField()
   async friends(
+    @Loader(FriendsLoader)
+    friendsLoader: DataLoader<PrismaUser["id"], PrismaUser[]>,
+    @Loader(FriendedByLoader)
+    friendedByLoader: DataLoader<PrismaUser["id"], PrismaUser[]>,
     @CurrentUser() currentUserId: number,
     @Root() user: User
   ): Promise<userType[]> {
-    if (currentUserId === user.id) {
-      const u = await this.prisma.user.findUnique({
-        select: {
-          friendedBy: {
-            where: { friendedBy: { some: { id: currentUserId } } },
-          },
-        },
-        where: { id: user.id },
-      });
-      return u
-        ? u.friendedBy.map((us) => ({
-            id: us.id,
-            name: us.name,
-            avatar: us.avatar,
-            rank: us.rank,
-          }))
-        : [];
-    }
-    return [];
+    if (currentUserId !== user.id) return [];
+
+    const [friendedBy, friends] = await Promise.all([
+      this.userService.getFriendedBy(friendsLoader, user.id),
+      this.userService.getFriends(friendedByLoader, user.id),
+    ]);
+
+    return friends.filter((f) => friendedBy.some((fb) => fb.id === f.id));
   }
 
   @ResolveField()
   async pendingFriends(
+    @Loader(FriendsLoader)
+    friendsLoader: DataLoader<PrismaUser["id"], PrismaUser[]>,
+    @Loader(FriendedByLoader)
+    friendedByLoader: DataLoader<PrismaUser["id"], PrismaUser[]>,
     @CurrentUser() currentUserId: number,
     @Root() user: User
   ): Promise<userType[]> {
-    if (currentUserId === user.id) {
-      const u = await this.prisma.user.findUnique({
-        select: {
-          friendedBy: {
-            where: { friendedBy: { none: { id: currentUserId } } },
-          },
-        },
-        where: { id: user.id },
-      });
-      return u
-        ? u.friendedBy.map((us) => ({
-            id: us.id,
-            name: us.name,
-            avatar: us.avatar,
-            rank: us.rank,
-          }))
-        : [];
-    }
-    return [];
+    if (currentUserId !== user.id) return [];
+
+    const [friendedBy, friends] = await Promise.all([
+      this.userService.getFriendedBy(friendsLoader, user.id),
+      this.userService.getFriends(friendedByLoader, user.id),
+    ]);
+
+    return friendedBy.filter((f) => !friends.some((fb) => fb.id === f.id));
   }
 
   @ResolveField()
@@ -490,87 +440,55 @@ export class UserResolver {
 
   @ResolveField()
   async blocked(
+    @Loader(BlockedByLoader)
+    blockedByLoader: DataLoader<PrismaUser["id"], PrismaUser[]>,
     @Root() user: User,
     @CurrentUser() currentUserId: number
   ): Promise<boolean> {
-    const u = await this.prisma.user.findUnique({
-      select: { blocking: true },
-      where: {
-        id: currentUserId,
-      },
-    });
-    return u ? u.blocking.some((e) => e.id === user.id) : false;
+    const blockedBy = await this.userService.getBlockedBy(
+      blockedByLoader,
+      user.id
+    );
+
+    return blockedBy.some((e) => e.id === currentUserId);
   }
 
   @ResolveField()
   async blocking(
+    @Loader(BlockingLoader)
+    blockingLoader: DataLoader<PrismaUser["id"], PrismaUser[]>,
     @Root() user: User,
     @CurrentUser() currentUserId: number
   ): Promise<boolean> {
-    const u = await this.prisma.user.findUnique({
-      select: { blockedBy: true },
-      where: {
-        id: currentUserId,
-      },
-    });
-    return u ? u.blockedBy.some((e) => e.id === user.id) : false;
+    const blocking = await this.userService.getBlocking(
+      blockingLoader,
+      user.id
+    );
+
+    return blocking.some((e) => e.id === currentUserId);
   }
 
   @ResolveField()
   async messages(
+    @Loader(DirectMessagesReceivedLoader)
+    directMessagesReceivedLoader: DataLoader<
+      [PrismaUser["id"], PrismaUser["id"]],
+      (PrismaDirectMessage & { author: PrismaUser; recipient: PrismaUser })[]
+    >,
+    @Loader(DirectMessagesSentLoader)
+    directMessagesSentLoader: DataLoader<
+      [PrismaUser["id"], PrismaUser["id"]],
+      (PrismaDirectMessage & { author: PrismaUser; recipient: PrismaUser })[]
+    >,
     @Root() user: User,
     @CurrentUser() currentUserId: number
   ): Promise<directMessageType[]> {
-    const messagesToUpdate = await this.prisma.user.findUnique({
-      select: {
-        messageReceived: {
-          where: {
-            authorId: user.id,
-          },
-        },
-      },
-      where: {
-        id: currentUserId,
-      },
-    });
-    messagesToUpdate?.messageReceived.forEach(async (message) => {
-      if (!message.readAt) {
-        await this.prisma.directMessage.update({
-          where: { id: message.id },
-          data: {
-            readAt: new Date(),
-          },
-        });
-      }
-    });
-
-    const u = await this.prisma.user.findUnique({
-      select: {
-        messageSent: {
-          orderBy: [
-            {
-              sentAt: "asc",
-            },
-          ],
-          where: {
-            recipientId: user.id,
-          },
-        },
-        messageReceived: {
-          orderBy: [
-            {
-              sentAt: "asc",
-            },
-          ],
-          where: {
-            authorId: user.id,
-          },
-        },
-      },
-      where: {
-        id: currentUserId,
-      },
-    });
+    const messages = await this.userService.getMessages(
+      currentUserId,
+      user.id,
+      directMessagesReceivedLoader,
+      directMessagesSentLoader
+    );
 
     this.socketService.emitInvalidateCache(
       InvalidCacheTarget.DIRECT_MESSAGE,
@@ -578,19 +496,7 @@ export class UserResolver {
       currentUserId
     );
 
-    const result = u?.messageReceived.concat(u.messageSent);
-    return result
-      ? result
-          .sort(
-            (a, b) => b.sentAt.getMilliseconds() - a.sentAt.getMilliseconds()
-          )
-          .map((message) => ({
-            id: message.id,
-            content: message.content,
-            sentAt: message.sentAt,
-            readAt: message.readAt ?? undefined,
-          }))
-      : [];
+    return messages;
   }
 
   @UseGuards(ExistingUserGuard)
@@ -600,30 +506,7 @@ export class UserResolver {
     @CurrentUser() currentUserId: number,
     @Args("userId", { type: () => Int }) userId: number
   ) {
-    const u = await this.prisma.user.findUnique({
-      select: { friendedBy: true, friends: true },
-      where: { id: currentUserId },
-    });
-
-    u?.friends.some((us) => us.id === userId)
-      ? await this.unfriendUser(currentUserId, userId)
-      : null;
-    u?.friendedBy.some((us) => us.id === userId)
-      ? await this.refuseInvitation(currentUserId, userId)
-      : null;
-
-    await this.prisma.user.update({
-      where: {
-        id: currentUserId,
-      },
-      data: {
-        blocking: {
-          connect: {
-            id: userId,
-          },
-        },
-      },
-    });
+    await this.userService.block(currentUserId, userId);
 
     const users = [userId, currentUserId];
     this.socketService.emitInvalidateCache(
@@ -631,6 +514,7 @@ export class UserResolver {
       users,
       currentUserId
     );
+
     return true;
   }
 
@@ -641,14 +525,7 @@ export class UserResolver {
     @CurrentUser() currentUserId: number,
     @Args("userId", { type: () => Int }) userId: number
   ) {
-    await this.prisma.user.update({
-      where: {
-        id: currentUserId,
-      },
-      data: {
-        blocking: { disconnect: { id: userId } },
-      },
-    });
+    await this.userService.unblock(currentUserId, userId);
 
     const users = [userId, currentUserId];
     this.socketService.emitInvalidateCache(
@@ -668,14 +545,7 @@ export class UserResolver {
     @CurrentUser() currentUserId: number,
     @Args("userId", { type: () => Int }) userId: number
   ) {
-    await this.prisma.user.update({
-      where: {
-        id: currentUserId,
-      },
-      data: {
-        friends: { connect: { id: userId } },
-      },
-    });
+    await this.userService.friend(currentUserId, userId);
 
     const users = [userId, currentUserId];
 
@@ -696,15 +566,7 @@ export class UserResolver {
     @CurrentUser() currentUserId: number,
     @Args("userId", { type: () => Int }) userId: number
   ) {
-    await this.refuseInvitation(currentUserId, userId);
-    await this.prisma.user.update({
-      where: {
-        id: currentUserId,
-      },
-      data: {
-        friends: { disconnect: { id: userId } },
-      },
-    });
+    await this.userService.unFriend(currentUserId, userId);
 
     this.socketService.emitInvalidateCache(
       InvalidCacheTarget.UNFRIEND_USER,
@@ -722,14 +584,7 @@ export class UserResolver {
     @CurrentUser() currentUserId: number,
     @Args("userId", { type: () => Int }) userId: number
   ) {
-    await this.prisma.user.update({
-      where: {
-        id: currentUserId,
-      },
-      data: {
-        friends: { disconnect: { id: userId } },
-      },
-    });
+    await this.userService.refuseFriendInvite(userId, currentUserId);
 
     const users = [currentUserId, userId];
     this.socketService.emitInvalidateCache(
@@ -748,14 +603,8 @@ export class UserResolver {
     @CurrentUser() currentUserId: number,
     @Args("userId", { type: () => Int }) userId: number
   ) {
-    await this.prisma.user.update({
-      where: {
-        id: userId,
-      },
-      data: {
-        friends: { disconnect: { id: currentUserId } },
-      },
-    });
+    await this.userService.refuseFriendInvite(currentUserId, userId);
+
     const users = [userId, currentUserId];
     this.socketService.emitInvalidateCache(
       InvalidCacheTarget.REFUSE_INVITATION_FRIEND,
@@ -779,33 +628,8 @@ export class UserResolver {
       throw new ForbiddenException("Your name can't exceed 255 characters");
     }
 
-    const user = await this.prisma.user.findMany({
-      select: { name: true },
-    });
+    await this.userService.updateName(currentUserId, name);
 
-    if (user.some((user) => user.name === name)) {
-      throw new ForbiddenException("Name already used");
-    }
-
-    await this.prisma.user.update({
-      where: {
-        id: currentUserId,
-      },
-      data: {
-        name: name,
-      },
-    });
-
-    const friend = await this.prisma.user.findMany({
-      select: { id: true },
-      where: { friendedBy: { some: { id: currentUserId } } },
-    });
-
-    this.socketService.emitInvalidateCache(
-      InvalidCacheTarget.UPDATE_USER_NAME,
-      friend.map((f) => f.id),
-      currentUserId
-    );
     return true;
   }
 }
@@ -814,51 +638,9 @@ export class UserResolver {
 @UseGuards(GqlAuthenticatedGuard)
 export class DirectMessageResolver {
   constructor(
-    private prisma: PrismaService,
-    private socketService: SocketService
+    private socketService: SocketService,
+    private userService: UserService
   ) {}
-
-  @ResolveField()
-  async author(@Root() message: DirectMessage): Promise<userType> {
-    const m = await this.prisma.directMessage.findUnique({
-      select: { author: true },
-      where: {
-        id: message.id,
-      },
-    });
-
-    if (!m) {
-      throw new NotFoundException("Message not found");
-    }
-
-    return {
-      id: m.author.id,
-      name: m.author.name,
-      avatar: m.author.avatar,
-      rank: m.author.rank,
-    };
-  }
-
-  @ResolveField()
-  async recipient(@Root() message: DirectMessage): Promise<userType> {
-    const m = await this.prisma.directMessage.findUnique({
-      select: { recipient: true },
-      where: {
-        id: message.id,
-      },
-    });
-
-    if (!m) {
-      throw new NotFoundException("Message not found");
-    }
-
-    return {
-      id: m.recipient.id,
-      name: m.recipient.name,
-      avatar: m.recipient.avatar,
-      rank: m.recipient.rank,
-    };
-  }
 
   @UseGuards(ExistingUserGuard)
   @UseGuards(SelfGuard)
@@ -870,14 +652,7 @@ export class DirectMessageResolver {
     @Args("userId", { type: () => Int }) userId: number,
     @CurrentUser() currentUserId: number
   ) {
-    await this.prisma.directMessage.create({
-      data: {
-        content: message,
-        sentAt: new Date(),
-        authorId: currentUserId,
-        recipientId: userId,
-      },
-    });
+    await this.userService.sendDirectMessage(currentUserId, userId, message);
 
     this.socketService.emitInvalidateCache(
       InvalidCacheTarget.DIRECT_MESSAGE,

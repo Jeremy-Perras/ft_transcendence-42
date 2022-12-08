@@ -11,7 +11,10 @@ import { Channel } from "../channel/channel.model";
 import { Game } from "../game/game.model";
 import "reflect-metadata";
 
-export type directMessageType = Omit<DirectMessage, "author" | "recipient">;
+export type directMessageType = Omit<DirectMessage, "author" | "recipient"> & {
+  author: userType;
+  recipient: userType;
+};
 
 export enum friendStatus {
   NOT_FRIEND,
@@ -136,6 +139,7 @@ export class Chat {
   @Field((type) => userStatus, { nullable: true })
   status?: userStatus;
 }
+
 @ObjectType()
 export class Achievement {
   @Field((type) => String)
@@ -146,6 +150,7 @@ export class Achievement {
   @IsNotEmpty()
   icon: string;
 }
+
 @ObjectType()
 export class DirectMessage {
   @Field((type) => Int)
@@ -174,5 +179,6 @@ export class Restricted {
   @Field((type) => Date, { nullable: true })
   endAt: Date | null;
 }
+
 @ObjectType()
 export class RestrictedMember extends IntersectionType(Restricted, User) {}
