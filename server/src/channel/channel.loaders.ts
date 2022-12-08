@@ -1,5 +1,5 @@
 import { Injectable, Type } from "@nestjs/common";
-import { Channel, User } from "@prisma/client";
+import { Achievement, Channel, User } from "@prisma/client";
 import DataLoader from "dataloader";
 import { channel } from "diagnostics_channel";
 import { NestDataLoader } from "../dataloader";
@@ -23,12 +23,12 @@ export class ChannelLoader implements NestDataLoader<number, Channel> {
 }
 
 @Injectable()
-export class OwnerByLoader implements NestDataLoader<number, User[]> {
+export class OwnerByLoader implements NestDataLoader<number, User> {
   constructor(private prismaService: PrismaService) {}
 
-  generateDataLoader(): DataLoader<number, User[]> {
-    return new DataLoader<number, User[]>(async (keys) =>
-      (
+  generateDataLoader(): DataLoader<number, User> {
+    return new DataLoader<number, User>(async (keys) => {
+      return (
         await this.prismaService.channel.findMany({
           select: { owner: true },
           where: {
@@ -37,38 +37,28 @@ export class OwnerByLoader implements NestDataLoader<number, User[]> {
             },
           },
         })
-      ).map((channel) => channel.owner)
-    );
+      ).map((channel) => channel.owner);
+    });
   }
 }
 
 @Injectable()
-export class AdminsByLoader implements NestDataLoader<number, User[]> {
+export class AdminsByLoader implements NestDataLoader<number, User> {
   constructor(private prismaService: PrismaService) {}
 
-  generateDataLoader(): DataLoader<number, User[]> {
-    return new DataLoader<number, User[]>(async (keys) => {
+  generateDataLoader(): DataLoader<number, User> {
+    return new DataLoader<number, User>(async (keys) =>
       (
         await this.prismaService.channelMember.findMany({
           select: { user: true },
           where: {
             AND: {
               channelId: { in: [...keys] },
-              isAdministrator: true,
+              isAdministrator: true, //TODO check is not broken
             },
           },
         })
-      ).map((channel) => {
-        channel.user;
-      });
-    });
+      ).map((channel) => channel.user)
+    );
   }
 }
-// return admins
-// ? admins.map((admin) => ({
-//     id: admin.user.id,
-//     name: admin.user.name,
-//     avatar: admin.user.avatar,
-//     rank: admin.user.rank,
-//   }))
-// : [];})

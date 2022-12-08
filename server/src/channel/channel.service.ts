@@ -44,7 +44,7 @@ export class ChannelService {
   }
 
   async getAdmins(dataloader: DataLoader<Channel["id"], User[]>, id: number) {
-    const owner = await dataloader.load(id);
-    return owner.map(ChannelService.formatUser);
+    const admins = await dataloader.load(id);
+    return admins.map(ChannelService.formatUser);
   }
 }

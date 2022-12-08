@@ -128,24 +128,30 @@ export class ChannelResolver {
   }
 
   @ResolveField()
-  async admins(@Root() channel: Channel): Promise<userType[]> {}
+  async admins(
+    @Root() channel: Channel,
+    @Loader()
+    adminLoader: DataLoader<PrismaChannel["id"], PrismaUser[]>
+  ): Promise<userType[]> {
+    return this.channelService.getAdmins(adminLoader, channel.id);
+  }
 
   @ResolveField()
   async members(@Root() channel: Channel): Promise<userType[]> {
-    const members = await this.prisma.channelMember.findMany({
-      select: { user: true },
-      where: {
-        channelId: channel.id,
-      },
-    });
-    return members
-      ? members.map((member) => ({
-          id: member.user.id,
-          name: member.user.name,
-          avatar: member.user.avatar,
-          rank: member.user.rank,
-        }))
-      : [];
+    // const members = await this.prisma.channelMember.findMany({
+    //   select: { user: true },
+    //   where: {
+    //     channelId: channel.id,
+    //   },
+    // });
+    // return members
+    //   ? members.map((member) => ({
+    //       id: member.user.id,
+    //       name: member.user.name,
+    //       avatar: member.user.avatar,
+    //       rank: member.user.rank,
+    //     }))
+    //   : [];
   }
 
   @ResolveField()
