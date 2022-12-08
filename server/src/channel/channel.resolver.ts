@@ -13,7 +13,7 @@ import {
   Resolver,
   Root,
 } from "@nestjs/graphql";
-import { Prisma } from "@prisma/client";
+import { Prisma, Channel as PrismaChannel } from "@prisma/client";
 import { GqlAuthenticatedGuard } from "../auth/authenticated.guard";
 import { CurrentUser } from "../auth/currentUser.decorator";
 import { PrismaService } from "../prisma/prisma.service";
@@ -29,38 +29,26 @@ import {
 import { Role, RoleGuard, RolesGuard } from "./channel.roles";
 import { ExistingChannelGuard, OwnerGuard } from "./channel.guards";
 import { InvalidCacheTarget } from "@apps/shared";
-
+import { Loader } from "../dataloader";
+import { ChannelLoader } from "./channel.loaders";
+import DataLoader from "dataloader";
+import { ChannelService } from "./channel.service";
 @Resolver(Channel)
 @UseGuards(RolesGuard)
 @UseGuards(GqlAuthenticatedGuard)
 export class ChannelResolver {
   constructor(
-    private prisma: PrismaService,
-    private socketservice: SocketService
+    private socketService: SocketService,
+    private channelService: ChannelService
   ) {}
 
   @Query((returns) => Channel)
   async channel(
+    @Loader(ChannelLoader)
+    channelLoader: DataLoader<PrismaChannel["id"], PrismaChannel>,
     @Args("id", { type: () => Int }) id: number
   ): Promise<channelType> {
-    const channel = await this.prisma.channel.findUnique({
-      select: {
-        id: true,
-        name: true,
-        inviteOnly: true,
-        password: true,
-      },
-      where: { id: id },
-    });
-    if (!channel) {
-      throw new NotFoundException("Channel not found");
-    }
-    return {
-      id: channel.id,
-      name: channel.name,
-      passwordProtected: !!channel.password,
-      private: channel.inviteOnly,
-    };
+    return this.channelService.getChannelBy(channelLoader, id);
   }
 
   @Query((returns) => [Channel])
@@ -123,15 +111,11 @@ export class ChannelResolver {
   }
 
   @ResolveField()
-  async owner(@Root() channel: Channel): Promise<userType> {
-    const owner = await this.prisma.channel
-      .findUnique({
-        where: {
-          id: channel.id,
-        },
-      })
-      .owner();
-
+  async owner(
+    @Root() channel: Channel,
+    @Loader()
+    ownerLoader: DataLoader<PrismaChannel["id"], PrismaChannel[]>
+  ): Promise<userType> {
     if (!owner) {
       throw new NotFoundException("Channel not found");
     }

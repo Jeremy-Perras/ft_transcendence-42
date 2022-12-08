@@ -53,7 +53,7 @@ import {
   chatType,
   userStatus,
 } from "./user.model";
-import { UserService } from "./user.services";
+import { UserService } from "./user.service";
 
 @Resolver(User)
 @UseGuards(GqlAuthenticatedGuard)
