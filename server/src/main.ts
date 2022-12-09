@@ -14,7 +14,7 @@ async function bootstrap() {
         : ["error", "warn"],
     cors: true,
   });
-  // app.useGlobalFilters(new PrismaExceptionFilter());
+  app.useGlobalFilters(new PrismaExceptionFilter());
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,

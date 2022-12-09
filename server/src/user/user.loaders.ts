@@ -22,90 +22,74 @@ export class UserLoader implements NestDataLoader<number, User> {
 }
 
 @Injectable()
-export class FriendedByLoader implements NestDataLoader<number, User[]> {
+export class FriendedByIdsLoader implements NestDataLoader<number, number[]> {
   constructor(private prismaService: PrismaService) {}
 
-  generateDataLoader(): DataLoader<number, User[]> {
-    return new DataLoader<number, User[]>(async (keys) =>
-      (
-        await this.prismaService.user.findMany({
-          select: {
-            friendedBy: true,
-          },
-          where: {
-            id: {
-              in: [...keys],
-            },
-          },
-        })
-      ).map((user) => user.friendedBy)
-    );
+  generateDataLoader(): DataLoader<number, number[]> {
+    return new DataLoader<number, number[]>(async (keys) => {
+      const u = await this.prismaService.userFriends.findMany({
+        where: { inviteeId: { in: [...keys] } },
+      });
+      return u.reduce((acc, curr) => {
+        const index = keys.indexOf(curr.inviteeId);
+        acc[index]?.push(curr.inviterId);
+        return acc;
+      }, new Array<number[]>());
+    });
   }
 }
 
 @Injectable()
-export class FriendsLoader implements NestDataLoader<number, User[]> {
+export class FriendIdsLoader implements NestDataLoader<number, number[]> {
   constructor(private prismaService: PrismaService) {}
 
-  generateDataLoader(): DataLoader<number, User[]> {
-    return new DataLoader<number, User[]>(async (keys) =>
-      (
-        await this.prismaService.user.findMany({
-          select: {
-            friends: true,
-          },
-          where: {
-            id: {
-              in: [...keys],
-            },
-          },
-        })
-      ).map((user) => user.friends)
-    );
+  generateDataLoader(): DataLoader<number, number[]> {
+    return new DataLoader<number, number[]>(async (keys) => {
+      const u = await this.prismaService.userFriends.findMany({
+        where: { inviterId: { in: [...keys] } },
+      });
+      return u.reduce((acc, curr) => {
+        const index = keys.indexOf(curr.inviterId);
+        acc[index]?.push(curr.inviteeId);
+        return acc;
+      }, new Array<number[]>());
+    });
   }
 }
 
 @Injectable()
-export class BlockedByLoader implements NestDataLoader<number, User[]> {
+export class BlockedByIdsLoader implements NestDataLoader<number, number[]> {
   constructor(private prismaService: PrismaService) {}
 
-  generateDataLoader(): DataLoader<number, User[]> {
-    return new DataLoader<number, User[]>(async (keys) =>
-      (
-        await this.prismaService.user.findMany({
-          select: {
-            blockedBy: true,
-          },
-          where: {
-            id: {
-              in: [...keys],
-            },
-          },
-        })
-      ).map((user) => user.blockedBy)
-    );
+  generateDataLoader(): DataLoader<number, number[]> {
+    return new DataLoader<number, number[]>(async (keys) => {
+      const u = await this.prismaService.userBlocking.findMany({
+        where: { blockeeId: { in: [...keys] } },
+      });
+      return u.reduce((acc, curr) => {
+        const index = keys.indexOf(curr.blockeeId);
+        acc[index]?.push(curr.blockerId);
+        return acc;
+      }, new Array<number[]>());
+    });
   }
 }
 
 @Injectable()
-export class BlockingLoader implements NestDataLoader<number, User[]> {
+export class BlockingIdsLoader implements NestDataLoader<number, number[]> {
   constructor(private prismaService: PrismaService) {}
 
-  generateDataLoader(): DataLoader<number, User[]> {
-    return new DataLoader<number, User[]>(async (keys) =>
-      (
-        await this.prismaService.user.findMany({
-          select: {
-            blocking: true,
-          },
-          where: {
-            id: {
-              in: [...keys],
-            },
-          },
-        })
-      ).map((user) => user.blocking)
-    );
+  generateDataLoader(): DataLoader<number, number[]> {
+    return new DataLoader<number, number[]>(async (keys) => {
+      const u = await this.prismaService.userBlocking.findMany({
+        where: { blockerId: { in: [...keys] } },
+      });
+      return u.reduce((acc, curr) => {
+        const index = keys.indexOf(curr.blockerId);
+        acc[index]?.push(curr.blockeeId);
+        return acc;
+      }, new Array<number[]>());
+    });
   }
 }
 
@@ -130,6 +114,44 @@ export class AchivementsLoader
         })
       ).map((user) => user.achievements)
     );
+  }
+}
+
+@Injectable()
+export class UserChannelIdsLoader implements NestDataLoader<number, number[]> {
+  constructor(private prismaService: PrismaService) {}
+
+  generateDataLoader(): DataLoader<number, number[]> {
+    return new DataLoader<number, number[]>(async (keys) => {
+      const c = await this.prismaService.channel.findMany({
+        select: {
+          id: true,
+          members: {
+            select: {
+              userId: true,
+            },
+          },
+          ownerId: true,
+        },
+        where: {
+          owner: { id: { in: [...keys] } },
+          members: { some: { userId: { in: [...keys] } } },
+        },
+      });
+      return c.reduce((acc, curr) => {
+        const index = keys.find((e) => curr.ownerId === e);
+        if (index) {
+          acc[index]?.push(curr.id);
+        }
+        curr.members.forEach((m) => {
+          const index = keys.find((e) => m.userId === e);
+          if (index) {
+            acc[index]?.push(curr.id);
+          }
+        });
+        return acc;
+      }, new Array<number[]>());
+    });
   }
 }
 
@@ -181,16 +203,12 @@ export class DirectMessagesSentLoader
           return messages.reduce(
             (acc, curr) => {
               const index = acc.index.indexOf(curr.recipientId);
-              if (index === -1) {
-                acc.index.push(acc.messages.push([curr]));
-              } else {
-                const i = acc.messages[index];
-                i && i.push(curr);
-              }
+              const i = acc.messages[index];
+              i && i.push(curr);
               return acc;
             },
             {
-              index: new Array<number>(),
+              index: keys.map((k) => k[1]),
               messages: new Array<
                 (DirectMessage & { author: User; recipient: User })[]
               >(),
@@ -255,16 +273,12 @@ export class DirectMessagesReceivedLoader
           return messages.reduce(
             (acc, curr) => {
               const index = acc.index.indexOf(curr.recipientId);
-              if (index === -1) {
-                acc.index.push(acc.messages.push([curr]));
-              } else {
-                const i = acc.messages[index];
-                i && i.push(curr);
-              }
+              const i = acc.messages[index];
+              i && i.push(curr);
               return acc;
             },
             {
-              index: new Array<number>(),
+              index: keys.map((k) => k[1]),
               messages: new Array<
                 (DirectMessage & { author: User; recipient: User })[]
               >(),

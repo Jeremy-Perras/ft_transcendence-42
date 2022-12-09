@@ -21,11 +21,11 @@ model User {
 
   rank Int @default(0)
 
-  friendedBy User[] @relation("UserFriends")
-  friends    User[] @relation("UserFriends")
+  friends    UserFriends[] @relation("Inviter")
+  friendedBy UserFriends[] @relation("Invitee")
 
-  blockedBy User[] @relation("UserBlocking")
-  blocking  User[] @relation("UserBlocking")
+  blocking  UserBlocking[] @relation("Blocker")
+  blockedBy UserBlocking[] @relation("Blockee")
 
   channels      ChannelMember[]
   ownedChannels Channel[]
@@ -45,6 +45,26 @@ model User {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model UserFriends {
+  inviter   User @relation("Inviter", fields: [inviterId], references: [id], onDelete: Cascade)
+  inviterId Int
+
+  invitee   User @relation("Invitee", fields: [inviteeId], references: [id], onDelete: Cascade)
+  inviteeId Int
+
+  @@id([inviterId, inviteeId])
+}
+
+model UserBlocking {
+  blocker   User @relation("Blocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blockerId Int
+
+  blockee   User @relation("Blockee", fields: [blockeeId], references: [id], onDelete: Cascade)
+  blockeeId Int
+
+  @@id([blockerId, blockeeId])
 }
 
 model Achievement {

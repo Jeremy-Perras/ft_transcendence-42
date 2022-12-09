@@ -14,6 +14,7 @@ async function main() {
     }
   });
   // users
+  console.log("users");
   for (let i = 1; i <= 100; i++) {
     if (i <= 10) {
       const avatar = faker.image.avatar();
@@ -47,13 +48,14 @@ async function main() {
   }
 
   // friends
+  console.log("friends");
   await prisma.user.update({
     where: {
       id: 1,
     },
     data: {
       friends: {
-        connect: [{ id: 2 }, { id: 3 }, { id: 4 }],
+        create: [{ inviteeId: 2 }, { inviteeId: 3 }, { inviteeId: 4 }],
       },
     },
   });
@@ -63,7 +65,7 @@ async function main() {
     },
     data: {
       friends: {
-        connect: [{ id: 1 }, { id: 3 }, { id: 4 }],
+        create: [{ inviteeId: 1 }, { inviteeId: 3 }, { inviteeId: 4 }],
       },
     },
   });
@@ -73,7 +75,7 @@ async function main() {
     },
     data: {
       friends: {
-        connect: [{ id: 2 }, { id: 4 }],
+        create: [{ inviteeId: 2 }, { inviteeId: 4 }],
       },
     },
   });
@@ -85,7 +87,7 @@ async function main() {
     },
     data: {
       blocking: {
-        connect: [{ id: 1 }, { id: 2 }, { id: 4 }],
+        create: [{ blockeeId: 2 }, { blockeeId: 3 }, { blockeeId: 4 }],
       },
     },
   });
@@ -95,7 +97,7 @@ async function main() {
     },
     data: {
       blocking: {
-        connect: [{ id: 5 }],
+        create: [{ blockeeId: 5 }],
       },
     },
   });

@@ -4,13 +4,24 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import { Achievement, DirectMessage, Channel, User } from "@prisma/client";
+import {
+  Channel,
+  User,
+  MutedMember,
+  BannedMember,
+  ChannelMember,
+  ChannelMessage,
+} from "@prisma/client";
 import DataLoader from "dataloader";
-import { channel } from "diagnostics_channel";
 import { PrismaService } from "../prisma/prisma.service";
 import { SocketService } from "../socket/socket.service";
 import { UserService } from "../user/user.service";
 import bcrypt from "bcrypt";
+import {
+  RestrictedMember as GraphQLRestictedMember,
+  userType as GraphQLUser,
+} from "../user/user.model";
+
 @Injectable()
 export class ChannelService {
   constructor(
@@ -18,7 +29,7 @@ export class ChannelService {
     private socketService: SocketService
   ) {}
 
-  private static formatChannel(channel: Channel) {
+  static formatChannel(channel: Channel) {
     return {
       id: channel.id,
       name: channel.name,
@@ -28,45 +39,185 @@ export class ChannelService {
   }
 
   async getChannelById(
-    dataloader: DataLoader<Channel["id"], Channel>,
+    channelLoader: DataLoader<Channel["id"], Channel>,
     id: number
   ) {
     try {
-      return ChannelService.formatChannel(await dataloader.load(id));
+      return ChannelService.formatChannel(await channelLoader.load(id));
     } catch (error) {
       throw new NotFoundException("Channel not found");
     }
   }
 
+  async searchChannelsByName(
+    channelLoader: DataLoader<Channel["id"], Channel>,
+    name: string
+  ) {
+    const channels = await this.prismaService.channel.findMany({
+      where: {
+        name: {
+          mode: "insensitive",
+          contains: name,
+        },
+      },
+    });
+    return channels.map((channel) => {
+      channelLoader.prime(channel.id, channel);
+      return ChannelService.formatChannel(channel);
+    });
+  }
+
   async getOwner(
-    dataloader: DataLoader<Channel["id"], User>,
+    channelLoader: DataLoader<Channel["id"], Channel>,
+    userLoader: DataLoader<User["id"], User>,
     channelId: number
   ) {
     try {
-      return UserService.formatUser(await dataloader.load(channelId));
+      const channel = await channelLoader.load(channelId);
+      return UserService.formatUser(await userLoader.load(channel.ownerId));
     } catch {
       throw new NotFoundException("Channel not found");
     }
   }
 
   async getAdmins(
-    dataloader: DataLoader<Channel["id"], User[]>,
+    channelMembersLoader: DataLoader<Channel["id"], ChannelMember[]>,
+    userLoader: DataLoader<User["id"], User>,
     channelId: number
   ) {
     try {
-      return (await dataloader.load(channelId)).map(UserService.formatUser);
+      const channelMembers = await channelMembersLoader.load(channelId);
+      const adminIds = channelMembers.reduce((acc, curr) => {
+        if (curr.isAdministrator) acc.push(curr.userId);
+        return acc;
+      }, new Array<number>());
+      const admins = await userLoader.loadMany(adminIds);
+      return admins.reduce((acc, curr) => {
+        if (curr && "id" in curr) {
+          acc.push(UserService.formatUser(curr));
+        }
+        return acc;
+      }, new Array<GraphQLUser>());
     } catch (error) {
       throw new NotFoundException("Channel not found");
     }
   }
 
   async getMembers(
-    dataloader: DataLoader<Channel["id"], User[]>,
+    channelMembersLoader: DataLoader<Channel["id"], ChannelMember[]>,
+    userLoader: DataLoader<User["id"], User>,
     channelId: number
   ) {
     try {
-      return (await dataloader.load(channelId)).map(UserService.formatUser);
+      const channelMembers = await channelMembersLoader.load(channelId);
+      const adminIds = channelMembers.reduce((acc, curr) => {
+        if (!curr.isAdministrator) acc.push(curr.userId);
+        return acc;
+      }, new Array<number>());
+      const admins = await userLoader.loadMany(adminIds);
+      return admins.reduce((acc, curr) => {
+        if (curr && "id" in curr) {
+          acc.push(UserService.formatUser(curr));
+        }
+        return acc;
+      }, new Array<GraphQLUser>());
     } catch (error) {
+      throw new NotFoundException("Channel not found");
+    }
+  }
+
+  async getMutedMembers(
+    channelMutedMembersLoader: DataLoader<Channel["id"], MutedMember[]>,
+    userLoader: DataLoader<User["id"], User>,
+    channelId: number
+  ) {
+    try {
+      const mutedMembers = await channelMutedMembersLoader.load(channelId);
+      const mutedMembersId = mutedMembers.map((m) => m.userId);
+      const users = await userLoader.loadMany(mutedMembersId);
+      return users.reduce((acc, curr) => {
+        if (curr && "id" in curr) {
+          const user = UserService.formatUser(curr) as GraphQLRestictedMember;
+          const mutedUserIndex = mutedMembers.findIndex(
+            (m) => user.id === m.userId
+          );
+          if (mutedUserIndex >= 0) {
+            const mutedUser = mutedMembers[mutedUserIndex];
+            if (mutedUser) {
+              user.endAt = mutedUser.endAt;
+              mutedMembers.slice(mutedUserIndex, 0);
+              acc.push(user);
+            }
+          }
+        }
+        return acc;
+      }, new Array<GraphQLRestictedMember>());
+    } catch (error) {
+      throw new NotFoundException("Channel not found");
+    }
+  }
+
+  async getBannedMembers(
+    channelBannedMembersLoader: DataLoader<Channel["id"], BannedMember[]>,
+    userLoader: DataLoader<User["id"], User>,
+    channelId: number
+  ) {
+    try {
+      const bannedMembers = await channelBannedMembersLoader.load(channelId);
+      const bannedMembersId = bannedMembers.map((m) => m.userId);
+      const users = await userLoader.loadMany(bannedMembersId);
+      return users.reduce((acc, curr) => {
+        if (curr && "id" in curr) {
+          const user = UserService.formatUser(curr) as GraphQLRestictedMember;
+          const bannedUserIndex = bannedMembers.findIndex(
+            (m) => user.id === m.userId
+          );
+          if (bannedUserIndex >= 0) {
+            const bannedUser = bannedMembers[bannedUserIndex];
+            if (bannedUser) {
+              user.endAt = bannedUser.endAt;
+              bannedMembers.slice(bannedUserIndex, 0);
+              acc.push(user);
+            }
+          }
+        }
+        return acc;
+      }, new Array<GraphQLRestictedMember>());
+    } catch (error) {
+      throw new NotFoundException("Channel not found");
+    }
+  }
+
+  async getMessages(
+    userChannelIdsLoader: DataLoader<User["id"], number[]>,
+    channelMessageLoader: DataLoader<Channel["id"], ChannelMessage[]>,
+    blockingIdsLoader: DataLoader<User["id"], number[]>,
+    channelId: number,
+    currentUserId: number
+  ) {
+    try {
+      const userChannels = await userChannelIdsLoader.load(currentUserId);
+      if (userChannels.some((c) => c === channelId)) {
+        const messages = await channelMessageLoader.load(channelId);
+        await this.prismaService.channelMessageRead.createMany({
+          data: messages.map((message) => ({
+            messageId: message.id,
+            userId: currentUserId,
+          })),
+          skipDuplicates: true,
+        });
+        const blockedIds = await blockingIdsLoader.load(currentUserId);
+        return messages.map((message) => ({
+          id: message.id,
+          content: blockedIds.some((i) => i === message.authorId)
+            ? null
+            : message.content,
+          sentAt: message.sentAt,
+          authorId: message.authorId,
+        }));
+      }
+      return [];
+    } catch {
       throw new NotFoundException("Channel not found");
     }
   }

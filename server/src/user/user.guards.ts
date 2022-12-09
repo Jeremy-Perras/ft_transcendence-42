@@ -31,31 +31,29 @@ export class BlockGuard implements CanActivate {
     const userId = +ctx.getContext().req.user;
     const targetUserId = ctx.getArgs<{ userId: number }>().userId;
 
-    const blocked = await this.prisma.user.findFirst({
-      select: {
-        blockedBy: {
-          where: {
-            id: targetUserId,
-          },
-        },
-        blocking: {
-          where: {
-            id: targetUserId,
-          },
-        },
-      },
+    const blocked = await this.prisma.userBlocking.findMany({
       where: {
-        id: userId,
+        OR: [
+          {
+            blockeeId: userId,
+            blockerId: targetUserId,
+          },
+          {
+            blockeeId: targetUserId,
+            blockerId: userId,
+          },
+        ],
       },
     });
 
-    if (blocked?.blockedBy && blocked.blockedBy.length > 0) {
-      throw new ForbiddenException("You are blocked by this user");
-    }
-
-    if (blocked?.blocking && blocked.blocking.length > 0) {
-      throw new ForbiddenException("You are blocking this user");
-    }
+    blocked.forEach((block) => {
+      if (block.blockerId === userId) {
+        throw new ForbiddenException("You are blocking this user");
+      }
+      if (block.blockerId === userId) {
+        throw new ForbiddenException("You are blocked by this user");
+      }
+    });
 
     return true;
   }
@@ -70,25 +68,22 @@ export class FriendGuard implements CanActivate {
     const userId = +ctx.getContext().req.user;
     const targetUserId = ctx.getArgs<{ userId: number }>().userId;
 
-    const friend = await this.prisma.user.findUnique({
-      select: {
-        friendedBy: {
-          where: {
-            id: targetUserId,
+    const friendship = await this.prisma.userFriends.findMany({
+      where: {
+        OR: [
+          {
+            inviteeId: userId,
+            inviterId: targetUserId,
           },
-        },
-        friends: {
-          where: {
-            id: targetUserId,
+          {
+            inviteeId: targetUserId,
+            inviterId: userId,
           },
-        },
+        ],
       },
-      where: { id: userId },
     });
-    if (
-      (friend?.friendedBy && friend.friendedBy.length === 0) ||
-      (friend?.friends && friend.friends.length === 0)
-    ) {
+
+    if (friendship.length === 0) {
       throw new ForbiddenException("You are not friends with this user");
     }
 

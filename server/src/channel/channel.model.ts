@@ -56,6 +56,10 @@ export class ChannelMessage {
   @Min(0)
   id: number;
 
+  @Field((type) => Int)
+  @Min(0)
+  authorId: number;
+
   @Field((type) => User)
   author: User;
 

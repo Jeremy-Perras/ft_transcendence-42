@@ -1,9 +1,5 @@
 import { InvalidCacheTarget } from "@apps/shared";
-import {
-  NotFoundException,
-  ForbiddenException,
-  UseGuards,
-} from "@nestjs/common";
+import { ForbiddenException, UseGuards } from "@nestjs/common";
 import {
   Resolver,
   Query,
@@ -14,14 +10,15 @@ import {
   Mutation,
 } from "@nestjs/graphql";
 import {
-  Prisma,
   User as PrismaUser,
   Achievement as PrismaAchievement,
   DirectMessage as PrismaDirectMessage,
+  Channel as PrismaChannel,
 } from "@prisma/client";
 import DataLoader from "dataloader";
 import { GqlAuthenticatedGuard } from "../auth/authenticated.guard";
 import { CurrentUser } from "../auth/currentUser.decorator";
+import { ChannelLoader } from "../channel/channel.loaders";
 import { channelType } from "../channel/channel.model";
 import { Loader } from "../dataloader";
 import { gameType } from "../game/game.model";
@@ -34,12 +31,13 @@ import {
 } from "./user.guards";
 import {
   AchivementsLoader,
-  BlockedByLoader,
-  BlockingLoader,
+  BlockedByIdsLoader,
+  BlockingIdsLoader,
   DirectMessagesReceivedLoader,
   DirectMessagesSentLoader,
-  FriendedByLoader,
-  FriendsLoader,
+  FriendedByIdsLoader,
+  FriendIdsLoader,
+  UserChannelIdsLoader,
   UserLoader,
 } from "./user.loaders";
 import {
@@ -78,17 +76,9 @@ export class UserResolver {
   async users(
     @Loader(UserLoader)
     userLoader: DataLoader<PrismaUser["id"], PrismaUser>,
-    @Args("name", {
-      type: () => String,
-      nullable: true,
-      defaultValue: undefined,
-    })
-    name?: string | null
+    @Args("name", { type: () => String }) name: string
   ): Promise<userType[]> {
-    if (name) {
-      return this.userService.searchUsersByName(userLoader, name);
-    }
-    return [];
+    return this.userService.searchUsersByName(userLoader, name);
   }
 
   @ResolveField()
@@ -99,173 +89,17 @@ export class UserResolver {
     if (currentUserId !== user.id) {
       return undefined;
     }
-    const res = await this.prisma.user.findUnique({
-      where: { id: currentUserId },
-      select: {
-        blocking: true,
-        friends: {
-          where: {
-            friends: {
-              some: {
-                id: currentUserId,
-              },
-            },
-          },
-          select: {
-            id: true,
-            name: true,
-            avatar: true,
-            messageReceived: {
-              where: {
-                authorId: currentUserId,
-              },
-              select: {
-                content: true,
-                sentAt: true,
-                readAt: true,
-                authorId: true,
-              },
-              orderBy: { sentAt: "desc" },
-              take: 1,
-            },
-            messageSent: {
-              where: {
-                recipientId: currentUserId,
-              },
-              select: {
-                content: true,
-                sentAt: true,
-                readAt: true,
-                authorId: true,
-              },
-              orderBy: { sentAt: "desc" },
-              take: 1,
-            },
-          },
-        },
-        ownedChannels: {
-          select: {
-            id: true,
-            name: true,
-            channelMessages: {
-              select: {
-                authorId: true,
-                content: true,
-                sentAt: true,
-                readBy: {
-                  select: {
-                    userId: true,
-                  },
-                },
-              },
-              orderBy: { sentAt: "desc" },
-              take: 1,
-            },
-          },
-        },
-        channels: {
-          select: {
-            channel: {
-              select: {
-                id: true,
-                name: true,
-                channelMessages: {
-                  select: {
-                    authorId: true,
-                    content: true,
-                    sentAt: true,
-                    readBy: {
-                      select: {
-                        userId: true,
-                      },
-                    },
-                  },
-                  orderBy: { sentAt: "desc" },
-                  take: 1,
-                },
-              },
-            },
-          },
-        },
-      },
-    });
-
-    if (!res) return [];
-
-    const mergeResult: Chat[] = [];
-
-    const formatChannel = (channel: typeof res.ownedChannels[number]) => {
-      mergeResult.push({
-        type: chatType.CHANNEL,
-        id: channel.id,
-        name: channel.name,
-        avatar: undefined,
-        lastMessageContent: res.blocking.some(
-          (u) => u.id === channel.channelMessages[0]?.authorId
-        )
-          ? "Unblock this user to see this message"
-          : channel.channelMessages[0]?.content,
-        lastMessageDate: channel.channelMessages[0]?.sentAt,
-        hasUnreadMessages: !channel.channelMessages[0]
-          ? false
-          : channel.channelMessages[0]?.authorId === currentUserId
-          ? false
-          : channel.channelMessages[0]?.readBy.some(
-              (id) => id.userId === currentUserId
-            )
-          ? false
-          : true,
-        status: undefined,
-      });
-    };
-    res?.ownedChannels.forEach(formatChannel);
-    res?.channels.forEach((c) => formatChannel(c.channel));
-
-    res.friends.forEach((f) => {
-      let lastMessage;
-      if (f.messageReceived[0] && f.messageSent[0]) {
-        f.messageReceived[0]?.sentAt < f.messageSent[0]?.sentAt
-          ? (lastMessage = f.messageSent[0])
-          : (lastMessage = f.messageReceived[0]);
-      } else if (f.messageReceived[0] && !f.messageSent[0])
-        lastMessage = f.messageReceived[0];
-      else if (f.messageSent[0] && !f.messageReceived[0])
-        lastMessage = f.messageSent[0];
-      else lastMessage = undefined;
-
-      mergeResult.push({
-        type: chatType.USER,
-        id: f.id,
-        name: f.name,
-        avatar: f.avatar,
-        hasUnreadMessages: !lastMessage
-          ? false
-          : lastMessage?.authorId === currentUserId
-          ? false
-          : lastMessage?.readAt
-          ? false
-          : true,
-        lastMessageContent: lastMessage?.content,
-        lastMessageDate: lastMessage?.sentAt,
-        status: this.socketService.isUserConnected(f.id)
-          ? userStatus.ONLINE
-          : userStatus.OFFLINE,
-      });
-    });
-
-    return mergeResult.sort((x, y) => {
-      const x_val = x.lastMessageDate ? x.lastMessageDate.valueOf() : -1;
-      const y_val = y.lastMessageDate ? y.lastMessageDate.valueOf() : -1;
-      return y_val - x_val;
-    });
+    return this.userService.getChats(user.id);
   }
 
   @ResolveField()
   async friendStatus(
-    @Loader(FriendsLoader)
-    friendsLoader: DataLoader<PrismaUser["id"], PrismaUser[]>,
-    @Loader(FriendedByLoader)
-    friendedByLoader: DataLoader<PrismaUser["id"], PrismaUser[]>,
+    @Loader(UserLoader)
+    userLoader: DataLoader<PrismaUser["id"], PrismaUser>,
+    @Loader(FriendIdsLoader)
+    friendIdsLoader: DataLoader<PrismaUser["id"], number[]>,
+    @Loader(FriendedByIdsLoader)
+    friendedByIdsLoader: DataLoader<PrismaUser["id"], number[]>,
     @CurrentUser() currentUserId: number,
     @Root() user: User
   ): Promise<friendStatus | undefined> {
@@ -274,8 +108,8 @@ export class UserResolver {
     }
 
     const [friendedBy, friends] = await Promise.all([
-      this.userService.getFriendedBy(friendsLoader, user.id),
-      this.userService.getFriends(friendedByLoader, user.id),
+      this.userService.getFriends(userLoader, friendIdsLoader, user.id),
+      this.userService.getFriendedBy(userLoader, friendedByIdsLoader, user.id),
     ]);
 
     const isFriendedBy = !!friendedBy.find((u) => u.id === currentUserId);
@@ -314,18 +148,20 @@ export class UserResolver {
 
   @ResolveField()
   async friends(
-    @Loader(FriendsLoader)
-    friendsLoader: DataLoader<PrismaUser["id"], PrismaUser[]>,
-    @Loader(FriendedByLoader)
-    friendedByLoader: DataLoader<PrismaUser["id"], PrismaUser[]>,
+    @Loader(UserLoader)
+    userLoader: DataLoader<PrismaUser["id"], PrismaUser>,
+    @Loader(FriendIdsLoader)
+    friendIdsLoader: DataLoader<PrismaUser["id"], number[]>,
+    @Loader(FriendedByIdsLoader)
+    friendedByIdsLoader: DataLoader<PrismaUser["id"], number[]>,
     @CurrentUser() currentUserId: number,
     @Root() user: User
   ): Promise<userType[]> {
     if (currentUserId !== user.id) return [];
 
     const [friendedBy, friends] = await Promise.all([
-      this.userService.getFriendedBy(friendsLoader, user.id),
-      this.userService.getFriends(friendedByLoader, user.id),
+      this.userService.getFriends(userLoader, friendIdsLoader, user.id),
+      this.userService.getFriendedBy(userLoader, friendedByIdsLoader, user.id),
     ]);
 
     return friends.filter((f) => friendedBy.some((fb) => fb.id === f.id));
@@ -333,24 +169,26 @@ export class UserResolver {
 
   @ResolveField()
   async pendingFriends(
-    @Loader(FriendsLoader)
-    friendsLoader: DataLoader<PrismaUser["id"], PrismaUser[]>,
-    @Loader(FriendedByLoader)
-    friendedByLoader: DataLoader<PrismaUser["id"], PrismaUser[]>,
+    @Loader(UserLoader)
+    userLoader: DataLoader<PrismaUser["id"], PrismaUser>,
+    @Loader(FriendIdsLoader)
+    friendIdsLoader: DataLoader<PrismaUser["id"], number[]>,
+    @Loader(FriendedByIdsLoader)
+    friendedByIdsLoader: DataLoader<PrismaUser["id"], number[]>,
     @CurrentUser() currentUserId: number,
     @Root() user: User
   ): Promise<userType[]> {
     if (currentUserId !== user.id) return [];
 
     const [friendedBy, friends] = await Promise.all([
-      this.userService.getFriendedBy(friendsLoader, user.id),
-      this.userService.getFriends(friendedByLoader, user.id),
+      this.userService.getFriends(userLoader, friendIdsLoader, user.id),
+      this.userService.getFriendedBy(userLoader, friendedByIdsLoader, user.id),
     ]);
 
     return friendedBy.filter((f) => !friends.some((fb) => fb.id === f.id));
   }
 
-  @ResolveField()
+  @ResolveField() // TODO
   async games(
     @Root() user: User,
     @Args("finished", {
@@ -360,93 +198,78 @@ export class UserResolver {
     })
     finished?: boolean | null
   ): Promise<gameType[]> {
-    const conditions: Prisma.Enumerable<Prisma.GameWhereInput> = [
-      {
-        OR: [
-          {
-            player1Id: user.id,
-          },
-          {
-            player2Id: user.id,
-          },
-        ],
-      },
-    ];
+    return [];
+    // const conditions: Prisma.Enumerable<Prisma.GameWhereInput> = [
+    //   {
+    //     OR: [
+    //       {
+    //         player1Id: user.id,
+    //       },
+    //       {
+    //         player2Id: user.id,
+    //       },
+    //     ],
+    //   },
+    // ];
 
-    if (finished !== null) {
-      conditions.push(
-        finished ? { NOT: { finishedAt: null } } : { finishedAt: null }
-      );
-    }
+    // if (finished !== null) {
+    //   conditions.push(
+    //     finished ? { NOT: { finishedAt: null } } : { finishedAt: null }
+    //   );
+    // }
 
-    const games = await this.prisma.game.findMany({
-      select: {
-        id: true,
-        startedAt: true,
-        finishedAt: true,
-        mode: true,
-        player1Score: true,
-        player2Score: true,
-      },
-      where: {
-        AND: conditions,
-      },
-    });
-    return games.map((game) => ({
-      id: game.id,
-      gameMode: game.mode,
-      startAt: game.startedAt,
-      finishedAt: game.finishedAt ?? undefined,
-      score: {
-        player1Score: game.player1Score,
-        player2Score: game.player2Score,
-      },
-    }));
+    // const games = await this.prisma.game.findMany({
+    //   select: {
+    //     id: true,
+    //     startedAt: true,
+    //     finishedAt: true,
+    //     mode: true,
+    //     player1Score: true,
+    //     player2Score: true,
+    //   },
+    //   where: {
+    //     AND: conditions,
+    //   },
+    // });
+    // return games.map((game) => ({
+    //   id: game.id,
+    //   gameMode: game.mode,
+    //   startAt: game.startedAt,
+    //   finishedAt: game.finishedAt ?? undefined,
+    //   score: {
+    //     player1Score: game.player1Score,
+    //     player2Score: game.player2Score,
+    //   },
+    // }));
   }
 
   @ResolveField()
-  async channels(@Root() user: User): Promise<channelType[]> {
-    const c = await this.prisma.channel.findMany({
-      select: {
-        id: true,
-        name: true,
-        inviteOnly: true,
-        password: true,
-      },
-      where: {
-        OR: [
-          {
-            ownerId: user.id,
-          },
-          {
-            members: {
-              some: {
-                userId: user.id,
-              },
-            },
-          },
-        ],
-      },
-    });
-    return c
-      ? c.map((channel) => ({
-          id: channel.id,
-          name: channel.name,
-          private: channel.inviteOnly,
-          passwordProtected: !!channel.password,
-        }))
-      : [];
+  async channels(
+    @Loader(UserChannelIdsLoader)
+    userChannelIdsLoader: DataLoader<PrismaUser["id"], number[]>,
+    @Loader(ChannelLoader)
+    channelLoader: DataLoader<PrismaChannel["id"], PrismaChannel>,
+    @Root() user: User
+  ): Promise<channelType[]> {
+    return this.userService.getChannels(
+      userChannelIdsLoader,
+      channelLoader,
+      user.id
+    );
   }
 
   @ResolveField()
   async blocked(
-    @Loader(BlockedByLoader)
-    blockedByLoader: DataLoader<PrismaUser["id"], PrismaUser[]>,
+    @Loader(UserLoader)
+    userLoader: DataLoader<PrismaUser["id"], PrismaUser>,
+    @Loader(BlockingIdsLoader)
+    blockingIdsLoader: DataLoader<PrismaUser["id"], number[]>,
     @Root() user: User,
     @CurrentUser() currentUserId: number
   ): Promise<boolean> {
     const blockedBy = await this.userService.getBlockedBy(
-      blockedByLoader,
+      userLoader,
+      blockingIdsLoader,
       user.id
     );
 
@@ -455,13 +278,16 @@ export class UserResolver {
 
   @ResolveField()
   async blocking(
-    @Loader(BlockingLoader)
-    blockingLoader: DataLoader<PrismaUser["id"], PrismaUser[]>,
+    @Loader(UserLoader)
+    userLoader: DataLoader<PrismaUser["id"], PrismaUser>,
+    @Loader(BlockedByIdsLoader)
+    blockedByIdsLoader: DataLoader<PrismaUser["id"], number[]>,
     @Root() user: User,
     @CurrentUser() currentUserId: number
   ): Promise<boolean> {
     const blocking = await this.userService.getBlocking(
-      blockingLoader,
+      userLoader,
+      blockedByIdsLoader,
       user.id
     );
 
