@@ -470,7 +470,7 @@ export class ChannelService {
       : null;
   }
 
-  async emitChannelChacheInvalidation(
+  async emitChannelCacheInvalidation(
     channelId: number,
     InvalidCacheTarget: InvalidCacheTarget,
     members: number[] | null

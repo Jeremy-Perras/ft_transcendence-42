@@ -250,7 +250,7 @@ export class ChannelResolver {
     @CurrentUser() currentUserId: number
   ) {
     this.channelService.joinChannel(channelId, password, currentUserId);
-    this.channelService.emitChannelChacheInvalidation(
+    this.channelService.emitChannelCacheInvalidation(
       channelId,
       InvalidCacheTarget.JOIN_CHANNEL,
       null
@@ -267,7 +267,7 @@ export class ChannelResolver {
     @CurrentUser() currentUserId: number
   ) {
     this.channelService.leaveChannel(channelId, currentUserId);
-    this.channelService.emitChannelChacheInvalidation(
+    this.channelService.emitChannelCacheInvalidation(
       channelId,
       InvalidCacheTarget.LEAVE_CHANNEL,
       null
@@ -306,7 +306,7 @@ export class ChannelResolver {
     );
     this.channelService.deleteChannel(channelId);
 
-    this.channelService.emitChannelChacheInvalidation(
+    this.channelService.emitChannelCacheInvalidation(
       channelId,
       InvalidCacheTarget.DELETE_CHANNEL,
       members
@@ -325,7 +325,7 @@ export class ChannelResolver {
     muteUntil: Date | null
   ) {
     this.channelService.muteUser(channelId, userId, muteUntil);
-    this.channelService.emitChannelChacheInvalidation(
+    this.channelService.emitChannelCacheInvalidation(
       channelId,
       InvalidCacheTarget.UNMUTE_USER,
       null
@@ -345,7 +345,7 @@ export class ChannelResolver {
     banUntil: Date | null
   ) {
     this.channelService.banUser(channelId, userId, banUntil);
-    this.channelService.emitChannelChacheInvalidation(
+    this.channelService.emitChannelCacheInvalidation(
       channelId,
       InvalidCacheTarget.BAN_USER,
       null
@@ -363,7 +363,7 @@ export class ChannelResolver {
     @Args("userId", { type: () => Int }) userId: number
   ) {
     this.channelService.unmuteUser(channelId, userId);
-    this.channelService.emitChannelChacheInvalidation(
+    this.channelService.emitChannelCacheInvalidation(
       channelId,
       InvalidCacheTarget.UNMUTE_USER,
       null
@@ -381,7 +381,7 @@ export class ChannelResolver {
     @Args("userId", { type: () => Int }) userId: number
   ) {
     this.channelService.unbanUser(channelId, userId);
-    this.channelService.emitChannelChacheInvalidation(
+    this.channelService.emitChannelCacheInvalidation(
       channelId,
       InvalidCacheTarget.UNBAN_USER,
       null
@@ -419,7 +419,7 @@ export class ChannelResolver {
     @Args("userId", { type: () => Int }) userId: number
   ) {
     this.channelService.inviteUser(channelId, userId);
-    this.channelService.emitChannelChacheInvalidation(
+    this.channelService.emitChannelCacheInvalidation(
       channelId,
       InvalidCacheTarget.INVITE_USER,
       null
@@ -437,7 +437,7 @@ export class ChannelResolver {
     @Args("userId", { type: () => Int }) userId: number
   ) {
     this.channelService.addAdmin(channelId, userId);
-    this.channelService.emitChannelChacheInvalidation(
+    this.channelService.emitChannelCacheInvalidation(
       channelId,
       InvalidCacheTarget.ADD_ADMIN,
       null
@@ -454,7 +454,7 @@ export class ChannelResolver {
     @Args("userId", { type: () => Int }) userId: number
   ) {
     this.channelService.removeAdmin(channelId, userId);
-    this.channelService.emitChannelChacheInvalidation(
+    this.channelService.emitChannelCacheInvalidation(
       channelId,
       InvalidCacheTarget.REMOVE_ADMIN,
       null
