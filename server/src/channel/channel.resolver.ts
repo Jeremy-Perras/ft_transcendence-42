@@ -52,7 +52,7 @@ export class ChannelResolver {
     channelLoader: DataLoader<PrismaChannel["id"], PrismaChannel>,
     @Args("id", { type: () => Int }) id: number
   ): Promise<channelType> {
-    return this.channelService.getChannelBy(channelLoader, id);
+    return this.channelService.getChannelById(channelLoader, id);
   }
 
   @Query((returns) => [Channel])
@@ -118,40 +118,27 @@ export class ChannelResolver {
   async owner(
     @Root() channel: Channel,
     @Loader()
-    ownerLoader: DataLoader<PrismaChannel["id"], PrismaUser[]>
+    ownerLoader: DataLoader<PrismaChannel["id"], PrismaUser>
   ): Promise<userType> {
-    // if (!owner) {
-    //   throw new NotFoundException("Channel not found");
-    // }
-
-    return this.channelService.getOwner(OwnerByLoader, id);
+    return this.channelService.getOwner(OwnerByLoader, channel.id);
   }
 
   @ResolveField()
   async admins(
     @Root() channel: Channel,
     @Loader()
-    adminLoader: DataLoader<PrismaChannel["id"], PrismaUser[]>
+    adminLoader: DataLoader<PrismaUser["id"], PrismaUser[]>
   ): Promise<userType[]> {
     return this.channelService.getAdmins(adminLoader, channel.id);
   }
 
   @ResolveField()
-  async members(@Root() channel: Channel): Promise<userType[]> {
-    // const members = await this.prisma.channelMember.findMany({
-    //   select: { user: true },
-    //   where: {
-    //     channelId: channel.id,
-    //   },
-    // });
-    // return members
-    //   ? members.map((member) => ({
-    //       id: member.user.id,
-    //       name: member.user.name,
-    //       avatar: member.user.avatar,
-    //       rank: member.user.rank,
-    //     }))
-    //   : [];
+  async members(
+    @Root() channel: Channel,
+    @Loader()
+    membersLoader: DataLoader<PrismaChannel["id"], PrismaUser[]>
+  ): Promise<userType[]> {
+    return this.channelService.getMembers(membersLoader, channel.id);
   }
 
   @ResolveField()
@@ -832,45 +819,7 @@ export class ChannelResolver {
     @Args("channelId", { type: () => Int }) channelId: number,
     @Args("userId", { type: () => Int }) userId: number
   ) {
-    const isadmin = await this.prisma.channelMember.findFirst({
-      where: {
-        userId,
-        isAdministrator: true,
-      },
-    });
-
-    if (!isadmin) {
-      throw new NotFoundException("User is not a member or an admin");
-    }
-
-    await this.prisma.channelMember.update({
-      where: {
-        channelId_userId: {
-          channelId,
-          userId,
-        },
-      },
-      data: {
-        isAdministrator: false,
-      },
-    });
-
-    const usersChannel = await this.prisma.channel.findUnique({
-      select: { members: true, ownerId: true },
-      where: { id: channelId },
-    });
-
-    const users = usersChannel?.members.map((u) => u.userId);
-    if (usersChannel?.ownerId) users?.push(usersChannel?.ownerId);
-
-    if (users) {
-      this.socketservice.emitInvalidateCache(
-        InvalidCacheTarget.REMOVE_ADMIN,
-        users,
-        channelId
-      );
-    }
-
+    this.channelService.removeAdmin(channelId, userId);
     return true;
   }
 }

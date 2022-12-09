@@ -18,7 +18,7 @@ export class UserService {
     private socketService: SocketService
   ) {}
 
-  private static formatUser(user: User) {
+  static formatUser(user: User) {
     return {
       id: user.id,
       name: user.name,
@@ -54,109 +54,149 @@ export class UserService {
   }
 
   async getFriendedBy(dataloader: DataLoader<User["id"], User[]>, id: number) {
-    const friendedBy = await dataloader.load(id);
-    return friendedBy.map(UserService.formatUser);
+    try {
+      const friendedBy = await dataloader.load(id);
+      return friendedBy.map(UserService.formatUser);
+    } catch (error) {
+      throw new NotFoundException("User not found");
+    }
   }
 
   async getFriends(dataloader: DataLoader<User["id"], User[]>, id: number) {
-    const friends = await dataloader.load(id);
-    return friends.map(UserService.formatUser);
+    try {
+      const friends = await dataloader.load(id);
+      return friends.map(UserService.formatUser);
+    } catch (error) {
+      throw new NotFoundException("User not found");
+    }
   }
 
   async getBlockedBy(dataloader: DataLoader<User["id"], User[]>, id: number) {
-    return (await dataloader.load(id)).map(UserService.formatUser);
+    try {
+      return (await dataloader.load(id)).map(UserService.formatUser);
+    } catch (error) {
+      throw new NotFoundException("User not found");
+    }
   }
 
   async getBlocking(dataloader: DataLoader<User["id"], User[]>, id: number) {
-    return (await dataloader.load(id)).map(UserService.formatUser);
+    try {
+      return (await dataloader.load(id)).map(UserService.formatUser);
+    } catch (error) {
+      throw new NotFoundException("User not found");
+    }
   }
 
   async getAchievements(
     dataloader: DataLoader<User["id"], Achievement[]>,
     id: number
   ) {
-    const achievements = await dataloader.load(id);
-    return achievements.map((achievement) => {
-      return {
-        name: achievement.name,
-        icon: achievement.icon,
-      };
-    });
+    try {
+      const achievements = await dataloader.load(id);
+      return achievements.map((achievement) => {
+        return {
+          name: achievement.name,
+          icon: achievement.icon,
+        };
+      });
+    } catch (error) {
+      throw new NotFoundException("User not found");
+    }
   }
 
   async unblock(currentUserId: number, userId: number) {
-    await this.prismaService.user.update({
-      where: {
-        id: currentUserId,
-      },
-      data: {
-        blocking: { disconnect: { id: userId } },
-      },
-    });
+    try {
+      await this.prismaService.user.update({
+        where: {
+          id: currentUserId,
+        },
+        data: {
+          blocking: { disconnect: { id: userId } },
+        },
+      });
+    } catch (error) {
+      throw new NotFoundException("User not found");
+    }
   }
 
   async block(currentUserId: number, userId: number) {
-    this.unFriend(currentUserId, userId);
+    try {
+      this.unFriend(currentUserId, userId);
 
-    this.prismaService.user.update({
-      where: {
-        id: currentUserId,
-      },
-      data: {
-        blocking: {
-          connect: {
-            id: userId,
+      this.prismaService.user.update({
+        where: {
+          id: currentUserId,
+        },
+        data: {
+          blocking: {
+            connect: {
+              id: userId,
+            },
           },
         },
-      },
-    });
+      });
+    } catch (error) {
+      throw new NotFoundException("User not found");
+    }
   }
 
   async unFriend(currentUserId: number, userId: number) {
-    await this.prismaService.user.update({
-      where: {
-        id: currentUserId,
-      },
-      data: {
-        friends: {
-          disconnect: {
-            id: userId,
+    try {
+      await this.prismaService.user.update({
+        where: {
+          id: currentUserId,
+        },
+        data: {
+          friends: {
+            disconnect: {
+              id: userId,
+            },
           },
         },
-      },
-    });
+      });
 
-    this.refuseFriendInvite(currentUserId, userId);
+      this.refuseFriendInvite(currentUserId, userId);
+    } catch (error) {
+      throw new NotFoundException("User not found");
+    }
   }
 
   async friend(currentUserId: number, userId: number) {
-    await this.prismaService.user.update({
-      where: {
-        id: currentUserId,
-      },
-      data: {
-        friends: {
-          connect: {
-            id: userId,
+    try {
+      await this.prismaService.user.update({
+        where: {
+          id: currentUserId,
+        },
+        data: {
+          friends: {
+            connect: {
+              id: userId,
+            },
           },
         },
-      },
-    });
+      });
+    } catch (error) {
+      throw new NotFoundException("User not found");
+    }
   }
 
   async refuseFriendInvite(currentUserId: number, userId: number) {
-    await this.prismaService.user.update({
-      where: {
-        id: currentUserId,
-      },
-      data: {
-        friendedBy: {
-          disconnect: {
-            id: userId,
+    try {
+      await this.prismaService.user.update({
+        where: {
+          id: currentUserId,
+        },
+        data: {
+          friendedBy: {
+            disconnect: {
+              id: userId,
+            },
           },
         },
-      },
-    });
+      });
+    } catch (error) {
+      throw new NotFoundException("User not found");
+    }
   }
 
   async updateName(currentUserId: number, name: string) {
@@ -187,32 +227,36 @@ export class UserService {
       (DirectMessage & { author: User; recipient: User })[]
     >
   ) {
-    await this.prismaService.directMessage.updateMany({
-      where: {
-        authorId: userId,
-        recipientId: currentUser,
-        readAt: null,
-      },
-      data: {
-        readAt: new Date(),
-      },
-    });
+    try {
+      await this.prismaService.directMessage.updateMany({
+        where: {
+          authorId: userId,
+          recipientId: currentUser,
+          readAt: null,
+        },
+        data: {
+          readAt: new Date(),
+        },
+      });
 
-    const [received, sent] = await Promise.all([
-      directMessagesReceivedLoader.load([currentUser, userId]),
-      directMessagesSentLoader.load([currentUser, userId]),
-    ]);
+      const [received, sent] = await Promise.all([
+        directMessagesReceivedLoader.load([currentUser, userId]),
+        directMessagesSentLoader.load([currentUser, userId]),
+      ]);
 
-    return [...received, ...sent]
-      .sort((a, b) => b.sentAt.getMilliseconds() - a.sentAt.getMilliseconds())
-      .map((message) => ({
-        id: message.id,
-        content: message.content,
-        sentAt: message.sentAt,
-        readAt: message.readAt ?? undefined,
-        author: UserService.formatUser(message.author),
-        recipient: UserService.formatUser(message.recipient),
-      }));
+      return [...received, ...sent]
+        .sort((a, b) => b.sentAt.getMilliseconds() - a.sentAt.getMilliseconds())
+        .map((message) => ({
+          id: message.id,
+          content: message.content,
+          sentAt: message.sentAt,
+          readAt: message.readAt ?? undefined,
+          author: UserService.formatUser(message.author),
+          recipient: UserService.formatUser(message.recipient),
+        }));
+    } catch (error) {
+      throw new NotFoundException("User not found");
+    }
   }
 
   async sendDirectMessage(
@@ -220,20 +264,27 @@ export class UserService {
     userId: number,
     message: string
   ) {
-    await this.prismaService.directMessage.create({
-      data: {
-        content: message,
-        authorId: currentUserId,
-        recipientId: userId,
-        sentAt: new Date(),
-      },
-    });
+    try {
+      await this.prismaService.directMessage.create({
+        data: {
+          content: message,
+          authorId: currentUserId,
+          recipientId: userId,
+          sentAt: new Date(),
+        },
+      });
+    } catch (error) {
+      throw new NotFoundException("User not found");
+    }
   }
 
-  async emitUserCacheInvalidation(currentUserId: number) {
+  async emitUserCacheInvalidation(
+    currentUserId: number,
+    InvalidCacheTarget: InvalidCacheTarget
+  ) {
     const users = await this.prismaService.user.findMany();
     this.socketService.emitInvalidateCache(
-      InvalidCacheTarget.UPDATE_USER_NAME,
+      InvalidCacheTarget,
       users.map((u) => u.id),
       currentUserId
     );

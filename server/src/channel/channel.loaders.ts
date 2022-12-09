@@ -23,7 +23,7 @@ export class ChannelLoader implements NestDataLoader<number, Channel> {
 }
 
 @Injectable()
-export class OwnerByLoader implements NestDataLoader<number, User> {
+export class ChannelOwnerLoader implements NestDataLoader<number, User> {
   constructor(private prismaService: PrismaService) {}
 
   generateDataLoader(): DataLoader<number, User> {
@@ -43,22 +43,51 @@ export class OwnerByLoader implements NestDataLoader<number, User> {
 }
 
 @Injectable()
-export class AdminsByLoader implements NestDataLoader<number, User> {
+export class ChannelAdminsLoader implements NestDataLoader<number, User[]> {
   constructor(private prismaService: PrismaService) {}
 
-  generateDataLoader(): DataLoader<number, User> {
-    return new DataLoader<number, User>(async (keys) =>
+  generateDataLoader(): DataLoader<number, User[]> {
+    return new DataLoader<number, User[]>(async (keys) =>
       (
-        await this.prismaService.channelMember.findMany({
-          select: { user: true },
+        await this.prismaService.channel.findMany({
+          select: {
+            members: {
+              where: {
+                isAdministrator: {
+                  equals: true,
+                },
+              },
+              select: {
+                user: true,
+              },
+            },
+          },
           where: {
-            AND: {
-              channelId: { in: [...keys] },
-              isAdministrator: true, //TODO check is not broken
+            id: {
+              in: [...keys],
             },
           },
         })
-      ).map((channel) => channel.user)
+      ).map((channel) => channel.members.map((e) => e.user))
+    );
+  }
+}
+@Injectable()
+export class ChannelMembersLoader implements NestDataLoader<number, User[]> {
+  constructor(private prismaService: PrismaService) {}
+
+  generateDataLoader(): DataLoader<number, User[]> {
+    return new DataLoader<number, User[]>(async (keys) =>
+      (
+        await this.prismaService.channel.findMany({
+          select: {
+            members: { select: { user: true } },
+          },
+          where: {
+            id: { in: [...keys] },
+          },
+        })
+      ).map((c) => c.members.map((u) => u.user))
     );
   }
 }
