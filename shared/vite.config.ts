@@ -12,12 +12,12 @@ export default defineConfig({
       fileName: "index",
     },
     rollupOptions: {
+      cache: false,
       plugins: [
         typescript({
           target: "es2020",
           rootDir: resolvePath("./src"),
           declaration: true,
-          // declarationDir: resolvePath("./dist"),
           exclude: resolvePath("../node_modules/**"),
           allowSyntheticDefaultImports: true,
         }),
