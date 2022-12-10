@@ -13,27 +13,47 @@ enum GameMode {
   RANDOM
 }
 
+enum Achievement {
+  TEN_WIN
+  TWENTYFIVE_WIN
+  ONE_HUNDRED_WIN
+  FIRST_WIN
+  FIRST_LOSE
+  MULTI_MODE
+  PLAYERS
+  WINMEDAL
+}
+
+enum ChannelRole {
+  MEMBER
+  ADMIN
+}
+
+enum ChannelRestriction {
+  BAN
+  MUTE
+}
+
+enum ImageFileType {
+  PNG
+  JPG
+}
+
 model User {
-  id          Int     @id @unique
+  id          Int     @id
   name        String  @unique
-  avatar      String
+  rank        Int     @default(0)
   twoFASecret String?
 
-  rank Int @default(0)
+  avatar Avatar?
 
-  friends    UserFriends[] @relation("Inviter")
-  friendedBy UserFriends[] @relation("Invitee")
+  achievements UserAchievement[]
 
-  blocking  UserBlocking[] @relation("Blocker")
-  blockedBy UserBlocking[] @relation("Blockee")
+  friendRequestsSent     FriendRequest[] @relation("Sender")
+  friendRequestsReceived FriendRequest[] @relation("Receiver")
 
-  channels      ChannelMember[]
-  ownedChannels Channel[]
-  channelsBan   BannedMember[]
-  channelsMute  MutedMember[]
-
-  channelMessages     ChannelMessage[]
-  channelMessageReads ChannelMessageRead[]
+  usersBlocked   UserBlock[] @relation("Blocker")
+  blockedByUsers UserBlock[] @relation("Blockee")
 
   messageSent     DirectMessage[] @relation("MessageSent")
   messageReceived DirectMessage[] @relation("MessageReceived")
@@ -41,23 +61,34 @@ model User {
   gamesAsPlayer1 Game[] @relation("GamePlayer1")
   gamesAsPlayer2 Game[] @relation("GamePlayer2")
 
-  achievements Achievement[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  channels             ChannelMember[]
+  ownedChannels        Channel[]
+  channelMessages      ChannelMessage[]
+  channelMessageReads  ChannelMessageRead[]
+  channelsRestrictions ChannelRestrictedUser[]
 }
 
-model UserFriends {
-  inviter   User @relation("Inviter", fields: [inviterId], references: [id], onDelete: Cascade)
-  inviterId Int
+model Avatar {
+  fileType ImageFileType
+  image    Bytes
 
-  invitee   User @relation("Invitee", fields: [inviteeId], references: [id], onDelete: Cascade)
-  inviteeId Int
+  User   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int
 
-  @@id([inviterId, inviteeId])
+  @@id([userId])
 }
 
-model UserBlocking {
+model FriendRequest {
+  sender   User @relation("Sender", fields: [senderId], references: [id], onDelete: Cascade)
+  senderId Int
+
+  receiver   User @relation("Receiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  receiverId Int
+
+  @@id([senderId, receiverId])
+}
+
+model UserBlock {
   blocker   User @relation("Blocker", fields: [blockerId], references: [id], onDelete: Cascade)
   blockerId Int
 
@@ -67,18 +98,16 @@ model UserBlocking {
   @@id([blockerId, blockeeId])
 }
 
-model Achievement {
-  name   String
-  icon   String
-  User   User?  @relation(fields: [userId], references: [id], onDelete: Cascade)
+model UserAchievement {
+  achievement Achievement
+
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId Int
 
-  @@id([userId, name])
+  @@id([userId, achievement])
 }
 
 model DirectMessage {
-  id Int @id @default(autoincrement())
-
   author   User @relation("MessageSent", fields: [authorId], references: [id], onDelete: Cascade)
   authorId Int
 
@@ -86,19 +115,17 @@ model DirectMessage {
   recipientId Int
 
   content String
-  sentAt  DateTime  @default(now())
-  readAt  DateTime?
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  sentAt DateTime  @default(now())
+  readAt DateTime?
+
+  id Int @id @default(autoincrement())
 }
 
 model Game {
-  id Int @id @default(autoincrement())
-
   mode GameMode
 
-  startedAt  DateTime
+  startedAt  DateTime  @default(now())
   finishedAt DateTime?
 
   player1   User @relation("GamePlayer1", fields: [player1Id], references: [id], onDelete: Cascade)
@@ -109,8 +136,7 @@ model Game {
   player1Score Int
   player2Score Int
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id Int @id @default(autoincrement())
 }
 
 model ChannelMember {
@@ -120,58 +146,40 @@ model ChannelMember {
   user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId Int
 
-  isAdministrator Boolean @default(false)
+  role ChannelRole @default(MEMBER)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  joinedAt DateTime @default(now())
 
   @@id([channelId, userId])
 }
 
-model MutedMember {
+model ChannelRestrictedUser {
   channel   Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
   channelId Int
 
   user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId Int
 
-  endAt DateTime?
+  restriction ChannelRestriction
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  startAt DateTime  @default(now())
+  endAt   DateTime?
 
-  @@id([channelId, userId])
-}
-
-model BannedMember {
-  channel   Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
-  channelId Int
-
-  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId Int
-
-  endAt DateTime?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@id([channelId, userId])
+  @@id([channelId, userId, restriction])
 }
 
 model ChannelMessageRead {
-  message   ChannelMessage @relation(fields: [messageId], references: [id])
+  message   ChannelMessage @relation(fields: [messageId], references: [id], onDelete: Cascade)
   messageId Int
 
-  user   User @relation(fields: [userId], references: [id])
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId Int
 
   @@id([messageId, userId])
 }
 
 model ChannelMessage {
-  id Int @id @default(autoincrement())
-
-  author   User @relation(fields: [authorId], references: [id])
+  author   User @relation(fields: [authorId], references: [id], onDelete: Cascade)
   authorId Int
 
   readBy ChannelMessageRead[]
@@ -182,28 +190,22 @@ model ChannelMessage {
   content String
   sentAt  DateTime @default(now())
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id Int @id @default(autoincrement())
 }
 
 model Channel {
-  id Int @id @default(autoincrement())
-
   name String
 
-  inviteOnly Boolean
+  inviteOnly Boolean @default(false)
   password   String?
-
-  channelMessages ChannelMessage[]
 
   owner   User @relation(fields: [ownerId], references: [id], onDelete: Restrict)
   ownerId Int
 
-  members ChannelMember[]
+  members           ChannelMember[]
+  restrictedMembers ChannelRestrictedUser[]
 
-  banned BannedMember[]
-  muted  MutedMember[]
+  channelMessages ChannelMessage[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id Int @id @default(autoincrement())
 }
