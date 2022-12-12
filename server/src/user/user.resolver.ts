@@ -11,7 +11,8 @@ import {
 } from "@nestjs/graphql";
 import {
   User as PrismaUser,
-  Achievement as PrismaAchievement,
+  Avatar as PrismaAvatar,
+  UserAchievement as PrismaAchievement,
   DirectMessage as PrismaDirectMessage,
   Channel as PrismaChannel,
 } from "@prisma/client";
@@ -31,6 +32,7 @@ import {
 } from "./user.guards";
 import {
   AchivementsLoader,
+  AvatarLoader,
   BlockedByIdsLoader,
   BlockingIdsLoader,
   DirectMessagesReceivedLoader,
@@ -137,6 +139,15 @@ export class UserResolver {
     @Root() user: User
   ): Promise<Achievement[]> {
     return this.userService.getAchievements(achievementsLoader, user.id);
+  }
+
+  @ResolveField()
+  async avatar(
+    @Loader(AvatarLoader)
+    avatarLoader: DataLoader<PrismaUser["id"], PrismaAvatar>,
+    @Root() user: User
+  ): Promise<string> {
+    return this.userService.getAvatar(avatarLoader, user.id);
   }
 
   @ResolveField()

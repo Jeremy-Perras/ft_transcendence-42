@@ -1,5 +1,5 @@
 import { Injectable, Type } from "@nestjs/common";
-import { Achievement, DirectMessage, User } from "@prisma/client";
+import { UserAchievement, DirectMessage, User, Avatar } from "@prisma/client";
 import DataLoader from "dataloader";
 import { NestDataLoader } from "../dataloader";
 import { PrismaService } from "../prisma/prisma.service";
@@ -27,12 +27,12 @@ export class FriendedByIdsLoader implements NestDataLoader<number, number[]> {
 
   generateDataLoader(): DataLoader<number, number[]> {
     return new DataLoader<number, number[]>(async (keys) => {
-      const u = await this.prismaService.userFriends.findMany({
-        where: { inviteeId: { in: [...keys] } },
+      const u = await this.prismaService.friendRequest.findMany({
+        where: { senderId: { in: [...keys] } },
       });
       return u.reduce((acc, curr) => {
-        const index = keys.indexOf(curr.inviteeId);
-        acc[index]?.push(curr.inviterId);
+        const index = keys.indexOf(curr.senderId);
+        acc[index]?.push(curr.receiverId);
         return acc;
       }, new Array<number[]>());
     });
@@ -45,12 +45,12 @@ export class FriendIdsLoader implements NestDataLoader<number, number[]> {
 
   generateDataLoader(): DataLoader<number, number[]> {
     return new DataLoader<number, number[]>(async (keys) => {
-      const u = await this.prismaService.userFriends.findMany({
-        where: { inviterId: { in: [...keys] } },
+      const u = await this.prismaService.friendRequest.findMany({
+        where: { receiverId: { in: [...keys] } },
       });
       return u.reduce((acc, curr) => {
-        const index = keys.indexOf(curr.inviterId);
-        acc[index]?.push(curr.inviteeId);
+        const index = keys.indexOf(curr.senderId);
+        acc[index]?.push(curr.senderId);
         return acc;
       }, new Array<number[]>());
     });
@@ -63,7 +63,7 @@ export class BlockedByIdsLoader implements NestDataLoader<number, number[]> {
 
   generateDataLoader(): DataLoader<number, number[]> {
     return new DataLoader<number, number[]>(async (keys) => {
-      const u = await this.prismaService.userBlocking.findMany({
+      const u = await this.prismaService.userBlock.findMany({
         where: { blockeeId: { in: [...keys] } },
       });
       return u.reduce((acc, curr) => {
@@ -81,7 +81,7 @@ export class BlockingIdsLoader implements NestDataLoader<number, number[]> {
 
   generateDataLoader(): DataLoader<number, number[]> {
     return new DataLoader<number, number[]>(async (keys) => {
-      const u = await this.prismaService.userBlocking.findMany({
+      const u = await this.prismaService.userBlock.findMany({
         where: { blockerId: { in: [...keys] } },
       });
       return u.reduce((acc, curr) => {
@@ -95,12 +95,12 @@ export class BlockingIdsLoader implements NestDataLoader<number, number[]> {
 
 @Injectable()
 export class AchivementsLoader
-  implements NestDataLoader<number, Achievement[]>
+  implements NestDataLoader<number, UserAchievement[]>
 {
   constructor(private prismaService: PrismaService) {}
 
-  generateDataLoader(): DataLoader<number, Achievement[]> {
-    return new DataLoader<number, Achievement[]>(async (keys) =>
+  generateDataLoader(): DataLoader<number, UserAchievement[]> {
+    return new DataLoader<number, UserAchievement[]>(async (keys) =>
       (
         await this.prismaService.user.findMany({
           select: {
@@ -114,6 +114,27 @@ export class AchivementsLoader
         })
       ).map((user) => user.achievements)
     );
+  }
+}
+@Injectable()
+export class AvatarLoader implements NestDataLoader<number, Avatar> {
+  constructor(private prismaService: PrismaService) {}
+
+  generateDataLoader(): DataLoader<number, Avatar> {
+    return new DataLoader<number, Avatar>(async (keys) => {
+      const avatars = await this.prismaService.avatar.findMany({
+        where: {
+          userId: {
+            in: [...keys],
+          },
+        },
+      });
+      return avatars.reduce((acc, curr) => {
+        const index = keys.indexOf(curr.userId);
+        acc[index] = curr;
+        return acc;
+      }, new Array<Avatar>());
+    });
   }
 }
 

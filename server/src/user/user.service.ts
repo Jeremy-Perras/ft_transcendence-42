@@ -4,7 +4,13 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import { Achievement, Channel, DirectMessage, User } from "@prisma/client";
+import {
+  UserAchievement,
+  Channel,
+  DirectMessage,
+  User,
+  Avatar,
+} from "@prisma/client";
 import DataLoader from "dataloader";
 import { PrismaService } from "../prisma/prisma.service";
 import { SocketService } from "../socket/socket.service";
@@ -28,7 +34,6 @@ export class UserService {
     return {
       id: user.id,
       name: user.name,
-      avatar: user.avatar,
       rank: user.rank,
     };
   }
@@ -136,17 +141,30 @@ export class UserService {
   }
 
   async getAchievements(
-    achievementDataloader: DataLoader<User["id"], Achievement[]>,
+    achievementDataloader: DataLoader<User["id"], UserAchievement[]>,
     id: number
   ) {
     try {
       const achievements = await achievementDataloader.load(id);
       return achievements.map((achievement) => {
         return {
-          name: achievement.name,
-          icon: achievement.icon,
+          name: achievement.achievement,
         };
       });
+    } catch (error) {
+      throw new NotFoundException("User not found");
+    }
+  }
+
+  async getAvatar(
+    avatarDataloader: DataLoader<User["id"], Avatar>,
+    id: number
+  ) {
+    try {
+      const avatar = await avatarDataloader.load(id);
+      return `data:image/${avatar.fileType.toLowerCase()};base64,${avatar.image.toString(
+        "base64"
+      )}`;
     } catch (error) {
       throw new NotFoundException("User not found");
     }
@@ -173,7 +191,7 @@ export class UserService {
 
   async unblock(currentUserId: number, userId: number) {
     try {
-      await this.prismaService.userBlocking.delete({
+      await this.prismaService.userBlock.delete({
         where: {
           blockerId_blockeeId: {
             blockeeId: userId,
@@ -189,7 +207,7 @@ export class UserService {
   async block(currentUserId: number, userId: number) {
     try {
       await this.unFriend(currentUserId, userId);
-      await this.prismaService.userBlocking.create({
+      await this.prismaService.userBlock.create({
         data: {
           blockeeId: userId,
           blockerId: currentUserId,
@@ -202,11 +220,11 @@ export class UserService {
 
   async unFriend(currentUserId: number, userId: number) {
     try {
-      await this.prismaService.userFriends.delete({
+      await this.prismaService.friendRequest.delete({
         where: {
-          inviterId_inviteeId: {
-            inviteeId: userId,
-            inviterId: currentUserId,
+          senderId_receiverId: {
+            senderId: userId,
+            receiverId: currentUserId,
           },
         },
       });
@@ -218,10 +236,10 @@ export class UserService {
 
   async friend(currentUserId: number, userId: number) {
     try {
-      await this.prismaService.userFriends.create({
+      await this.prismaService.friendRequest.create({
         data: {
-          inviteeId: userId,
-          inviterId: currentUserId,
+          senderId: userId,
+          receiverId: currentUserId,
         },
       });
     } catch (error) {
@@ -231,11 +249,11 @@ export class UserService {
 
   async refuseFriendInvite(currentUserId: number, userId: number) {
     try {
-      await this.prismaService.userFriends.delete({
+      await this.prismaService.friendRequest.delete({
         where: {
-          inviterId_inviteeId: {
-            inviterId: userId,
-            inviteeId: currentUserId,
+          senderId_receiverId: {
+            senderId: userId,
+            receiverId: currentUserId,
           },
         },
       });
@@ -307,19 +325,19 @@ export class UserService {
     const res = await this.prismaService.user.findUnique({
       where: { id: currentUserId },
       select: {
-        blocking: true,
-        friends: {
+        usersBlocked: true,
+        friendRequestsSent: {
           where: {
-            invitee: {
-              friends: {
+            sender: {
+              friendRequestsReceived: {
                 some: {
-                  inviteeId: currentUserId,
+                  receiverId: currentUserId,
                 },
               },
             },
           },
           select: {
-            invitee: {
+            sender: {
               select: {
                 id: true,
                 name: true,
@@ -411,7 +429,7 @@ export class UserService {
         id: channel.id,
         name: channel.name,
         avatar: undefined,
-        lastMessageContent: res.blocking.some(
+        lastMessageContent: res.usersBlocked.some(
           (u) => u.blockeeId === channel.channelMessages[0]?.authorId
         )
           ? "Unblock this user to see this message"
@@ -432,23 +450,25 @@ export class UserService {
     res?.ownedChannels.forEach(formatChannel);
     res?.channels.forEach((c) => formatChannel(c.channel));
 
-    res.friends.forEach((f) => {
+    res.friendRequestsSent.forEach((f) => {
       let lastMessage;
-      if (f.invitee.messageReceived[0] && f.invitee.messageSent[0]) {
-        f.invitee.messageReceived[0]?.sentAt < f.invitee.messageSent[0]?.sentAt
-          ? (lastMessage = f.invitee.messageSent[0])
-          : (lastMessage = f.invitee.messageReceived[0]);
-      } else if (f.invitee.messageReceived[0] && !f.invitee.messageSent[0])
-        lastMessage = f.invitee.messageReceived[0];
-      else if (f.invitee.messageSent[0] && !f.invitee.messageReceived[0])
-        lastMessage = f.invitee.messageSent[0];
+      if (f.sender.messageReceived[0] && f.sender.messageSent[0]) {
+        f.sender.messageReceived[0]?.sentAt < f.sender.messageSent[0]?.sentAt
+          ? (lastMessage = f.sender.messageSent[0])
+          : (lastMessage = f.sender.messageReceived[0]);
+      } else if (f.sender.messageReceived[0] && !f.sender.messageSent[0])
+        lastMessage = f.sender.messageReceived[0];
+      else if (f.sender.messageSent[0] && !f.sender.messageReceived[0])
+        lastMessage = f.sender.messageSent[0];
       else lastMessage = undefined;
 
       mergeResult.push({
         type: chatType.USER,
-        id: f.invitee.id,
-        name: f.invitee.name,
-        avatar: f.invitee.avatar,
+        id: f.sender.id,
+        name: f.sender.name,
+        avatar: `data:image/${f.sender.avatar?.fileType.toLowerCase()};base64,${f.sender.avatar?.image.toString(
+          "base64"
+        )}`,
         hasUnreadMessages: !lastMessage
           ? false
           : lastMessage?.authorId === currentUserId
@@ -458,7 +478,7 @@ export class UserService {
           : true,
         lastMessageContent: lastMessage?.content,
         lastMessageDate: lastMessage?.sentAt,
-        status: this.socketService.isUserConnected(f.invitee.id)
+        status: this.socketService.isUserConnected(f.sender.id)
           ? userStatus.ONLINE
           : userStatus.OFFLINE,
       });

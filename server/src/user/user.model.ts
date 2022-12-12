@@ -29,6 +29,7 @@ export type userType = Omit<
   | "pendingFriends"
   | "chats"
   | "status"
+  | "avatar"
 >;
 
 registerEnumType(friendStatus, {
@@ -139,10 +140,6 @@ export class Achievement {
   @Field((type) => String)
   @IsNotEmpty()
   name: string;
-
-  @Field((type) => String)
-  @IsNotEmpty()
-  icon: string;
 }
 
 @ObjectType()

@@ -31,7 +31,7 @@ export class BlockGuard implements CanActivate {
     const userId = +ctx.getContext().req.user;
     const targetUserId = ctx.getArgs<{ userId: number }>().userId;
 
-    const blocked = await this.prisma.userBlocking.findMany({
+    const blocked = await this.prisma.userBlock.findMany({
       where: {
         OR: [
           {
@@ -68,16 +68,16 @@ export class FriendGuard implements CanActivate {
     const userId = +ctx.getContext().req.user;
     const targetUserId = ctx.getArgs<{ userId: number }>().userId;
 
-    const friendship = await this.prisma.userFriends.findMany({
+    const friendship = await this.prisma.friendRequest.findMany({
       where: {
         OR: [
           {
-            inviteeId: userId,
-            inviterId: targetUserId,
+            senderId: userId,
+            receiverId: targetUserId,
           },
           {
-            inviteeId: targetUserId,
-            inviterId: userId,
+            senderId: targetUserId,
+            receiverId: userId,
           },
         ],
       },
