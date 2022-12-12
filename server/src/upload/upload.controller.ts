@@ -24,7 +24,7 @@ export class UploadController {
   @UseInterceptors(
     FileInterceptor("file", {
       fileFilter: (_, file, cb) => {
-        if (file.mimetype.match(/\/(jpg|jpeg|png)$/)) {
+        if (file.mimetype.match(/\/(jpg|png)$/)) {
           cb(null, true);
         } else {
           cb(new UnsupportedMediaTypeException(), false);
