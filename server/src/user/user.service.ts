@@ -1,4 +1,3 @@
-import { InvalidCacheTarget } from "@apps/shared";
 import {
   ForbiddenException,
   Injectable,
@@ -509,23 +508,6 @@ export class UserService {
     } catch (error) {
       throw new NotFoundException("User not found");
     }
-  }
-
-  async emitUserCacheInvalidation(
-    userId: number,
-    target:
-      | {
-          target: InvalidCacheTarget.SELF;
-        }
-      | {
-          targetId: number;
-          target:
-            | InvalidCacheTarget.USER
-            | InvalidCacheTarget.DIRECT_MESSAGES
-            | InvalidCacheTarget.CHANNEL;
-        }
-  ) {
-    this.socketService.emitInvalidateCache([userId], target);
   }
 
   async updateAvatar(

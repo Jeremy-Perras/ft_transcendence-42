@@ -1,4 +1,3 @@
-import { InvalidCacheTarget } from "@apps/shared";
 import {
   Controller,
   Request,
@@ -12,10 +11,7 @@ import {
 import { FileInterceptor } from "@nestjs/platform-express";
 import { ImageFileType } from "@prisma/client";
 import { Request as ExpressRequest } from "express";
-import { diskStorage } from "multer";
-import path from "path";
 import { AuthenticatedGuard } from "../auth/authenticated.guard";
-import { SocketService } from "../socket/socket.service";
 import { UserService } from "../user/user.service";
 
 @UseGuards(AuthenticatedGuard)
@@ -23,7 +19,6 @@ import { UserService } from "../user/user.service";
 export class UploadController {
   constructor(
     private readonly userService: UserService,
-    private socketservice: SocketService
   ) {}
 
   @Post("/avatar")
@@ -54,6 +49,5 @@ export class UploadController {
       : ImageFileType.PNG;
 
     await this.userService.updateAvatar(+userId, type, file.buffer);
-    this.socketservice.emitInvalidateCacheAll(+userId, InvalidCacheTarget.USER);
   }
 }

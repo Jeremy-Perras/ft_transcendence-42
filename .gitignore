@@ -20,7 +20,6 @@ dev.db-journal
 schema.gql
 generated.ts
 uploads/
-.rollup.cache
 
 # IDEs and editors
 /.idea

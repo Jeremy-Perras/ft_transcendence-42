@@ -1,4 +1,3 @@
-import { InvalidCacheTarget } from "@apps/shared";
 import {
   ForbiddenException,
   Injectable,
@@ -16,19 +15,14 @@ import {
 } from "@prisma/client";
 import DataLoader from "dataloader";
 import { PrismaService } from "../prisma/prisma.service";
-import { SocketService } from "../socket/socket.service";
 import { UserService } from "../user/user.service";
 import bcrypt from "bcrypt";
 import { userType as GraphQLUser } from "../user/user.model";
-
 import { ChannelRestrictedUser as GraphQLChannelRestrictedUser } from "./channel.model";
 
 @Injectable()
 export class ChannelService {
-  constructor(
-    private prismaService: PrismaService,
-    private socketService: SocketService
-  ) {}
+  constructor(private prismaService: PrismaService) {}
 
   private readonly logger = new Logger(ChannelService.name);
 
@@ -513,33 +507,5 @@ export class ChannelService {
         role: ChannelRole.MEMBER,
       },
     });
-  }
-
-  async emitChannelCacheInvalidation(
-    channelMembersLoader: DataLoader<Channel["id"], ChannelMember[]>,
-    channelLoader: DataLoader<Channel["id"], Channel>,
-    channelId: number,
-    target:
-      | InvalidCacheTarget.CHANNEL
-      | InvalidCacheTarget.CHANNEL_MESSAGES
-      | InvalidCacheTarget.SELF
-  ) {
-    const channel = await channelLoader.load(channelId);
-    const channelMembers = await channelMembersLoader.load(channelId);
-
-    const memberAndOwnerIds = channelMembers.map((m) => m.userId);
-    memberAndOwnerIds.push(channel.ownerId);
-
-    this.socketService.emitInvalidateCache(
-      memberAndOwnerIds,
-      target === InvalidCacheTarget.SELF
-        ? {
-            target,
-          }
-        : {
-            target,
-            targetId: channelId,
-          }
-    );
   }
 }

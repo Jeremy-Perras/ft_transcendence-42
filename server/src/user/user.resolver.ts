@@ -1,4 +1,3 @@
-import { InvalidCacheTarget } from "@apps/shared";
 import { ForbiddenException, UseGuards } from "@nestjs/common";
 import {
   Resolver,
@@ -326,10 +325,7 @@ export class UserResolver {
       directMessagesSentLoader
     );
 
-    this.userService.emitUserCacheInvalidation(user.id, {
-      targetId: currentUserId,
-      target: InvalidCacheTarget.DIRECT_MESSAGES,
-    });
+    this.socketService.invalidateDirectMessagesCache(currentUserId, user.id);
 
     return messages;
   }
@@ -343,15 +339,6 @@ export class UserResolver {
   ) {
     await this.userService.block(currentUserId, userId);
 
-    this.userService.emitUserCacheInvalidation(userId, {
-      targetId: currentUserId,
-      target: InvalidCacheTarget.USER,
-    });
-
-    this.userService.emitUserCacheInvalidation(userId, {
-      target: InvalidCacheTarget.SELF,
-    });
-
     return true;
   }
 
@@ -363,15 +350,6 @@ export class UserResolver {
     @Args("userId", { type: () => Int }) userId: number
   ) {
     await this.userService.unblock(currentUserId, userId);
-
-    this.userService.emitUserCacheInvalidation(userId, {
-      targetId: currentUserId,
-      target: InvalidCacheTarget.USER,
-    });
-
-    this.userService.emitUserCacheInvalidation(userId, {
-      target: InvalidCacheTarget.SELF,
-    });
 
     return true;
   }
@@ -385,14 +363,6 @@ export class UserResolver {
     @Args("userId", { type: () => Int }) userId: number
   ) {
     await this.userService.friend(currentUserId, userId);
-    this.userService.emitUserCacheInvalidation(userId, {
-      targetId: currentUserId,
-      target: InvalidCacheTarget.USER,
-    });
-
-    this.userService.emitUserCacheInvalidation(userId, {
-      target: InvalidCacheTarget.SELF,
-    });
 
     return true;
   }
@@ -407,15 +377,6 @@ export class UserResolver {
   ) {
     await this.userService.unFriend(currentUserId, userId);
 
-    this.userService.emitUserCacheInvalidation(userId, {
-      targetId: currentUserId,
-      target: InvalidCacheTarget.USER,
-    });
-
-    this.userService.emitUserCacheInvalidation(userId, {
-      target: InvalidCacheTarget.SELF,
-    });
-
     return true;
   }
 
@@ -428,15 +389,6 @@ export class UserResolver {
   ) {
     await this.userService.refuseFriendInvite(userId, currentUserId);
 
-    this.userService.emitUserCacheInvalidation(userId, {
-      targetId: currentUserId,
-      target: InvalidCacheTarget.USER,
-    });
-
-    this.userService.emitUserCacheInvalidation(userId, {
-      target: InvalidCacheTarget.SELF,
-    });
-
     return true;
   }
 
@@ -448,15 +400,6 @@ export class UserResolver {
     @Args("userId", { type: () => Int }) userId: number
   ) {
     await this.userService.refuseFriendInvite(currentUserId, userId);
-
-    this.userService.emitUserCacheInvalidation(userId, {
-      targetId: currentUserId,
-      target: InvalidCacheTarget.USER,
-    });
-
-    this.userService.emitUserCacheInvalidation(userId, {
-      target: InvalidCacheTarget.SELF,
-    });
 
     return true;
   }
@@ -475,10 +418,6 @@ export class UserResolver {
     }
 
     await this.userService.updateName(currentUserId, name);
-    this.socketService.emitInvalidateCacheAll(
-      currentUserId,
-      InvalidCacheTarget.USER
-    );
 
     return true;
   }
@@ -488,8 +427,8 @@ export class UserResolver {
 @UseGuards(GqlAuthenticatedGuard)
 export class DirectMessageResolver {
   constructor(
-    private socketService: SocketService,
-    private userService: UserService
+    private userService: UserService,
+    private socketService: SocketService
   ) {}
 
   @UseGuards(ExistingUserGuard)
@@ -504,14 +443,7 @@ export class DirectMessageResolver {
   ) {
     await this.userService.sendDirectMessage(currentUserId, userId, message);
 
-    this.userService.emitUserCacheInvalidation(userId, {
-      targetId: currentUserId,
-      target: InvalidCacheTarget.DIRECT_MESSAGES,
-    });
-
-    this.userService.emitUserCacheInvalidation(userId, {
-      target: InvalidCacheTarget.SELF,
-    });
+    this.socketService.invalidateDirectMessagesCache(currentUserId, userId);
 
     return true;
   }

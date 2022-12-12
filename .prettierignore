@@ -16,7 +16,6 @@ node_modules
 *.local
 dist/
 dev.db
-.rollup.cache
 
 # IDEs and editors
 /.idea
