@@ -2,25 +2,26 @@ import { InvalidCacheTarget } from "@apps/shared";
 import {
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from "@nestjs/common";
 import {
   Channel,
   User,
-  MutedMember,
-  BannedMember,
   ChannelMember,
   ChannelMessage,
+  ChannelRole,
+  ChannelRestrictedUser,
+  ChannelRestriction,
 } from "@prisma/client";
 import DataLoader from "dataloader";
 import { PrismaService } from "../prisma/prisma.service";
 import { SocketService } from "../socket/socket.service";
 import { UserService } from "../user/user.service";
 import bcrypt from "bcrypt";
-import {
-  RestrictedMember as GraphQLRestictedMember,
-  userType as GraphQLUser,
-} from "../user/user.model";
+import { userType as GraphQLUser } from "../user/user.model";
+
+import { ChannelRestrictedUser as GraphQLChannelRestrictedUser } from "./channel.model";
 
 @Injectable()
 export class ChannelService {
@@ -28,6 +29,8 @@ export class ChannelService {
     private prismaService: PrismaService,
     private socketService: SocketService
   ) {}
+
+  private readonly logger = new Logger(ChannelService.name);
 
   static formatChannel(channel: Channel) {
     return {
@@ -88,7 +91,7 @@ export class ChannelService {
     try {
       const channelMembers = await channelMembersLoader.load(channelId);
       const adminIds = channelMembers.reduce((acc, curr) => {
-        if (curr.isAdministrator) acc.push(curr.userId);
+        if (curr.role === ChannelRole.ADMIN) acc.push(curr.userId);
         return acc;
       }, new Array<number>());
       const admins = await userLoader.loadMany(adminIds);
@@ -111,7 +114,7 @@ export class ChannelService {
     try {
       const channelMembers = await channelMembersLoader.load(channelId);
       const adminIds = channelMembers.reduce((acc, curr) => {
-        if (!curr.isAdministrator) acc.push(curr.userId);
+        if (curr.role === ChannelRole.MEMBER) acc.push(curr.userId);
         return acc;
       }, new Array<number>());
       const admins = await userLoader.loadMany(adminIds);
@@ -126,63 +129,43 @@ export class ChannelService {
     }
   }
 
-  async getMutedMembers(
-    channelMutedMembersLoader: DataLoader<Channel["id"], MutedMember[]>,
+  async getRestrictedMembers(
+    channelRestrictedUserLoader: DataLoader<
+      Channel["id"],
+      ChannelRestrictedUser[]
+    >,
     userLoader: DataLoader<User["id"], User>,
-    channelId: number
+    channelId: number,
+    type: ChannelRestriction
   ) {
     try {
-      const mutedMembers = await channelMutedMembersLoader.load(channelId);
-      const mutedMembersId = mutedMembers.map((m) => m.userId);
-      const users = await userLoader.loadMany(mutedMembersId);
+      const restrictedUsers = await channelRestrictedUserLoader.load(channelId);
+      const restrictedMembersId = restrictedUsers.reduce((acc, curr) => {
+        if (curr.restriction === type) {
+          acc.push(curr.userId);
+        }
+        return acc;
+      }, new Array<number>());
+      const users = await userLoader.loadMany(restrictedMembersId);
       return users.reduce((acc, curr) => {
         if (curr && "id" in curr) {
-          const user = UserService.formatUser(curr) as GraphQLRestictedMember;
-          const mutedUserIndex = mutedMembers.findIndex(
-            (m) => user.id === m.userId
+          const restricted: GraphQLChannelRestrictedUser = {
+            user: UserService.formatUser(curr),
+          };
+          const restrictedUserIndex = restrictedUsers.findIndex(
+            (m) => curr.id === m.userId
           );
-          if (mutedUserIndex >= 0) {
-            const mutedUser = mutedMembers[mutedUserIndex];
-            if (mutedUser) {
-              user.endAt = mutedUser.endAt;
-              mutedMembers.slice(mutedUserIndex, 0);
-              acc.push(user);
+          if (restrictedUserIndex >= 0) {
+            const restrictedUser = restrictedUsers[restrictedUserIndex];
+            if (restrictedUser) {
+              restricted.endAt = restrictedUser.endAt ?? undefined;
+              restrictedUsers.slice(restrictedUserIndex, 0);
+              acc.push(restricted);
             }
           }
         }
         return acc;
-      }, new Array<GraphQLRestictedMember>());
-    } catch (error) {
-      throw new NotFoundException("Channel not found");
-    }
-  }
-
-  async getBannedMembers(
-    channelBannedMembersLoader: DataLoader<Channel["id"], BannedMember[]>,
-    userLoader: DataLoader<User["id"], User>,
-    channelId: number
-  ) {
-    try {
-      const bannedMembers = await channelBannedMembersLoader.load(channelId);
-      const bannedMembersId = bannedMembers.map((m) => m.userId);
-      const users = await userLoader.loadMany(bannedMembersId);
-      return users.reduce((acc, curr) => {
-        if (curr && "id" in curr) {
-          const user = UserService.formatUser(curr) as GraphQLRestictedMember;
-          const bannedUserIndex = bannedMembers.findIndex(
-            (m) => user.id === m.userId
-          );
-          if (bannedUserIndex >= 0) {
-            const bannedUser = bannedMembers[bannedUserIndex];
-            if (bannedUser) {
-              user.endAt = bannedUser.endAt;
-              bannedMembers.slice(bannedUserIndex, 0);
-              acc.push(user);
-            }
-          }
-        }
-        return acc;
-      }, new Array<GraphQLRestictedMember>());
+      }, new Array<GraphQLChannelRestrictedUser>());
     } catch (error) {
       throw new NotFoundException("Channel not found");
     }
@@ -237,9 +220,10 @@ export class ChannelService {
             userId: currentUserId,
           },
         },
-        banned: {
+        restrictedMembers: {
           where: {
             userId: currentUserId,
+            restriction: ChannelRestriction.BAN,
           },
         },
       },
@@ -256,7 +240,7 @@ export class ChannelService {
       throw new ForbiddenException("User is already a member");
     }
 
-    if (channel.banned.length > 0) {
+    if (channel.restrictedMembers.length > 0) {
       throw new ForbiddenException("User is banned");
     }
 
@@ -286,7 +270,7 @@ export class ChannelService {
           ownerId: true,
           members: {
             orderBy: {
-              createdAt: "asc",
+              joinedAt: "asc",
             },
           },
         },
@@ -320,18 +304,22 @@ export class ChannelService {
                 },
               },
             });
-            const ismuted = await this.prismaService.mutedMember.findFirst({
-              where: {
-                channelId,
-                userId: newOwner.userId,
-              },
-            });
-            if (ismuted) {
-              await this.prismaService.mutedMember.delete({
+
+            const ismuted =
+              await this.prismaService.channelRestrictedUser.findFirst({
                 where: {
-                  channelId_userId: {
+                  restriction: ChannelRestriction.MUTE,
+                  channelId,
+                  userId: newOwner.userId,
+                },
+              });
+            if (ismuted) {
+              await this.prismaService.channelRestrictedUser.delete({
+                where: {
+                  channelId_userId_restriction: {
                     channelId,
                     userId: newOwner.userId,
+                    restriction: ChannelRestriction.MUTE,
                   },
                 },
               });
@@ -383,134 +371,65 @@ export class ChannelService {
     }
   }
 
-  async muteUser(channelId: number, userId: number, muteUntil: Date | null) {
+  async setUserRestriction(
+    channelId: number,
+    userId: number,
+    restrictUntil: Date | null,
+    type: ChannelRestriction
+  ) {
     try {
-      const ismuted = await this.prismaService.mutedMember.findUnique({
-        where: {
-          channelId_userId: {
-            channelId,
-            userId,
-          },
-        },
-      });
-
-      if (ismuted) {
-        await this.prismaService.mutedMember.update({
+      const isRestricted =
+        await this.prismaService.channelRestrictedUser.findUnique({
           where: {
-            channelId_userId: {
+            channelId_userId_restriction: {
               channelId,
               userId,
+              restriction: type,
+            },
+          },
+        });
+
+      if (isRestricted) {
+        await this.prismaService.channelRestrictedUser.update({
+          where: {
+            channelId_userId_restriction: {
+              channelId,
+              userId,
+              restriction: type,
             },
           },
           data: {
-            endAt: muteUntil,
+            endAt: restrictUntil,
           },
         });
       } else {
-        await this.prismaService.mutedMember.create({
-          data: { endAt: muteUntil, channelId, userId },
+        await this.prismaService.channelRestrictedUser.create({
+          data: { endAt: restrictUntil, channelId, userId, restriction: type },
         });
+        if (
+          type === ChannelRestriction.BAN &&
+          (restrictUntil === null || restrictUntil > new Date())
+        ) {
+          try {
+            await this.prismaService.channelMember.delete({
+              where: {
+                channelId_userId: {
+                  channelId,
+                  userId,
+                },
+              },
+            });
+          } catch (error) {
+            this.logger.warn(error);
+          }
+        }
       }
     } catch (error) {
       throw new NotFoundException("Channel not found");
     }
   }
 
-  async banUser(channelId: number, userId: number, banUntil: Date | null) {
-    try {
-      const isbanned = await this.prismaService.bannedMember.findUnique({
-        where: {
-          channelId_userId: {
-            channelId,
-            userId,
-          },
-        },
-      });
-
-      if (isbanned) {
-        await this.prismaService.bannedMember.update({
-          where: {
-            channelId_userId: {
-              channelId,
-              userId,
-            },
-          },
-          data: {
-            endAt: banUntil,
-          },
-        });
-      } else {
-        await this.prismaService.bannedMember.create({
-          data: { endAt: banUntil, channelId, userId },
-        });
-        await this.prismaService.channelMember.delete({
-          where: {
-            channelId_userId: {
-              channelId,
-              userId,
-            },
-          },
-        });
-      }
-    } catch (error) {
-      throw new NotFoundException("Channel not found");
-    }
-  }
-
-  async unmuteUser(channelId: number, userId: number) {
-    try {
-      const ismuted = await this.prismaService.mutedMember.findUnique({
-        where: {
-          channelId_userId: {
-            channelId,
-            userId,
-          },
-        },
-      });
-
-      if (!ismuted) {
-        throw new NotFoundException("User is not muted");
-      }
-    } catch (error) {
-      throw new NotFoundException("Channel not found");
-    }
-    await this.prismaService.mutedMember.delete({
-      where: {
-        channelId_userId: {
-          channelId,
-          userId,
-        },
-      },
-    });
-  }
-
-  async unbanUser(channelId: number, userId: number) {
-    try {
-      const isbanned = await this.prismaService.bannedMember.findUnique({
-        where: {
-          channelId_userId: {
-            channelId,
-            userId,
-          },
-        },
-      });
-      if (!isbanned) {
-        throw new NotFoundException("User is not banned");
-      }
-    } catch (error) {
-      throw new NotFoundException("Channel not found");
-    }
-    await this.prismaService.bannedMember.delete({
-      where: {
-        channelId_userId: {
-          channelId,
-          userId,
-        },
-      },
-    });
-  }
-
-  async updatePassword(channelId: number, hash: string) {
+  async updatePassword(channelId: number, hash: string | null) {
     await this.prismaService.channel.update({
       where: { id: channelId },
       data: { password: hash },
@@ -519,14 +438,16 @@ export class ChannelService {
 
   async inviteUser(channelId: number, userId: number) {
     try {
-      const isbanned = await this.prismaService.bannedMember.findUnique({
-        where: {
-          channelId_userId: {
-            channelId,
-            userId,
+      const isbanned =
+        await this.prismaService.channelRestrictedUser.findUnique({
+          where: {
+            channelId_userId_restriction: {
+              channelId,
+              userId,
+              restriction: ChannelRestriction.BAN,
+            },
           },
-        },
-      });
+        });
 
       if (isbanned) {
         throw new ForbiddenException("User is banned");
@@ -542,14 +463,16 @@ export class ChannelService {
 
   async addAdmin(channelId: number, userId: number) {
     try {
-      const ismember = await this.prismaService.channelMember.findUnique({
-        where: {
-          channelId_userId: {
-            channelId,
-            userId,
+      const ismember = await this.prismaService.channelMember.findUniqueOrThrow(
+        {
+          where: {
+            channelId_userId: {
+              channelId,
+              userId,
+            },
           },
-        },
-      });
+        }
+      );
     } catch {
       throw new NotFoundException("User is not a member");
     }
@@ -562,17 +485,17 @@ export class ChannelService {
         },
       },
       data: {
-        isAdministrator: true,
+        role: ChannelRole.ADMIN,
       },
     });
   }
 
   async removeAdmin(channelId: number, userId: number) {
     try {
-      const isadmin = await this.prismaService.channelMember.findFirst({
+      const isadmin = await this.prismaService.channelMember.findFirstOrThrow({
         where: {
           userId,
-          isAdministrator: true,
+          role: ChannelRole.ADMIN,
         },
       });
     } catch {
@@ -587,62 +510,40 @@ export class ChannelService {
         },
       },
       data: {
-        isAdministrator: false,
+        role: ChannelRole.MEMBER,
       },
     });
-
-    const usersChannel = await this.prismaService.channel.findUnique({
-      select: { members: true, ownerId: true },
-      where: { id: channelId },
-    });
-  }
-
-  async getMembersFromChannelId(channelId: number) {
-    const c = await this.prismaService.channel.findUnique({
-      select: {
-        ownerId: true,
-        banned: { select: { userId: true } },
-        members: {
-          select: {
-            userId: true,
-          },
-        },
-      },
-      where: {
-        id: channelId,
-      },
-    });
-    return c
-      ? [
-          ...c.members.map((m) => m.userId),
-          ...c.banned.map((b) => b.userId),
-          c.ownerId,
-        ]
-      : null;
   }
 
   async emitChannelCacheInvalidation(
+    channelMembersLoader: DataLoader<Channel["id"], ChannelMember[]>,
+    channelLoader: DataLoader<Channel["id"], Channel>,
     channelId: number,
-    InvalidCacheTarget: InvalidCacheTarget,
-    members: number[] | null
+    cacheTarget:
+      | InvalidCacheTarget.CHANNEL
+      | InvalidCacheTarget.CHANNEL_MESSAGES
   ) {
-    if (!members) {
-      const c = await this.getMembersFromChannelId(channelId);
-      if (c) {
-        this.socketService.emitInvalidateCache(
-          InvalidCacheTarget,
-          c,
-          channelId
-        );
-      }
-    } else {
-      if (members) {
-        this.socketService.emitInvalidateCache(
-          InvalidCacheTarget,
-          members,
-          channelId
-        );
-      }
-    }
+    const channel = await channelLoader.load(channelId);
+    const channelMembers = await channelMembersLoader.load(channelId);
+    const memberAndOwnerIds = channelMembers.map((m) => m.userId);
+    memberAndOwnerIds.push(channel.ownerId);
+
+    this.socketService.emitInvalidateCache(
+      cacheTarget,
+      memberAndOwnerIds,
+      channelId
+    );
+  }
+
+  // TODO: move to user service
+  async emitUserCacheInvalidation(
+    userId: number,
+    targetId: number,
+    cacheTarget:
+      | InvalidCacheTarget.USER
+      | InvalidCacheTarget.DIRECT_MESSAGES
+      | InvalidCacheTarget.CHANNEL
+  ) {
+    this.socketService.emitInvalidateCache(cacheTarget, [userId], targetId);
   }
 }

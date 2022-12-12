@@ -1,13 +1,9 @@
-import {
-  CanActivate,
-  ExecutionContext,
-  Injectable,
-  NotFoundException,
-} from "@nestjs/common";
+import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
 import { GqlExecutionContext } from "@nestjs/graphql";
 import { SetMetadata } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { PrismaService } from "../prisma/prisma.service";
+import { ChannelRole } from "@prisma/client";
 
 export enum Role {
   Member,
@@ -29,60 +25,62 @@ export class RolesGuard implements CanActivate {
     ]);
     const userId = +ctx.getContext().req.user;
     const channelId = ctx.getArgs<{ channelId: number }>().channelId;
-    switch (role) {
-      case Role.Member: {
-        const channel = await this.prisma.channel.findUnique({
-          select: {
-            members: {
-              where: {
-                userId,
-              },
+
+    let channel;
+    if (role === Role.Admin || role === Role.Owner || role === Role.Member) {
+      channel = await this.prisma.channel.findFirst({
+        select: {
+          ownerId: true,
+          members: {
+            select: {
+              userId: true,
+              role: true,
             },
-            ownerId: true,
+            where: {
+              userId,
+            },
           },
-          where: {
-            id: channelId,
-          },
-        });
-        if (!channel) throw new NotFoundException("Channel not found");
-        if (channel.ownerId === userId || channel.members.length > 0) {
-          return true;
-        }
-        return false;
-      }
-      case Role.Admin: {
-        const channel = await this.prisma.channel.findUnique({
-          select: {
-            members: {
-              where: {
-                AND: {
-                  isAdministrator: true,
+        },
+        where: {
+          id: channelId,
+          OR: [
+            {
+              ownerId: userId,
+            },
+            {
+              members: {
+                some: {
                   userId,
                 },
               },
             },
-            ownerId: true,
-          },
-          where: {
-            id: channelId,
-          },
-        });
-        if (!channel) throw new NotFoundException("Channel not found");
-        if (channel.ownerId === userId || channel.members.length > 0) {
+          ],
+        },
+      });
+    }
+
+    switch (role) {
+      case Role.Member: {
+        if (!channel) {
+          return false;
+        }
+        return true;
+      }
+      case Role.Admin: {
+        if (!channel) {
+          return false;
+        } else if (channel.members.some((m) => m.role === ChannelRole.ADMIN)) {
           return true;
         }
         return false;
       }
       case Role.Owner: {
-        const channel = await this.prisma.channel.findUnique({
-          select: {
-            ownerId: true,
-          },
-          where: {
-            id: channelId,
-          },
-        });
-        return channel?.ownerId === userId;
+        if (!channel) {
+          return false;
+        } else if (channel.ownerId === userId) {
+          return true;
+        }
+        return false;
       }
       default:
         return true;

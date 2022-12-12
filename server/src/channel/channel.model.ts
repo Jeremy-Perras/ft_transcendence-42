@@ -1,19 +1,27 @@
 import "reflect-metadata";
-import { Field, Int, ObjectType } from "@nestjs/graphql";
+import { Field, Int, ObjectType, registerEnumType } from "@nestjs/graphql";
 import { IsNotEmpty, Min } from "class-validator";
-import {
-  Restricted,
-  RestrictedMember,
-  User,
-  userType,
-} from "../user/user.model";
+import { User, userType } from "../user/user.model";
+import { ChannelRestriction } from "@prisma/client";
 
 export type channelType = Omit<
   Channel,
   "owner" | "messages" | "admins" | "members" | "banned" | "muted"
 >;
 export type channelMessageType = Omit<ChannelMessage, "author" | "readBy">;
-export type restrictedMemberType = userType & Restricted;
+
+registerEnumType(ChannelRestriction, {
+  name: "ChannelRestriction",
+});
+
+@ObjectType()
+export class ChannelRestrictedUser {
+  @Field((type) => User)
+  user: userType;
+
+  @Field((type) => Date, { nullable: true })
+  endAt?: Date;
+}
 
 @ObjectType()
 export class Channel {
@@ -43,11 +51,11 @@ export class Channel {
   @Field((type) => [ChannelMessage])
   messages: [ChannelMessage | undefined];
 
-  @Field((type) => [RestrictedMember])
-  banned: [RestrictedMember | undefined];
+  @Field((type) => [ChannelRestrictedUser])
+  banned: [ChannelRestrictedUser | undefined];
 
-  @Field((type) => [RestrictedMember])
-  muted: [RestrictedMember | undefined];
+  @Field((type) => [ChannelRestrictedUser])
+  muted: [ChannelRestrictedUser | undefined];
 }
 
 @ObjectType()

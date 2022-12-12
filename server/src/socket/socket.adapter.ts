@@ -11,7 +11,6 @@ declare module "http" {
         user: number;
       };
     };
-    sessionID: string; // TODO: NOO!@!!!!!!
   }
 }
 

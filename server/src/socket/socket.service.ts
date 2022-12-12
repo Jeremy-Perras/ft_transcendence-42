@@ -1,14 +1,12 @@
 import { InvalidCacheTarget } from "@apps/shared";
 import { forwardRef, Inject, Injectable } from "@nestjs/common";
-import { PrismaService } from "../prisma/prisma.service";
 import { SocketGateway } from "./socket.gateway";
 
 @Injectable()
 export class SocketService {
   constructor(
     @Inject(forwardRef(() => SocketGateway))
-    private socketGateway: SocketGateway,
-    private prismaService: PrismaService
+    private socketGateway: SocketGateway
   ) {}
 
   emitInvalidateCache(
@@ -24,22 +22,18 @@ export class SocketService {
     return;
   }
 
+  async emitInvalidateCacheAll(
+    targetId: number,
+    cacheTarget: InvalidCacheTarget.USER | InvalidCacheTarget.CHANNEL
+  ) {
+    this.socketGateway.server.emit("invalidateCache", {
+      cacheTarget,
+      targetId,
+    });
+  }
+
   isUserConnected(userId: number) {
     const rooms = this.socketGateway.server.sockets.adapter.rooms;
     return !!rooms.get(userId.toString());
-  }
-
-  async onDisconnected(userId: number) {
-    const friends = await this.prismaService.user.findUnique({
-      select: { friends: { select: { id: true } } },
-      where: { id: userId },
-    });
-    if (friends) {
-      this.emitInvalidateCache(
-        InvalidCacheTarget.LOGOUT,
-        friends?.friends.map((u) => u.id),
-        userId
-      );
-    }
   }
 }

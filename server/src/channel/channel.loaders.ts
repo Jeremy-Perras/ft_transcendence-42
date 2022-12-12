@@ -1,10 +1,9 @@
 import { Injectable } from "@nestjs/common";
 import {
-  BannedMember,
   Channel,
   ChannelMember,
   ChannelMessage,
-  MutedMember,
+  ChannelRestrictedUser,
 } from "@prisma/client";
 import DataLoader from "dataloader";
 
@@ -54,14 +53,14 @@ export class ChannelMembersLoader
 }
 
 @Injectable()
-export class ChannelMutedMembersLoader
-  implements NestDataLoader<number, MutedMember[]>
+export class ChannelRestrictedUserLoader
+  implements NestDataLoader<number, ChannelRestrictedUser[]>
 {
   constructor(private prismaService: PrismaService) {}
 
-  generateDataLoader(): DataLoader<number, MutedMember[]> {
-    return new DataLoader<number, MutedMember[]>(async (keys) => {
-      const u = await this.prismaService.mutedMember.findMany({
+  generateDataLoader(): DataLoader<number, ChannelRestrictedUser[]> {
+    return new DataLoader<number, ChannelRestrictedUser[]>(async (keys) => {
+      const u = await this.prismaService.channelRestrictedUser.findMany({
         where: {
           channelId: {
             in: [...keys],
@@ -75,34 +74,7 @@ export class ChannelMutedMembersLoader
         const index = keys.indexOf(curr.channelId);
         acc[index]?.push(curr);
         return acc;
-      }, new Array<MutedMember[]>());
-    });
-  }
-}
-
-@Injectable()
-export class ChannelBannedMembersLoader
-  implements NestDataLoader<number, BannedMember[]>
-{
-  constructor(private prismaService: PrismaService) {}
-
-  generateDataLoader(): DataLoader<number, BannedMember[]> {
-    return new DataLoader<number, BannedMember[]>(async (keys) => {
-      const u = await this.prismaService.bannedMember.findMany({
-        where: {
-          channelId: {
-            in: [...keys],
-          },
-          endAt: {
-            gte: new Date(),
-          },
-        },
-      });
-      return u.reduce((acc, curr) => {
-        const index = keys.indexOf(curr.channelId);
-        acc[index]?.push(curr);
-        return acc;
-      }, new Array<BannedMember[]>());
+      }, new Array<ChannelRestrictedUser[]>());
     });
   }
 }
@@ -119,7 +91,7 @@ export class ChannelMessagesLoader
         where: {
           channelId: { in: [...keys] },
         },
-        orderBy: { createdAt: "desc" },
+        orderBy: { sentAt: "desc" },
       });
       return m.reduce((acc, curr) => {
         const index = keys.indexOf(curr.channelId);

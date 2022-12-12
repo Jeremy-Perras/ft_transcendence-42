@@ -95,6 +95,130 @@ export const channelSettingsLoader = async (
   }
 };
 
+// type RestrictionTime = {
+//   text: string;
+//   date: number | null | undefined;
+// };
+
+// const restrictionTimeArray: RestrictionTime[] = [
+//   {
+//     text: "1h",
+//     date: Math.floor(new Date() as unknown as number) + 60 * 60 * 2 * 1000,
+//   },
+//   {
+//     text: "8h",
+//     date: Math.floor(new Date() as unknown as number) + 60 * 60 * 9 * 1000,
+//   },
+//   {
+//     text: "24h",
+//     date: Math.floor(new Date() as unknown as number) + 60 * 60 * 25 * 1000,
+//   },
+//   {
+//     text: "Forever",
+//     date: null,
+//   },
+// ];
+
+// const SetRestrictionTimeButton = ({
+//   setShowTime,
+//   action,
+//   channelId,
+//   id,
+//   date,
+//   text,
+// }: {
+//   setShowTime: React.Dispatch<React.SetStateAction<boolean>>;
+//   action: UseMutationResult<
+//     MutedSomeoneChannelMutation | BannedSomeoneChannelMutation,
+//     unknown,
+//     Exact<{
+//       createMutedId: number;
+//       channelId: number;
+//       date?: InputMaybe<number> | undefined;
+//     }>,
+//     unknown
+//   >;
+
+//   channelId: number | undefined;
+//   id: number | undefined;
+//   date: number | undefined | null;
+//   text: string;
+// }) => {
+//   return (
+//     <div
+//       className="hover:bg-slate-300"
+//       onClick={() => {
+//         setShowTime(false),
+//           action.mutate({
+//             channelId: channelId ? channelId : 0,
+//             createMutedId: id ? id : 0,
+//             date: date,
+//           });
+//       }}
+//     >
+//       {text}
+//     </div>
+//   );
+// };
+
+// const ChooseTimeButton = ({
+//   id,
+//   channelId,
+//   action,
+//   showTime,
+//   setShowTime,
+// }: {
+//   action:
+//     | UseMutationResult<
+//         MutedSomeoneChannelMutation,
+//         unknown,
+//         Exact<{
+//           createMutedId: number;
+//           channelId: number;
+//           date?: InputMaybe<number> | undefined;
+//         }>,
+//         unknown
+//       >
+//     | UseMutationResult<
+//         BannedSomeoneChannelMutation,
+//         unknown,
+//         Exact<{
+//           createMutedId: number;
+//           channelId: number;
+//           date?: InputMaybe<number> | undefined;
+//         }>,
+//         unknown
+//       >;
+//   channelId: number | undefined;
+//   id: number | undefined;
+//   showTime: boolean;
+//   setShowTime: React.Dispatch<React.SetStateAction<boolean>>;
+// }) => {
+//   return (
+//     <div
+//       onMouseLeave={() => setShowTime(false)}
+//       className={`${
+//         showTime
+//           ? "visible h-fit w-10 border-2 opacity-100"
+//           : "hidden h-0 w-0 opacity-0"
+//       } absolute -left-1 -top-5 z-10 flex-col border-slate-300 bg-slate-200 text-center text-xs text-slate-700 transition-all`}
+//     >
+//       {restrictionTimeArray.map((restrictionTime) => {
+//         return (
+//           <SetRestrictionTimeButton
+//             key={restrictionTime.text}
+//             setShowTime={setShowTime}
+//             action={action}
+//             channelId={channelId}
+//             id={id}
+//             {...restrictionTime}
+//           />
+//         );
+//       })}
+//     </div>
+//   );
+// };
+
 const ToggleMuteStatus = ({
   id,
   channelId,

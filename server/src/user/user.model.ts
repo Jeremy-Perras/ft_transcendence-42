@@ -1,11 +1,5 @@
 import "reflect-metadata";
-import {
-  Field,
-  Int,
-  IntersectionType,
-  ObjectType,
-  registerEnumType,
-} from "@nestjs/graphql";
+import { Field, Int, ObjectType, registerEnumType } from "@nestjs/graphql";
 import { IsNotEmpty, Min } from "class-validator";
 import { Channel } from "../channel/channel.model";
 import { Game } from "../game/game.model";
@@ -173,12 +167,3 @@ export class DirectMessage {
   @Field((type) => Date, { nullable: true })
   readAt?: Date;
 }
-
-@ObjectType()
-export class Restricted {
-  @Field((type) => Date, { nullable: true })
-  endAt: Date | null;
-}
-
-@ObjectType()
-export class RestrictedMember extends IntersectionType(Restricted, User) {}

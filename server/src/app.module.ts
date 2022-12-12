@@ -25,10 +25,6 @@ import { APP_INTERCEPTOR } from "@nestjs/core";
       rootPath: join(__dirname, "../../", "client/dist"), // TODO: use env var
       serveRoot: "/",
     }),
-    ServeStaticModule.forRoot({
-      rootPath: join(__dirname, "../uploads"), // TODO: use env var
-      serveRoot: "/uploads",
-    }),
     SocketModule,
     AuthModule,
     UserModule,

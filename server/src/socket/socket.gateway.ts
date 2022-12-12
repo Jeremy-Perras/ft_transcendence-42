@@ -17,17 +17,6 @@ export class SocketGateway {
 
   @WebSocketServer()
   server: Server;
-  onModuleInit() {
-    this.server.on("connection", (socket) => {
-      const [socketId, userId] = socket.rooms;
-
-      socket.on("disconnect", (reason) => {
-        if (userId) {
-          this.socketService.onDisconnected(+userId);
-        }
-      });
-    });
-  }
 
   handleConnection(client: Socket, ...args: any[]) {
     client.join(client.request.session.passport.user.toString());
