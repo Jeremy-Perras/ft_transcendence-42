@@ -1,3 +1,0 @@
-mutation LeaveChannel($channelId: Int!) {
-  leaveChannel(channelId: $channelId)
-}

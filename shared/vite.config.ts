@@ -12,7 +12,6 @@ export default defineConfig({
       fileName: "index",
     },
     rollupOptions: {
-      cache: false,
       plugins: [
         typescript({
           target: "es2020",

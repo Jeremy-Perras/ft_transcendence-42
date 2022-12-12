@@ -11,6 +11,8 @@
         "@types/node": "^16.0.0"
     },
     "dependencies": {
-        "@rollup/plugin-typescript": "^10.0.1"
+        "@rollup/plugin-typescript": "^10.0.1",
+        "@socket.io/component-emitter": "^4.0.0",
+        "msgpackr": "^1.8.1"
     }
 }

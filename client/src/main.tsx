@@ -1,25 +1,14 @@
-import React, { useEffect } from "react";
-import ReactDOM from "react-dom/client";
-import { QueryClientProvider } from "@tanstack/react-query";
-import { GameRouter } from "./game/router";
-import SideBar from "./sidebar/sidebar";
-import queryClient from "./query";
+import { Model, AppEvent, SocketParser } from "@apps/shared";
+import { StrictMode, useEffect } from "react";
+import { createRoot } from "react-dom/client";
+import { io, Socket } from "socket.io-client";
+import { z } from "zod";
 import { useAuthStore } from "./stores";
-import "./index.css";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { io } from "socket.io-client";
-import { InvalidCacheTarget } from "@apps/shared";
-import {
-  useChannelSettingsQuery,
-  useChannelDiscussionQuery,
-  useDirectMessagesQuery,
-  useDiscussionsAndInvitationsQuery,
-  useUserProfileQuery,
-} from "./graphql/generated";
 
 let init = false;
-
 const App = () => {
+  let socket: Socket;
+
   const isLoggedIn = !!useAuthStore((state) => state.userId);
 
   useEffect(() => {
@@ -30,278 +19,108 @@ const App = () => {
           const data = await res.json();
           const userId = data?.userId;
           if (userId) {
-            useAuthStore.getState().login(userId);
+            useAuthStore.setState({ userId });
           }
         }
       });
     }
   }, []);
 
+  const handleData = (
+    data: z.infer<typeof Model> | z.infer<typeof Model>[]
+  ) => {
+    if (Array.isArray(data)) data.forEach((d) => handleData(d));
+    else {
+      const parsed = Model.safeParse(data);
+      if (parsed.success) {
+        switch (parsed.data.type) {
+          case "OTHER_USER":
+            console.log(parsed.data);
+            break;
+          case "SELF":
+            console.log(parsed.data);
+            break;
+          case "DIRECT_MESSAGE":
+            console.log(parsed.data);
+            break;
+          case "CHANNEL":
+            console.log(parsed.data);
+            break;
+          case "CHANNEL_MEMBER":
+            console.log(parsed.data);
+            break;
+          case "CHANNEL_RESTRICTION":
+            console.log(parsed.data);
+            break;
+          case "CHANNEL_MESSAGE":
+            console.log(parsed.data);
+            break;
+          case "SEARCH_RESULT":
+            console.log(parsed.data);
+            break;
+          case "CHATS":
+            console.log(parsed.data);
+            break;
+          case "DELETED_CHANNEL":
+            console.log(parsed.data);
+            break;
+          case "REMOVE_MEMBER":
+            console.log(parsed.data);
+            break;
+          default:
+            ((_: never) => _)(parsed.data);
+        }
+      }
+    }
+  };
+
+  const sendEvent = (event: z.infer<typeof AppEvent>) => {
+    socket.emit("event", event, handleData);
+  };
+
   useEffect(() => {
     if (isLoggedIn) {
-      const socket = io();
+      socket = io({ parser: SocketParser });
 
       socket.on("connect", () => {
-        console.log("connected", socket);
+        console.warn("Socket connected: ", socket); // TODO
       });
 
       socket.on("disconnect", () => {
-        console.log("disconnected", socket);
+        console.warn("Socket disconnected: ", socket); // TODO
       });
 
-      socket.on(
-        "invalidateCache",
-        (data: { cacheTarget: InvalidCacheTarget; targetId: number }) => {
-          switch (data.cacheTarget) {
-            case InvalidCacheTarget.DIRECT_MESSAGE:
-              queryClient.invalidateQueries(
-                useDirectMessagesQuery.getKey({ userId: data.targetId })
-              );
-              queryClient.invalidateQueries(
-                useDiscussionsAndInvitationsQuery.getKey({})
-              );
-              queryClient.invalidateQueries(
-                useDiscussionsAndInvitationsQuery.getKey({
-                  userId: data.targetId,
-                })
-              );
-              break;
-            case InvalidCacheTarget.BLOCK_USER:
-              queryClient.invalidateQueries(
-                useDiscussionsAndInvitationsQuery.getKey({})
-              );
-              queryClient.invalidateQueries(useUserProfileQuery.getKey({}));
-              queryClient.invalidateQueries(
-                useUserProfileQuery.getKey({ userId: data.targetId })
-              );
-              queryClient.invalidateQueries(useUserProfileQuery.getKey({}));
-              queryClient.invalidateQueries(useDirectMessagesQuery.getKey({}));
-              break;
-            case InvalidCacheTarget.INVITATION_FRIEND:
-              queryClient.invalidateQueries(
-                useDiscussionsAndInvitationsQuery.getKey({})
-              );
-              queryClient.invalidateQueries(useUserProfileQuery.getKey({}));
-              queryClient.invalidateQueries(
-                useUserProfileQuery.getKey({ userId: data.targetId })
-              );
-              break;
-            case InvalidCacheTarget.REFUSE_INVITATION_FRIEND:
-              queryClient.invalidateQueries(
-                useDiscussionsAndInvitationsQuery.getKey({})
-              );
-              queryClient.invalidateQueries(useUserProfileQuery.getKey({}));
-              queryClient.invalidateQueries(
-                useUserProfileQuery.getKey({ userId: data.targetId })
-              );
-              break;
-            case InvalidCacheTarget.UPDATE_USER_NAME:
-              queryClient.invalidateQueries(
-                useDiscussionsAndInvitationsQuery.getKey({})
-              );
-              queryClient.invalidateQueries(
-                useUserProfileQuery.getKey({ userId: data.targetId })
-              );
-              queryClient.invalidateQueries(useUserProfileQuery.getKey({}));
-              break;
-            case InvalidCacheTarget.FRIEND_USER:
-              queryClient.invalidateQueries(
-                useDiscussionsAndInvitationsQuery.getKey({})
-              );
-              queryClient.invalidateQueries(useUserProfileQuery.getKey({}));
-              queryClient.invalidateQueries(
-                useUserProfileQuery.getKey({ userId: data.targetId })
-              );
-              break;
-            case InvalidCacheTarget.UNFRIEND_USER:
-              queryClient.invalidateQueries(
-                useDiscussionsAndInvitationsQuery.getKey({})
-              );
-              queryClient.invalidateQueries(useUserProfileQuery.getKey({}));
-              queryClient.invalidateQueries(
-                useUserProfileQuery.getKey({ userId: data.targetId })
-              );
-              queryClient.invalidateQueries(useDirectMessagesQuery.getKey({}));
-              break;
-            case InvalidCacheTarget.CANCEL_INVITATION:
-              queryClient.invalidateQueries(
-                useDiscussionsAndInvitationsQuery.getKey({})
-              );
-              queryClient.invalidateQueries(useUserProfileQuery.getKey({}));
-              queryClient.invalidateQueries(
-                useUserProfileQuery.getKey({ userId: data.targetId })
-              );
-              break;
-            case InvalidCacheTarget.UNBLOCK_USER:
-              queryClient.invalidateQueries(
-                useDiscussionsAndInvitationsQuery.getKey({})
-              );
-              queryClient.invalidateQueries(useUserProfileQuery.getKey({}));
-              queryClient.invalidateQueries(
-                useUserProfileQuery.getKey({ userId: data.targetId })
-              );
-              break;
-            case InvalidCacheTarget.READ_DIRECT_MESSAGE:
-              queryClient.invalidateQueries(
-                useDirectMessagesQuery.getKey({ userId: data.targetId })
-              );
-              queryClient.invalidateQueries(
-                useDiscussionsAndInvitationsQuery.getKey({})
-              );
-              break;
-            case InvalidCacheTarget.AVATAR_USER:
-              queryClient.invalidateQueries(
-                useDiscussionsAndInvitationsQuery.getKey({})
-              );
-              queryClient.invalidateQueries(
-                useUserProfileQuery.getKey({ userId: data.targetId })
-              );
-              break;
-            case InvalidCacheTarget.JOIN_CHANNEL:
-              queryClient.invalidateQueries(
-                useChannelSettingsQuery.getKey({ channelId: data.targetId })
-              );
-              queryClient.invalidateQueries(
-                useChannelDiscussionQuery.getKey({ channelId: data.targetId })
-              );
-              break;
-            case InvalidCacheTarget.CREATE_CHANNEL:
-              queryClient.invalidateQueries(
-                useDiscussionsAndInvitationsQuery.getKey({})
-              );
-              break;
-            case InvalidCacheTarget.LEAVE_CHANNEL:
-              queryClient.invalidateQueries(
-                useChannelSettingsQuery.getKey({ channelId: data.targetId })
-              );
-              break;
-            case InvalidCacheTarget.DELETE_CHANNEL:
-              queryClient.invalidateQueries(
-                useChannelSettingsQuery.getKey({ channelId: data.targetId })
-              );
-              queryClient.invalidateQueries(
-                useDiscussionsAndInvitationsQuery.getKey({})
-              );
-              break;
-            case InvalidCacheTarget.MUTE_USER:
-              queryClient.invalidateQueries(
-                useChannelSettingsQuery.getKey({ channelId: data.targetId })
-              );
-              queryClient.invalidateQueries(
-                useChannelDiscussionQuery.getKey({ channelId: data.targetId })
-              );
-              break;
-            case InvalidCacheTarget.BAN_USER:
-              queryClient.invalidateQueries(
-                useChannelSettingsQuery.getKey({ channelId: data.targetId })
-              );
-              queryClient.invalidateQueries(
-                useChannelDiscussionQuery.getKey({ channelId: data.targetId })
-              );
-              break;
-            case InvalidCacheTarget.UNMUTE_USER:
-              queryClient.invalidateQueries(
-                useChannelSettingsQuery.getKey({ channelId: data.targetId })
-              );
-              queryClient.invalidateQueries(
-                useChannelDiscussionQuery.getKey({ channelId: data.targetId })
-              );
-              break;
-            case InvalidCacheTarget.UNBAN_USER:
-              queryClient.invalidateQueries(
-                useChannelSettingsQuery.getKey({ channelId: data.targetId })
-              );
-              queryClient.invalidateQueries(
-                useChannelDiscussionQuery.getKey({ channelId: data.targetId })
-              );
-              break;
-            case InvalidCacheTarget.INVITE_USER:
-              queryClient.invalidateQueries(
-                useDiscussionsAndInvitationsQuery.getKey({})
-              );
-              queryClient.invalidateQueries(
-                useChannelSettingsQuery.getKey({
-                  channelId: data.targetId,
-                })
-              );
-              break;
-            case InvalidCacheTarget.ADD_ADMIN:
-              queryClient.invalidateQueries(
-                useChannelSettingsQuery.getKey({ channelId: data.targetId })
-              );
-              break;
-            case InvalidCacheTarget.REMOVE_ADMIN:
-              queryClient.invalidateQueries(
-                useChannelSettingsQuery.getKey({ channelId: data.targetId })
-              );
-              break;
-            case InvalidCacheTarget.SEND_CHANNEL_MESSAGE:
-              queryClient.invalidateQueries(
-                useChannelDiscussionQuery.getKey({ channelId: data.targetId })
-              );
-              queryClient.invalidateQueries(
-                useDiscussionsAndInvitationsQuery.getKey({})
-              );
-              break;
-            case InvalidCacheTarget.CREATE_CHANNEL_MESSAGE_READ:
-              queryClient.invalidateQueries(
-                useChannelDiscussionQuery.getKey({ channelId: data.targetId })
-              );
-              break;
-            case InvalidCacheTarget.UPDATE_PASSWORD:
-              queryClient.invalidateQueries(
-                useChannelSettingsQuery.getKey({
-                  channelId: data.targetId,
-                })
-              );
-              break;
-            case InvalidCacheTarget.CONNECTION:
-              console.log("login");
-              queryClient.invalidateQueries(
-                useDiscussionsAndInvitationsQuery.getKey({
-                  userId: data.targetId,
-                })
-              );
-              queryClient.invalidateQueries(
-                useDiscussionsAndInvitationsQuery.getKey({})
-              );
-              break;
-            case InvalidCacheTarget.LOGOUT:
-              console.log("logout");
-              queryClient.invalidateQueries(
-                useDiscussionsAndInvitationsQuery.getKey({
-                  userId: data.targetId,
-                })
-              );
-              queryClient.invalidateQueries(
-                useDiscussionsAndInvitationsQuery.getKey({})
-              );
-              break;
-            default:
-              ((_: never) => _)(data.cacheTarget);
-          }
-        }
-      );
+      socket.on("event", handleData);
 
-      return () => {
-        socket.close();
-      };
+      socket.on("test", (data) => {
+        console.log(data);
+      });
     }
+
+    return () => {
+      if (socket) socket.close();
+    };
   }, [isLoggedIn]);
 
   return (
-    <div className="relative flex h-screen w-screen overflow-hidden">
-      <QueryClientProvider client={queryClient}>
-        <GameRouter />
-        {isLoggedIn ? <SideBar /> : null}
-        <ReactQueryDevtools initialIsOpen={false} panelPosition="left" />
-      </QueryClientProvider>
+    <div>
+      {isLoggedIn ? (
+        <button
+          onClick={() => {
+            sendEvent({ event: "GET_USER", data: { userId: 1 } });
+          }}
+        >
+          send event
+        </button>
+      ) : (
+        <a href="http://localhost:3000/auth/login">login</a>
+      )}
     </div>
   );
 };
 
-ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
-  <React.StrictMode>
+createRoot(document.getElementById("root") as HTMLElement).render(
+  <StrictMode>
     <App />
-  </React.StrictMode>
+  </StrictMode>
 );

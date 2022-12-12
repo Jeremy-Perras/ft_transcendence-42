@@ -26,9 +26,10 @@
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.2.1",
     "prettier": "^2.7.1",
-    "typescript": "^4.8.4"
+    "typescript": "^4.9.0"
   },
   "dependencies": {
-    "@tanstack/react-query-devtools": "^4.16.1"
+    "@tanstack/react-query-devtools": "^4.16.1",
+    "zod": "^3.19.1"
   }
 }

@@ -1,3 +1,0 @@
-mutation CreateChannel($inviteOnly: Boolean!, $name: String!, $password: String) {
-  createChannel(inviteOnly: $inviteOnly, name: $name, password: $password)
-}

@@ -1,3 +1,0 @@
-mutation InviteUser($channelId: Int!, $userId: Int!) {
-  inviteUser(channelId: $channelId, userId: $userId)
-}

@@ -1,7 +1,0 @@
-query UserProfileHeader {
-  user {
-    id
-    avatar
-    status
-  }
-}

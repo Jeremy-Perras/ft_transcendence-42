@@ -10,6 +10,6 @@
     "module": "CommonJS",
     "strictPropertyInitialization": false
   },
-  "exclude": ["./dist", "./prisma", "vite.config.ts"],
-  "references": [{"path": "../shared"}]
+  "exclude": ["./dist", "./prisma", "vite.config.ts", "./old"], // TODO: remove old
+  "references": [{ "path": "../shared" }]
 }

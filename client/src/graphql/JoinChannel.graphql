@@ -1,3 +1,0 @@
-mutation JoinChannel($channelId: Int!, $password: String) {
-  joinChannel(channelId: $channelId, password: $password)
-}

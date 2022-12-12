@@ -1,17 +1,26 @@
 import { Strategy } from "passport-custom";
 import { PassportStrategy } from "@nestjs/passport";
-import { Injectable } from "@nestjs/common";
-import { AuthService } from "./auth.service";
+import { Injectable, Logger } from "@nestjs/common";
 import { Request } from "express";
+import { PrismaService } from "../prisma/prisma.service";
 
 @Injectable()
 export class AuthStrategy extends PassportStrategy(Strategy, "auth") {
-  constructor(private authService: AuthService) {
+  constructor(private prismaService: PrismaService) {
     super();
   }
 
+  private readonly logger = new Logger(AuthStrategy.name);
+
   async validate(req: Request): Promise<number | undefined> {
-    const user = await this.authService.getUserById(+req.body.id);
-    return user?.id;
+    try {
+      const id = +req.body.id;
+      const user = await this.prismaService.user.findUnique({
+        where: { id },
+      });
+      return user?.id;
+    } catch (error) {
+      this.logger.debug(error);
+    }
   }
 }
