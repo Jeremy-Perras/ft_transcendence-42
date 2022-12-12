@@ -50,7 +50,6 @@ import {
   User,
   userType,
   Chat,
-  chatType,
   userStatus,
 } from "./user.model";
 import { UserService } from "./user.service";
@@ -327,11 +326,10 @@ export class UserResolver {
       directMessagesSentLoader
     );
 
-    this.userService.emitUserCacheInvalidation(
-      [user.id],
-      currentUserId,
-      InvalidCacheTarget.DIRECT_MESSAGES
-    );
+    this.userService.emitUserCacheInvalidation(user.id, {
+      targetId: currentUserId,
+      target: InvalidCacheTarget.DIRECT_MESSAGES,
+    });
 
     return messages;
   }
@@ -345,11 +343,14 @@ export class UserResolver {
   ) {
     await this.userService.block(currentUserId, userId);
 
-    this.userService.emitUserCacheInvalidation(
-      [userId, currentUserId],
-      currentUserId,
-      InvalidCacheTarget.USER
-    );
+    this.userService.emitUserCacheInvalidation(userId, {
+      targetId: currentUserId,
+      target: InvalidCacheTarget.USER,
+    });
+
+    this.userService.emitUserCacheInvalidation(userId, {
+      target: InvalidCacheTarget.SELF,
+    });
 
     return true;
   }
@@ -363,11 +364,14 @@ export class UserResolver {
   ) {
     await this.userService.unblock(currentUserId, userId);
 
-    this.userService.emitUserCacheInvalidation(
-      [userId, currentUserId],
-      currentUserId,
-      InvalidCacheTarget.USER
-    );
+    this.userService.emitUserCacheInvalidation(userId, {
+      targetId: currentUserId,
+      target: InvalidCacheTarget.USER,
+    });
+
+    this.userService.emitUserCacheInvalidation(userId, {
+      target: InvalidCacheTarget.SELF,
+    });
 
     return true;
   }
@@ -381,12 +385,14 @@ export class UserResolver {
     @Args("userId", { type: () => Int }) userId: number
   ) {
     await this.userService.friend(currentUserId, userId);
+    this.userService.emitUserCacheInvalidation(userId, {
+      targetId: currentUserId,
+      target: InvalidCacheTarget.USER,
+    });
 
-    this.userService.emitUserCacheInvalidation(
-      [userId, currentUserId],
-      currentUserId,
-      InvalidCacheTarget.USER
-    );
+    this.userService.emitUserCacheInvalidation(userId, {
+      target: InvalidCacheTarget.SELF,
+    });
 
     return true;
   }
@@ -401,11 +407,14 @@ export class UserResolver {
   ) {
     await this.userService.unFriend(currentUserId, userId);
 
-    this.userService.emitUserCacheInvalidation(
-      [userId],
-      currentUserId,
-      InvalidCacheTarget.USER
-    );
+    this.userService.emitUserCacheInvalidation(userId, {
+      targetId: currentUserId,
+      target: InvalidCacheTarget.USER,
+    });
+
+    this.userService.emitUserCacheInvalidation(userId, {
+      target: InvalidCacheTarget.SELF,
+    });
 
     return true;
   }
@@ -419,11 +428,14 @@ export class UserResolver {
   ) {
     await this.userService.refuseFriendInvite(userId, currentUserId);
 
-    this.userService.emitUserCacheInvalidation(
-      [userId, currentUserId],
-      currentUserId,
-      InvalidCacheTarget.USER
-    );
+    this.userService.emitUserCacheInvalidation(userId, {
+      targetId: currentUserId,
+      target: InvalidCacheTarget.USER,
+    });
+
+    this.userService.emitUserCacheInvalidation(userId, {
+      target: InvalidCacheTarget.SELF,
+    });
 
     return true;
   }
@@ -437,11 +449,14 @@ export class UserResolver {
   ) {
     await this.userService.refuseFriendInvite(currentUserId, userId);
 
-    this.userService.emitUserCacheInvalidation(
-      [userId, currentUserId],
-      currentUserId,
-      InvalidCacheTarget.USER
-    );
+    this.userService.emitUserCacheInvalidation(userId, {
+      targetId: currentUserId,
+      target: InvalidCacheTarget.USER,
+    });
+
+    this.userService.emitUserCacheInvalidation(userId, {
+      target: InvalidCacheTarget.SELF,
+    });
 
     return true;
   }
@@ -489,11 +504,14 @@ export class DirectMessageResolver {
   ) {
     await this.userService.sendDirectMessage(currentUserId, userId, message);
 
-    this.userService.emitUserCacheInvalidation(
-      [userId],
-      currentUserId,
-      InvalidCacheTarget.DIRECT_MESSAGES
-    );
+    this.userService.emitUserCacheInvalidation(userId, {
+      targetId: currentUserId,
+      target: InvalidCacheTarget.DIRECT_MESSAGES,
+    });
+
+    this.userService.emitUserCacheInvalidation(userId, {
+      target: InvalidCacheTarget.SELF,
+    });
 
     return true;
   }
