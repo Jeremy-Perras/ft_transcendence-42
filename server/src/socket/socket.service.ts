@@ -10,14 +10,24 @@ export class SocketService {
   ) {}
 
   emitInvalidateCache(
-    cacheTarget: InvalidCacheTarget,
-    ids: number[],
-    targetId: number
+    userIds: number[],
+    target:
+      | {
+          target: InvalidCacheTarget.SELF;
+        }
+      | {
+          target:
+            | InvalidCacheTarget.CHANNEL
+            | InvalidCacheTarget.CHANNEL_MESSAGES
+            | InvalidCacheTarget.USER
+            | InvalidCacheTarget.DIRECT_MESSAGES;
+          targetId: number;
+        }
   ) {
-    ids.forEach((id) => {
+    userIds.forEach((id) => {
       this.socketGateway.server
         .to(id.toString())
-        .emit("invalidateCache", { cacheTarget, targetId });
+        .emit("invalidateCache", target);
     });
     return;
   }

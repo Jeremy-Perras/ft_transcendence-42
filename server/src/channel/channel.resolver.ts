@@ -47,12 +47,14 @@ import {
 import { UserService } from "../user/user.service";
 import { PrismaService } from "../prisma/prisma.service";
 import { InvalidCacheTarget } from "@apps/shared";
+import { SocketService } from "../socket/socket.service";
 
 @Resolver(Channel)
 @UseGuards(RolesGuard)
 @UseGuards(GqlAuthenticatedGuard)
 export class ChannelResolver {
   constructor(
+    private socketService: SocketService,
     private channelService: ChannelService,
     private userService: UserService
   ) {}
@@ -169,27 +171,62 @@ export class ChannelResolver {
     >,
     @Loader(BlockingIdsLoader)
     blockingIdsLoader: DataLoader<PrismaUser["id"], number[]>,
+    @Loader(ChannelMembersLoader)
+    channelMembersLoader: DataLoader<Channel["id"], PrismaChannelMember[]>,
+    @Loader(ChannelLoader)
+    channelLoader: DataLoader<Channel["id"], PrismaChannel>,
     @Root() channel: Channel,
     @CurrentUser() currentUserId: number
   ): Promise<channelMessageType[]> {
-    return this.channelService.getMessages(
+    const m = await this.channelService.getMessages(
       userChannelIdsLoader,
       channelMessagesLoader,
       blockingIdsLoader,
       channel.id,
       currentUserId
     );
+
+    this.channelService.emitChannelCacheInvalidation(
+      channelMembersLoader,
+      channelLoader,
+      channel.id,
+      InvalidCacheTarget.CHANNEL_MESSAGES
+    );
+
+    this.channelService.emitChannelCacheInvalidation(
+      channelMembersLoader,
+      channelLoader,
+      channel.id,
+      InvalidCacheTarget.SELF
+    );
+
+    return m;
   }
 
   @UseGuards(ExistingChannelGuard)
   @Mutation((returns) => Boolean)
   async joinChannel(
+    @Loader(ChannelMembersLoader)
+    channelMembersLoader: DataLoader<Channel["id"], PrismaChannelMember[]>,
+    @Loader(ChannelLoader)
+    channelLoader: DataLoader<Channel["id"], PrismaChannel>,
     @Args("channelId", { type: () => Int }) channelId: number,
     @Args("password", { type: () => String, nullable: true })
     password: string | null,
     @CurrentUser() currentUserId: number
   ) {
-    this.channelService.joinChannel(channelId, password, currentUserId);
+    await this.channelService.joinChannel(channelId, password, currentUserId);
+
+    this.channelService.emitChannelCacheInvalidation(
+      channelMembersLoader,
+      channelLoader,
+      channelId,
+      InvalidCacheTarget.CHANNEL
+    );
+
+    this.userService.emitUserCacheInvalidation(currentUserId, {
+      target: InvalidCacheTarget.SELF,
+    });
 
     return true;
   }
@@ -198,10 +235,25 @@ export class ChannelResolver {
   @RoleGuard(Role.Member)
   @Mutation((returns) => Boolean)
   async leaveChannel(
+    @Loader(ChannelMembersLoader)
+    channelMembersLoader: DataLoader<Channel["id"], PrismaChannelMember[]>,
+    @Loader(ChannelLoader)
+    channelLoader: DataLoader<Channel["id"], PrismaChannel>,
     @Args("channelId", { type: () => Int }) channelId: number,
     @CurrentUser() currentUserId: number
   ) {
-    this.channelService.leaveChannel(channelId, currentUserId);
+    await this.channelService.leaveChannel(channelId, currentUserId);
+
+    this.channelService.emitChannelCacheInvalidation(
+      channelMembersLoader,
+      channelLoader,
+      channelId,
+      InvalidCacheTarget.CHANNEL
+    );
+
+    this.userService.emitUserCacheInvalidation(currentUserId, {
+      target: InvalidCacheTarget.SELF,
+    });
 
     return true;
   }
@@ -215,7 +267,16 @@ export class ChannelResolver {
     @CurrentUser() currentUserId: number
   ) {
     const hash = password ? bcrypt.hashSync(password, 10) : null;
-    this.channelService.createChannel(inviteOnly, name, hash, currentUserId);
+    await this.channelService.createChannel(
+      inviteOnly,
+      name,
+      hash,
+      currentUserId
+    );
+
+    this.userService.emitUserCacheInvalidation(currentUserId, {
+      target: InvalidCacheTarget.SELF,
+    });
 
     return true;
   }
@@ -224,9 +285,25 @@ export class ChannelResolver {
   @RoleGuard(Role.Owner)
   @Mutation((returns) => Boolean)
   async deleteChannel(
-    @Args("channelId", { type: () => Int }) channelId: number
+    @Loader(ChannelMembersLoader)
+    channelMembersLoader: DataLoader<Channel["id"], PrismaChannelMember[]>,
+    @Loader(ChannelLoader)
+    channelLoader: DataLoader<Channel["id"], PrismaChannel>,
+    @Args("channelId", { type: () => Int }) channelId: number,
+    @CurrentUser() currentUserId: number
   ) {
-    this.channelService.deleteChannel(channelId);
+    await this.channelService.deleteChannel(channelId);
+
+    this.channelService.emitChannelCacheInvalidation(
+      channelMembersLoader,
+      channelLoader,
+      channelId,
+      InvalidCacheTarget.CHANNEL
+    );
+
+    this.userService.emitUserCacheInvalidation(currentUserId, {
+      target: InvalidCacheTarget.SELF,
+    });
 
     return true;
   }
@@ -236,16 +313,27 @@ export class ChannelResolver {
   @RoleGuard(Role.Admin)
   @Mutation((returns) => Boolean)
   async muteUser(
+    @Loader(ChannelMembersLoader)
+    channelMembersLoader: DataLoader<Channel["id"], PrismaChannelMember[]>,
+    @Loader(ChannelLoader)
+    channelLoader: DataLoader<Channel["id"], PrismaChannel>,
     @Args("userId", { type: () => Int }) userId: number,
     @Args("channelId", { type: () => Int }) channelId: number,
     @Args("muteUntil", { type: () => Date, nullable: true })
     muteUntil: Date | null
   ) {
-    this.channelService.setUserRestriction(
+    await this.channelService.setUserRestriction(
       channelId,
       userId,
       muteUntil,
       ChannelRestriction.MUTE
+    );
+
+    this.channelService.emitChannelCacheInvalidation(
+      channelMembersLoader,
+      channelLoader,
+      channelId,
+      InvalidCacheTarget.CHANNEL
     );
 
     return true;
@@ -265,7 +353,7 @@ export class ChannelResolver {
     @Args("banUntil", { type: () => Date, nullable: true })
     banUntil: Date | null
   ) {
-    this.channelService.setUserRestriction(
+    await this.channelService.setUserRestriction(
       channelId,
       userId,
       banUntil,
@@ -279,8 +367,40 @@ export class ChannelResolver {
       InvalidCacheTarget.CHANNEL
     );
 
-    this.userService.emitUserCacheInvalidation(
+    this.userService.emitUserCacheInvalidation(userId, {
+      target: InvalidCacheTarget.CHANNEL,
+      targetId: channelId,
+    });
+
+    this.userService.emitUserCacheInvalidation(userId, {
+      target: InvalidCacheTarget.SELF,
+    });
+
+    return true;
+  }
+
+  @UseGuards(ExistingChannelGuard)
+  @UseGuards(OwnerGuard)
+  @RoleGuard(Role.Admin)
+  @Mutation((returns) => Boolean)
+  async unmuteUser(
+    @Loader(ChannelMembersLoader)
+    channelMembersLoader: DataLoader<Channel["id"], PrismaChannelMember[]>,
+    @Loader(ChannelLoader)
+    channelLoader: DataLoader<Channel["id"], PrismaChannel>,
+    @Args("channelId", { type: () => Int }) channelId: number,
+    @Args("userId", { type: () => Int }) userId: number
+  ) {
+    await this.channelService.setUserRestriction(
+      channelId,
       userId,
+      new Date(),
+      ChannelRestriction.MUTE
+    );
+
+    this.channelService.emitChannelCacheInvalidation(
+      channelMembersLoader,
+      channelLoader,
       channelId,
       InvalidCacheTarget.CHANNEL
     );
@@ -292,33 +412,33 @@ export class ChannelResolver {
   @UseGuards(OwnerGuard)
   @RoleGuard(Role.Admin)
   @Mutation((returns) => Boolean)
-  async unmuteUser(
-    @Args("channelId", { type: () => Int }) channelId: number,
-    @Args("userId", { type: () => Int }) userId: number
-  ) {
-    this.channelService.setUserRestriction(
-      channelId,
-      userId,
-      new Date(),
-      ChannelRestriction.MUTE
-    );
-    return true;
-  }
-
-  @UseGuards(ExistingChannelGuard)
-  @UseGuards(OwnerGuard)
-  @RoleGuard(Role.Admin)
-  @Mutation((returns) => Boolean)
   async unbanUser(
+    @Loader(ChannelMembersLoader)
+    channelMembersLoader: DataLoader<Channel["id"], PrismaChannelMember[]>,
+    @Loader(ChannelLoader)
+    channelLoader: DataLoader<Channel["id"], PrismaChannel>,
     @Args("channelId", { type: () => Int }) channelId: number,
     @Args("userId", { type: () => Int }) userId: number
   ) {
-    this.channelService.setUserRestriction(
+    await this.channelService.setUserRestriction(
       channelId,
       userId,
       new Date(),
       ChannelRestriction.BAN
     );
+
+    this.channelService.emitChannelCacheInvalidation(
+      channelMembersLoader,
+      channelLoader,
+      channelId,
+      InvalidCacheTarget.CHANNEL
+    );
+
+    this.userService.emitUserCacheInvalidation(userId, {
+      target: InvalidCacheTarget.CHANNEL,
+      targetId: channelId,
+    });
+
     return true;
   }
 
@@ -332,8 +452,12 @@ export class ChannelResolver {
     @CurrentUser() currentUserId: number
   ) {
     const hash = password ? bcrypt.hashSync(password, 10) : null;
-    this.channelService.updatePassword(currentUserId, hash);
+    await this.channelService.updatePassword(currentUserId, hash);
 
+    this.socketService.emitInvalidateCacheAll(
+      channelId,
+      InvalidCacheTarget.CHANNEL
+    );
     return true;
   }
 
@@ -342,10 +466,25 @@ export class ChannelResolver {
   @RoleGuard(Role.Admin)
   @Mutation((returns) => Boolean)
   async inviteUser(
+    @Loader(ChannelMembersLoader)
+    channelMembersLoader: DataLoader<Channel["id"], PrismaChannelMember[]>,
+    @Loader(ChannelLoader)
+    channelLoader: DataLoader<Channel["id"], PrismaChannel>,
     @Args("channelId", { type: () => Int }) channelId: number,
     @Args("userId", { type: () => Int }) userId: number
   ) {
-    this.channelService.inviteUser(channelId, userId);
+    await this.channelService.inviteUser(channelId, userId);
+
+    this.channelService.emitChannelCacheInvalidation(
+      channelMembersLoader,
+      channelLoader,
+      channelId,
+      InvalidCacheTarget.CHANNEL
+    );
+
+    this.userService.emitUserCacheInvalidation(userId, {
+      target: InvalidCacheTarget.SELF,
+    });
 
     return true;
   }
@@ -355,10 +494,21 @@ export class ChannelResolver {
   @RoleGuard(Role.Owner)
   @Mutation((returns) => Boolean)
   async addAdmin(
+    @Loader(ChannelMembersLoader)
+    channelMembersLoader: DataLoader<Channel["id"], PrismaChannelMember[]>,
+    @Loader(ChannelLoader)
+    channelLoader: DataLoader<Channel["id"], PrismaChannel>,
     @Args("channelId", { type: () => Int }) channelId: number,
     @Args("userId", { type: () => Int }) userId: number
   ) {
-    this.channelService.addAdmin(channelId, userId);
+    await this.channelService.addAdmin(channelId, userId);
+
+    this.channelService.emitChannelCacheInvalidation(
+      channelMembersLoader,
+      channelLoader,
+      channelId,
+      InvalidCacheTarget.CHANNEL
+    );
 
     return true;
   }
@@ -367,10 +517,21 @@ export class ChannelResolver {
   @RoleGuard(Role.Owner)
   @Mutation((returns) => Boolean)
   async removeAdmin(
+    @Loader(ChannelMembersLoader)
+    channelMembersLoader: DataLoader<Channel["id"], PrismaChannelMember[]>,
+    @Loader(ChannelLoader)
+    channelLoader: DataLoader<Channel["id"], PrismaChannel>,
     @Args("channelId", { type: () => Int }) channelId: number,
     @Args("userId", { type: () => Int }) userId: number
   ) {
-    this.channelService.removeAdmin(channelId, userId);
+    await this.channelService.removeAdmin(channelId, userId);
+
+    this.channelService.emitChannelCacheInvalidation(
+      channelMembersLoader,
+      channelLoader,
+      channelId,
+      InvalidCacheTarget.CHANNEL
+    );
 
     return true;
   }
@@ -379,7 +540,10 @@ export class ChannelResolver {
 @Resolver(ChannelMessage)
 @UseGuards(GqlAuthenticatedGuard)
 export class ChannelMessageResolver {
-  constructor(private prismaService: PrismaService) {}
+  constructor(
+    private prismaService: PrismaService,
+    private channelService: ChannelService
+  ) {}
 
   @ResolveField()
   async author(
@@ -411,8 +575,12 @@ export class ChannelMessageResolver {
 
   @UseGuards(ExistingChannelGuard)
   @RoleGuard(Role.Member)
-  @Mutation((returns) => Boolean) // TODO
+  @Mutation((returns) => Boolean)
   async sendChannelMessage(
+    @Loader(ChannelMembersLoader)
+    channelMembersLoader: DataLoader<Channel["id"], PrismaChannelMember[]>,
+    @Loader(ChannelLoader)
+    channelLoader: DataLoader<Channel["id"], PrismaChannel>,
     @Args("message", { type: () => String }) message: string,
     @Args("channelId", { type: () => Int }) channelId: number,
     @CurrentUser() currentUserId: number
@@ -448,6 +616,13 @@ export class ChannelMessageResolver {
         channelId,
       },
     });
+
+    this.channelService.emitChannelCacheInvalidation(
+      channelMembersLoader,
+      channelLoader,
+      channelId,
+      InvalidCacheTarget.CHANNEL_MESSAGES
+    );
 
     return true;
   }

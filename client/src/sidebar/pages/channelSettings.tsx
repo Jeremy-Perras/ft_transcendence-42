@@ -95,6 +95,11 @@ export const channelSettingsLoader = async (
   }
 };
 
+// enum restrictionAction {
+//   BAN,
+//   MUTE,
+// }
+
 // type RestrictionTime = {
 //   text: string;
 //   date: number | null | undefined;
@@ -114,83 +119,58 @@ export const channelSettingsLoader = async (
 //     date: Math.floor(new Date() as unknown as number) + 60 * 60 * 25 * 1000,
 //   },
 //   {
-//     text: "Forever",
+//     text: "Indefinite",
 //     date: null,
 //   },
 // ];
 
 // const SetRestrictionTimeButton = ({
-//   setShowTime,
-//   action,
 //   channelId,
-//   id,
-//   date,
-//   text,
+//   userId,
+//   time,
+//   action,
+//   setShowTime,
 // }: {
-//   setShowTime: React.Dispatch<React.SetStateAction<boolean>>;
-//   action: UseMutationResult<
-//     MutedSomeoneChannelMutation | BannedSomeoneChannelMutation,
-//     unknown,
-//     Exact<{
-//       createMutedId: number;
-//       channelId: number;
-//       date?: InputMaybe<number> | undefined;
-//     }>,
-//     unknown
-//   >;
-
 //   channelId: number | undefined;
-//   id: number | undefined;
-//   date: number | undefined | null;
-//   text: string;
+//   userId: number | undefined;
+//   time: RestrictionTime;
+//   action: restrictionAction;
+//   setShowTime: React.Dispatch<React.SetStateAction<boolean>>;
 // }) => {
+//   let restriction; //mut
+//   if (action === restrictionAction.BAN) {
+//     restriction  = ; //ban
+//   }
+//   else if (action === restrictionAction.MUTE) {
+//     restriction  = ; //ban
+//   }
 //   return (
 //     <div
 //       className="hover:bg-slate-300"
 //       onClick={() => {
 //         setShowTime(false),
-//           action.mutate({
+//           restriction.mutate({
 //             channelId: channelId ? channelId : 0,
 //             createMutedId: id ? id : 0,
-//             date: date,
+//             date: time.date,
 //           });
 //       }}
 //     >
-//       {text}
+//       {time.text}
 //     </div>
 //   );
 // };
 
 // const ChooseTimeButton = ({
-//   id,
+//   userId,
 //   channelId,
 //   action,
 //   showTime,
 //   setShowTime,
 // }: {
-//   action:
-//     | UseMutationResult<
-//         MutedSomeoneChannelMutation,
-//         unknown,
-//         Exact<{
-//           createMutedId: number;
-//           channelId: number;
-//           date?: InputMaybe<number> | undefined;
-//         }>,
-//         unknown
-//       >
-//     | UseMutationResult<
-//         BannedSomeoneChannelMutation,
-//         unknown,
-//         Exact<{
-//           createMutedId: number;
-//           channelId: number;
-//           date?: InputMaybe<number> | undefined;
-//         }>,
-//         unknown
-//       >;
+//   userId: number | undefined;
 //   channelId: number | undefined;
-//   id: number | undefined;
+//   action: restrictionAction;
 //   showTime: boolean;
 //   setShowTime: React.Dispatch<React.SetStateAction<boolean>>;
 // }) => {

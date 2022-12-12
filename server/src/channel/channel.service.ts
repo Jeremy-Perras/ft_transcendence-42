@@ -519,9 +519,10 @@ export class ChannelService {
     channelMembersLoader: DataLoader<Channel["id"], ChannelMember[]>,
     channelLoader: DataLoader<Channel["id"], Channel>,
     channelId: number,
-    cacheTarget:
+    target:
       | InvalidCacheTarget.CHANNEL
       | InvalidCacheTarget.CHANNEL_MESSAGES
+      | InvalidCacheTarget.SELF
   ) {
     const channel = await channelLoader.load(channelId);
     const channelMembers = await channelMembersLoader.load(channelId);
@@ -530,9 +531,15 @@ export class ChannelService {
     memberAndOwnerIds.push(channel.ownerId);
 
     this.socketService.emitInvalidateCache(
-      cacheTarget,
       memberAndOwnerIds,
-      channelId
+      target === InvalidCacheTarget.SELF
+        ? {
+            target,
+          }
+        : {
+            target,
+            targetId: channelId,
+          }
     );
   }
 }

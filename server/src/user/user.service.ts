@@ -512,12 +512,18 @@ export class UserService {
 
   async emitUserCacheInvalidation(
     userId: number,
-    targetId: number,
-    cacheTarget:
-      | InvalidCacheTarget.USER
-      | InvalidCacheTarget.DIRECT_MESSAGES
-      | InvalidCacheTarget.CHANNEL
+    target:
+      | {
+          target: InvalidCacheTarget.SELF;
+        }
+      | {
+          targetId: number;
+          target:
+            | InvalidCacheTarget.USER
+            | InvalidCacheTarget.DIRECT_MESSAGES
+            | InvalidCacheTarget.CHANNEL;
+        }
   ) {
-    this.socketService.emitInvalidateCache(cacheTarget, [userId], targetId);
+    this.socketService.emitInvalidateCache([userId], target);
   }
 }
