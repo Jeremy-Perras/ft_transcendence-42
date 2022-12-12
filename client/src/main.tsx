@@ -53,7 +53,19 @@ const App = () => {
         "invalidateCache",
         (data: { cacheTarget: InvalidCacheTarget; targetId: number }) => {
           switch (data.cacheTarget) {
-            case InvalidCacheTarget.DIRECT_MESSAGE:
+            case InvalidCacheTarget.USER:
+              queryClient.invalidateQueries(
+                useDiscussionsAndInvitationsQuery.getKey({})
+              );
+              queryClient.invalidateQueries(useUserProfileQuery.getKey({}));
+              queryClient.invalidateQueries(
+                useUserProfileQuery.getKey({ userId: data.targetId })
+              );
+              queryClient.invalidateQueries(useUserProfileQuery.getKey({}));
+              queryClient.invalidateQueries(useDirectMessagesQuery.getKey({}));
+              break;
+
+            case InvalidCacheTarget.DIRECT_MESSAGES:
               queryClient.invalidateQueries(
                 useDirectMessagesQuery.getKey({ userId: data.targetId })
               );
@@ -66,17 +78,36 @@ const App = () => {
                 })
               );
               break;
-            case InvalidCacheTarget.BLOCK_USER:
-              queryClient.invalidateQueries(
-                useDiscussionsAndInvitationsQuery.getKey({})
-              );
-              queryClient.invalidateQueries(useUserProfileQuery.getKey({}));
-              queryClient.invalidateQueries(
-                useUserProfileQuery.getKey({ userId: data.targetId })
-              );
-              queryClient.invalidateQueries(useUserProfileQuery.getKey({}));
-              queryClient.invalidateQueries(useDirectMessagesQuery.getKey({}));
+
+            case InvalidCacheTarget.CHANNEL:
               break;
+
+            case InvalidCacheTarget.CHANNEL_MESSAGES:
+              break;
+            // case InvalidCacheTarget.DIRECT_MESSAGE:
+            //   queryClient.invalidateQueries(
+            //     useDirectMessagesQuery.getKey({ userId: data.targetId })
+            //   );
+            //   queryClient.invalidateQueries(
+            //     useDiscussionsAndInvitationsQuery.getKey({})
+            //   );
+            //   queryClient.invalidateQueries(
+            //     useDiscussionsAndInvitationsQuery.getKey({
+            //       userId: data.targetId,
+            //     })
+            //   );
+            //   break;
+            // case InvalidCacheTarget.BLOCK_USER:
+            //   queryClient.invalidateQueries(
+            //     useDiscussionsAndInvitationsQuery.getKey({})
+            //   );
+            //   queryClient.invalidateQueries(useUserProfileQuery.getKey({}));
+            //   queryClient.invalidateQueries(
+            //     useUserProfileQuery.getKey({ userId: data.targetId })
+            //   );
+            //   queryClient.invalidateQueries(useUserProfileQuery.getKey({}));
+            //   queryClient.invalidateQueries(useDirectMessagesQuery.getKey({}));
+            //   break;
             case InvalidCacheTarget.INVITATION_FRIEND:
               queryClient.invalidateQueries(
                 useDiscussionsAndInvitationsQuery.getKey({})

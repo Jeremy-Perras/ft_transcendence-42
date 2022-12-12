@@ -144,13 +144,11 @@ export class GameResolver {
       player1: {
         id: g.player1.id,
         name: g.player1.name,
-        avatar: g.player1.avatar,
         rank: g.player1.rank,
       },
       player2: {
         id: g.player2.id,
         name: g.player2.name,
-        avatar: g.player2.avatar,
         rank: g.player2.rank,
       },
     };

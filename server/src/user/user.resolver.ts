@@ -327,10 +327,10 @@ export class UserResolver {
       directMessagesSentLoader
     );
 
-    this.socketService.emitInvalidateCache(
-      InvalidCacheTarget.DIRECT_MESSAGE,
+    this.userService.emitUserCacheInvalidation(
       [user.id],
-      currentUserId
+      currentUserId,
+      InvalidCacheTarget.DIRECT_MESSAGES
     );
 
     return messages;
@@ -345,11 +345,10 @@ export class UserResolver {
   ) {
     await this.userService.block(currentUserId, userId);
 
-    const users = [userId, currentUserId];
-    this.socketService.emitInvalidateCache(
-      InvalidCacheTarget.BLOCK_USER,
-      users,
-      currentUserId
+    this.userService.emitUserCacheInvalidation(
+      [userId, currentUserId],
+      currentUserId,
+      InvalidCacheTarget.USER
     );
 
     return true;
@@ -364,11 +363,10 @@ export class UserResolver {
   ) {
     await this.userService.unblock(currentUserId, userId);
 
-    const users = [userId, currentUserId];
-    this.socketService.emitInvalidateCache(
-      InvalidCacheTarget.UNBLOCK_USER,
-      users,
-      currentUserId
+    this.userService.emitUserCacheInvalidation(
+      [userId, currentUserId],
+      currentUserId,
+      InvalidCacheTarget.USER
     );
 
     return true;
@@ -384,12 +382,10 @@ export class UserResolver {
   ) {
     await this.userService.friend(currentUserId, userId);
 
-    const users = [userId, currentUserId];
-
-    this.socketService.emitInvalidateCache(
-      InvalidCacheTarget.FRIEND_USER,
-      users,
-      currentUserId
+    this.userService.emitUserCacheInvalidation(
+      [userId, currentUserId],
+      currentUserId,
+      InvalidCacheTarget.USER
     );
 
     return true;
@@ -405,10 +401,10 @@ export class UserResolver {
   ) {
     await this.userService.unFriend(currentUserId, userId);
 
-    this.socketService.emitInvalidateCache(
-      InvalidCacheTarget.UNFRIEND_USER,
+    this.userService.emitUserCacheInvalidation(
       [userId],
-      currentUserId
+      currentUserId,
+      InvalidCacheTarget.USER
     );
 
     return true;
@@ -423,11 +419,10 @@ export class UserResolver {
   ) {
     await this.userService.refuseFriendInvite(userId, currentUserId);
 
-    const users = [currentUserId, userId];
-    this.socketService.emitInvalidateCache(
-      InvalidCacheTarget.CANCEL_INVITATION,
-      users,
-      currentUserId
+    this.userService.emitUserCacheInvalidation(
+      [userId, currentUserId],
+      currentUserId,
+      InvalidCacheTarget.USER
     );
 
     return true;
@@ -442,11 +437,10 @@ export class UserResolver {
   ) {
     await this.userService.refuseFriendInvite(currentUserId, userId);
 
-    const users = [userId, currentUserId];
-    this.socketService.emitInvalidateCache(
-      InvalidCacheTarget.REFUSE_INVITATION_FRIEND,
-      users,
-      currentUserId
+    this.userService.emitUserCacheInvalidation(
+      [userId, currentUserId],
+      currentUserId,
+      InvalidCacheTarget.USER
     );
 
     return true;
@@ -466,6 +460,10 @@ export class UserResolver {
     }
 
     await this.userService.updateName(currentUserId, name);
+    this.socketService.emitInvalidateCacheAll(
+      currentUserId,
+      InvalidCacheTarget.USER
+    );
 
     return true;
   }
@@ -491,10 +489,10 @@ export class DirectMessageResolver {
   ) {
     await this.userService.sendDirectMessage(currentUserId, userId, message);
 
-    this.socketService.emitInvalidateCache(
-      InvalidCacheTarget.DIRECT_MESSAGE,
+    this.userService.emitUserCacheInvalidation(
       [userId],
-      currentUserId
+      currentUserId,
+      InvalidCacheTarget.DIRECT_MESSAGES
     );
 
     return true;

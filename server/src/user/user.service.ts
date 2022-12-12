@@ -10,6 +10,7 @@ import {
   DirectMessage,
   User,
   Avatar,
+  ImageFileType,
 } from "@prisma/client";
 import DataLoader from "dataloader";
 import { PrismaService } from "../prisma/prisma.service";
@@ -525,5 +526,20 @@ export class UserService {
         }
   ) {
     this.socketService.emitInvalidateCache([userId], target);
+  }
+
+  async updateAvatar(
+    userId: number,
+    fileType: ImageFileType | undefined,
+    image: any
+  ) {
+    try {
+      await this.prismaService.avatar.update({
+        where: { userId: userId },
+        data: { fileType: fileType, image: image },
+      });
+    } catch (error) {
+      throw new NotFoundException("User not found");
+    }
   }
 }

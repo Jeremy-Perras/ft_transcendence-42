@@ -1,3 +1,4 @@
+import { InvalidCacheTarget } from "@apps/shared";
 import {
   Controller,
   Request,
@@ -9,16 +10,21 @@ import {
   UnauthorizedException,
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
+import { ImageFileType } from "@prisma/client";
 import { Request as ExpressRequest } from "express";
 import { diskStorage } from "multer";
 import path from "path";
 import { AuthenticatedGuard } from "../auth/authenticated.guard";
-import { UploadService } from "./upload.service";
+import { SocketService } from "../socket/socket.service";
+import { UserService } from "../user/user.service";
 
 @UseGuards(AuthenticatedGuard)
 @Controller("/upload")
 export class UploadController {
-  constructor(private readonly uploadService: UploadService) {}
+  constructor(
+    private readonly userService: UserService,
+    private socketservice: SocketService
+  ) {}
 
   @Post("/avatar")
   @UseInterceptors(
@@ -31,17 +37,6 @@ export class UploadController {
         }
       },
       limits: { fileSize: 100000 },
-      storage: diskStorage({
-        destination: "./uploads/avatars/",
-        filename: (req, file, cb) => {
-          const filename =
-            path.parse(file.originalname).name.replace(/\s/g, "") +
-            Date.now() +
-            req.user;
-          const extension = path.parse(file.originalname).ext;
-          cb(null, `${filename}${extension}`);
-        },
-      }),
     })
   )
   async uploadAvatar(
@@ -54,7 +49,11 @@ export class UploadController {
     if (!userId) {
       throw new UnauthorizedException();
     }
+    const type = file.mimetype.match(/\/(jpg)$/)
+      ? ImageFileType.JPG
+      : ImageFileType.PNG;
 
-    await this.uploadService.updateAvatar(+userId, file.filename);
+    await this.userService.updateAvatar(+userId, type, file.buffer);
+    this.socketservice.emitInvalidateCacheAll(+userId, InvalidCacheTarget.USER);
   }
 }
