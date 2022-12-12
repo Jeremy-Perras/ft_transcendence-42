@@ -525,6 +525,7 @@ export class ChannelService {
   ) {
     const channel = await channelLoader.load(channelId);
     const channelMembers = await channelMembersLoader.load(channelId);
+
     const memberAndOwnerIds = channelMembers.map((m) => m.userId);
     memberAndOwnerIds.push(channel.ownerId);
 
@@ -533,17 +534,5 @@ export class ChannelService {
       memberAndOwnerIds,
       channelId
     );
-  }
-
-  // TODO: move to user service
-  async emitUserCacheInvalidation(
-    userId: number,
-    targetId: number,
-    cacheTarget:
-      | InvalidCacheTarget.USER
-      | InvalidCacheTarget.DIRECT_MESSAGES
-      | InvalidCacheTarget.CHANNEL
-  ) {
-    this.socketService.emitInvalidateCache(cacheTarget, [userId], targetId);
   }
 }

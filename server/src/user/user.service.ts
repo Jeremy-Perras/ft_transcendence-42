@@ -511,14 +511,13 @@ export class UserService {
   }
 
   async emitUserCacheInvalidation(
-    currentUserId: number,
-    InvalidCacheTarget: InvalidCacheTarget
+    userId: number,
+    targetId: number,
+    cacheTarget:
+      | InvalidCacheTarget.USER
+      | InvalidCacheTarget.DIRECT_MESSAGES
+      | InvalidCacheTarget.CHANNEL
   ) {
-    const users = await this.prismaService.user.findMany();
-    this.socketService.emitInvalidateCache(
-      InvalidCacheTarget,
-      users.map((u) => u.id),
-      currentUserId
-    );
+    this.socketService.emitInvalidateCache(cacheTarget, [userId], targetId);
   }
 }

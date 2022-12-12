@@ -46,12 +46,16 @@ import {
 } from "../user/user.loaders";
 import { UserService } from "../user/user.service";
 import { PrismaService } from "../prisma/prisma.service";
+import { InvalidCacheTarget } from "@apps/shared";
 
 @Resolver(Channel)
 @UseGuards(RolesGuard)
 @UseGuards(GqlAuthenticatedGuard)
 export class ChannelResolver {
-  constructor(private channelService: ChannelService) {}
+  constructor(
+    private channelService: ChannelService,
+    private userService: UserService
+  ) {}
 
   @Query((returns) => Channel)
   async channel(
@@ -252,6 +256,10 @@ export class ChannelResolver {
   @RoleGuard(Role.Admin)
   @Mutation((returns) => Boolean)
   async banUser(
+    @Loader(ChannelMembersLoader)
+    channelMembersLoader: DataLoader<Channel["id"], PrismaChannelMember[]>,
+    @Loader(ChannelLoader)
+    channelLoader: DataLoader<Channel["id"], PrismaChannel>,
     @Args("userId", { type: () => Int }) userId: number,
     @Args("channelId", { type: () => Int }) channelId: number,
     @Args("banUntil", { type: () => Date, nullable: true })
@@ -263,6 +271,20 @@ export class ChannelResolver {
       banUntil,
       ChannelRestriction.BAN
     );
+
+    this.channelService.emitChannelCacheInvalidation(
+      channelMembersLoader,
+      channelLoader,
+      channelId,
+      InvalidCacheTarget.CHANNEL
+    );
+
+    this.userService.emitUserCacheInvalidation(
+      userId,
+      channelId,
+      InvalidCacheTarget.CHANNEL
+    );
+
     return true;
   }
 
