@@ -384,7 +384,7 @@ const UserHeader = ({
       onClick={() => navigate(`/profile/${user.id}`)}
     >
       <img
-        src={`/uploads/avatars/${user.avatar}`}
+        src={`${user.avatar}`}
         alt="Player avatar"
         className="my-1 ml-1 h-12 w-12 border border-black"
       />

@@ -64,7 +64,7 @@ const ChannelAndFriendBanner = ({
           <Avatar.Root>
             <Avatar.Image
               className="h-16 w-16 border border-black object-cover"
-              src={`/uploads/avatars/${chat.avatar}`}
+              src={`${chat.avatar}`}
             />
             <IsOnline userStatus={chat.status} />
             <Avatar.Fallback delayMs={0}>
@@ -114,7 +114,7 @@ const Invitation = ({
         <Avatar.Root>
           <Avatar.Image
             className="h-8 w-8 border border-black object-cover"
-            src={`/uploads/avatars/${avatar}`}
+            src={`${avatar}`}
           />
           <Avatar.Fallback delayMs={0}>
             <UserIcon className="h-8 w-8 border border-black bg-slate-50 p-1 text-neutral-700" />

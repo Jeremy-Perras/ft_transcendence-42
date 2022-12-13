@@ -22,6 +22,7 @@ import {
 } from "./user.model";
 import { channelType as GraphQLChannel } from "../channel/channel.model";
 import { ChannelService } from "../channel/channel.service";
+import { ConnectableObservable } from "rxjs";
 
 @Injectable()
 export class UserService {
@@ -90,6 +91,7 @@ export class UserService {
   ) {
     try {
       const friendIds = await friendIdsLoader.load(id);
+
       const users = await userloader.loadMany(friendIds);
       return users.reduce((acc, curr) => {
         if (curr && "id" in curr) {
@@ -337,7 +339,7 @@ export class UserService {
             },
           },
           select: {
-            sender: {
+            receiver: {
               select: {
                 id: true,
                 name: true,
@@ -452,21 +454,22 @@ export class UserService {
 
     res.friendRequestsSent.forEach((f) => {
       let lastMessage;
-      if (f.sender.messageReceived[0] && f.sender.messageSent[0]) {
-        f.sender.messageReceived[0]?.sentAt < f.sender.messageSent[0]?.sentAt
-          ? (lastMessage = f.sender.messageSent[0])
-          : (lastMessage = f.sender.messageReceived[0]);
-      } else if (f.sender.messageReceived[0] && !f.sender.messageSent[0])
-        lastMessage = f.sender.messageReceived[0];
-      else if (f.sender.messageSent[0] && !f.sender.messageReceived[0])
-        lastMessage = f.sender.messageSent[0];
+      if (f.receiver.messageReceived[0] && f.receiver.messageSent[0]) {
+        f.receiver.messageReceived[0]?.sentAt <
+        f.receiver.messageSent[0]?.sentAt
+          ? (lastMessage = f.receiver.messageSent[0])
+          : (lastMessage = f.receiver.messageReceived[0]);
+      } else if (f.receiver.messageReceived[0] && !f.receiver.messageSent[0])
+        lastMessage = f.receiver.messageReceived[0];
+      else if (f.receiver.messageSent[0] && !f.receiver.messageReceived[0])
+        lastMessage = f.receiver.messageSent[0];
       else lastMessage = undefined;
 
       mergeResult.push({
         type: chatType.USER,
-        id: f.sender.id,
-        name: f.sender.name,
-        avatar: `data:image/${f.sender.avatar?.fileType.toLowerCase()};base64,${f.sender.avatar?.image.toString(
+        id: f.receiver.id,
+        name: f.receiver.name,
+        avatar: `data:image/${f.receiver.avatar?.fileType.toLowerCase()};base64,${f.receiver.avatar?.image.toString(
           "base64"
         )}`,
         hasUnreadMessages: !lastMessage
@@ -478,7 +481,7 @@ export class UserService {
           : true,
         lastMessageContent: lastMessage?.content,
         lastMessageDate: lastMessage?.sentAt,
-        status: this.socketService.isUserConnected(f.sender.id)
+        status: this.socketService.isUserConnected(f.receiver.id)
           ? userStatus.ONLINE
           : userStatus.OFFLINE,
       });

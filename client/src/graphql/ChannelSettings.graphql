@@ -16,13 +16,17 @@ query ChannelSettings($channelId: Int!) {
       avatar
     }
     banned {
-      id
-      name
-      avatar
+      user {
+        id
+        name
+        avatar
+      }
       endAt
     }
     muted {
-      id
+      user {
+        id
+      }
       endAt
     }
     passwordProtected

@@ -1,4 +1,4 @@
-query SearchUsers($name: String) {
+query SearchUsers($name: String!) {
   users(name: $name) {
     id
     name

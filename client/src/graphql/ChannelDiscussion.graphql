@@ -1,15 +1,20 @@
 query ChannelDiscussion($channelId: Int!) {
   channel(id: $channelId) {
     banned {
-      id
+      user {
+        id
+      }
+      endAt
     }
     muted {
-      id
+      endAt
+      user {
+        id
+      }
     }
     private
     passwordProtected
     name
-    id
     owner {
       id
       name

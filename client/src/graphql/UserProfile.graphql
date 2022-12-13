@@ -36,7 +36,6 @@ query UserProfile($userId: Int) {
     }
     achievements {
       name
-      icon
     }
     friendStatus
     status

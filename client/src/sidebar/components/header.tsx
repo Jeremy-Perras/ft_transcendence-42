@@ -21,7 +21,7 @@ const CurrentUserProfile = () => {
         {isFetched ? (
           <Avatar.Image
             className="h-9 w-10 border-l-2 transition-all hover:brightness-90"
-            src={`/uploads/avatars/${data?.user.avatar}`}
+            src={`${data?.user.avatar}`}
           />
         ) : null}
         <Avatar.Fallback delayMs={0}>

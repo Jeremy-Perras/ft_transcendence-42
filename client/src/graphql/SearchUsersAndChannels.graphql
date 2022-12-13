@@ -1,4 +1,4 @@
-query SearchUsersAndChannels($name: String) {
+query SearchUsersAndChannels($name: String!) {
   users(name: $name) {
     __typename
     avatar
