@@ -1,12 +1,9 @@
-import { forwardRef, Inject, Injectable } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { SocketGateway } from "./socket.gateway";
 
 @Injectable()
 export class SocketService {
-  constructor(
-    @Inject(forwardRef(() => SocketGateway))
-    private socketGateway: SocketGateway
-  ) {}
+  constructor(private socketGateway: SocketGateway) {}
 
   invalidateDirectMessagesCache(currentUserId: number, userId: number) {
     this.socketGateway.server

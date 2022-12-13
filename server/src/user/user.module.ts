@@ -3,9 +3,11 @@ import { AuthModule } from "../auth/auth.module";
 import { PrismaModule } from "../prisma/prisma.module";
 import { SocketModule } from "../socket/socket.module";
 import { DirectMessageResolver, UserResolver } from "./user.resolver";
+import { UserService } from "./user.service";
 
 @Module({
   imports: [PrismaModule, AuthModule, SocketModule],
-  providers: [UserResolver, DirectMessageResolver],
+  providers: [UserResolver, DirectMessageResolver, UserService],
+  exports: [UserService],
 })
 export class UserModule {}

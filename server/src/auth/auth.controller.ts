@@ -9,13 +9,11 @@ import {
   Request,
 } from "@nestjs/common";
 import { Request as RequestExpress } from "express";
-import { AuthService, LogOutService } from "./auth.service";
 import { AuthenticatedGuard } from "./authenticated.guard";
 import { LoginGuard } from "./login.guard";
 
 @Controller("/auth")
 export class AuthController {
-  constructor(private readonly logOutService: LogOutService) {}
   @Get("/login") // TODO: 42 oauth
   loginRedirect(): string {
     return `
@@ -35,7 +33,7 @@ export class AuthController {
 
   @UseGuards(LoginGuard)
   @Post("/callback")
-  @Redirect("http://localhost:5173", 301)
+  @Redirect("http://localhost:5173", 301) // TODO: use env
   callback(@Body("id") userId: number): void {
     if (!userId) {
       throw new UnauthorizedException();
@@ -50,15 +48,13 @@ export class AuthController {
 
   @UseGuards(AuthenticatedGuard)
   @Get("/logout")
-  async logout(@Request() req: RequestExpress): Promise<string> {
-    const userId = req.user;
+  async logout(@Request() req: RequestExpress) {
+    const userId = req.user as string;
     if (!userId) {
       throw new UnauthorizedException();
     }
-    await this.logOutService.getUserById(+userId);
     req.session.destroy(() => {
-      return;
+      return "ok";
     });
-    return "ok";
   }
 }

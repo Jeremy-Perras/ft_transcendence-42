@@ -8,7 +8,11 @@ import { useAuthStore } from "./stores";
 import "./index.css";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { io } from "socket.io-client";
-
+import {
+  useDirectMessagesQuery,
+  useDiscussionsAndInvitationsQuery,
+  useChannelDiscussionQuery,
+} from "./graphql/generated";
 let init = false;
 const App = () => {
   const isLoggedIn = !!useAuthStore((state) => state.userId);
@@ -41,6 +45,28 @@ const App = () => {
       });
 
       // TODO: invalidate cache events
+      socket.on("invalidateDirectMessageCache", (targetId: number) => {
+        queryClient.invalidateQueries(
+          useDirectMessagesQuery.getKey({ userId: targetId })
+        );
+        queryClient.invalidateQueries(
+          useDiscussionsAndInvitationsQuery.getKey({})
+        );
+        queryClient.invalidateQueries(
+          useDiscussionsAndInvitationsQuery.getKey({
+            userId: targetId,
+          })
+        );
+      });
+
+      socket.on("invalidateChannelMessageCache", (targetId: number) => {
+        queryClient.invalidateQueries(
+          useChannelDiscussionQuery.getKey({ channelId: targetId })
+        );
+        queryClient.invalidateQueries(
+          useDiscussionsAndInvitationsQuery.getKey({})
+        );
+      });
 
       return () => {
         socket.close();

@@ -2,7 +2,7 @@ import { Module } from "@nestjs/common";
 import { PassportModule } from "@nestjs/passport";
 import { PrismaModule } from "../prisma/prisma.module";
 import { CookieSerializer } from "./auth.serializer";
-import { AuthService, LogOutService } from "./auth.service";
+import { AuthService } from "./auth.service";
 import { AuthStrategy } from "./auth.strategy";
 import { AuthController } from "./auth.controller";
 import { SocketModule } from "../socket/socket.module";
@@ -13,7 +13,7 @@ import { SocketModule } from "../socket/socket.module";
     PrismaModule,
     SocketModule,
   ],
-  providers: [AuthService, AuthStrategy, CookieSerializer, LogOutService],
+  providers: [AuthService, AuthStrategy, CookieSerializer],
   exports: [AuthService],
   controllers: [AuthController],
 })

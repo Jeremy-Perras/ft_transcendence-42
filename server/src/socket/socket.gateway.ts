@@ -1,22 +1,19 @@
-import { forwardRef, Inject } from "@nestjs/common";
-import {
-  WebSocketGateway,
-  WebSocketServer,
-} from "@nestjs/websockets";
+import { WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
-import { SocketService } from "./socket.service";
 
 @WebSocketGateway({ cors: "*" })
 export class SocketGateway {
-  constructor(
-    @Inject(forwardRef(() => SocketService))
-    private socketService: SocketService
-  ) {}
-
   @WebSocketServer()
   server: Server;
 
   handleConnection(client: Socket, ...args: any[]) {
     client.join(client.request.session.passport.user.toString());
+  }
+
+  afterInit(server: Server, ...args: any[]) {
+    server.of("/").adapter.on("delete-room", (room) => {
+      console.log("room destroyed", room);
+      server.emit("offline", room);
+    });
   }
 }
