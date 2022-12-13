@@ -35,6 +35,7 @@
     "bradlc.vscode-tailwindcss",
     "Gruntfuggly.todo-tree",
     "pascalsenn.keyboard-quickfix",
-    "GitHub.copilot"
+    "GitHub.copilot",
+    "capaj.graphql-codegen-vscode"
   ]
 }
