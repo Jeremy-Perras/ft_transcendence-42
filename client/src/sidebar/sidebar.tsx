@@ -19,6 +19,7 @@ import ChannelSettings, {
   channelSettingsLoader,
 } from "./pages/channelSettings";
 import { useDiscussionsAndInvitationsQuery } from "../graphql/generated";
+import { ErrorMessages } from "./components/error";
 
 const loaderFn = (
   fn: (queryClient: QueryClient, args: LoaderFunctionArgs) => unknown
@@ -151,7 +152,7 @@ export default function SideBar() {
           }`}
         >
           <motion.div animate={controls}>
-            <ErrorMessages />
+            {/* <ErrorMessages /> */}
             <RouterProvider router={router} />
           </motion.div>
         </Dialog.Content>
