@@ -33,7 +33,10 @@ export class AuthController {
 
   @UseGuards(LoginGuard)
   @Post("/callback")
-  @Redirect("http://localhost:5173", 301) // TODO: use env
+  @Redirect(
+    process.env.NODE_ENV === "production" ? "/" : "http://localhost:5173",
+    301
+  )
   callback(@Body("id") userId: number): void {
     if (!userId) {
       throw new UnauthorizedException();

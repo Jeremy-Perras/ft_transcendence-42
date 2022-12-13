@@ -15,6 +15,7 @@ services:
   app:
     environment:
       POSTGRES_URL: "postgresql://postgres:test@postgres:5432/app?schema=public" #TODO: use env
+      SESSION_SECRET: "secret" #TODO: use env
     networks:
       - postgres
       - app

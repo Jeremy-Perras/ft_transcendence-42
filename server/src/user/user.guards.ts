@@ -4,9 +4,9 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from "@nestjs/common";
 import { GqlExecutionContext } from "@nestjs/graphql";
-import { UserInputError } from "apollo-server-express";
 import { PrismaService } from "../prisma/prisma.service";
 
 @Injectable()
@@ -16,7 +16,7 @@ export class SelfGuard implements CanActivate {
     const userId = +ctx.getContext().req.user;
     const targetUserId = ctx.getArgs<{ userId: number }>().userId;
     if (userId === targetUserId) {
-      throw new UserInputError("You cannot do this action to yourself");
+      throw new UnauthorizedException("You cannot do this action to yourself");
     }
     return true;
   }

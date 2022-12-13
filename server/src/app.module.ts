@@ -1,9 +1,8 @@
-import { join } from "path";
-import { Module } from "@nestjs/common";
+import { join, resolve } from "path";
+import { DynamicModule, Module } from "@nestjs/common";
 import { ServeStaticModule } from "@nestjs/serve-static";
 import { GraphQLModule } from "@nestjs/graphql";
 import { ApolloDriver, ApolloDriverConfig } from "@nestjs/apollo";
-import { ApolloServerPluginLandingPageLocalDefault } from "apollo-server-core";
 import { UserModule } from "./user/user.module";
 import { ChannelModule } from "./channel/channel.module";
 import { GameModule } from "./game/game.module";
@@ -12,6 +11,18 @@ import { UploadModule } from "./upload/upload.module";
 import { SocketModule } from "./socket/socket.module";
 import { DataLoaderInterceptor } from "./dataloader";
 import { APP_INTERCEPTOR } from "@nestjs/core";
+import { ApolloServerPluginLandingPageLocalDefault } from "apollo-server-core";
+
+const serveStaticModule: DynamicModule[] = [];
+if (process.env.NODE_ENV === "production") {
+  serveStaticModule.push(
+    ServeStaticModule.forRoot({
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      rootPath: resolve(process.env.npm_config_local_prefix!, "client/dist"),
+      serveRoot: "/",
+    })
+  );
+}
 
 @Module({
   providers: [
@@ -21,10 +32,7 @@ import { APP_INTERCEPTOR } from "@nestjs/core";
     },
   ],
   imports: [
-    ServeStaticModule.forRoot({
-      rootPath: join(__dirname, "../../", "client/dist"), // TODO: use env var
-      serveRoot: "/",
-    }),
+    ...serveStaticModule,
     SocketModule,
     AuthModule,
     UserModule,

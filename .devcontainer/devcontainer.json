@@ -13,6 +13,10 @@
 
   "remoteUser": "node",
 
+  "containerEnv": {
+    "VISUAL": "code -w"
+  },
+
   "postCreateCommand": "npm i && npm run generate:prisma && npm run dev:seed",
 
   "extensions": [

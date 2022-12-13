@@ -17,9 +17,7 @@ import { UserService } from "../user/user.service";
 @UseGuards(AuthenticatedGuard)
 @Controller("/upload")
 export class UploadController {
-  constructor(
-    private readonly userService: UserService,
-  ) {}
+  constructor(private readonly userService: UserService) {}
 
   @Post("/avatar")
   @UseInterceptors(
