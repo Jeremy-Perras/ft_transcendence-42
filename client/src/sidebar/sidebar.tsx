@@ -151,7 +151,7 @@ export default function SideBar() {
           }`}
         >
           <motion.div animate={controls}>
-            <ErrorMessages />
+            {/* <ErrorMessages /> */}
             <RouterProvider router={router} />
           </motion.div>
         </Dialog.Content>
