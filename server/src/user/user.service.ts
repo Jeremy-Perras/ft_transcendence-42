@@ -317,7 +317,7 @@ export class UserService {
       ]);
 
       return [...received, ...sent]
-        .sort((a, b) => b.sentAt.getMilliseconds() - a.sentAt.getMilliseconds())
+        .sort((a, b) => b.sentAt.valueOf() - a.sentAt.valueOf())
         .map((message) => ({
           id: message.id,
           content: message.content,
@@ -445,15 +445,13 @@ export class UserService {
           ? "Unblock this user to see this message"
           : channel.channelMessages[0]?.content,
         lastMessageDate: channel.channelMessages[0]?.sentAt,
-        hasUnreadMessages: !channel.channelMessages[0]
-          ? false
-          : channel.channelMessages[0]?.authorId === currentUserId
-          ? false
-          : channel.channelMessages[0]?.readBy.some(
-              (id) => id.userId === currentUserId
-            )
-          ? false
-          : true,
+        hasUnreadMessages: channel.channelMessages[0]
+          ? channel.channelMessages[0].authorId === currentUserId
+            ? false
+            : channel.channelMessages[0].readBy.some(
+                (id) => id.userId === currentUserId
+              )
+          : false,
         status: undefined,
       });
     };
@@ -480,13 +478,11 @@ export class UserService {
         avatar: `data:image/${f.receiver.avatar?.fileType.toLowerCase()};base64,${f.receiver.avatar?.image.toString(
           "base64"
         )}`,
-        hasUnreadMessages: !lastMessage
-          ? false
-          : lastMessage?.authorId === currentUserId
-          ? false
-          : lastMessage?.readAt
-          ? false
-          : true,
+        hasUnreadMessages: lastMessage
+          ? lastMessage.authorId === currentUserId
+            ? false
+            : !!lastMessage.readAt
+          : false,
         lastMessageContent: lastMessage?.content,
         lastMessageDate: lastMessage?.sentAt,
         status: this.socketService.isUserConnected(f.receiver.id)

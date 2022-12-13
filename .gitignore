@@ -21,6 +21,7 @@ schema.gql
 generated.ts
 uploads/
 gql/
+coverage/
 
 # IDEs and editors
 /.idea

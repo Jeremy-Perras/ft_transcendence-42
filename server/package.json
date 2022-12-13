@@ -10,7 +10,9 @@
     "dev:seed": "prisma db execute --file ./prisma/drop.sql 2>/dev/null; prisma db push --force-reset --accept-data-loss && prisma db seed",
     "dev:studio": "prisma studio",
     "dev:server": "nest start --watch --debug --tsc",
-    "build:server": "rm -rf dist && nest build"
+    "build:server": "rm -rf dist && nest build",
+    "test:e2e": "jest",
+    "test:coverage": "jest --coverage --collectCoverageFrom=\"./src/**\""
   },
   "dependencies": {
     "@nestjs/apollo": "^10.1.7",
@@ -21,22 +23,29 @@
     "@nestjs/platform-express": "^9.2.1",
     "@nestjs/platform-socket.io": "^9.2.1",
     "@nestjs/serve-static": "^3.0.0",
+    "@nestjs/testing": "^9.2.1",
     "@nestjs/websockets": "^9.2.1",
     "@prisma/client": "^4.7.1",
+    "@types/jest": "^29.2.4",
+    "@types/supertest": "^2.0.12",
     "apollo-server-core": "^3.11.1",
     "apollo-server-express": "^3.11.1",
     "bcrypt": "^5.1.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
     "dataloader": "^2.1.0",
+    "eslint-plugin-jest": "^27.1.6",
     "express-session": "^1.17.3",
     "graphql": "^16.6.0",
     "graphql-tools": "^8.3.14",
+    "jest": "^29.3.1",
     "memorystore": "^1.6.7",
     "passport": "^0.6.0",
     "passport-custom": "^1.1.1",
     "reflect-metadata": "0.1.13",
-    "rxjs": "^7.6.0"
+    "rxjs": "^7.6.0",
+    "supertest": "^6.3.3",
+    "ts-jest": "^29.0.3"
   },
   "devDependencies": {
     "@faker-js/faker": "^7.6.0",
@@ -54,5 +63,30 @@
     "ts-loader": "^9.2.3",
     "ts-node": "^10.0.0",
     "tsconfig-paths": "^4.1.1"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": ".",
+    "testEnvironment": "node",
+    "testRegex": ".e2e-spec.ts$",
+    "transform": {
+      "^.+\\.(t|j)s$": [
+        "ts-jest",
+        {
+          "astTransformers": {
+            "before": [
+              "./test/astTransformers.js"
+            ]
+          }
+        }
+      ]
+    },
+    "moduleNameMapper": {
+      "~(.*)$": "<rootDir>/../src/$1"
+    }
   }
 }

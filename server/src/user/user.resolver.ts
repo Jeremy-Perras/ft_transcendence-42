@@ -1,4 +1,4 @@
-import { UseGuards } from "@nestjs/common";
+import { NotFoundException, UseGuards } from "@nestjs/common";
 import {
   Resolver,
   Query,
@@ -122,9 +122,9 @@ export class UserResolver {
   async chats(
     @CurrentUser() currentUserId: number,
     @Root() user: User
-  ): Promise<Chat[] | undefined> {
+  ): Promise<Chat[]> {
     if (currentUserId !== user.id) {
-      return undefined;
+      return [];
     }
     return await this.userService.getChats(user.id);
   }
@@ -157,7 +157,7 @@ export class UserResolver {
     }
 
     if (isFriendedBy) {
-      return FriendStatus.INVITATION_SEND;
+      return FriendStatus.INVITATION_SENT;
     }
 
     if (isFriends) {
@@ -209,6 +209,7 @@ export class UserResolver {
       this.userService.getFriends(userLoader, friendIdsLoader, user.id),
       this.userService.getFriendedBy(userLoader, friendedByIdsLoader, user.id),
     ]);
+
     return friends.filter((f) => friendedBy.some((fb) => fb.id === f.id));
   }
 
@@ -292,9 +293,11 @@ export class UserResolver {
     userChannelIdsLoader: DataLoader<PrismaUser["id"], number[]>,
     @Loader(ChannelLoader)
     channelLoader: DataLoader<PrismaChannel["id"], PrismaChannel>,
-    @Root() user: User
+    @Root() user: User,
+    @CurrentUser() currentUserId: number
   ): Promise<GraphqlChannel[]> {
-    return await this.userService.getChannels(
+    if (currentUserId !== user.id) return [];
+    return this.userService.getChannels(
       userChannelIdsLoader,
       channelLoader,
       user.id
@@ -309,7 +312,8 @@ export class UserResolver {
     blockingIdsLoader: DataLoader<PrismaUser["id"], number[]>,
     @Root() user: User,
     @CurrentUser() currentUserId: number
-  ): Promise<boolean> {
+  ): Promise<boolean | undefined> {
+    if (currentUserId === user.id) return undefined;
     const blockedBy = await this.userService.getBlockedBy(
       userLoader,
       blockingIdsLoader,
@@ -326,7 +330,8 @@ export class UserResolver {
     blockedByIdsLoader: DataLoader<PrismaUser["id"], number[]>,
     @Root() user: User,
     @CurrentUser() currentUserId: number
-  ): Promise<boolean> {
+  ): Promise<boolean | undefined> {
+    if (currentUserId === user.id) return undefined;
     const blocking = await this.userService.getBlocking(
       userLoader,
       blockedByIdsLoader,

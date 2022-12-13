@@ -6,7 +6,7 @@ import { Game } from "../game/game.model";
 export enum FriendStatus {
   NOT_FRIEND,
   INVITATION_RECEIVED,
-  INVITATION_SEND,
+  INVITATION_SENT,
   FRIEND,
 }
 registerEnumType(FriendStatus, {
@@ -56,11 +56,11 @@ export class User {
   @Field((type) => [Achievement])
   achievements: [Achievement | undefined];
 
-  @Field((type) => Boolean)
-  blocked: boolean;
+  @Field((type) => Boolean, { nullable: true })
+  blocked?: boolean;
 
-  @Field((type) => Boolean)
-  blocking: boolean;
+  @Field((type) => Boolean, { nullable: true })
+  blocking?: boolean;
 
   @Field((type) => [Channel])
   channels: [Channel | undefined];

@@ -11,7 +11,8 @@
     "dev:codegen": "npm run dev:codegen -w client",
     "dev:client": "npm run dev:client -w client",
     "build:server": "npm run build:server -w server",
-    "build:client": "npm run build:client -w client"
+    "build:client": "npm run build:client -w client",
+    "test:server": "npm run test:e2e -w server"
   },
   "workspaces": [
     "./client",

@@ -1,5 +1,6 @@
 import { Module } from "@nestjs/common";
 import { AuthModule } from "../auth/auth.module";
+import { ChannelModule } from "../channel/channel.module";
 import { PrismaModule } from "../prisma/prisma.module";
 import { SocketModule } from "../socket/socket.module";
 import {
@@ -34,6 +35,18 @@ import { UserService } from "./user.service";
     DirectMessagesSentLoader,
     DirectMessagesReceivedLoader,
   ],
-  exports: [UserService],
+  exports: [
+    UserService,
+    UserLoader,
+    FriendedByIdsLoader,
+    FriendIdsLoader,
+    BlockedByIdsLoader,
+    BlockingIdsLoader,
+    AchivementsLoader,
+    AvatarLoader,
+    UserChannelIdsLoader,
+    DirectMessagesSentLoader,
+    DirectMessagesReceivedLoader,
+  ],
 })
 export class UserModule {}

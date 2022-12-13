@@ -7,4 +7,15 @@ module.exports = {
     "@typescript-eslint/no-unused-vars": "off",
     "no-inner-declarations": "off",
   },
+  overrides: [
+    {
+      files: ["test/**"],
+      plugins: ["jest"],
+      extends: ["plugin:jest/recommended"],
+      rules: { "jest/prefer-expect-assertions": "off" },
+      env: {
+        "jest/globals": true,
+      },
+    },
+  ],
 };

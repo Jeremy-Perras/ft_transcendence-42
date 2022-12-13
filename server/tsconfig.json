@@ -10,5 +10,5 @@
     "module": "CommonJS",
     "strictPropertyInitialization": false
   },
-  "exclude": ["./dist", "./prisma"]
+  "exclude": ["./dist", "./prisma", "./test"]
 }
