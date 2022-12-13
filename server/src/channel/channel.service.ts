@@ -17,8 +17,8 @@ import DataLoader from "dataloader";
 import { PrismaService } from "../prisma/prisma.service";
 import { UserService } from "../user/user.service";
 import bcrypt from "bcrypt";
-import { userType as GraphQLUser } from "../user/user.model";
-import { ChannelRestrictedUser as GraphQLChannelRestrictedUser } from "./channel.model";
+import { GraphqlUser } from "../user/user.resolver";
+import { GraphqlChannelRestrictedUser } from "./channel.resolver";
 
 @Injectable()
 export class ChannelService {
@@ -71,7 +71,9 @@ export class ChannelService {
   ) {
     try {
       const channel = await channelLoader.load(channelId);
-      return UserService.formatUser(await userLoader.load(channel.ownerId));
+      return UserService.formatGraphqlUser(
+        await userLoader.load(channel.ownerId)
+      );
     } catch {
       throw new NotFoundException("Channel not found");
     }
@@ -91,10 +93,10 @@ export class ChannelService {
       const admins = await userLoader.loadMany(adminIds);
       return admins.reduce((acc, curr) => {
         if (curr && "id" in curr) {
-          acc.push(UserService.formatUser(curr));
+          acc.push(UserService.formatGraphqlUser(curr));
         }
         return acc;
-      }, new Array<GraphQLUser>());
+      }, new Array<GraphqlUser>());
     } catch (error) {
       throw new NotFoundException("Channel not found");
     }
@@ -114,10 +116,10 @@ export class ChannelService {
       const admins = await userLoader.loadMany(adminIds);
       return admins.reduce((acc, curr) => {
         if (curr && "id" in curr) {
-          acc.push(UserService.formatUser(curr));
+          acc.push(UserService.formatGraphqlUser(curr));
         }
         return acc;
-      }, new Array<GraphQLUser>());
+      }, new Array<GraphqlUser>());
     } catch (error) {
       throw new NotFoundException("Channel not found");
     }
@@ -143,8 +145,8 @@ export class ChannelService {
       const users = await userLoader.loadMany(restrictedMembersId);
       return users.reduce((acc, curr) => {
         if (curr && "id" in curr) {
-          const restricted: GraphQLChannelRestrictedUser = {
-            user: UserService.formatUser(curr),
+          const restricted: GraphqlChannelRestrictedUser = {
+            user: UserService.formatGraphqlUser(curr),
           };
           const restrictedUserIndex = restrictedUsers.findIndex(
             (m) => curr.id === m.userId
@@ -159,7 +161,7 @@ export class ChannelService {
           }
         }
         return acc;
-      }, new Array<GraphQLChannelRestrictedUser>());
+      }, new Array<GraphqlChannelRestrictedUser>());
     } catch (error) {
       throw new NotFoundException("Channel not found");
     }

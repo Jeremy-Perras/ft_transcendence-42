@@ -3,7 +3,6 @@ import {
   ExecutionContext,
   ForbiddenException,
   Injectable,
-  NotFoundException,
   UnauthorizedException,
 } from "@nestjs/common";
 import { GqlExecutionContext } from "@nestjs/graphql";
@@ -85,26 +84,6 @@ export class FriendGuard implements CanActivate {
 
     if (friendship.length === 0) {
       throw new ForbiddenException("You are not friends with this user");
-    }
-
-    return true;
-  }
-}
-
-@Injectable()
-export class ExistingUserGuard implements CanActivate {
-  constructor(private prisma: PrismaService) {}
-
-  async canActivate(context: ExecutionContext): Promise<boolean> {
-    const ctx = GqlExecutionContext.create(context);
-    const targetUserId = ctx.getArgs<{ userId: number }>().userId;
-
-    const user = await this.prisma.user.findUnique({
-      where: { id: targetUserId },
-    });
-
-    if (!user) {
-      throw new NotFoundException("User not found");
     }
 
     return true;

@@ -1,4 +1,4 @@
-import { Injectable, Type } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { UserAchievement, DirectMessage, User, Avatar } from "@prisma/client";
 import DataLoader from "dataloader";
 import { NestDataLoader } from "../dataloader";

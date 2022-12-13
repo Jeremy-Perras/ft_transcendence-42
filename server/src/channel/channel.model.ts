@@ -1,14 +1,7 @@
 import "reflect-metadata";
 import { Field, Int, ObjectType, registerEnumType } from "@nestjs/graphql";
-import { IsNotEmpty, Min } from "class-validator";
-import { User, userType } from "../user/user.model";
+import { User } from "../user/user.model";
 import { ChannelRestriction } from "@prisma/client";
-
-export type channelType = Omit<
-  Channel,
-  "owner" | "messages" | "admins" | "members" | "banned" | "muted"
->;
-export type channelMessageType = Omit<ChannelMessage, "author" | "readBy">;
 
 registerEnumType(ChannelRestriction, {
   name: "ChannelRestriction",
@@ -17,7 +10,7 @@ registerEnumType(ChannelRestriction, {
 @ObjectType()
 export class ChannelRestrictedUser {
   @Field((type) => User)
-  user: userType;
+  user: User;
 
   @Field((type) => Date, { nullable: true })
   endAt?: Date;
@@ -26,7 +19,6 @@ export class ChannelRestrictedUser {
 @ObjectType()
 export class Channel {
   @Field((type) => Int)
-  @Min(0)
   id: number;
 
   @Field((type) => Boolean)
@@ -36,7 +28,6 @@ export class Channel {
   passwordProtected: boolean;
 
   @Field()
-  @IsNotEmpty()
   name: string;
 
   @Field((type) => User)
@@ -61,11 +52,9 @@ export class Channel {
 @ObjectType()
 export class ChannelMessage {
   @Field((type) => Int)
-  @Min(0)
   id: number;
 
   @Field((type) => Int)
-  @Min(0)
   authorId: number;
 
   @Field((type) => User)

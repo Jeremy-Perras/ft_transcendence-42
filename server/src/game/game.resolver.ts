@@ -10,7 +10,15 @@ import {
 import { Prisma, GameMode } from "@prisma/client";
 import { GqlAuthenticatedGuard } from "../auth/authenticated.guard";
 import { PrismaService } from "../prisma/prisma.service";
-import { Game, gameType, playersType } from "./game.model";
+import { GraphqlUser } from "../user/user.resolver";
+import { Game } from "./game.model";
+
+export type GraphqlGame = Omit<Game, "players">;
+
+type GraphqlPlayers = {
+  player1: GraphqlUser;
+  player2: GraphqlUser;
+};
 
 @Resolver(Game)
 @UseGuards(GqlAuthenticatedGuard)
@@ -18,7 +26,9 @@ export class GameResolver {
   constructor(private prisma: PrismaService) {}
 
   @Query((returns) => Game)
-  async game(@Args("id", { type: () => Int }) id: number): Promise<gameType> {
+  async game(
+    @Args("id", { type: () => Int }) id: number
+  ): Promise<GraphqlGame> {
     const game = await this.prisma.game.findUnique({
       select: {
         id: true,
@@ -61,7 +71,7 @@ export class GameResolver {
       defaultValue: null,
     })
     finished?: boolean | null
-  ): Promise<gameType[]> {
+  ): Promise<GraphqlGame[]> {
     const conditions: Prisma.Enumerable<Prisma.GameWhereInput> = [];
     if (finished !== null) {
       conditions.push(
@@ -111,7 +121,7 @@ export class GameResolver {
   }
 
   @ResolveField()
-  async players(@Root() game: Game): Promise<playersType> {
+  async players(@Root() game: Game): Promise<GraphqlPlayers> {
     const g = await this.prisma.game.findUnique({
       select: {
         player1: {

@@ -1,75 +1,47 @@
 import "reflect-metadata";
 import { Field, Int, ObjectType, registerEnumType } from "@nestjs/graphql";
-import { IsNotEmpty, Min } from "class-validator";
 import { Channel } from "../channel/channel.model";
 import { Game } from "../game/game.model";
-import "reflect-metadata";
 
-export type directMessageType = Omit<DirectMessage, "author" | "recipient"> & {
-  author: userType;
-  recipient: userType;
-};
-
-export enum friendStatus {
+export enum FriendStatus {
   NOT_FRIEND,
   INVITATION_RECEIVED,
   INVITATION_SEND,
   FRIEND,
 }
-
-export type userType = Omit<
-  User,
-  | "friends"
-  | "blocked"
-  | "blocking"
-  | "messages"
-  | "channels"
-  | "games"
-  | "achievements"
-  | "pendingFriends"
-  | "chats"
-  | "status"
-  | "avatar"
->;
-
-registerEnumType(friendStatus, {
-  name: "friendStatus",
+registerEnumType(FriendStatus, {
+  name: "FriendStatus",
 });
 
-export enum chatType {
+export enum ChatType {
   CHANNEL,
   USER,
 }
-
-registerEnumType(chatType, {
-  name: "chatType",
+registerEnumType(ChatType, {
+  name: "ChatType",
 });
 
-export enum userStatus {
+export enum UserStatus {
   ONLINE,
   OFFLINE,
   PLAYING,
 }
-
-registerEnumType(userStatus, {
-  name: "userStatus",
+registerEnumType(UserStatus, {
+  name: "UserStatus",
 });
 
 @ObjectType()
 export class User {
   @Field((type) => Int)
-  @Min(0)
   id: number;
 
   @Field()
-  @IsNotEmpty()
   name: string;
 
   @Field((type) => String)
   avatar: string;
 
   @Field((type) => Int)
-  @Min(0)
   rank: number;
 
   @Field((type) => [User])
@@ -93,11 +65,11 @@ export class User {
   @Field((type) => [Channel])
   channels: [Channel | undefined];
 
-  @Field((type) => friendStatus, { nullable: true })
-  friendStatus?: friendStatus;
+  @Field((type) => FriendStatus, { nullable: true })
+  friendStatus?: FriendStatus;
 
-  @Field((type) => userStatus)
-  status: userStatus;
+  @Field((type) => UserStatus)
+  status: UserStatus;
 
   @Field((type) => [DirectMessage])
   messages: [DirectMessage | undefined];
@@ -109,14 +81,12 @@ export class User {
 @ObjectType()
 export class Chat {
   @Field((type) => Int)
-  @Min(0)
   id: number;
 
-  @Field((type) => chatType)
-  type: chatType;
+  @Field((type) => ChatType)
+  type: ChatType;
 
   @Field((type) => String)
-  @IsNotEmpty()
   name: string;
 
   @Field((type) => String, { nullable: true })
@@ -131,21 +101,19 @@ export class Chat {
   @Field((type) => Boolean)
   hasUnreadMessages: boolean;
 
-  @Field((type) => userStatus, { nullable: true })
-  status?: userStatus;
+  @Field((type) => UserStatus, { nullable: true })
+  status?: UserStatus;
 }
 
 @ObjectType()
 export class Achievement {
   @Field((type) => String)
-  @IsNotEmpty()
   name: string;
 }
 
 @ObjectType()
 export class DirectMessage {
   @Field((type) => Int)
-  @Min(0)
   id: number;
 
   @Field((type) => User)
@@ -155,7 +123,6 @@ export class DirectMessage {
   recipient: User;
 
   @Field()
-  @IsNotEmpty()
   content: string;
 
   @Field((type) => Date)

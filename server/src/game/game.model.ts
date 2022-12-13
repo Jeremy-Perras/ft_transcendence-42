@@ -1,15 +1,7 @@
 import { Field, Int, ObjectType, registerEnumType } from "@nestjs/graphql";
-import { IsNotEmpty, Min } from "class-validator";
 import "reflect-metadata";
-import { User, userType } from "../user/user.model";
+import { User } from "../user/user.model";
 import { GameMode } from "@prisma/client";
-
-export type gameType = Omit<Game, "players">;
-
-export type playersType = {
-  player1: userType;
-  player2: userType;
-};
 
 registerEnumType(GameMode, {
   name: "GameMode",
@@ -27,18 +19,15 @@ export class Players {
 @ObjectType()
 export class Score {
   @Field((type) => Int)
-  @Min(0)
   player1Score: number;
 
   @Field((type) => Int)
-  @Min(0)
   player2Score: number;
 }
 
 @ObjectType()
 export class Game {
   @Field((type) => Int)
-  @Min(0)
   id: number;
 
   @Field((type) => GameMode)

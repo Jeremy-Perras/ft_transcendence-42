@@ -1,4 +1,4 @@
-import { ForbiddenException, UseGuards } from "@nestjs/common";
+import { UseGuards } from "@nestjs/common";
 import {
   Resolver,
   Query,
@@ -7,6 +7,8 @@ import {
   ResolveField,
   Root,
   Mutation,
+  ArgsType,
+  Field,
 } from "@nestjs/graphql";
 import {
   User as PrismaUser,
@@ -15,20 +17,16 @@ import {
   DirectMessage as PrismaDirectMessage,
   Channel as PrismaChannel,
 } from "@prisma/client";
+import { IsByteLength, Length, Min } from "class-validator";
 import DataLoader from "dataloader";
 import { GqlAuthenticatedGuard } from "../auth/authenticated.guard";
 import { CurrentUser } from "../auth/currentUser.decorator";
 import { ChannelLoader } from "../channel/channel.loaders";
-import { channelType } from "../channel/channel.model";
+import { GraphqlChannel } from "../channel/channel.resolver";
 import { Loader } from "../dataloader";
-import { gameType } from "../game/game.model";
+import { GraphqlGame } from "../game/game.resolver";
 import { SocketService } from "../socket/socket.service";
-import {
-  BlockGuard,
-  ExistingUserGuard,
-  FriendGuard,
-  SelfGuard,
-} from "./user.guards";
+import { BlockGuard, FriendGuard, SelfGuard } from "./user.guards";
 import {
   AchivementsLoader,
   AvatarLoader,
@@ -43,15 +41,54 @@ import {
 } from "./user.loaders";
 import {
   DirectMessage,
-  directMessageType,
   Achievement,
-  friendStatus,
+  FriendStatus,
   User,
-  userType,
   Chat,
-  userStatus,
+  UserStatus,
 } from "./user.model";
 import { UserService } from "./user.service";
+
+type GraphqlDirectMessage = Omit<DirectMessage, "author" | "recipient"> & {
+  author: GraphqlUser;
+  recipient: GraphqlUser;
+};
+
+export type GraphqlUser = Omit<
+  User,
+  | "friends"
+  | "blocked"
+  | "blocking"
+  | "messages"
+  | "channels"
+  | "games"
+  | "achievements"
+  | "pendingFriends"
+  | "chats"
+  | "status"
+  | "avatar"
+>;
+
+@ArgsType()
+class GetUserArgs {
+  @Field((type) => Int)
+  @Min(0)
+  userId: number;
+}
+
+@ArgsType()
+class SetUserName {
+  @Field((type) => String)
+  @Length(1, 255)
+  name: string;
+}
+
+@ArgsType()
+class SendDirectMessage extends GetUserArgs {
+  @Field((type) => String)
+  @IsByteLength(1, 65535)
+  message: string;
+}
 
 @Resolver(User)
 @UseGuards(GqlAuthenticatedGuard)
@@ -68,7 +105,7 @@ export class UserResolver {
     @CurrentUser() currentUserId: number,
     @Args("id", { type: () => Int, nullable: true, defaultValue: null })
     id?: number | null
-  ): Promise<userType> {
+  ): Promise<GraphqlUser> {
     return this.userService.getUserById(userLoader, currentUserId ?? id);
   }
 
@@ -77,7 +114,7 @@ export class UserResolver {
     @Loader(UserLoader)
     userLoader: DataLoader<PrismaUser["id"], PrismaUser>,
     @Args("name", { type: () => String }) name: string
-  ): Promise<userType[]> {
+  ): Promise<GraphqlUser[]> {
     return this.userService.searchUsersByName(userLoader, name);
   }
 
@@ -102,7 +139,7 @@ export class UserResolver {
     friendedByIdsLoader: DataLoader<PrismaUser["id"], number[]>,
     @CurrentUser() currentUserId: number,
     @Root() user: User
-  ): Promise<friendStatus | undefined> {
+  ): Promise<FriendStatus | undefined> {
     if (currentUserId === user.id) {
       return undefined;
     }
@@ -116,18 +153,18 @@ export class UserResolver {
     const isFriends = !!friends.find((u) => u.id === currentUserId);
 
     if (isFriendedBy && isFriends) {
-      return friendStatus.FRIEND;
+      return FriendStatus.FRIEND;
     }
 
     if (isFriendedBy) {
-      return friendStatus.INVITATION_SEND;
+      return FriendStatus.INVITATION_SEND;
     }
 
     if (isFriends) {
-      return friendStatus.INVITATION_RECEIVED;
+      return FriendStatus.INVITATION_RECEIVED;
     }
 
-    return friendStatus.NOT_FRIEND;
+    return FriendStatus.NOT_FRIEND;
   }
 
   @ResolveField()
@@ -149,10 +186,10 @@ export class UserResolver {
   }
 
   @ResolveField()
-  async status(@Root() user: User): Promise<userStatus> {
+  async status(@Root() user: User): Promise<UserStatus> {
     return this.socketService.isUserConnected(user.id)
-      ? userStatus.ONLINE
-      : userStatus.OFFLINE;
+      ? UserStatus.ONLINE
+      : UserStatus.OFFLINE;
   }
 
   @ResolveField()
@@ -165,7 +202,7 @@ export class UserResolver {
     friendedByIdsLoader: DataLoader<PrismaUser["id"], number[]>,
     @CurrentUser() currentUserId: number,
     @Root() user: User
-  ): Promise<userType[]> {
+  ): Promise<GraphqlUser[]> {
     if (currentUserId !== user.id) return [];
 
     const [friendedBy, friends] = await Promise.all([
@@ -186,7 +223,7 @@ export class UserResolver {
     friendedByIdsLoader: DataLoader<PrismaUser["id"], number[]>,
     @CurrentUser() currentUserId: number,
     @Root() user: User
-  ): Promise<userType[]> {
+  ): Promise<GraphqlUser[]> {
     if (currentUserId !== user.id) return [];
 
     const [friendedBy, friends] = await Promise.all([
@@ -206,7 +243,7 @@ export class UserResolver {
       defaultValue: null,
     })
     finished?: boolean | null
-  ): Promise<gameType[]> {
+  ): Promise<GraphqlGame[]> {
     return [];
     // const conditions: Prisma.Enumerable<Prisma.GameWhereInput> = [
     //   {
@@ -259,7 +296,7 @@ export class UserResolver {
     @Loader(ChannelLoader)
     channelLoader: DataLoader<PrismaChannel["id"], PrismaChannel>,
     @Root() user: User
-  ): Promise<channelType[]> {
+  ): Promise<GraphqlChannel[]> {
     return this.userService.getChannels(
       userChannelIdsLoader,
       channelLoader,
@@ -317,7 +354,7 @@ export class UserResolver {
     >,
     @Root() user: User,
     @CurrentUser() currentUserId: number
-  ): Promise<directMessageType[]> {
+  ): Promise<GraphqlDirectMessage[]> {
     const messages = await this.userService.getMessages(
       currentUserId,
       user.id,
@@ -330,76 +367,70 @@ export class UserResolver {
     return messages;
   }
 
-  @UseGuards(ExistingUserGuard)
   @UseGuards(SelfGuard)
   @Mutation((returns) => Boolean)
   async blockUser(
     @CurrentUser() currentUserId: number,
-    @Args("userId", { type: () => Int }) userId: number
+    @Args() args: GetUserArgs
   ) {
-    await this.userService.block(currentUserId, userId);
+    await this.userService.block(currentUserId, args.userId);
 
     return true;
   }
 
-  @UseGuards(ExistingUserGuard)
   @UseGuards(SelfGuard)
   @Mutation((returns) => Boolean)
   async unblockUser(
     @CurrentUser() currentUserId: number,
-    @Args("userId", { type: () => Int }) userId: number
+    @Args() args: GetUserArgs
   ) {
-    await this.userService.unblock(currentUserId, userId);
+    await this.userService.unblock(currentUserId, args.userId);
 
     return true;
   }
 
-  @UseGuards(ExistingUserGuard)
   @UseGuards(SelfGuard)
   @UseGuards(BlockGuard)
   @Mutation((returns) => Boolean)
   async friendUser(
     @CurrentUser() currentUserId: number,
-    @Args("userId", { type: () => Int }) userId: number
+    @Args() args: GetUserArgs
   ) {
-    await this.userService.friend(currentUserId, userId);
+    await this.userService.friend(currentUserId, args.userId);
 
     return true;
   }
 
-  @UseGuards(ExistingUserGuard)
   @UseGuards(SelfGuard)
   @UseGuards(FriendGuard)
   @Mutation((returns) => Boolean)
   async unfriendUser(
     @CurrentUser() currentUserId: number,
-    @Args("userId", { type: () => Int }) userId: number
+    @Args() args: GetUserArgs
   ) {
-    await this.userService.unFriend(currentUserId, userId);
+    await this.userService.unFriend(currentUserId, args.userId);
 
     return true;
   }
 
-  @UseGuards(ExistingUserGuard)
   @UseGuards(SelfGuard)
   @Mutation((returns) => Boolean)
   async cancelInvitation(
     @CurrentUser() currentUserId: number,
-    @Args("userId", { type: () => Int }) userId: number
+    @Args() args: GetUserArgs
   ) {
-    await this.userService.refuseFriendInvite(userId, currentUserId);
+    await this.userService.refuseFriendInvite(args.userId, currentUserId);
 
     return true;
   }
 
-  @UseGuards(ExistingUserGuard)
   @UseGuards(SelfGuard)
   @Mutation((returns) => Boolean)
   async refuseInvitation(
     @CurrentUser() currentUserId: number,
-    @Args("userId", { type: () => Int }) userId: number
+    @Args() args: GetUserArgs
   ) {
-    await this.userService.refuseFriendInvite(currentUserId, userId);
+    await this.userService.refuseFriendInvite(currentUserId, args.userId);
 
     return true;
   }
@@ -407,17 +438,9 @@ export class UserResolver {
   @Mutation((returns) => Boolean)
   async updateUserName(
     @CurrentUser() currentUserId: number,
-    @Args("name", { type: () => String }) name: string
+    @Args() args: SetUserName
   ) {
-    if (!name) {
-      throw new ForbiddenException("Your name can't be empty");
-    }
-
-    if (name.length > 255) {
-      throw new ForbiddenException("Your name can't exceed 255 characters");
-    }
-
-    await this.userService.updateName(currentUserId, name);
+    await this.userService.updateName(currentUserId, args.name);
 
     return true;
   }
@@ -431,19 +454,24 @@ export class DirectMessageResolver {
     private socketService: SocketService
   ) {}
 
-  @UseGuards(ExistingUserGuard)
   @UseGuards(SelfGuard)
   @UseGuards(BlockGuard)
   @UseGuards(FriendGuard)
   @Mutation((returns) => Boolean)
   async sendDirectMessage(
-    @Args("message", { type: () => String }) message: string,
-    @Args("userId", { type: () => Int }) userId: number,
-    @CurrentUser() currentUserId: number
+    @CurrentUser() currentUserId: number,
+    @Args() args: SendDirectMessage
   ) {
-    await this.userService.sendDirectMessage(currentUserId, userId, message);
+    await this.userService.sendDirectMessage(
+      currentUserId,
+      args.userId,
+      args.message
+    );
 
-    this.socketService.invalidateDirectMessagesCache(currentUserId, userId);
+    this.socketService.invalidateDirectMessagesCache(
+      currentUserId,
+      args.userId
+    );
 
     return true;
   }

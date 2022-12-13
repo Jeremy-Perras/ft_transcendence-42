@@ -19,13 +19,10 @@ import {
 } from "@prisma/client";
 import { GqlAuthenticatedGuard } from "../auth/authenticated.guard";
 import { CurrentUser } from "../auth/currentUser.decorator";
-import { userType } from "../user/user.model";
 import {
   Channel,
   ChannelMessage,
-  channelMessageType,
   ChannelRestrictedUser,
-  channelType,
 } from "./channel.model";
 import { Role, RoleGuard, RolesGuard } from "./channel.roles";
 import { ExistingChannelGuard, OwnerGuard } from "./channel.guards";
@@ -47,6 +44,19 @@ import {
 import { UserService } from "../user/user.service";
 import { PrismaService } from "../prisma/prisma.service";
 import { SocketService } from "../socket/socket.service";
+import { GraphqlUser } from "../user/user.resolver";
+
+export type GraphqlChannel = Omit<
+  Channel,
+  "owner" | "messages" | "admins" | "members" | "banned" | "muted"
+>;
+
+type GraphqlChannelMessage = Omit<ChannelMessage, "author" | "readBy">;
+
+export type GraphqlChannelRestrictedUser = Omit<
+  ChannelRestrictedUser,
+  "user"
+> & { user: GraphqlUser };
 
 @Resolver(Channel)
 @UseGuards(RolesGuard)
@@ -62,7 +72,7 @@ export class ChannelResolver {
     @Loader(ChannelLoader)
     channelLoader: DataLoader<PrismaChannel["id"], PrismaChannel>,
     @Args("id", { type: () => Int }) id: number
-  ): Promise<channelType> {
+  ): Promise<GraphqlChannel> {
     return this.channelService.getChannelById(channelLoader, id);
   }
 
@@ -71,7 +81,7 @@ export class ChannelResolver {
     @Loader(ChannelLoader)
     channelLoader: DataLoader<PrismaChannel["id"], PrismaChannel>,
     @Args("name", { type: () => String }) name: string
-  ): Promise<channelType[]> {
+  ): Promise<GraphqlChannel[]> {
     return this.channelService.searchChannelsByName(channelLoader, name);
   }
 
@@ -82,7 +92,7 @@ export class ChannelResolver {
     @Loader(UserLoader)
     userLoader: DataLoader<PrismaUser["id"], PrismaUser>,
     @Root() channel: Channel
-  ): Promise<userType> {
+  ): Promise<GraphqlUser> {
     return this.channelService.getOwner(channelLoader, userLoader, channel.id);
   }
 
@@ -96,7 +106,7 @@ export class ChannelResolver {
     @Loader(UserLoader)
     userLoader: DataLoader<PrismaUser["id"], PrismaUser>,
     @Root() channel: Channel
-  ): Promise<userType[]> {
+  ): Promise<GraphqlUser[]> {
     return this.channelService.getAdmins(
       channelMembersLoader,
       userLoader,
@@ -114,7 +124,7 @@ export class ChannelResolver {
     @Loader(UserLoader)
     userLoader: DataLoader<PrismaUser["id"], PrismaUser>,
     @Root() channel: Channel
-  ): Promise<userType[]> {
+  ): Promise<GraphqlUser[]> {
     return this.channelService.getMembers(
       channelMembersLoader,
       userLoader,
@@ -131,7 +141,7 @@ export class ChannelResolver {
       PrismaChannelRestrictedUser[]
     >,
     @Loader(UserLoader) userLoader: DataLoader<PrismaUser["id"], PrismaUser>
-  ): Promise<ChannelRestrictedUser[]> {
+  ): Promise<GraphqlChannelRestrictedUser[]> {
     return this.channelService.getRestrictedMembers(
       channelMutedMembersLoader,
       userLoader,
@@ -149,7 +159,7 @@ export class ChannelResolver {
       PrismaChannelRestrictedUser[]
     >,
     @Loader(UserLoader) userLoader: DataLoader<PrismaUser["id"], PrismaUser>
-  ): Promise<ChannelRestrictedUser[]> {
+  ): Promise<GraphqlChannelRestrictedUser[]> {
     return this.channelService.getRestrictedMembers(
       channelBannedMembersLoader,
       userLoader,
@@ -175,7 +185,7 @@ export class ChannelResolver {
     channelLoader: DataLoader<Channel["id"], PrismaChannel>,
     @Root() channel: Channel,
     @CurrentUser() currentUserId: number
-  ): Promise<channelMessageType[]> {
+  ): Promise<GraphqlChannelMessage[]> {
     const m = await this.channelService.getMessages(
       userChannelIdsLoader,
       channelMessagesLoader,
@@ -392,7 +402,7 @@ export class ChannelMessageResolver {
   async author(
     @Loader(UserLoader) userLoader: DataLoader<PrismaUser["id"], PrismaUser>,
     @Root() channelMessage: ChannelMessage
-  ): Promise<userType> {
+  ): Promise<GraphqlUser> {
     return await userLoader.load(channelMessage.authorId);
   }
 
@@ -405,15 +415,15 @@ export class ChannelMessageResolver {
       number[]
     >,
     @Root() channelMessage: ChannelMessage
-  ): Promise<userType[]> {
+  ): Promise<GraphqlUser[]> {
     const userIds = await channelMessageReadIdsLoader.load(channelMessage.id);
     const users = await userLoader.loadMany(userIds);
     return users.reduce((acc, curr) => {
       if (curr && "id" in curr) {
-        acc.push(UserService.formatUser(curr));
+        acc.push(UserService.formatGraphqlUser(curr));
       }
       return acc;
-    }, new Array<userType>());
+    }, new Array<GraphqlUser>());
   }
 
   @UseGuards(ExistingChannelGuard)
@@ -421,9 +431,12 @@ export class ChannelMessageResolver {
   @Mutation((returns) => Boolean)
   async sendChannelMessage(
     @Loader(ChannelMembersLoader)
-    channelMembersLoader: DataLoader<Channel["id"], PrismaChannelMember[]>,
+    channelMembersLoader: DataLoader<
+      PrismaChannel["id"],
+      PrismaChannelMember[]
+    >,
     @Loader(ChannelLoader)
-    channelLoader: DataLoader<Channel["id"], PrismaChannel>,
+    channelLoader: DataLoader<PrismaChannel["id"], PrismaChannel>,
     @Args("message", { type: () => String }) message: string,
     @Args("channelId", { type: () => Int }) channelId: number,
     @CurrentUser() currentUserId: number

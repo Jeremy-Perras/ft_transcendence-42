@@ -14,14 +14,10 @@ import {
 import DataLoader from "dataloader";
 import { PrismaService } from "../prisma/prisma.service";
 import { SocketService } from "../socket/socket.service";
-import {
-  Chat,
-  chatType,
-  userStatus,
-  userType as GraphQLUser,
-} from "./user.model";
-import { channelType as GraphQLChannel } from "../channel/channel.model";
+import { Chat, ChatType, UserStatus } from "./user.model";
 import { ChannelService } from "../channel/channel.service";
+import { GraphqlUser } from "./user.resolver";
+import { GraphqlChannel } from "../channel/channel.resolver";
 
 @Injectable()
 export class UserService {
@@ -30,7 +26,7 @@ export class UserService {
     private socketService: SocketService
   ) {}
 
-  static formatUser(user: User): GraphQLUser {
+  static formatGraphqlUser(user: User): GraphqlUser {
     return {
       id: user.id,
       name: user.name,
@@ -40,7 +36,7 @@ export class UserService {
 
   async getUserById(userLoader: DataLoader<User["id"], User>, id: number) {
     try {
-      return UserService.formatUser(await userLoader.load(id));
+      return UserService.formatGraphqlUser(await userLoader.load(id));
     } catch (error) {
       throw new NotFoundException("User not found");
     }
@@ -60,7 +56,7 @@ export class UserService {
     });
     return users.map((user) => {
       userLoader.prime(user.id, user);
-      return UserService.formatUser(user);
+      return UserService.formatGraphqlUser(user);
     });
   }
 
@@ -74,10 +70,10 @@ export class UserService {
       const users = await userloader.loadMany(friendedByIds);
       return users.reduce((acc, curr) => {
         if (curr && "id" in curr) {
-          acc.push(UserService.formatUser(curr));
+          acc.push(UserService.formatGraphqlUser(curr));
         }
         return acc;
-      }, new Array<GraphQLUser>());
+      }, new Array<GraphqlUser>());
     } catch (error) {
       throw new NotFoundException("User not found");
     }
@@ -93,10 +89,10 @@ export class UserService {
       const users = await userloader.loadMany(friendIds);
       return users.reduce((acc, curr) => {
         if (curr && "id" in curr) {
-          acc.push(UserService.formatUser(curr));
+          acc.push(UserService.formatGraphqlUser(curr));
         }
         return acc;
-      }, new Array<GraphQLUser>());
+      }, new Array<GraphqlUser>());
     } catch (error) {
       throw new NotFoundException("User not found");
     }
@@ -112,10 +108,10 @@ export class UserService {
       const users = await userloader.loadMany(blockByIds);
       return users.reduce((acc, curr) => {
         if (curr && "id" in curr) {
-          acc.push(UserService.formatUser(curr));
+          acc.push(UserService.formatGraphqlUser(curr));
         }
         return acc;
-      }, new Array<GraphQLUser>());
+      }, new Array<GraphqlUser>());
     } catch (error) {
       throw new NotFoundException("User not found");
     }
@@ -131,10 +127,10 @@ export class UserService {
       const users = await userloader.loadMany(blockingIds);
       return users.reduce((acc, curr) => {
         if (curr && "id" in curr) {
-          acc.push(UserService.formatUser(curr));
+          acc.push(UserService.formatGraphqlUser(curr));
         }
         return acc;
-      }, new Array<GraphQLUser>());
+      }, new Array<GraphqlUser>());
     } catch (error) {
       throw new NotFoundException("User not found");
     }
@@ -183,7 +179,7 @@ export class UserService {
           acc.push(ChannelService.formatChannel(curr));
         }
         return acc;
-      }, new Array<GraphQLChannel>());
+      }, new Array<GraphqlChannel>());
     } catch (error) {
       throw new NotFoundException("User not found");
     }
@@ -313,8 +309,8 @@ export class UserService {
           content: message.content,
           sentAt: message.sentAt,
           readAt: message.readAt ?? undefined,
-          author: UserService.formatUser(message.author),
-          recipient: UserService.formatUser(message.recipient),
+          author: UserService.formatGraphqlUser(message.author),
+          recipient: UserService.formatGraphqlUser(message.recipient),
         }));
     } catch (error) {
       throw new NotFoundException("User not found");
@@ -425,7 +421,7 @@ export class UserService {
 
     const formatChannel = (channel: typeof res.ownedChannels[number]) => {
       mergeResult.push({
-        type: chatType.CHANNEL,
+        type: ChatType.CHANNEL,
         id: channel.id,
         name: channel.name,
         avatar: undefined,
@@ -463,7 +459,7 @@ export class UserService {
       else lastMessage = undefined;
 
       mergeResult.push({
-        type: chatType.USER,
+        type: ChatType.USER,
         id: f.sender.id,
         name: f.sender.name,
         avatar: `data:image/${f.sender.avatar?.fileType.toLowerCase()};base64,${f.sender.avatar?.image.toString(
@@ -479,8 +475,8 @@ export class UserService {
         lastMessageContent: lastMessage?.content,
         lastMessageDate: lastMessage?.sentAt,
         status: this.socketService.isUserConnected(f.sender.id)
-          ? userStatus.ONLINE
-          : userStatus.OFFLINE,
+          ? UserStatus.ONLINE
+          : UserStatus.OFFLINE,
       });
     });
 

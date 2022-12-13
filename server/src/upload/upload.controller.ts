@@ -42,6 +42,7 @@ export class UploadController {
     if (!userId) {
       throw new UnauthorizedException();
     }
+
     const type = file.mimetype.match(/\/(jpg)$/)
       ? ImageFileType.JPG
       : ImageFileType.PNG;
