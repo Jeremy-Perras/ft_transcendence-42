@@ -1,5 +1,18 @@
 import create from "zustand";
 
+type ErrorStore = {
+  errorList: string[];
+  pushError: (newError: string) => void;
+  // removeError: ()
+};
+
+const useErrorStore = create<ErrorStore>((set) => ({
+  errorList: [""],
+  pushError: (newError: string) => {
+    return set((state) => ({ errorList: [...state.errorList, newError] }));
+  },
+}));
+
 type SidebarStore = {
   isOpen: boolean;
   close: () => void;
@@ -30,4 +43,4 @@ const useAuthStore = create<AuthStore>((set) => ({
   },
 }));
 
-export { useSidebarStore, useAuthStore };
+export { useSidebarStore, useAuthStore, useErrorStore };

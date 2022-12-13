@@ -268,7 +268,7 @@ export class ChannelResolver {
   async muteUser(
     @Args("userId", { type: () => Int }) userId: number,
     @Args("channelId", { type: () => Int }) channelId: number,
-    @Args("muteUntil", { type: () => Date, nullable: true })
+    @Args("restrictUntil", { type: () => Date, nullable: true })
     muteUntil: Date | null
   ) {
     await this.channelService.setUserRestriction(
@@ -288,7 +288,7 @@ export class ChannelResolver {
   async banUser(
     @Args("userId", { type: () => Int }) userId: number,
     @Args("channelId", { type: () => Int }) channelId: number,
-    @Args("banUntil", { type: () => Date, nullable: true })
+    @Args("restrictUntil", { type: () => Date, nullable: true })
     banUntil: Date | null
   ) {
     await this.channelService.setUserRestriction(
