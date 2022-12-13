@@ -114,7 +114,7 @@ const AccessForbidden = ({ owner }: { owner: Channel["owner"] }) => {
       >
         <span>Ask access to </span>
         <img
-          src={`/uploads/avatars/${owner.avatar}`}
+          src={`${owner.avatar}`}
           alt={`${owner.name}'s avatar`}
           className="my-2 h-10 w-10 border border-black"
         />
@@ -261,7 +261,7 @@ const ReadBy = ({ users }: { users: User[] }) => {
             >
               <img
                 className="h-4 w-4 border border-black transition-all hover:h-5 hover:w-5 hover:cursor-pointer"
-                src={`/uploads/avatars/${avatar}`}
+                src={`${avatar}`}
                 alt={`${name}'s avatar`}
                 onMouseEnter={() => setHoverUser(name)}
                 onMouseLeave={() => setHoverUser("")}
@@ -297,7 +297,7 @@ const Message = ({
           <div className="flex self-end">
             <img
               className="h-6 w-6 border border-black transition-all hover:h-7 hover:w-7 hover:cursor-pointer"
-              src={`/uploads/avatars/${author.avatar}`}
+              src={`${author.avatar}`}
               alt="Message author avatar"
               onClick={() => navigate(`/profile/${author.id}`)}
             />

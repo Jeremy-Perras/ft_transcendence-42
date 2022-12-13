@@ -158,7 +158,7 @@ const UserProfileHeader = ({
           {typeof data?.user.avatar !== undefined &&
           data?.user.avatar !== "" ? (
             <img
-              src={`/uploads/avatars/${data?.user.avatar}`}
+              src={`${data?.user.avatar}`}
               alt="Player avatar"
               className="h-28 w-28 border border-black"
             />
@@ -252,7 +252,7 @@ const GameHistory = ({
               <img
                 onClick={() => navigate(`/profile/${game.players.player1.id}`)}
                 className=" h-10 w-10 border border-black object-cover hover:cursor-pointer "
-                src={`/uploads/avatars/${game.players.player1.avatar}`}
+                src={`${game.players.player1.avatar}`}
                 alt="Player 1 avatar"
               />
               <IsOnline userStatus={game.players.player1.status} />
@@ -271,7 +271,7 @@ const GameHistory = ({
                     navigate(`/profile/${game.players.player2.id}`)
                   }
                   className="h-10 w-10 justify-end border border-black object-cover hover:cursor-pointer"
-                  src={`/uploads/avatars/${game.players.player2.avatar}`}
+                  src={`${game.players.player2.avatar}`}
                   alt="Player 2 avatar"
                 />
                 <IsOnline userStatus={game.players.player2.status} />
@@ -572,7 +572,7 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
                   <div className="relative mr-4 h-8 w-8 shrink-0 ">
                     <img
                       className="h-8 w-8 border border-black"
-                      src={`/uploads/avatars/${data?.user.avatar}`}
+                      src={`${data?.user.avatar}`}
                     />
                     <IsOnline userStatus={data?.user.status} />
                     <img

@@ -106,7 +106,7 @@ export class UserResolver {
     @Args("id", { type: () => Int, nullable: true, defaultValue: null })
     id?: number | null
   ): Promise<GraphqlUser> {
-    return this.userService.getUserById(userLoader, currentUserId ?? id);
+    return this.userService.getUserById(userLoader, id ?? currentUserId);
   }
 
   @Query((returns) => [User], { nullable: "items" })
@@ -209,7 +209,6 @@ export class UserResolver {
       this.userService.getFriends(userLoader, friendIdsLoader, user.id),
       this.userService.getFriendedBy(userLoader, friendedByIdsLoader, user.id),
     ]);
-
     return friends.filter((f) => friendedBy.some((fb) => fb.id === f.id));
   }
 
@@ -225,12 +224,10 @@ export class UserResolver {
     @Root() user: User
   ): Promise<GraphqlUser[]> {
     if (currentUserId !== user.id) return [];
-
     const [friendedBy, friends] = await Promise.all([
       this.userService.getFriends(userLoader, friendIdsLoader, user.id),
       this.userService.getFriendedBy(userLoader, friendedByIdsLoader, user.id),
     ]);
-
     return friendedBy.filter((f) => !friends.some((fb) => fb.id === f.id));
   }
 
@@ -316,9 +313,8 @@ export class UserResolver {
     const blockedBy = await this.userService.getBlockedBy(
       userLoader,
       blockingIdsLoader,
-      user.id
+      currentUserId
     );
-
     return blockedBy.some((e) => e.id === currentUserId);
   }
 
@@ -334,9 +330,8 @@ export class UserResolver {
     const blocking = await this.userService.getBlocking(
       userLoader,
       blockedByIdsLoader,
-      user.id
+      currentUserId
     );
-
     return blocking.some((e) => e.id === currentUserId);
   }
 
@@ -361,7 +356,6 @@ export class UserResolver {
       directMessagesReceivedLoader,
       directMessagesSentLoader
     );
-
     this.socketService.invalidateDirectMessagesCache(currentUserId, user.id);
 
     return messages;
