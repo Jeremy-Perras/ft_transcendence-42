@@ -95,109 +95,107 @@ export const channelSettingsLoader = async (
   }
 };
 
-// enum restrictionAction {
-//   BAN,
-//   MUTE,
-// }
+enum restrictionAction {
+  BAN,
+  MUTE,
+}
 
-// type RestrictionTime = {
-//   text: string;
-//   date: number | null | undefined;
-// };
+type RestrictionTime = {
+  text: string;
+  endAt: number | null | undefined;
+};
 
-// const restrictionTimeArray: RestrictionTime[] = [
-//   {
-//     text: "1h",
-//     date: Math.floor(new Date() as unknown as number) + 60 * 60 * 2 * 1000,
-//   },
-//   {
-//     text: "8h",
-//     date: Math.floor(new Date() as unknown as number) + 60 * 60 * 9 * 1000,
-//   },
-//   {
-//     text: "24h",
-//     date: Math.floor(new Date() as unknown as number) + 60 * 60 * 25 * 1000,
-//   },
-//   {
-//     text: "Indefinite",
-//     date: null,
-//   },
-// ];
+const restrictionTimeArray: RestrictionTime[] = [
+  {
+    text: "1h",
+    endAt: Math.floor(new Date() as unknown as number) + 60 * 60 * 1000,
+  },
+  {
+    text: "8h",
+    endAt: Math.floor(new Date() as unknown as number) + 60 * 60 * 8 * 1000,
+  },
+  {
+    text: "24h",
+    endAt: Math.floor(new Date() as unknown as number) + 60 * 60 * 24 * 1000,
+  },
+  {
+    text: "Indefinite",
+    endAt: null,
+  },
+];
 
-// const SetRestrictionTimeButton = ({
-//   channelId,
-//   userId,
-//   time,
-//   action,
-//   setShowTime,
-// }: {
-//   channelId: number | undefined;
-//   userId: number | undefined;
-//   time: RestrictionTime;
-//   action: restrictionAction;
-//   setShowTime: React.Dispatch<React.SetStateAction<boolean>>;
-// }) => {
-//   let restriction; //mut
-//   if (action === restrictionAction.BAN) {
-//     restriction  = ; //ban
-//   }
-//   else if (action === restrictionAction.MUTE) {
-//     restriction  = ; //ban
-//   }
-//   return (
-//     <div
-//       className="hover:bg-slate-300"
-//       onClick={() => {
-//         setShowTime(false),
-//           restriction.mutate({
-//             channelId: channelId ? channelId : 0,
-//             createMutedId: id ? id : 0,
-//             date: time.date,
-//           });
-//       }}
-//     >
-//       {time.text}
-//     </div>
-//   );
-// };
+const SetRestrictionTimeButton = ({
+  channelId,
+  userId,
+  time,
+  action,
+  setShowTime,
+}: {
+  channelId: number | undefined;
+  userId: number | undefined;
+  time: RestrictionTime;
+  action: restrictionAction;
+  setShowTime: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
+  const restriction =
+    action === restrictionAction.BAN
+      ? useBanUserMutation({})
+      : useMuteUserMutation({});
 
-// const ChooseTimeButton = ({
-//   userId,
-//   channelId,
-//   action,
-//   showTime,
-//   setShowTime,
-// }: {
-//   userId: number | undefined;
-//   channelId: number | undefined;
-//   action: restrictionAction;
-//   showTime: boolean;
-//   setShowTime: React.Dispatch<React.SetStateAction<boolean>>;
-// }) => {
-//   return (
-//     <div
-//       onMouseLeave={() => setShowTime(false)}
-//       className={`${
-//         showTime
-//           ? "visible h-fit w-10 border-2 opacity-100"
-//           : "hidden h-0 w-0 opacity-0"
-//       } absolute -left-1 -top-5 z-10 flex-col border-slate-300 bg-slate-200 text-center text-xs text-slate-700 transition-all`}
-//     >
-//       {restrictionTimeArray.map((restrictionTime) => {
-//         return (
-//           <SetRestrictionTimeButton
-//             key={restrictionTime.text}
-//             setShowTime={setShowTime}
-//             action={action}
-//             channelId={channelId}
-//             id={id}
-//             {...restrictionTime}
-//           />
-//         );
-//       })}
-//     </div>
-//   );
-// };
+  return (
+    <div
+      className="hover:bg-slate-300"
+      onClick={() => {
+        setShowTime(false),
+          restriction.mutate({
+            channelId: channelId,
+            restrictedId: userId,
+            restrictUntil: time.endAt,
+          });
+      }}
+    >
+      {time.text}
+    </div>
+  );
+};
+
+const ChooseTimeButton = ({
+  userId,
+  channelId,
+  action,
+  showTime,
+  setShowTime,
+}: {
+  userId: number | undefined;
+  channelId: number | undefined;
+  action: restrictionAction;
+  showTime: boolean;
+  setShowTime: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
+  return (
+    <div
+      onMouseLeave={() => setShowTime(false)}
+      className={`${
+        showTime
+          ? "visible h-fit w-10 border-2 opacity-100"
+          : "hidden h-0 w-0 opacity-0"
+      } absolute -left-1 -top-5 z-10 flex-col border-slate-300 bg-slate-200 text-center text-xs text-slate-700 transition-all`}
+    >
+      {restrictionTimeArray.map((restrictionTime) => {
+        return (
+          <SetRestrictionTimeButton
+            key={restrictionTime.text}
+            channelId={channelId}
+            userId={userId}
+            setShowTime={setShowTime}
+            action={action}
+            time={restrictionTime}
+          />
+        );
+      })}
+    </div>
+  );
+};
 
 const ToggleMuteStatus = ({
   id,
@@ -209,8 +207,8 @@ const ToggleMuteStatus = ({
   userStatus: ChannelUserStatus;
 }) => {
   const [showInfoMute, setShowInfoMute] = useState(false);
+  const [showTimeMute, setShowTimeMute] = useState(false);
 
-  const muteUser = useMuteUserMutation({});
   const unmuteUser = useUnmuteUserMutation({});
 
   return (
@@ -233,12 +231,9 @@ const ToggleMuteStatus = ({
             onMouseOver={() => setShowInfoMute(true)}
             onMouseOut={() => setShowInfoMute(false)}
             onClick={() => {
-              muteUser.mutate({
-                channelId: channelId,
-                userId: id,
-              });
+              setShowTimeMute(true);
             }}
-            className="w-6 border-2 border-slate-300  text-neutral-600 hover:cursor-pointer hover:border-slate-700 hover:text-black"
+            className="w-6 border-2 border-slate-300 text-neutral-600 hover:cursor-pointer hover:border-slate-700 hover:text-black"
           />
         )}
         <span
@@ -263,8 +258,8 @@ const ToggleBanStatus = ({
   userStatus: ChannelUserStatus;
 }) => {
   const [showInfoBan, setShowInfoBan] = useState(false);
+  const [showTimeBan, setShowTimeBan] = useState(false);
 
-  const banUser = useBanUserMutation({});
   const unbanUser = useUnbanUserMutation({});
 
   return (
@@ -274,7 +269,7 @@ const ToggleBanStatus = ({
           <UnbanIcon
             onMouseOver={() => setShowInfoBan(true)}
             onMouseOut={() => setShowInfoBan(false)}
-            className="w-6 border-2 border-red-500  text-red-600 hover:cursor-pointer hover:border-red-700 hover:text-red-800"
+            className="w-6 border-2 border-red-500 text-red-600 hover:cursor-pointer hover:border-red-700 hover:text-red-800"
             onClick={() => {
               unbanUser.mutate({
                 channelId: channelId,
@@ -287,10 +282,7 @@ const ToggleBanStatus = ({
             onMouseOver={() => setShowInfoBan(true)}
             onMouseOut={() => setShowInfoBan(false)}
             onClick={() => {
-              banUser.mutate({
-                channelId: channelId,
-                userId: id,
-              });
+              setShowTimeBan(true);
             }}
             className="w-6 border-2 border-slate-300  text-neutral-600 hover:cursor-pointer hover:border-slate-700 hover:text-black"
           />
