@@ -1,4 +1,8 @@
-import { QueryClient, UseQueryOptions } from "@tanstack/react-query";
+import {
+  QueryClient,
+  useMutation,
+  UseQueryOptions,
+} from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import {
   LoaderFunctionArgs,
@@ -82,7 +86,16 @@ const query = (
       request("/graphql", DirectMessagesQueryDocument, {
         userId: userId,
       }),
-    select: (data) => data.user,
+    select: (data) => ({
+      avatar: data.user.avatar,
+      blocked: data.user.blocked,
+      blocking: data.user.blocking,
+      name: data.user.name,
+      rank: data.user.rank,
+      status: data.user.status,
+      friendStatus: data.user.friendStatus,
+      messages: data.user.messages.sort((a, b) => a.sentAt - b.sentAt),
+    }),
   };
 };
 
@@ -95,6 +108,12 @@ export const chatLoader = async (
     return queryClient.fetchQuery(query(userId));
   }
 };
+
+const SendDirectMessageMutationDocument = graphql(`
+  mutation SendDirectMessage($userId: Int!, $message: String!) {
+    sendDirectMessage(userId: $userId, message: $message)
+  }
+`);
 
 const DirectMessage = ({
   userId,
@@ -153,7 +172,6 @@ export default function Chat() {
   const navigate = useNavigate();
   const sidebarIsOpen = useSidebarStore((state) => state.isOpen);
   const [content, setContent] = useState("");
-  // const sendMessageMutation = useSendDirectMessageMutation({});
 
   if (typeof params.userId === "undefined")
     return <Navigate to={"/"} replace={true} />;
@@ -162,6 +180,15 @@ export default function Chat() {
   const initialData = useLoaderData() as Awaited<ReturnType<typeof chatLoader>>;
   const { data } = useQuery({ ...query(userId), initialData });
   if (typeof data === "undefined") return <Navigate to={"/"} replace={true} />;
+
+  const sendChannelMessage = useMutation(
+    async ({ message, userId }: { message: string; userId: number }) =>
+      request("/graphql", SendDirectMessageMutationDocument, {
+        message: message,
+        userId: userId,
+      }),
+    { onError: () => alert("Error") } //TODO :replace with error store
+  );
 
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
   useEffect(() => {
@@ -232,7 +259,9 @@ export default function Chat() {
               ? "hover:cursor-not-allowed"
               : ""
           }  w-full resize-none border-x-2 border-b-8 border-white px-2 pt-4 pb-2 `}
-          onChange={(e) => setContent(e.target.value)}
+          onChange={(e) => {
+            setContent(e.target.value);
+          }}
           placeholder={`${
             data.blocked === true
               ? "This user is blocked"
@@ -245,10 +274,10 @@ export default function Chat() {
           onKeyDown={(e) => {
             if (data.blocking === false && data.blocked === false) {
               if (e.code == "Enter" && !e.getModifierState("Shift")) {
-                // sendMessageMutation.mutate({
-                //   message: content,
-                //   userId: userId,
-                // });
+                sendChannelMessage.mutate({
+                  message: content,
+                  userId: userId,
+                });
                 e.currentTarget.value = "";
                 e.preventDefault();
                 setContent("");

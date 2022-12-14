@@ -6,6 +6,9 @@ import { ReactComponent as PublicIcon } from "pixelarticons/svg/lock-open.svg";
 import { ReactComponent as MessagePlusIcon } from "pixelarticons/svg/message-plus.svg";
 import * as Dialog from "@radix-ui/react-dialog";
 import { AnimatePresence, motion } from "framer-motion";
+import { useMutation } from "@tanstack/react-query";
+import request from "graphql-request";
+import { graphql } from "../../gql/gql";
 
 type formData = {
   name: string;
@@ -27,6 +30,16 @@ export const CreateChannelBtn = ({
     />
   );
 };
+
+const CreateChannelMutationDocument = graphql(`
+  mutation CreateChannel(
+    $inviteOnly: Boolean!
+    $password: String
+    $name: String!
+  ) {
+    createChannel(inviteOnly: $inviteOnly, password: $password, name: $name)
+  }
+`);
 
 const ChannelModeButton = ({
   text,
@@ -81,7 +94,22 @@ export default function CreateChannel({
     formState: { errors },
   } = useForm<formData>();
 
-  // const createChannelMutation = useCreateChannelMutation();
+  const createChannelMutation = useMutation(
+    async ({
+      inviteOnly,
+      name,
+      password,
+    }: {
+      inviteOnly: boolean;
+      name: string;
+      password: string | undefined | null;
+    }) =>
+      await request("/graphql", CreateChannelMutationDocument, {
+        inviteOnly: inviteOnly,
+        name: name,
+        password: password,
+      })
+  );
 
   return (
     <Dialog.Root open={showChannelCreation} modal={false}>
@@ -102,7 +130,7 @@ export default function CreateChannel({
               <div
                 key="modal"
                 onClick={() => setShowChannelCreation(false)}
-                className="absolute h-screen w-screen backdrop-blur"
+                className="absolute h-screen w-screen backdrop-blur" //TODO: check why avatars stay in front
               ></div>
               <motion.div
                 key="content"
@@ -120,11 +148,11 @@ export default function CreateChannel({
                   <form
                     className="flex h-full flex-col bg-slate-100"
                     onSubmit={handleSubmit((data) => {
-                      // createChannelMutation.mutate({
-                      //   inviteOnly: data.type === "Private",
-                      //   name: data.name,
-                      //   password: data.password,
-                      // });
+                      createChannelMutation.mutate({
+                        inviteOnly: data.type === "Private",
+                        name: data.name,
+                        password: data.password,
+                      });
                       setShowChannelCreation(false);
                     })}
                   >

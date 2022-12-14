@@ -1,4 +1,9 @@
-import { QueryClient, useQuery, UseQueryOptions } from "@tanstack/react-query";
+import {
+  QueryClient,
+  useMutation,
+  useQuery,
+  UseQueryOptions,
+} from "@tanstack/react-query";
 import {
   LoaderFunctionArgs,
   Navigate,
@@ -108,6 +113,80 @@ export const profileLoader = async (
     return queryClient.fetchQuery(query(userId));
   }
 };
+
+const RefuseInvitationMutationDocument = graphql(`
+  mutation RefuseInvitation($userId: Int!) {
+    refuseInvitation(userId: $userId)
+  }
+`);
+const refuseInvitation = useMutation(async ({ userId }: { userId: number }) =>
+  request("/graphql", RefuseInvitationMutationDocument, {
+    userId: userId,
+  })
+);
+
+const FriendUserMutationDocument = graphql(`
+  mutation FriendUser($userId: Int!) {
+    friendUser(userId: $userId)
+  }
+`);
+const friendUser = useMutation(async ({ userId }: { userId: number }) =>
+  request("/graphql", FriendUserMutationDocument, {
+    userId: userId,
+  })
+);
+
+const UnfriendUserMutationDocument = graphql(`
+  mutation UnfriendUser($userId: Int!) {
+    unfriendUser(userId: $userId)
+  }
+`);
+
+const unfriendUser = useMutation(async ({ userId }: { userId: number }) =>
+  request("/graphql", UnfriendUserMutationDocument, {
+    userId: userId,
+  })
+);
+
+const BlockUserMutationDocument = graphql(`
+  mutation BlockUser($userId: Int!) {
+    blockUser(userId: $userId)
+  }
+`);
+const blockUser = useMutation(async ({ userId }: { userId: number }) =>
+  request("/graphql", BlockUserMutationDocument, {
+    userId: userId,
+  })
+);
+
+const UnblockUserMutationDocument = graphql(`
+  mutation UnblockUser($userId: Int!) {
+    unblockUser(userId: $userId)
+  }
+`);
+const unblockUser = useMutation(async ({ userId }: { userId: number }) =>
+  request("/graphql", UnblockUserMutationDocument, {
+    userId: userId,
+  })
+);
+
+const CancelInvitationMutationDocument = graphql(`
+  mutation CancelInvitation($userId: Int!) {
+    cancelInvitation(userId: $userId)
+  }
+`);
+
+const cancelInvitation = useMutation(async ({ userId }: { userId: number }) =>
+  request("/graphql", CancelInvitationMutationDocument, {
+    userId: userId,
+  })
+);
+
+const UpdateUserNameMutationDocument = graphql(`
+  mutation UpdateUserName($name: String!) {
+    updateUserName(name: $name)
+  }
+`);
 
 const Achievement = ({
   icon,
@@ -359,18 +438,13 @@ const AddFriend = ({
   pendingInvitation: boolean | undefined;
   pendingAccept: boolean | undefined;
 }) => {
-  // const addFriend = useAddFriendMutation({});
-  // const block = useBlockUserMutation({});
-  // const cancelInvation = useCancelInvitationMutation({});
-  // const refuseInvation = useRefuseInvitationMutation({});
-
   return (
     <div className="flex w-full select-none">
       <div
         className="flex h-24 basis-1/2 items-center justify-center border-2 bg-slate-100 p-4 text-xl font-bold text-slate-600 transition-all hover:cursor-pointer hover:bg-slate-200"
-        // onClick={() => {
-        //   pendingInvitation ? "" : addFriend.mutate({ userId });
-        // }}
+        onClick={() => {
+          pendingInvitation ? "" : friendUser.mutate({ userId }); //???
+        }}
       >
         {!pendingAccept && !pendingInvitation ? (
           <AddFriendIcon className="mx-4 mb-2 w-16 self-center" />
@@ -381,9 +455,11 @@ const AddFriend = ({
         )}
         <span
           className="flex items-center text-center text-2xl font-bold"
-          // onClick={() => {
-          //   pendingInvitation ? cancelInvation.mutate({ userId: userId }) : "";
-          // }}
+          onClick={() => {
+            pendingInvitation
+              ? cancelInvitation.mutate({ userId: userId })
+              : "";
+          }}
         >
           {pendingInvitation
             ? "Cancel Invitation"
@@ -394,9 +470,9 @@ const AddFriend = ({
       </div>
       {pendingAccept ? (
         <div
-          // onClick={() => {
-          //   refuseInvation.mutate({ userId });
-          // }}
+          onClick={() => {
+            refuseInvitation.mutate({ userId });
+          }}
           className="flex h-24 basis-1/3 items-center justify-center border-y-2 border-r-2 bg-slate-100 p-4 text-center text-2xl font-bold  text-slate-600 transition-all  hover:cursor-pointer hover:bg-slate-200"
         >
           <RefuseIcon className="w-12" />
@@ -406,9 +482,9 @@ const AddFriend = ({
         ""
       )}
       <div
-        // onClick={() => {
-        //   block.mutate({ userId: userId });
-        // }}
+        onClick={() => {
+          blockUser.mutate({ userId: userId });
+        }}
         className="flex h-24 basis-1/2 items-center justify-center border-y-2 border-r-2 bg-slate-100 p-4 text-center text-2xl font-bold  text-slate-600 transition-all  hover:cursor-pointer hover:bg-slate-200"
       >
         <img className="mr-5 w-12" src={BannedDarkIcon} />
@@ -419,13 +495,12 @@ const AddFriend = ({
 };
 
 const Unblock = ({ userId }: { userId: number }) => {
-  // const unblock = useUnblockUserMutation({});
   return (
     <div
       className="flex h-24 w-full select-none flex-col items-center justify-center border-2 border-red-500 bg-red-400 p-4 font-bold text-slate-800 transition-all hover:cursor-pointer hover:bg-red-500 "
-      // onClick={() => {
-      //   userId ? unblock.mutate({ userId: userId }) : null;
-      // }}
+      onClick={() => {
+        unblockUser.mutate({ userId: userId });
+      }}
     >
       <span className="text-2xl">You blocked this user</span>
       <span>Click to unblock</span>
@@ -456,10 +531,6 @@ const Blocked = () => {
 };
 
 const FriendButtons = ({ data }: { data: UserProfileQuery }) => {
-  // const unfriend = useUnfriendUserMutation({});
-
-  // const block = useBlockUserMutation({});
-
   return (
     <div className="flex h-24 select-none bg-slate-100 text-2xl font-bold text-slate-600">
       <div
@@ -472,18 +543,18 @@ const FriendButtons = ({ data }: { data: UserProfileQuery }) => {
         <span>Play !</span>
       </div>
       <div
-        // onClick={() => {
-        //   unfriend.mutate({ userId: data.user.id });
-        // }}
+        onClick={() => {
+          unfriendUser.mutate({ userId: data.user.id });
+        }}
         className="flex h-24 basis-1/3 items-center justify-center border-y-2  bg-slate-100 p-4 text-center text-2xl font-bold  text-slate-600 transition-all  hover:cursor-pointer hover:bg-slate-200"
       >
         <UnfriendIcon className="mr-2 w-10 self-center" />
         <span>Unfriend</span>
       </div>
       <div
-        // onClick={() => {
-        //   block.mutate({ userId: data.user.id });
-        // }}
+        onClick={() => {
+          blockUser.mutate({ userId: data.user.id });
+        }}
         className="flex h-24 basis-1/3 items-center justify-center border-2  bg-slate-100 p-4 text-center text-2xl font-bold  text-slate-600 transition-all  hover:cursor-pointer hover:bg-slate-200"
       >
         <img className="mr-2 w-8" src={BannedDarkIcon} />
@@ -516,9 +587,13 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
     defaultValue: data.user.name,
   });
 
-  // const changeName = useUpdateUserNameMutation({
-  //   onError: () => setShowNameError(true),
-  // });
+  const updateName = useMutation(
+    async ({ name }: { name: string }) =>
+      request("/graphql", UpdateUserNameMutationDocument, {
+        name: name,
+      }),
+    { onError: () => setShowNameError(true) }
+  );
 
   const [width, setWidth] = useState(0);
   const spanEl = useRef<HTMLSpanElement | null>(null);
@@ -576,7 +651,7 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
                         onBlur={
                           watch("name") !== data?.user.name
                             ? handleSubmit((param) => {
-                                // changeName.mutate({ name: param.name });
+                                updateName.mutate({ name: param.name });
                               })
                             : () => null
                         }

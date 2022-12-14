@@ -220,8 +220,8 @@ export class UserService {
       await this.prismaService.friendRequest.delete({
         where: {
           senderId_receiverId: {
-            senderId: userId,
-            receiverId: currentUserId,
+            senderId: currentUserId,
+            receiverId: userId,
           },
         },
       });
@@ -235,8 +235,8 @@ export class UserService {
     try {
       await this.prismaService.friendRequest.create({
         data: {
-          senderId: userId,
-          receiverId: currentUserId,
+          senderId: currentUserId,
+          receiverId: userId,
         },
       });
     } catch (error) {
@@ -325,8 +325,8 @@ export class UserService {
         usersBlocked: true,
         friendRequestsSent: {
           where: {
-            sender: {
-              friendRequestsReceived: {
+            receiver: {
+              friendRequestsSent: {
                 some: {
                   receiverId: currentUserId,
                 },

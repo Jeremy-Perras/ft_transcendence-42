@@ -125,15 +125,32 @@ export const channelLoader = async (
   }
 };
 
-const JoinPublicChannel = ({ channelId }: { channelId: number }) => {
-  // const joinChannel = useJoinChannelMutation();
+const JoinChannelMutationDocument = graphql(`
+  mutation JoinChannel($channelId: Int!, $password: String) {
+    joinChannel(channelId: $channelId, password: $password)
+  }
+`);
 
+const SendChannelMessageMutationDocument = graphql(`
+  mutation SendChannelMessage($message: String!, $channelId: Int!) {
+    sendChannelMessage(message: $message, channelId: $channelId)
+  }
+`);
+
+const JoinPublicChannel = ({ channelId }: { channelId: number }) => {
+  const joinChannel = useMutation(
+    async ({ channelId }: { channelId: number }) =>
+      request("/graphql", JoinChannelMutationDocument, {
+        channelId: channelId,
+        password: undefined, //null?
+      })
+  );
   return (
     <div className="flex h-full w-full flex-col items-center justify-center pb-60">
       <JoinIcon className="w-100 text-slate-100" />
       <div className="text-2xl text-slate-300">This Channel is public.</div>
       <span
-        // onClick={() => joinChannel.mutate({ channelId: +channelId })}
+        onClick={() => joinChannel.mutate({ channelId: +channelId })}
         className="mt-5 flex h-24 w-24 flex-col items-center justify-center border-2 border-slate-200 bg-slate-100 p-2 text-xl text-slate-800 hover:cursor-pointer hover:bg-slate-200"
       >
         Join ?
@@ -177,9 +194,20 @@ const AccessProtected = ({ channelId }: { channelId: number }) => {
     handleSubmit,
   } = useForm<PasswordFormData>();
 
-  // const joinChannel = useJoinChannelMutation({
-  //   onError: () => setShowPwdError(true),
-  // });
+  const joinChannel = useMutation(
+    async ({
+      channelId,
+      password,
+    }: {
+      channelId: number;
+      password: string | undefined;
+    }) =>
+      request("/graphql", JoinChannelMutationDocument, {
+        channelId: channelId,
+        password: password,
+      }),
+    { onError: () => setShowPwdError(true) }
+  );
 
   return (
     <div className="flex h-full w-full shrink flex-col items-center justify-center overflow-auto pb-20">
@@ -190,10 +218,10 @@ const AccessProtected = ({ channelId }: { channelId: number }) => {
       <div className="flex w-full flex-col items-center justify-center">
         <form
           onSubmit={handleSubmit((data) => {
-            // joinChannel.mutate({
-            //   channelId: channelId,
-            //   password: data.password,
-            // });
+            joinChannel.mutate({
+              channelId: channelId,
+              password: data.password,
+            });
           })}
           className="flex flex-col"
         >
@@ -244,10 +272,14 @@ const MessageInput = ({
 }) => {
   const [content, setContent] = useState("");
 
-  // const sendMessage = useMutation(
-  //   sendChannelMessageMutation({ channelId, content })
-  // );
-  // const messageMutation = useSendChannelMessageMutation({});
+  const sendChannelMessage = useMutation(
+    async ({ message, channelId }: { message: string; channelId: number }) =>
+      request("/graphql", SendChannelMessageMutationDocument, {
+        message: message,
+        channelId: channelId,
+      }),
+    { onError: () => alert("Error") } //TODO : change this in error store
+  );
 
   const cannotSendMessage =
     status === ChannelUserStatus.BANNED || status === ChannelUserStatus.MUTED;
@@ -272,7 +304,10 @@ const MessageInput = ({
         onKeyDown={(e) => {
           if (!cannotSendMessage) {
             if (e.code == "Enter" && !e.getModifierState("Shift")) {
-              // sendMessage.mutate();
+              sendChannelMessage.mutate({
+                message: content,
+                channelId: channelId,
+              });
               e.currentTarget.value = "";
               e.preventDefault();
               setContent("");

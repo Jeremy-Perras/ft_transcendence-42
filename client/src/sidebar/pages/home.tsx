@@ -1,4 +1,9 @@
-import { QueryClient, useQuery, UseQueryOptions } from "@tanstack/react-query";
+import {
+  QueryClient,
+  useMutation,
+  useQuery,
+  UseQueryOptions,
+} from "@tanstack/react-query";
 import { useState } from "react";
 
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
@@ -68,6 +73,18 @@ export const homeLoader = async (queryClient: QueryClient) => {
   return queryClient.fetchQuery(query());
 };
 
+const AcceptInvitationMutationDocument = graphql(`
+  mutation AcceptInvitation($userId: Int!) {
+    friendUser(userId: $userId)
+  }
+`);
+
+const RefuseInvitationMutationDocument = graphql(`
+  mutation RefuseInvitation($userId: Int!) {
+    refuseInvitation(userId: $userId)
+  }
+`);
+
 const ChannelAndFriendBanner = ({
   chat,
 }: {
@@ -82,14 +99,14 @@ const ChannelAndFriendBanner = ({
           `/${chat.type === ChatType.User ? "chat" : "channel"}/${chat.id}`
         )
       }
-      className="flex justify-center transition-all hover:cursor-pointer  hover:bg-slate-100"
+      className="flex justify-center transition-all hover:cursor-pointer hover:bg-slate-100"
     >
-      <div className="relative m-2 flex h-16 w-16 shrink-0 justify-center   text-white">
-        {chat.type === ChatType.User && chat.status ? (
+      <div className="relative m-2 flex h-16 w-16 shrink-0 justify-center text-white">
+        {chat.type === ChatType.User && chat.status && chat.avatar ? (
           <Avatar.Root>
             <Avatar.Image
               className="h-16 w-16 border border-black object-cover"
-              src={`${chat.avatar}`}
+              src={chat.avatar}
             />
             <IsOnline userStatus={chat.status} />
             <Avatar.Fallback delayMs={0}>
@@ -130,8 +147,17 @@ const Invitation = ({
   avatar: string | undefined;
   name: string;
 }) => {
-  // const addFriend = useAddFriendMutation();
-  // const refuse = useRefuseInvitationMutation();
+  const acceptInvitation = useMutation(async ({ userId }: { userId: number }) =>
+    request("/graphql", AcceptInvitationMutationDocument, {
+      userId: userId,
+    })
+  );
+
+  const refuseInvitation = useMutation(async ({ userId }: { userId: number }) =>
+    request("/graphql", RefuseInvitationMutationDocument, {
+      userId: userId,
+    })
+  );
 
   return (
     <div className="my-px flex items-center justify-center border bg-slate-100">
@@ -139,7 +165,7 @@ const Invitation = ({
         <Avatar.Root>
           <Avatar.Image
             className="h-8 w-8 border border-black object-cover"
-            src={`${avatar}`}
+            src={avatar}
           />
           <Avatar.Fallback delayMs={0}>
             <UserIcon className="h-8 w-8 border border-black bg-slate-50 p-1 text-neutral-700" />
@@ -151,15 +177,15 @@ const Invitation = ({
         <div className="flex basis-1/3 justify-end">
           <AcceptIcon
             className=" w-8 border border-slate-300 bg-slate-200 hover:cursor-pointer hover:bg-slate-300"
-            // onClick={() => {
-            //   addFriend.mutate({ userId });
-            // }}
+            onClick={() => {
+              acceptInvitation.mutate({ userId });
+            }}
           />
           <RefuseIcon
             className="mx-2 w-8 border border-slate-300 bg-slate-200 hover:cursor-pointer hover:bg-slate-300"
-            // onClick={() => {
-            //   refuse.mutate({ userId });
-            // }}
+            onClick={() => {
+              refuseInvitation.mutate({ userId });
+            }}
           />
         </div>
       </div>

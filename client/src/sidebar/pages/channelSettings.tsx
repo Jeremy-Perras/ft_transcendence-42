@@ -138,6 +138,54 @@ export const channelSettingsLoader = async (
   }
 };
 
+const BanUserMutationDocument = graphql(`
+  mutation BanUser($userId: Int!, $channelId: Int!) {
+    banUser(userId: $userId, channelId: $channelId)
+  }
+`);
+
+const UnbanUserMutationDocument = graphql(`
+  mutation UnbanUser($userId: Int!, $channelId: Int!) {
+    unbanUser(userId: $userId, channelId: $channelId)
+  }
+`);
+
+const MuteUserMutationDocument = graphql(`
+  mutation MuteUser($userId: Int!, $channelId: Int!) {
+    muteUser(userId: $userId, channelId: $channelId)
+  }
+`);
+
+const UnmuteUserMutationDocument = graphql(`
+  mutation UnmuteUser($userId: Int!, $channelId: Int!) {
+    unmuteUser(userId: $userId, channelId: $channelId)
+  }
+`);
+
+const AddAdminMutationDocument = graphql(`
+  mutation AddAdmin($userId: Int!, $channelId: Int!) {
+    addAdmin(userId: $userId, channelId: $channelId)
+  }
+`);
+
+const RemoveAdminMutationDocument = graphql(`
+  mutation RemoveAdmin($userId: Int!, $channelId: Int!) {
+    removeAdmin(userId: $userId, channelId: $channelId)
+  }
+`);
+
+const InviteUserMutationDocument = graphql(`
+  mutation InviteUser($userId: Int!, $channelId: Int!) {
+    inviteUser(userId: $userId, channelId: $channelId)
+  }
+`);
+
+const UpdatePasswordMutationDocument = graphql(`
+  mutation UpdatePassword($channelId: Int!, $password: String) {
+    updatePassword(channelId: $channelId, password: $password)
+  }
+`);
+
 enum restrictionAction {
   BAN,
   MUTE,
