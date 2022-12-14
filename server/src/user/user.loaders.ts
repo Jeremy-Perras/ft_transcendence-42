@@ -94,12 +94,19 @@ export class BlockingIdsLoader implements NestDataLoader<number, number[]> {
       const u = await this.prismaService.userBlock.findMany({
         where: { blockeeId: { in: [...keys] } },
       });
-      return u.reduce((acc, curr) => {
-        const index = keys.indexOf(curr.blockeeId);
-        if (!acc[index]) {
-          acc[index] = new Array<number>();
-        }
-        acc[index]?.push(curr.blockerId);
+      if (u && u.length > 0) {
+        return u.reduce((acc, curr) => {
+          const index = keys.indexOf(curr.blockeeId);
+          if (!acc[index]) {
+            acc[index] = new Array<number>();
+          }
+          acc[index]?.push(curr.blockerId);
+          return acc;
+        }, new Array<number[]>());
+      }
+      //TODO
+      return keys.reduce((acc, curr) => {
+        acc[curr] = new Array<number>();
         return acc;
       }, new Array<number[]>());
     });
@@ -157,6 +164,7 @@ export class UserChannelIdsLoader implements NestDataLoader<number, number[]> {
 
   generateDataLoader(): DataLoader<number, number[]> {
     return new DataLoader<number, number[]>(async (keys) => {
+      console.log(keys);
       const c = await this.prismaService.channel.findMany({
         select: {
           id: true,
@@ -168,26 +176,37 @@ export class UserChannelIdsLoader implements NestDataLoader<number, number[]> {
           ownerId: true,
         },
         where: {
-          owner: { id: { in: [...keys] } },
-          members: { some: { userId: { in: [...keys] } } },
+          OR: [
+            {
+              owner: { id: { in: [...keys] } },
+            },
+            {
+              members: { some: { userId: { in: [...keys] } } },
+            },
+          ],
         },
       });
-      return c.reduce((acc, curr) => {
-        const index = keys.find((e) => curr.ownerId === e);
-        if (index) {
-          if (!acc[index]) {
-            acc[index] = new Array<number>();
-          }
-          acc[index]?.push(curr.id);
-        }
-        curr.members.forEach((m) => {
-          const index = keys.find((e) => m.userId === e);
-          if (index) {
+      if (c && c.length > 0) {
+        return c.reduce((acc, curr) => {
+          const index = keys.findIndex((e) => curr.ownerId === e);
+          if (index !== -1) {
+            if (!acc[index]) {
+              acc[index] = new Array<number>();
+            }
             acc[index]?.push(curr.id);
+          } else {
+            curr.members.forEach((m) => {
+              const index = keys.findIndex((e) => m.userId === e);
+              if (!acc[index]) {
+                acc[index] = new Array<number>();
+              }
+              acc[index]?.push(curr.id);
+            });
           }
-        });
-        return acc;
-      }, new Array<number[]>());
+          return acc;
+        }, new Array<number[]>());
+      }
+      return new Array<number[]>();
     });
   }
 }

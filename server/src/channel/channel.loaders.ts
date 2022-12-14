@@ -15,7 +15,7 @@ export class ChannelLoader implements NestDataLoader<number, Channel> {
   constructor(private prismaService: PrismaService) {}
 
   generateDataLoader(): DataLoader<number, Channel> {
-    return new DataLoader<number, Channel>(async (keys) =>
+    const c = new DataLoader<number, Channel>(async (keys) =>
       this.prismaService.channel.findMany({
         where: {
           id: {
@@ -24,6 +24,7 @@ export class ChannelLoader implements NestDataLoader<number, Channel> {
         },
       })
     );
+    return c;
   }
 }
 
@@ -45,6 +46,9 @@ export class ChannelMembersLoader
 
       return cm.reduce((acc, curr) => {
         const index = keys.indexOf(curr.channelId);
+        if (!acc[index]) {
+          acc[index] = new Array<ChannelMember>();
+        }
         acc[index]?.push(curr);
         return acc;
       }, new Array<ChannelMember[]>());
@@ -72,6 +76,9 @@ export class ChannelRestrictedUserLoader
       });
       return u.reduce((acc, curr) => {
         const index = keys.indexOf(curr.channelId);
+        if (!acc[index]) {
+          acc[index] = new Array<ChannelRestrictedUser>();
+        }
         acc[index]?.push(curr);
         return acc;
       }, new Array<ChannelRestrictedUser[]>());
@@ -93,8 +100,12 @@ export class ChannelMessagesLoader
         },
         orderBy: { sentAt: "desc" },
       });
+      //TODO if empty ?
       return m.reduce((acc, curr) => {
         const index = keys.indexOf(curr.channelId);
+        if (!acc[index]) {
+          acc[index] = new Array<ChannelMessage>();
+        }
         acc[index]?.push(curr);
         return acc;
       }, new Array<ChannelMessage[]>());
@@ -117,6 +128,9 @@ export class ChannelMessageReadIdsLoader
       });
       return m.reduce((acc, curr) => {
         const index = keys.indexOf(curr.messageId);
+        if (!acc[index]) {
+          acc[index] = new Array<number>();
+        }
         acc[index]?.push(curr.userId);
         return acc;
       }, new Array<number[]>());

@@ -201,10 +201,10 @@ try {
           userId: i + 2,
           role: ChannelRole.ADMIN,
         })),
-        // user 2 to 10 are admins of channel 2
-        ...[...Array(9)].map((_, i) => ({
+        // user 3 to 10 are admins of channel 2
+        ...[...Array(8)].map((_, i) => ({
           channelId: 2,
-          userId: i + 2,
+          userId: i + 3,
           role: ChannelRole.ADMIN,
         })),
       ],
