@@ -27,6 +27,31 @@ import {
 import { Empty } from "../components/Empty";
 import { ReactComponent as GamePadIcon } from "pixelarticons/svg/gamepad.svg";
 import { IsOnline } from "../components/isOnline";
+import { graphql } from "../../../src/gql";
+import request from "graphql-request";
+
+const DiscussionsAndInvitationsQueryDocument = graphql(`
+  query DiscussionsAndInvitations($userId: Int) {
+    user(id: $userId) {
+      id
+      chats {
+        avatar
+        hasUnreadMessages
+        id
+        lastMessageContent
+        lastMessageDate
+        name
+        type
+        status
+      }
+      pendingFriends {
+        id
+        avatar
+        name
+      }
+    }
+  }
+`);
 
 const query = (): UseQueryOptions<
   DiscussionsAndInvitationsQuery,
@@ -34,8 +59,15 @@ const query = (): UseQueryOptions<
   DiscussionsAndInvitationsQuery
 > => {
   return {
-    queryKey: useDiscussionsAndInvitationsQuery.getKey({}),
-    queryFn: useDiscussionsAndInvitationsQuery.fetcher({}),
+    queryKey: ["DiscussionsAndInvitations"],
+    queryFn: async () =>
+      request(
+        "https://swapi-graphql.netlify.app/.netlify/functions/index",
+        DiscussionsAndInvitationsQueryDocument,
+        {
+          userId: null,
+        }
+      ),
   };
 };
 
