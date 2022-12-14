@@ -1,4 +1,4 @@
-import { UserStatus } from "../../graphql/generated";
+import { UserStatus } from "../../../src/gql/graphql";
 
 export const IsOnline = ({ userStatus }: { userStatus: UserStatus }) => {
   return userStatus === UserStatus.Online ? (

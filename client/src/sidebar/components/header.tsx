@@ -5,12 +5,30 @@ import { ReactComponent as BackBurgerIcon } from "pixelarticons/svg/backburger.s
 import { ReactComponent as ArrowLeftIcon } from "pixelarticons/svg/arrow-left-box.svg";
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { useSidebarStore } from "../../stores";
-import { useUserProfileHeaderQuery } from "../../graphql/generated";
+
 import * as Avatar from "@radix-ui/react-avatar";
+import { useQuery } from "@tanstack/react-query";
+import request from "graphql-request";
+import { graphql } from "../../../src/gql/gql";
+
+const UserHeaderQueryDocument = graphql(`
+  query UserHeader($userId: Int) {
+    user(id: $userId) {
+      id
+      name
+      avatar
+      status
+    }
+  }
+`);
 
 const CurrentUserProfile = () => {
   const navigate = useNavigate();
-  const { data, isFetched } = useUserProfileHeaderQuery();
+  const { data, isFetched } = useQuery({
+    queryKey: ["UserHeader"],
+    queryFn: async () =>
+      request("/graphql", UserHeaderQueryDocument, { userId: null }),
+  });
 
   return (
     <div

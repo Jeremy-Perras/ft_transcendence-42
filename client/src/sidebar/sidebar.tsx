@@ -9,7 +9,7 @@ import {
   LoaderFunctionArgs,
   RouterProvider,
 } from "react-router-dom";
-import { QueryClient } from "@tanstack/react-query";
+import { QueryClient, useQuery } from "@tanstack/react-query";
 import queryClient from "../query";
 import { Home, homeLoader } from "./pages/home";
 import Chat, { chatLoader } from "./pages/chat";
@@ -18,7 +18,19 @@ import Channel, { channelLoader } from "./pages/channel";
 import ChannelSettings, {
   channelSettingsLoader,
 } from "./pages/channelSettings";
-import { useDiscussionsAndInvitationsQuery } from "../graphql/generated";
+import { graphql } from "../../src/gql";
+import request from "graphql-request";
+
+const NewMessagesQueryDocument = graphql(`
+  query NewMessages($userId: Int) {
+    user(id: $userId) {
+      id
+      chats {
+        hasUnreadMessages
+      }
+    }
+  }
+`);
 
 const loaderFn = (
   fn: (queryClient: QueryClient, args: LoaderFunctionArgs) => unknown
@@ -56,7 +68,15 @@ const router = createMemoryRouter([
 
 const SidebarOpenBtn = () => {
   const [newMessage, setNewMessage] = useState(false);
-  const { data } = useDiscussionsAndInvitationsQuery({});
+
+  const { data } = useQuery({
+    queryKey: ["NewMessages"],
+    queryFn: async () =>
+      request("/graphql", NewMessagesQueryDocument, {
+        userId: null,
+      }),
+  });
+
   const openSidebar = useSidebarStore((state) => state.open);
 
   useEffect(() => {
