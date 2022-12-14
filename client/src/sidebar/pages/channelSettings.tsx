@@ -259,53 +259,57 @@ const SetRestrictionTimeButton = ({
   action: restrictionAction;
   setShowTime: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
-  const restriction =
-    action === restrictionAction.BAN
-      ? useMutation(
-          async ({
-            channelId,
-            restrictedId,
-            restrictUntil,
-          }: {
-            channelId: number;
-            restrictedId: number;
-            restrictUntil: number | null | undefined;
-          }) =>
-            request("/graphql", BanUserMutationDocument, {
-              restrictedId: restrictedId,
-              channelId: channelId,
-              restrictUntil: restrictUntil,
-            }),
-          { onError: () => alert("Error") } //TODO : change this in error store
-        )
-      : useMutation(
-          async ({
-            channelId,
-            restrictedId,
-            restrictUntil,
-          }: {
-            channelId: number;
-            restrictedId: number;
-            restrictUntil: number | null | undefined;
-          }) =>
-            request("/graphql", MuteUserMutationDocument, {
-              channelId: channelId,
-              restrictedId: restrictedId,
-              restrictUntil: restrictUntil,
-            }),
-          { onError: () => alert("Error") } //TODO : change this in error store
-        );
+  const ban = useMutation(
+    async ({
+      channelId,
+      restrictedId,
+      restrictUntil,
+    }: {
+      channelId: number;
+      restrictedId: number;
+      restrictUntil: number | null | undefined;
+    }) =>
+      request("/graphql", BanUserMutationDocument, {
+        restrictedId: restrictedId,
+        channelId: channelId,
+        restrictUntil: restrictUntil,
+      }),
+    { onError: () => alert("Error") } //TODO : change this in error store
+  );
+  const mute = useMutation(
+    async ({
+      channelId,
+      restrictedId,
+      restrictUntil,
+    }: {
+      channelId: number;
+      restrictedId: number;
+      restrictUntil: number | null | undefined;
+    }) =>
+      request("/graphql", MuteUserMutationDocument, {
+        channelId: channelId,
+        restrictedId: restrictedId,
+        restrictUntil: restrictUntil,
+      }),
+    { onError: () => alert("Error") } //TODO : change this in error store
+  );
 
   return (
     <div
       className="hover:bg-slate-300"
       onClick={() => {
         setShowTime(false);
-        restriction.mutate({
-          channelId: channelId,
-          restrictedId: userId,
-          restrictUntil: time.endAt,
-        });
+        action === restrictionAction.BAN
+          ? ban.mutate({
+              channelId: channelId,
+              restrictedId: userId,
+              restrictUntil: time.endAt,
+            })
+          : mute.mutate({
+              channelId: channelId,
+              restrictedId: userId,
+              restrictUntil: time.endAt,
+            });
       }}
     >
       {time.text}
