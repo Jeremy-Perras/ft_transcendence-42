@@ -61,13 +61,9 @@ const query = (): UseQueryOptions<
   return {
     queryKey: ["DiscussionsAndInvitations"],
     queryFn: async () =>
-      request(
-        "https://swapi-graphql.netlify.app/.netlify/functions/index",
-        DiscussionsAndInvitationsQueryDocument,
-        {
-          userId: null,
-        }
-      ),
+      request("/graphql", DiscussionsAndInvitationsQueryDocument, {
+        userId: null,
+      }),
   };
 };
 

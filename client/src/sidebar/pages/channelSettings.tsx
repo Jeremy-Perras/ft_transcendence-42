@@ -52,21 +52,61 @@ import { useAuthStore } from "../../stores";
 import { Empty } from "../components/Empty";
 import { Highlight } from "../components/highlight";
 import { ChannelUserStatus } from "../types/channelUserStatus";
+import { graphql } from "../../../src/gql";
+import request from "graphql-request";
 
 type ChannelQueryResult = Omit<ChannelSettingsQuery["channel"], "admins"> & {
   admins: ChannelSettingsQuery["channel"]["members"];
 };
 
+const ChannelSettingsQueryDocument = graphql(`
+  query ChannelSettings($channelId: Int!) {
+    channel(id: $channelId) {
+      id
+      name
+      owner {
+        id
+        name
+        avatar
+      }
+      admins {
+        id
+      }
+      members {
+        id
+        name
+        avatar
+      }
+      banned {
+        user {
+          id
+          name
+          avatar
+        }
+        endAt
+      }
+      muted {
+        user {
+          id
+        }
+        endAt
+      }
+      passwordProtected
+      private
+    }
+  }
+`);
+
 const query = (
   channelId: number
 ): UseQueryOptions<ChannelSettingsQuery, unknown, ChannelQueryResult> => {
   return {
-    queryKey: useChannelSettingsQuery.getKey({
-      channelId: channelId,
-    }),
-    queryFn: useChannelSettingsQuery.fetcher({
-      channelId: channelId,
-    }),
+    queryKey: ["ChannelSettings"],
+    queryFn: async () =>
+      request("/graphql", ChannelSettingsQueryDocument, {
+        channelId: channelId,
+      }),
+
     select: (data) => ({
       id: data.channel.id,
       name: data.channel.name,
