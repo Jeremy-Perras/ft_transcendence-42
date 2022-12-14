@@ -6,13 +6,31 @@ import { ReactComponent as UsersIcon } from "pixelarticons/svg/users.svg";
 import { ReactComponent as ConnectionErrorIcon } from "pixelarticons/svg/downasaur.svg";
 import { Navigate, useNavigate } from "react-router-dom";
 import * as Avatar from "@radix-ui/react-avatar";
-import {
-  SearchUsersAndChannelsQuery,
-  useSearchUsersAndChannelsQuery,
-} from "../../graphql/generated";
+
 import { Empty } from "./Empty";
 import { Highlight } from "./highlight";
 import { useAuthStore } from "../../stores";
+import { graphql } from "../../../src/gql";
+import { useQuery } from "@tanstack/react-query";
+import request from "graphql-request";
+import { SearchUsersAndChannelsQuery } from "../../../src/gql/graphql";
+
+const SearchUsersAndChannelsQueryDocument = graphql(`
+  query SearchUsersAndChannels($name: String!) {
+    users(name: $name) {
+      __typename
+      avatar
+      id
+      name
+      status
+    }
+    channels(name: $name) {
+      __typename
+      name
+      id
+    }
+  }
+`);
 
 export const SearchBar = ({
   searchInput,
@@ -77,26 +95,27 @@ export const SearchResults = ({
     | Exclude<SearchUsersAndChannelsQuery["channels"][number], null>
     | Exclude<SearchUsersAndChannelsQuery["users"][number], null>
   )[];
-  const { data: searchResults } = useSearchUsersAndChannelsQuery<
-    ResultsType,
-    unknown
-  >(
-    { name: searchInput },
-    {
-      select(data) {
-        const { users, channels } = data;
-        const results: (typeof users[number] | typeof channels[number])[] = [
-          ...users,
-          ...channels,
-        ];
-        return results.filter((u) => {
-          if (u === null) return false;
-          if (u.__typename === "User") return u.id !== userId;
-          return true;
-        }) as ResultsType;
-      },
-    }
-  );
+
+  const { data: searchResults } = useQuery({
+    queryKey: ["UsersAndChannels"],
+    queryFn: async () =>
+      request("/graphql", SearchUsersAndChannelsQueryDocument, {
+        name: searchInput,
+      }),
+    select(data) {
+      const { users, channels } = data;
+      const results: (typeof users[number] | typeof channels[number])[] = [
+        ...users,
+        ...channels,
+      ];
+      return results.filter((u) => {
+        if (u === null) return false;
+        if (u.__typename === "User") return u.id !== userId;
+        return true;
+      }) as ResultsType;
+    },
+  });
+
   return (
     <>
       {typeof searchResults === "undefined" ? (

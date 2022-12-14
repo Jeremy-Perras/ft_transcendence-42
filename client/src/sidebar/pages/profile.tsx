@@ -6,18 +6,7 @@ import {
   useNavigate,
   useParams,
 } from "react-router-dom";
-import {
-  useAddFriendMutation,
-  useBlockUserMutation,
-  useCancelInvitationMutation,
-  UserProfileQuery,
-  useUnblockUserMutation,
-  useUnfriendUserMutation,
-  useRefuseInvitationMutation,
-  useUpdateUserNameMutation,
-  FriendStatus,
-  GameMode,
-} from "../../graphql/generated";
+
 import ClassicIcon from "/src/assets/images/ClassicIcon.svg";
 import BonusIcon from "/src/assets/images/BonusIcon.svg";
 import FireIcon from "/src/assets/images/FireIcon.svg";
@@ -44,6 +33,11 @@ import { useForm, useWatch } from "react-hook-form";
 import { useAuthStore } from "../../stores";
 import { IsOnline } from "../components/isOnline";
 import { graphql } from "../../../src/gql";
+import {
+  FriendStatus,
+  GameMode,
+  UserProfileQuery,
+} from "../../../src/gql/graphql";
 import request from "graphql-request";
 
 type formData = {
@@ -51,7 +45,7 @@ type formData = {
 };
 
 const UserProfileQueryDocument = graphql(`
-  query UserProfileQuery($userId: Int!) {
+  query UserProfile($userId: Int!) {
     user(id: $userId) {
       id
       name
@@ -243,7 +237,7 @@ const UserProfileHeader = ({
           {data.user.achievements.map((a, key) => (
             <Achievement
               key={key}
-              icon={a.icon}
+              icon={UnachievedIcon} //TODO : get corresponding icon
               name={a.name}
               achieved={true}
             />
@@ -365,18 +359,18 @@ const AddFriend = ({
   pendingInvitation: boolean | undefined;
   pendingAccept: boolean | undefined;
 }) => {
-  const addFriend = useAddFriendMutation({});
-  const block = useBlockUserMutation({});
-  const cancelInvation = useCancelInvitationMutation({});
-  const refuseInvation = useRefuseInvitationMutation({});
+  // const addFriend = useAddFriendMutation({});
+  // const block = useBlockUserMutation({});
+  // const cancelInvation = useCancelInvitationMutation({});
+  // const refuseInvation = useRefuseInvitationMutation({});
 
   return (
     <div className="flex w-full select-none">
       <div
         className="flex h-24 basis-1/2 items-center justify-center border-2 bg-slate-100 p-4 text-xl font-bold text-slate-600 transition-all hover:cursor-pointer hover:bg-slate-200"
-        onClick={() => {
-          pendingInvitation ? "" : addFriend.mutate({ userId });
-        }}
+        // onClick={() => {
+        //   pendingInvitation ? "" : addFriend.mutate({ userId });
+        // }}
       >
         {!pendingAccept && !pendingInvitation ? (
           <AddFriendIcon className="mx-4 mb-2 w-16 self-center" />
@@ -387,9 +381,9 @@ const AddFriend = ({
         )}
         <span
           className="flex items-center text-center text-2xl font-bold"
-          onClick={() => {
-            pendingInvitation ? cancelInvation.mutate({ userId: userId }) : "";
-          }}
+          // onClick={() => {
+          //   pendingInvitation ? cancelInvation.mutate({ userId: userId }) : "";
+          // }}
         >
           {pendingInvitation
             ? "Cancel Invitation"
@@ -400,9 +394,9 @@ const AddFriend = ({
       </div>
       {pendingAccept ? (
         <div
-          onClick={() => {
-            refuseInvation.mutate({ userId });
-          }}
+          // onClick={() => {
+          //   refuseInvation.mutate({ userId });
+          // }}
           className="flex h-24 basis-1/3 items-center justify-center border-y-2 border-r-2 bg-slate-100 p-4 text-center text-2xl font-bold  text-slate-600 transition-all  hover:cursor-pointer hover:bg-slate-200"
         >
           <RefuseIcon className="w-12" />
@@ -412,9 +406,9 @@ const AddFriend = ({
         ""
       )}
       <div
-        onClick={() => {
-          block.mutate({ userId: userId });
-        }}
+        // onClick={() => {
+        //   block.mutate({ userId: userId });
+        // }}
         className="flex h-24 basis-1/2 items-center justify-center border-y-2 border-r-2 bg-slate-100 p-4 text-center text-2xl font-bold  text-slate-600 transition-all  hover:cursor-pointer hover:bg-slate-200"
       >
         <img className="mr-5 w-12" src={BannedDarkIcon} />
@@ -425,13 +419,13 @@ const AddFriend = ({
 };
 
 const Unblock = ({ userId }: { userId: number }) => {
-  const unblock = useUnblockUserMutation({});
+  // const unblock = useUnblockUserMutation({});
   return (
     <div
       className="flex h-24 w-full select-none flex-col items-center justify-center border-2 border-red-500 bg-red-400 p-4 font-bold text-slate-800 transition-all hover:cursor-pointer hover:bg-red-500 "
-      onClick={() => {
-        userId ? unblock.mutate({ userId: userId }) : null;
-      }}
+      // onClick={() => {
+      //   userId ? unblock.mutate({ userId: userId }) : null;
+      // }}
     >
       <span className="text-2xl">You blocked this user</span>
       <span>Click to unblock</span>
@@ -462,9 +456,9 @@ const Blocked = () => {
 };
 
 const FriendButtons = ({ data }: { data: UserProfileQuery }) => {
-  const unfriend = useUnfriendUserMutation({});
+  // const unfriend = useUnfriendUserMutation({});
 
-  const block = useBlockUserMutation({});
+  // const block = useBlockUserMutation({});
 
   return (
     <div className="flex h-24 select-none bg-slate-100 text-2xl font-bold text-slate-600">
@@ -478,18 +472,18 @@ const FriendButtons = ({ data }: { data: UserProfileQuery }) => {
         <span>Play !</span>
       </div>
       <div
-        onClick={() => {
-          unfriend.mutate({ userId: data.user.id });
-        }}
+        // onClick={() => {
+        //   unfriend.mutate({ userId: data.user.id });
+        // }}
         className="flex h-24 basis-1/3 items-center justify-center border-y-2  bg-slate-100 p-4 text-center text-2xl font-bold  text-slate-600 transition-all  hover:cursor-pointer hover:bg-slate-200"
       >
         <UnfriendIcon className="mr-2 w-10 self-center" />
         <span>Unfriend</span>
       </div>
       <div
-        onClick={() => {
-          block.mutate({ userId: data.user.id });
-        }}
+        // onClick={() => {
+        //   block.mutate({ userId: data.user.id });
+        // }}
         className="flex h-24 basis-1/3 items-center justify-center border-2  bg-slate-100 p-4 text-center text-2xl font-bold  text-slate-600 transition-all  hover:cursor-pointer hover:bg-slate-200"
       >
         <img className="mr-2 w-8" src={BannedDarkIcon} />
@@ -522,9 +516,9 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
     defaultValue: data.user.name,
   });
 
-  const changeName = useUpdateUserNameMutation({
-    onError: () => setShowNameError(true),
-  });
+  // const changeName = useUpdateUserNameMutation({
+  //   onError: () => setShowNameError(true),
+  // });
 
   const [width, setWidth] = useState(0);
   const spanEl = useRef<HTMLSpanElement | null>(null);
@@ -582,7 +576,7 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
                         onBlur={
                           watch("name") !== data?.user.name
                             ? handleSubmit((param) => {
-                                changeName.mutate({ name: param.name });
+                                // changeName.mutate({ name: param.name });
                               })
                             : () => null
                         }

@@ -7,11 +7,7 @@ import { ReactComponent as AcceptIcon } from "pixelarticons/svg/check.svg";
 import { ReactComponent as RefuseIcon } from "pixelarticons/svg/close.svg";
 import { Navigate, useLoaderData, useNavigate } from "react-router-dom";
 import * as Avatar from "@radix-ui/react-avatar";
-import {
-  useAddFriendMutation,
-  useDiscussionsAndInvitationsQuery,
-  useRefuseInvitationMutation,
-} from "../../graphql/generated";
+
 import CreateChannel, { CreateChannelBtn } from "../components/createChannel";
 import { SearchBar, SearchResults } from "../components/search";
 import {
@@ -20,15 +16,16 @@ import {
   HeaderLeftBtn,
 } from "../components/header";
 import { getDate } from "../utils/getDate";
-import {
-  ChatType,
-  DiscussionsAndInvitationsQuery,
-} from "../../graphql/generated";
+
 import { Empty } from "../components/Empty";
 import { ReactComponent as GamePadIcon } from "pixelarticons/svg/gamepad.svg";
 import { IsOnline } from "../components/isOnline";
 import { graphql } from "../../../src/gql";
 import request from "graphql-request";
+import {
+  ChatType,
+  DiscussionsAndInvitationsQuery,
+} from "../../../src/gql/graphql";
 
 const DiscussionsAndInvitationsQueryDocument = graphql(`
   query DiscussionsAndInvitations($userId: Int) {
@@ -133,8 +130,8 @@ const Invitation = ({
   avatar: string | undefined;
   name: string;
 }) => {
-  const addFriend = useAddFriendMutation();
-  const refuse = useRefuseInvitationMutation();
+  // const addFriend = useAddFriendMutation();
+  // const refuse = useRefuseInvitationMutation();
 
   return (
     <div className="my-px flex items-center justify-center border bg-slate-100">
@@ -154,15 +151,15 @@ const Invitation = ({
         <div className="flex basis-1/3 justify-end">
           <AcceptIcon
             className=" w-8 border border-slate-300 bg-slate-200 hover:cursor-pointer hover:bg-slate-300"
-            onClick={() => {
-              addFriend.mutate({ userId });
-            }}
+            // onClick={() => {
+            //   addFriend.mutate({ userId });
+            // }}
           />
           <RefuseIcon
             className="mx-2 w-8 border border-slate-300 bg-slate-200 hover:cursor-pointer hover:bg-slate-300"
-            onClick={() => {
-              refuse.mutate({ userId });
-            }}
+            // onClick={() => {
+            //   refuse.mutate({ userId });
+            // }}
           />
         </div>
       </div>

@@ -8,11 +8,7 @@ import { useAuthStore } from "./stores";
 import "./index.css";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { io } from "socket.io-client";
-import {
-  useDirectMessagesQuery,
-  useDiscussionsAndInvitationsQuery,
-  useChannelDiscussionQuery,
-} from "./graphql/generated";
+
 let init = false;
 const App = () => {
   const isLoggedIn = !!useAuthStore((state) => state.userId);
@@ -44,28 +40,19 @@ const App = () => {
         console.log("disconnected", socket);
       });
 
-      // TODO: invalidate cache events
+      // TODO: invalidate cache events - don't forget to invalidate new messages - change keys in queries if needed to add userId / channelId
       socket.on("invalidateDirectMessageCache", (targetId: number) => {
-        queryClient.invalidateQueries(
-          useDirectMessagesQuery.getKey({ userId: targetId })
-        );
-        queryClient.invalidateQueries(
-          useDiscussionsAndInvitationsQuery.getKey({})
-        );
-        queryClient.invalidateQueries(
-          useDiscussionsAndInvitationsQuery.getKey({
-            userId: targetId,
-          })
-        );
+        queryClient.invalidateQueries(["DirectMessages", targetId]); // ?
+        queryClient.invalidateQueries(["DirectMessages"]); //?
+
+        queryClient.invalidateQueries(["NewMessages"]); //?
+        queryClient.invalidateQueries(["DiscussionAndInvitations"]); // ?
       });
 
       socket.on("invalidateChannelMessageCache", (targetId: number) => {
-        queryClient.invalidateQueries(
-          useChannelDiscussionQuery.getKey({ channelId: targetId })
-        );
-        queryClient.invalidateQueries(
-          useDiscussionsAndInvitationsQuery.getKey({})
-        );
+        queryClient.invalidateQueries(["ChannelDiscussion", targetId]);
+        queryClient.invalidateQueries(["DiscussionAndInvitations"]); //?
+        queryClient.invalidateQueries(["NewMessages"]); //?
       });
 
       return () => {

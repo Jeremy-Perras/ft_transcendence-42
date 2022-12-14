@@ -5,22 +5,7 @@ import {
   useNavigate,
   useParams,
 } from "react-router-dom";
-import {
-  ChannelSettingsQuery,
-  SearchUsersQuery,
-  useAddAdminMutation,
-  useBanUserMutation,
-  useChannelSettingsQuery,
-  useDeleteChannelMutation,
-  useInviteUserMutation,
-  useLeaveChannelMutation,
-  useMuteUserMutation,
-  useRemoveAdminMutation,
-  useSearchUsersQuery,
-  useUnbanUserMutation,
-  useUnmuteUserMutation,
-  useUpdateChannelPasswordMutation,
-} from "../../graphql/generated";
+
 import { ReactComponent as UsersIcon } from "pixelarticons/svg/users.svg";
 import { ReactComponent as TrashIcon } from "pixelarticons/svg/trash.svg";
 import { ReactComponent as MuteIcon } from "pixelarticons/svg/volume-x.svg";
@@ -54,11 +39,16 @@ import { Highlight } from "../components/highlight";
 import { ChannelUserStatus } from "../types/channelUserStatus";
 import { graphql } from "../../../src/gql";
 import request from "graphql-request";
+import {
+  ChannelSettingsQuery,
+  SearchUsersQuery,
+} from "../../../src/gql/graphql";
 
 type ChannelQueryResult = Omit<ChannelSettingsQuery["channel"], "admins"> & {
   admins: ChannelSettingsQuery["channel"]["members"];
 };
-const SearchSettingsQueryDocument = graphql(`
+
+const SearchUsersQueryDocument = graphql(`
   query SearchUsers($name: String!) {
     users(name: $name) {
       id
@@ -114,7 +104,7 @@ const query = (
   channelId: number
 ): UseQueryOptions<ChannelSettingsQuery, unknown, ChannelQueryResult> => {
   return {
-    queryKey: ["ChannelSettings"],
+    queryKey: ["ChannelSettings", channelId], //TODO : check if this is the right key combo
     queryFn: async () =>
       request("/graphql", ChannelSettingsQueryDocument, {
         channelId: channelId,
@@ -190,21 +180,21 @@ const SetRestrictionTimeButton = ({
   action: restrictionAction;
   setShowTime: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
-  const restriction =
-    action === restrictionAction.BAN
-      ? useBanUserMutation({})
-      : useMuteUserMutation({});
+  // const restriction =
+  //   action === restrictionAction.BAN
+  //     ? useBanUserMutation({})
+  //     : useMuteUserMutation({});
 
   return (
     <div
       className="hover:bg-slate-300"
       onClick={() => {
-        setShowTime(false),
-          restriction.mutate({
-            channelId: channelId,
-            restrictedId: userId,
-            restrictUntil: time.endAt,
-          });
+        setShowTime(false);
+        // restriction.mutate({
+        //   channelId: channelId,
+        //   restrictedId: userId,
+        //   restrictUntil: time.endAt,
+        // });
       }}
     >
       {time.text}
@@ -262,7 +252,7 @@ const ToggleMuteStatus = ({
   const [showInfoMute, setShowInfoMute] = useState(false);
   const [showTimeMute, setShowTimeMute] = useState(false);
 
-  const unmuteUser = useUnmuteUserMutation({});
+  // const unmuteUser = useUnmuteUserMutation({});
 
   return (
     <div className="relative flex w-8 flex-col justify-end text-center transition-all hover:cursor-pointer">
@@ -273,10 +263,10 @@ const ToggleMuteStatus = ({
             onMouseOut={() => setShowInfoMute(false)}
             className="w-6 border-2 border-slate-300  text-neutral-600 hover:cursor-pointer hover:border-slate-700 hover:text-black"
             onClick={() => {
-              unmuteUser.mutate({
-                channelId: channelId,
-                userId: id,
-              });
+              // unmuteUser.mutate({
+              //   channelId: channelId,
+              //   userId: id,
+              // });
             }}
           />
         ) : (
@@ -313,7 +303,7 @@ const ToggleBanStatus = ({
   const [showInfoBan, setShowInfoBan] = useState(false);
   const [showTimeBan, setShowTimeBan] = useState(false);
 
-  const unbanUser = useUnbanUserMutation({});
+  // const unbanUser = useUnbanUserMutation({});
 
   return (
     <div className="relative flex w-8 flex-col justify-end text-center transition-all hover:cursor-pointer">
@@ -324,10 +314,10 @@ const ToggleBanStatus = ({
             onMouseOut={() => setShowInfoBan(false)}
             className="w-6 border-2 border-red-500 text-red-600 hover:cursor-pointer hover:border-red-700 hover:text-red-800"
             onClick={() => {
-              unbanUser.mutate({
-                channelId: channelId,
-                userId: id,
-              });
+              // unbanUser.mutate({
+              //   channelId: channelId,
+              //   userId: id,
+              // });
             }}
           />
         ) : (
@@ -365,8 +355,8 @@ const ToggleAdminRole = ({
 }) => {
   const [showInfoAdmin, setShowInfoAdmin] = useState(false);
 
-  const removeAdmin = useRemoveAdminMutation({});
-  const addAdmin = useAddAdminMutation({});
+  // const removeAdmin = useRemoveAdminMutation({});
+  // const addAdmin = useAddAdminMutation({});
 
   return (
     <div className="relative flex w-8 flex-col items-center justify-start">
@@ -377,20 +367,20 @@ const ToggleAdminRole = ({
             setShowInfoAdmin(false);
           }}
           onClick={() => {
-            removeAdmin.mutate({
-              channelId: channelId,
-              userId: id,
-            });
+            // removeAdmin.mutate({
+            //   channelId: channelId,
+            //   userId: id,
+            // });
           }}
           className="w-6 border-2 border-slate-300 text-neutral-600 hover:cursor-pointer hover:border-slate-700 hover:text-black"
         />
       ) : (
         <AdminIcon
           onClick={() => {
-            addAdmin.mutate({
-              channelId: channelId,
-              userId: id,
-            });
+            // addAdmin.mutate({
+            //   channelId: channelId,
+            //   userId: id,
+            // });
           }}
           onMouseOver={() => setShowInfoAdmin(true)}
           onMouseOut={() => {
@@ -417,7 +407,7 @@ const UserHeader = ({
 }: {
   user:
     | ChannelSettingsQuery["channel"]["members"][number]
-    | ChannelSettingsQuery["channel"]["banned"][number];
+    | ChannelSettingsQuery["channel"]["banned"][number]["user"];
   userRole: ChannelUserRole;
   userStatus: ChannelUserStatus;
 }) => {
@@ -467,7 +457,7 @@ const UserBanner = ({
   channelId: number;
   user:
     | ChannelSettingsQuery["channel"]["members"][number]
-    | ChannelSettingsQuery["channel"]["banned"][number];
+    | ChannelSettingsQuery["channel"]["banned"][number]["user"];
   userRole: ChannelUserRole;
   userStatus: ChannelUserStatus;
   currentUserRole: ChannelUserRole;
@@ -574,44 +564,22 @@ const SearchResults = ({
   searchInput: string;
   channel: ChannelQueryResult;
 }) => {
-  //TODO Select
-  const { data: searchResults } = useQuery<
-    Exclude<SearchUsersQuery["users"][number], null>[],
-    unknown
-  >(["SearchUser"], async () =>
-    request(
-      "/graphql",
-      SearchSettingsQueryDocument,
-      { name: searchInput }
-      // {
-      //   select(data) {
-      //     return data.users.filter((u) => {
-      //       if (u === null) return false;
-      //       const pred = (m: typeof channel.members[number]) => m.id !== u.id;
-      //       return !channel.members.some(pred) && !channel.admins.some(pred);
-      //     }) as Exclude<SearchUsersQuery["users"][number], null>[];
-      //   },
-      // }
-    )
-  );
+  // const updateMembers = useInviteUserMutation({});
 
-  // const { data: searchResults } = useSearchUsersQuery<
-  //   Exclude<SearchUsersQuery["users"][number], null>[],
-  //   unknown
-  // >(
-  //   { name: searchInput },
-  //   {
-  //     select(data) {
-  //       return data.users.filter((u) => {
-  //         if (u === null) return false;
-  //         const pred = (m: typeof channel.members[number]) => m.id !== u.id;
-  //         return !channel.members.some(pred) && !channel.admins.some(pred);
-  //       }) as Exclude<SearchUsersQuery["users"][number], null>[];
-  //     },
-  //   }
-  // );
-
-  const updateMembers = useInviteUserMutation({});
+  const { data: searchResults } = useQuery({
+    queryKey: ["Users"],
+    queryFn: async () =>
+      request("/graphql", SearchUsersQueryDocument, {
+        name: searchInput,
+      }),
+    select(data) {
+      return data.users.filter((u) => {
+        if (u === null) return false;
+        const pred = (m: typeof channel.members[number]) => m.id !== u.id;
+        return !channel.members.some(pred) && !channel.admins.some(pred);
+      }) as Exclude<SearchUsersQuery["users"][number], null>[];
+    },
+  });
 
   return (
     <div className="flex flex-col  divide-y divide-slate-200 overflow-y-scroll">
@@ -626,10 +594,10 @@ const SearchResults = ({
               key={index}
               className="flex items-center bg-slate-100 p-2 even:bg-white hover:cursor-pointer hover:bg-blue-100"
               onClick={() => {
-                updateMembers.mutate({
-                  channelId: channel.id,
-                  userId: result?.id,
-                });
+                // updateMembers.mutate({
+                //   channelId: channel.id,
+                //   userId: result?.id,
+                // });
               }}
             >
               <Avatar.Root>
@@ -661,7 +629,7 @@ const LeaveChannelConfirm = ({
 }) => {
   const navigate = useNavigate();
 
-  const leaveChannel = useLeaveChannelMutation({});
+  // const leaveChannel = useLeaveChannelMutation({});
 
   return (
     <div className="absolute top-0 right-0 z-10 flex h-full w-full flex-col items-center justify-center bg-black bg-opacity-30">
@@ -682,7 +650,7 @@ const LeaveChannelConfirm = ({
             <div className="mt-4 flex flex-row text-center">
               <button
                 onClick={() => {
-                  leaveChannel.mutate({ channelId: channelId });
+                  // leaveChannel.mutate({ channelId: channelId });
                   navigate("/");
                 }}
                 className="block w-full border-2 border-slate-200 bg-slate-100 px-4 py-3 text-sm font-semibold text-red-700 hover:bg-slate-200 "
@@ -720,7 +688,7 @@ const DeleteConfirm = ({
 }) => {
   const navigate = useNavigate();
 
-  const deleteChannel = useDeleteChannelMutation({});
+  // const deleteChannel = useDeleteChannelMutation({});
 
   return (
     <div className="absolute top-0 right-0 z-10 flex h-full w-full flex-col items-center justify-center bg-black bg-opacity-30">
@@ -744,7 +712,7 @@ const DeleteConfirm = ({
             <div className="mt-4 flex flex-row text-center">
               <button
                 onClick={() => {
-                  deleteChannel.mutate({ channelId: channelId });
+                  // deleteChannel.mutate({ channelId: channelId });
                   navigate("/");
                 }}
                 className="block w-full border-2 border-slate-200 bg-slate-100 px-4 py-3 text-sm font-semibold text-red-700 hover:bg-slate-200 "
@@ -791,12 +759,12 @@ const ChannelMode = ({
     formState: { errors },
     reset,
   } = useForm<ChangePasswordFormData>();
-  const updatePassword = useUpdateChannelPasswordMutation({
-    onSuccess: () => {
-      setShowPasswordField(false);
-      reset();
-    },
-  });
+  // const updatePassword = useUpdateChannelPasswordMutation({
+  //   onSuccess: () => {
+  //     setShowPasswordField(false);
+  //     reset();
+  //   },
+  // });
 
   const [showPasswordField, setShowPasswordField] = useState(false);
 
@@ -804,12 +772,12 @@ const ChannelMode = ({
     <form
       className="mt-4 flex h-full flex-col"
       onSubmit={handleSubmit((data) => {
-        showPasswordField
-          ? updatePassword.mutate({
-              channelId: channelId,
-              password: data.password,
-            })
-          : null;
+        // showPasswordField
+        //   ? updatePassword.mutate({
+        //       channelId: channelId,
+        //       password: data.password,
+        //     })
+        //   : null;
       })}
     >
       <div className="flex w-full ">
@@ -830,14 +798,14 @@ const ChannelMode = ({
             </button>
             {activeMode === "Password" && (
               <button
-                onClick={() => {
-                  !showPasswordField
-                    ? updatePassword.mutate({
-                        channelId: channelId,
-                        password: null,
-                      })
-                    : null;
-                }}
+                // onClick={() => {
+                //   !showPasswordField
+                //     ? updatePassword.mutate({
+                //         channelId: channelId,
+                //         password: null,
+                //       })
+                //     : null;
+                // }}
                 className={`${
                   activeMode === "Password" && showPasswordField
                     ? "opacity-20 hover:cursor-not-allowed"
@@ -974,7 +942,7 @@ const MemberList = ({
     id: number,
     userList: typeof channel.banned | typeof channel.muted
   ) => {
-    return userList.some((u) => u.id === id);
+    return userList.some((u) => u.user.id === id);
   };
 
   return (
@@ -1027,7 +995,7 @@ const MemberList = ({
           <UserBanner
             key={index}
             channelId={channel.id}
-            user={user}
+            user={user.user}
             userRole={ChannelUserRole.NON_MEMBER}
             userStatus={ChannelUserStatus.BANNED}
             currentUserRole={currentUserRole}

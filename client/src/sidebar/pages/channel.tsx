@@ -6,18 +6,19 @@ import {
   useNavigate,
   useParams,
 } from "react-router-dom";
-import {
-  ChannelDiscussionQuery,
-  useJoinChannelMutation,
-  useSendChannelMessageMutation,
-} from "../../graphql/generated";
+
 import { ReactComponent as ForbiddenIcon } from "pixelarticons/svg/close-box.svg";
 import { ReactComponent as EmptyChatIcon } from "pixelarticons/svg/message-plus.svg";
 import { ReactComponent as PasswordIcon } from "pixelarticons/svg/lock.svg";
 import { ReactComponent as JoinIcon } from "pixelarticons/svg/users.svg";
 import { useForm } from "react-hook-form";
 import BannedIcon from "/src/assets/images/Banned.svg";
-import { QueryClient, useQuery, UseQueryOptions } from "@tanstack/react-query";
+import {
+  QueryClient,
+  useMutation,
+  useQuery,
+  UseQueryOptions,
+} from "@tanstack/react-query";
 import {
   Header,
   HeaderCenterContent,
@@ -30,6 +31,7 @@ import { useAuthStore, useSidebarStore } from "../../stores";
 import { ChannelUserRole } from "../types/channelUserRole";
 import { ChannelUserStatus } from "../types/channelUserStatus";
 import { graphql } from "../../../src/gql";
+import { ChannelDiscussionQuery } from "../../../src/gql/graphql";
 import request from "graphql-request";
 
 type Channel = {
@@ -48,7 +50,7 @@ type Channel = {
 };
 
 const ChannelDiscussionQueryDocument = graphql(`
-  query ChannelDiscussionQuery($channelId: Int!) {
+  query ChannelDiscussion($channelId: Int!) {
     channel(id: $channelId) {
       name
       private
@@ -98,13 +100,18 @@ const ChannelDiscussionQueryDocument = graphql(`
 
 const query = (
   channelId: number
-): UseQueryOptions<ChannelDiscussionQuery, unknown, ChannelDiscussionQuery> => {
+): UseQueryOptions<
+  ChannelDiscussionQuery,
+  unknown,
+  ChannelDiscussionQuery["channel"]
+> => {
   return {
-    queryKey: ["ChannelDiscussion"],
+    queryKey: ["ChannelDiscussion", channelId], //TODO : check key combo
     queryFn: async () =>
       request("/graphql", ChannelDiscussionQueryDocument, {
         channelId: channelId,
       }),
+    select: (data) => data.channel,
   };
 };
 
@@ -119,14 +126,14 @@ export const channelLoader = async (
 };
 
 const JoinPublicChannel = ({ channelId }: { channelId: number }) => {
-  const joinChannel = useJoinChannelMutation();
+  // const joinChannel = useJoinChannelMutation();
 
   return (
     <div className="flex h-full w-full flex-col items-center justify-center pb-60">
       <JoinIcon className="w-100 text-slate-100" />
       <div className="text-2xl text-slate-300">This Channel is public.</div>
       <span
-        onClick={() => joinChannel.mutate({ channelId: +channelId })}
+        // onClick={() => joinChannel.mutate({ channelId: +channelId })}
         className="mt-5 flex h-24 w-24 flex-col items-center justify-center border-2 border-slate-200 bg-slate-100 p-2 text-xl text-slate-800 hover:cursor-pointer hover:bg-slate-200"
       >
         Join ?
@@ -170,9 +177,9 @@ const AccessProtected = ({ channelId }: { channelId: number }) => {
     handleSubmit,
   } = useForm<PasswordFormData>();
 
-  const joinChannel = useJoinChannelMutation({
-    onError: () => setShowPwdError(true),
-  });
+  // const joinChannel = useJoinChannelMutation({
+  //   onError: () => setShowPwdError(true),
+  // });
 
   return (
     <div className="flex h-full w-full shrink flex-col items-center justify-center overflow-auto pb-20">
@@ -183,10 +190,10 @@ const AccessProtected = ({ channelId }: { channelId: number }) => {
       <div className="flex w-full flex-col items-center justify-center">
         <form
           onSubmit={handleSubmit((data) => {
-            joinChannel.mutate({
-              channelId: channelId,
-              password: data.password,
-            });
+            // joinChannel.mutate({
+            //   channelId: channelId,
+            //   password: data.password,
+            // });
           })}
           className="flex flex-col"
         >
@@ -237,7 +244,10 @@ const MessageInput = ({
 }) => {
   const [content, setContent] = useState("");
 
-  const messageMutation = useSendChannelMessageMutation({});
+  // const sendMessage = useMutation(
+  //   sendChannelMessageMutation({ channelId, content })
+  // );
+  // const messageMutation = useSendChannelMessageMutation({});
 
   const cannotSendMessage =
     status === ChannelUserStatus.BANNED || status === ChannelUserStatus.MUTED;
@@ -262,10 +272,7 @@ const MessageInput = ({
         onKeyDown={(e) => {
           if (!cannotSendMessage) {
             if (e.code == "Enter" && !e.getModifierState("Shift")) {
-              messageMutation.mutate({
-                message: content,
-                channelId: channelId,
-              });
+              // sendMessage.mutate();
               e.currentTarget.value = "";
               e.preventDefault();
               setContent("");
@@ -372,7 +379,7 @@ const Messages = ({
   useEffect(() => {
     sidebarIsOpen &&
       messagesEndRef?.current?.scrollIntoView({ behavior: "auto" });
-  }, [messages, messagesEndRef]); // TODO: check if this is not broken
+  }, [messages, messagesEndRef]);
 
   return (
     <>
@@ -420,15 +427,15 @@ export default function Channel() {
   const role =
     channel.owner.id === userId
       ? ChannelUserRole.OWNER
-      : channel.adminIds.some((admin) => admin.id === userId)
+      : channel.admins.some((admin) => admin.id === userId)
       ? ChannelUserRole.ADMIN
-      : channel.memberIds.some((member) => member.id === userId)
+      : channel.members.some((member) => member.id === userId)
       ? ChannelUserRole.MEMBER
       : ChannelUserRole.NON_MEMBER;
 
-  const status = channel.banned.some((banned) => banned.id === userId)
+  const status = channel.banned.some((banned) => banned.user.id === userId)
     ? ChannelUserStatus.BANNED
-    : channel.muted.some((muted) => muted.id === userId)
+    : channel.muted.some((muted) => muted.user.id === userId)
     ? ChannelUserStatus.MUTED
     : ChannelUserStatus.OK;
 
@@ -464,9 +471,9 @@ export default function Channel() {
           </span>
         </div>
       ) : role === ChannelUserRole.NON_MEMBER ? (
-        channel.isPrivate ? (
+        channel.private ? (
           <AccessForbidden owner={channel.owner} />
-        ) : channel.isPasswordProtected ? (
+        ) : channel.passwordProtected ? (
           <AccessProtected channelId={channelId} />
         ) : (
           <JoinPublicChannel channelId={channelId} />

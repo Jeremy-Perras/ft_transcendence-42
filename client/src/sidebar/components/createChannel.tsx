@@ -4,7 +4,6 @@ import { ReactComponent as PrivateIcon } from "pixelarticons/svg/mail.svg";
 import { ReactComponent as PasswordIcon } from "pixelarticons/svg/lock.svg";
 import { ReactComponent as PublicIcon } from "pixelarticons/svg/lock-open.svg";
 import { ReactComponent as MessagePlusIcon } from "pixelarticons/svg/message-plus.svg";
-import { useCreateChannelMutation } from "../../graphql/generated";
 import * as Dialog from "@radix-ui/react-dialog";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -82,7 +81,7 @@ export default function CreateChannel({
     formState: { errors },
   } = useForm<formData>();
 
-  const createChannelMutation = useCreateChannelMutation();
+  // const createChannelMutation = useCreateChannelMutation();
 
   return (
     <Dialog.Root open={showChannelCreation} modal={false}>
@@ -121,11 +120,11 @@ export default function CreateChannel({
                   <form
                     className="flex h-full flex-col bg-slate-100"
                     onSubmit={handleSubmit((data) => {
-                      createChannelMutation.mutate({
-                        inviteOnly: data.type === "Private",
-                        name: data.name,
-                        password: data.password,
-                      });
+                      // createChannelMutation.mutate({
+                      //   inviteOnly: data.type === "Private",
+                      //   name: data.name,
+                      //   password: data.password,
+                      // });
                       setShowChannelCreation(false);
                     })}
                   >

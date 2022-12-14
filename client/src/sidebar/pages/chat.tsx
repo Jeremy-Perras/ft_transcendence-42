@@ -7,12 +7,7 @@ import {
   useNavigate,
   useParams,
 } from "react-router-dom";
-import {
-  DirectMessagesQuery,
-  FriendStatus,
-  UserStatus,
-  useSendDirectMessageMutation,
-} from "../../graphql/generated";
+
 import { User } from "../types/user";
 import { getDate } from "../utils/getDate";
 import { useQuery } from "@tanstack/react-query";
@@ -28,6 +23,11 @@ import { useSidebarStore } from "../../stores";
 import { IsOnline } from "../components/isOnline";
 import { graphql } from "../../../src/gql";
 import request from "graphql-request";
+import {
+  DirectMessagesQuery,
+  FriendStatus,
+  UserStatus,
+} from "../../../src/gql/graphql";
 
 type DirectMessage = {
   userId: number;
@@ -40,7 +40,7 @@ type DirectMessage = {
 };
 
 const DirectMessagesQueryDocument = graphql(`
-  query DirectMessagesQuery($channelId: Int!) {
+  query DirectMessages($userId: Int!) {
     user(id: $userId) {
       rank
       name
@@ -71,13 +71,18 @@ const DirectMessagesQueryDocument = graphql(`
 
 const query = (
   userId: number
-): UseQueryOptions<DirectMessagesQuery, unknown, DirectMessagesQuery> => {
+): UseQueryOptions<
+  DirectMessagesQuery,
+  unknown,
+  DirectMessagesQuery["user"]
+> => {
   return {
-    queryKey: ["DirectMessages"],
+    queryKey: ["DirectMessages", userId],
     queryFn: async () =>
       request("/graphql", DirectMessagesQueryDocument, {
         userId: userId,
       }),
+    select: (data) => data.user,
   };
 };
 
@@ -148,7 +153,7 @@ export default function Chat() {
   const navigate = useNavigate();
   const sidebarIsOpen = useSidebarStore((state) => state.isOpen);
   const [content, setContent] = useState("");
-  const sendMessageMutation = useSendDirectMessageMutation({});
+  // const sendMessageMutation = useSendDirectMessageMutation({});
 
   if (typeof params.userId === "undefined")
     return <Navigate to={"/"} replace={true} />;
@@ -240,10 +245,10 @@ export default function Chat() {
           onKeyDown={(e) => {
             if (data.blocking === false && data.blocked === false) {
               if (e.code == "Enter" && !e.getModifierState("Shift")) {
-                sendMessageMutation.mutate({
-                  message: content,
-                  userId: userId,
-                });
+                // sendMessageMutation.mutate({
+                //   message: content,
+                //   userId: userId,
+                // });
                 e.currentTarget.value = "";
                 e.preventDefault();
                 setContent("");
