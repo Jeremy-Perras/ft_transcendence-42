@@ -378,6 +378,15 @@ const ToggleMuteStatus = ({
 
   return (
     <div className="relative flex w-8 flex-col justify-end text-center transition-all hover:cursor-pointer">
+      {showTimeMute && (
+        <ChooseTimeButton
+          action={restrictionAction.MUTE}
+          channelId={channelId}
+          setShowTime={setShowTimeMute}
+          showTime={showTimeMute}
+          userId={id}
+        />
+      )}
       <div className="flex flex-col items-center justify-center">
         {userStatus === ChannelUserStatus.MUTED ? (
           <UnmuteIcon
@@ -435,6 +444,15 @@ const ToggleBanStatus = ({
   );
   return (
     <div className="relative flex w-8 flex-col justify-end text-center transition-all hover:cursor-pointer">
+      {showTimeBan && (
+        <ChooseTimeButton
+          action={restrictionAction.BAN}
+          channelId={channelId}
+          setShowTime={setShowTimeBan}
+          showTime={showTimeBan}
+          userId={id}
+        />
+      )}
       <div className="flex flex-col items-center justify-center">
         {userStatus === ChannelUserStatus.BANNED ? (
           <UnbanIcon
@@ -779,7 +797,7 @@ const LeaveChannelConfirm = ({
   const navigate = useNavigate();
 
   const leaveChannel = useMutation(
-    async ({ channelId, userId }: { channelId: number; userId: number }) =>
+    async ({ channelId }: { channelId: number }) =>
       request("/graphql", LeaveChannelMutationDocument, {
         channelId: channelId,
       }),
