@@ -10,7 +10,6 @@ import {
 import {
   DirectMessagesQuery,
   FriendStatus,
-  useDirectMessagesQuery,
   UserStatus,
   useSendDirectMessageMutation,
 } from "../../graphql/generated";
@@ -27,23 +26,8 @@ import {
 import { RankIcon } from "../utils/rankIcon";
 import { useSidebarStore } from "../../stores";
 import { IsOnline } from "../components/isOnline";
-
-type ChatQuery = {
-  messages: {
-    id: number;
-    content: string;
-    sentAt: number;
-    readAt?: number | null | undefined;
-    author: User;
-  }[];
-  name: string;
-  avatar: string;
-  rank: number;
-  blocked: boolean;
-  blocking: boolean;
-  friendStatus: FriendStatus | undefined | null;
-  status: UserStatus;
-};
+import { graphql } from "../../../src/gql";
+import request from "graphql-request";
 
 type DirectMessage = {
   userId: number;
@@ -55,22 +39,45 @@ type DirectMessage = {
   status: UserStatus;
 };
 
+const DirectMessagesQueryDocument = graphql(`
+  query DirectMessagesQuery($channelId: Int!) {
+    user(id: $userId) {
+      rank
+      name
+      avatar
+      status
+      messages {
+        id
+        content
+        readAt
+        sentAt
+        recipient {
+          id
+          name
+          avatar
+        }
+        author {
+          id
+          avatar
+          name
+        }
+      }
+      friendStatus
+      blocked
+      blocking
+    }
+  }
+`);
+
 const query = (
   userId: number
-): UseQueryOptions<DirectMessagesQuery, unknown, ChatQuery> => {
+): UseQueryOptions<DirectMessagesQuery, unknown, DirectMessagesQuery> => {
   return {
-    queryKey: useDirectMessagesQuery.getKey({ userId }),
-    queryFn: useDirectMessagesQuery.fetcher({ userId }),
-    select: (user) => ({
-      messages: user.user.messages.sort((a, b) => a.sentAt - b.sentAt),
-      name: user.user.name,
-      avatar: user.user.avatar,
-      rank: user.user.rank,
-      blocked: user.user.blocked,
-      blocking: user.user.blocking,
-      friendStatus: user.user.friendStatus,
-      status: user.user.status,
-    }),
+    queryKey: ["DirectMessages"],
+    queryFn: async () =>
+      request("/graphql", DirectMessagesQueryDocument, {
+        userId: userId,
+      }),
   };
 };
 
