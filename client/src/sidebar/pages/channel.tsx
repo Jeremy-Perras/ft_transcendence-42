@@ -50,21 +50,9 @@ type Channel = {
 const ChannelDiscussionQueryDocument = graphql(`
   query ChannelDiscussionQuery($channelId: Int!) {
     channel(id: $channelId) {
-      banned {
-        user {
-          id
-        }
-        endAt
-      }
-      muted {
-        endAt
-        user {
-          id
-        }
-      }
+      name
       private
       passwordProtected
-      name
       owner {
         id
         name
@@ -77,14 +65,7 @@ const ChannelDiscussionQueryDocument = graphql(`
         id
       }
       messages {
-        readBy {
-          id
-          name
-          avatar
-          status
-        }
         content
-        id
         sentAt
         author {
           id
@@ -92,6 +73,24 @@ const ChannelDiscussionQueryDocument = graphql(`
           avatar
           status
         }
+        readBy {
+          id
+          name
+          avatar
+          status
+        }
+      }
+      banned {
+        user {
+          id
+        }
+        endAt
+      }
+      muted {
+        user {
+          id
+        }
+        endAt
       }
     }
   }
