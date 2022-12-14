@@ -58,6 +58,19 @@ import request from "graphql-request";
 type ChannelQueryResult = Omit<ChannelSettingsQuery["channel"], "admins"> & {
   admins: ChannelSettingsQuery["channel"]["members"];
 };
+const SearchSettingsQueryDocument = graphql(`
+  query SearchUsers($name: String!) {
+    users(name: $name) {
+      id
+      name
+      avatar
+      status
+      channels {
+        id
+      }
+    }
+  }
+`);
 
 const ChannelSettingsQueryDocument = graphql(`
   query ChannelSettings($channelId: Int!) {
@@ -561,21 +574,42 @@ const SearchResults = ({
   searchInput: string;
   channel: ChannelQueryResult;
 }) => {
-  const { data: searchResults } = useSearchUsersQuery<
+  //TODO Select
+  const { data: searchResults } = useQuery<
     Exclude<SearchUsersQuery["users"][number], null>[],
     unknown
-  >(
-    { name: searchInput },
-    {
-      select(data) {
-        return data.users.filter((u) => {
-          if (u === null) return false;
-          const pred = (m: typeof channel.members[number]) => m.id !== u.id;
-          return !channel.members.some(pred) && !channel.admins.some(pred);
-        }) as Exclude<SearchUsersQuery["users"][number], null>[];
-      },
-    }
+  >(["SearchUser"], async () =>
+    request(
+      "/graphql",
+      SearchSettingsQueryDocument,
+      { name: searchInput }
+      // {
+      //   select(data) {
+      //     return data.users.filter((u) => {
+      //       if (u === null) return false;
+      //       const pred = (m: typeof channel.members[number]) => m.id !== u.id;
+      //       return !channel.members.some(pred) && !channel.admins.some(pred);
+      //     }) as Exclude<SearchUsersQuery["users"][number], null>[];
+      //   },
+      // }
+    )
   );
+
+  // const { data: searchResults } = useSearchUsersQuery<
+  //   Exclude<SearchUsersQuery["users"][number], null>[],
+  //   unknown
+  // >(
+  //   { name: searchInput },
+  //   {
+  //     select(data) {
+  //       return data.users.filter((u) => {
+  //         if (u === null) return false;
+  //         const pred = (m: typeof channel.members[number]) => m.id !== u.id;
+  //         return !channel.members.some(pred) && !channel.admins.some(pred);
+  //       }) as Exclude<SearchUsersQuery["users"][number], null>[];
+  //     },
+  //   }
+  // );
 
   const updateMembers = useInviteUserMutation({});
 
