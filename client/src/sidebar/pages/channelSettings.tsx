@@ -300,7 +300,14 @@ const ToggleMuteStatus = ({
   const [showInfoMute, setShowInfoMute] = useState(false);
   const [showTimeMute, setShowTimeMute] = useState(false);
 
-  // const unmuteUser = useUnmuteUserMutation({});
+  const unmuteUser = useMutation(
+    async ({ channelId, userId }: { channelId: number; userId: number }) =>
+      request("/graphql", UnmuteUserMutationDocument, {
+        channelId: channelId,
+        userId: userId,
+      }),
+    { onError: () => alert("Error") } //TODO : change this in error store
+  );
 
   return (
     <div className="relative flex w-8 flex-col justify-end text-center transition-all hover:cursor-pointer">
@@ -311,10 +318,10 @@ const ToggleMuteStatus = ({
             onMouseOut={() => setShowInfoMute(false)}
             className="w-6 border-2 border-slate-300  text-neutral-600 hover:cursor-pointer hover:border-slate-700 hover:text-black"
             onClick={() => {
-              // unmuteUser.mutate({
-              //   channelId: channelId,
-              //   userId: id,
-              // });
+              unmuteUser.mutate({
+                channelId: channelId,
+                userId: id,
+              });
             }}
           />
         ) : (
@@ -351,8 +358,14 @@ const ToggleBanStatus = ({
   const [showInfoBan, setShowInfoBan] = useState(false);
   const [showTimeBan, setShowTimeBan] = useState(false);
 
-  // const unbanUser = useUnbanUserMutation({});
-
+  const ubanUser = useMutation(
+    async ({ channelId, userId }: { channelId: number; userId: number }) =>
+      request("/graphql", UnbanUserMutationDocument, {
+        channelId: channelId,
+        userId: userId,
+      }),
+    { onError: () => alert("Error") } //TODO : change this in error store
+  );
   return (
     <div className="relative flex w-8 flex-col justify-end text-center transition-all hover:cursor-pointer">
       <div className="flex flex-col items-center justify-center">
@@ -362,10 +375,10 @@ const ToggleBanStatus = ({
             onMouseOut={() => setShowInfoBan(false)}
             className="w-6 border-2 border-red-500 text-red-600 hover:cursor-pointer hover:border-red-700 hover:text-red-800"
             onClick={() => {
-              // unbanUser.mutate({
-              //   channelId: channelId,
-              //   userId: id,
-              // });
+              unbanUser.mutate({
+                channelId: channelId,
+                userId: id,
+              });
             }}
           />
         ) : (
@@ -403,9 +416,23 @@ const ToggleAdminRole = ({
 }) => {
   const [showInfoAdmin, setShowInfoAdmin] = useState(false);
 
-  // const removeAdmin = useRemoveAdminMutation({});
-  // const addAdmin = useAddAdminMutation({});
+  const addAdmin = useMutation(
+    async ({ channelId, userId }: { channelId: number; userId: number }) =>
+      request("/graphql", AddAdminMutationDocument, {
+        channelId: channelId,
+        userId: userId,
+      }),
+    { onError: () => alert("Error") } //TODO : change this in error store
+  );
 
+  const removeAdmin = useMutation(
+    async ({ channelId, userId }: { channelId: number; userId: number }) =>
+      request("/graphql", RemoveAdminMutationDocument, {
+        channelId: channelId,
+        userId: userId,
+      }),
+    { onError: () => alert("Error") } //TODO : change this in error store
+  );
   return (
     <div className="relative flex w-8 flex-col items-center justify-start">
       {userRole === ChannelUserRole.ADMIN ? (
@@ -415,20 +442,20 @@ const ToggleAdminRole = ({
             setShowInfoAdmin(false);
           }}
           onClick={() => {
-            // removeAdmin.mutate({
-            //   channelId: channelId,
-            //   userId: id,
-            // });
+            removeAdmin.mutate({
+              channelId: channelId,
+              userId: id,
+            });
           }}
           className="w-6 border-2 border-slate-300 text-neutral-600 hover:cursor-pointer hover:border-slate-700 hover:text-black"
         />
       ) : (
         <AdminIcon
           onClick={() => {
-            // addAdmin.mutate({
-            //   channelId: channelId,
-            //   userId: id,
-            // });
+            addAdmin.mutate({
+              channelId: channelId,
+              userId: id,
+            });
           }}
           onMouseOver={() => setShowInfoAdmin(true)}
           onMouseOut={() => {
@@ -612,8 +639,14 @@ const SearchResults = ({
   searchInput: string;
   channel: ChannelQueryResult;
 }) => {
-  // const updateMembers = useInviteUserMutation({});
-
+  const updateMembers = useMutation(
+    async ({ channelId, userId }: { channelId: number; userId: number }) =>
+      request("/graphql", InviteUserMutationDocument, {
+        channelId: channelId,
+        userId: userId,
+      }),
+    { onError: () => alert("Error") } //TODO : change this in error store
+  );
   const { data: searchResults } = useQuery({
     queryKey: ["Users"],
     queryFn: async () =>
@@ -642,10 +675,10 @@ const SearchResults = ({
               key={index}
               className="flex items-center bg-slate-100 p-2 even:bg-white hover:cursor-pointer hover:bg-blue-100"
               onClick={() => {
-                // updateMembers.mutate({
-                //   channelId: channel.id,
-                //   userId: result?.id,
-                // });
+                updateMembers.mutate({
+                  channelId: channel.id,
+                  userId: result?.id,
+                });
               }}
             >
               <Avatar.Root>
@@ -807,6 +840,7 @@ const ChannelMode = ({
     formState: { errors },
     reset,
   } = useForm<ChangePasswordFormData>();
+
   // const updatePassword = useUpdateChannelPasswordMutation({
   //   onSuccess: () => {
   //     setShowPasswordField(false);
@@ -820,12 +854,12 @@ const ChannelMode = ({
     <form
       className="mt-4 flex h-full flex-col"
       onSubmit={handleSubmit((data) => {
-        // showPasswordField
-        //   ? updatePassword.mutate({
-        //       channelId: channelId,
-        //       password: data.password,
-        //     })
-        //   : null;
+        showPasswordField
+          ? updatePassword.mutate({
+              channelId: channelId,
+              password: data.password,
+            })
+          : null;
       })}
     >
       <div className="flex w-full ">
