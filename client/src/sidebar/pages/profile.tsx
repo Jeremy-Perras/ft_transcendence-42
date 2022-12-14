@@ -13,14 +13,11 @@ import {
   UserProfileQuery,
   useUnblockUserMutation,
   useUnfriendUserMutation,
-  useUserProfileQuery,
   useRefuseInvitationMutation,
   useUpdateUserNameMutation,
   FriendStatus,
-  useUserProfileHeaderQuery,
   GameMode,
 } from "../../graphql/generated";
-import queryClient from "../../query";
 import ClassicIcon from "/src/assets/images/ClassicIcon.svg";
 import BonusIcon from "/src/assets/images/BonusIcon.svg";
 import FireIcon from "/src/assets/images/FireIcon.svg";
@@ -46,17 +43,65 @@ import BannedDarkIcon from "/src/assets/images/Banned_dark.svg";
 import { useForm, useWatch } from "react-hook-form";
 import { useAuthStore } from "../../stores";
 import { IsOnline } from "../components/isOnline";
+import { graphql } from "../../../src/gql";
+import request from "graphql-request";
 
 type formData = {
   name: string;
 };
 
+const UserProfileQueryDocument = graphql(`
+  query UserProfileQuery($userId: Int!) {
+    user(id: $userId) {
+      id
+      name
+      avatar
+      rank
+      games {
+        finishedAt
+        gameMode
+        players {
+          player1 {
+            avatar
+            status
+            name
+            rank
+            id
+          }
+          player2 {
+            avatar
+            status
+            name
+            rank
+            id
+          }
+        }
+        score {
+          player1Score
+          player2Score
+        }
+        startAt
+      }
+      blocked
+      blocking
+      achievements {
+        name
+      }
+      friendStatus
+      status
+    }
+  }
+`);
+
 const query = (
   userId: number
 ): UseQueryOptions<UserProfileQuery, unknown, UserProfileQuery> => {
   return {
-    queryKey: useUserProfileQuery.getKey({ userId }),
-    queryFn: useUserProfileQuery.fetcher({ userId }),
+    queryKey: ["UserProfile"],
+    queryFn: async () =>
+      request("/graphql", UserProfileQueryDocument, {
+        userId: userId,
+      }),
   };
 };
 
@@ -144,8 +189,7 @@ const UserProfileHeader = ({
       method: "POST",
       body: formData,
     }).then(() => {
-      queryClient.invalidateQueries(useUserProfileQuery.getKey());
-      queryClient.invalidateQueries(useUserProfileHeaderQuery.getKey());
+      //invalidate queries ?
     });
   };
 
