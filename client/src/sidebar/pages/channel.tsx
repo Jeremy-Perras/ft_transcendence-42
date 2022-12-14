@@ -8,7 +8,6 @@ import {
 } from "react-router-dom";
 import {
   ChannelDiscussionQuery,
-  useChannelDiscussionQuery,
   useJoinChannelMutation,
   useSendChannelMessageMutation,
 } from "../../graphql/generated";
@@ -30,6 +29,8 @@ import { getDate } from "../utils/getDate";
 import { useAuthStore, useSidebarStore } from "../../stores";
 import { ChannelUserRole } from "../types/channelUserRole";
 import { ChannelUserStatus } from "../types/channelUserStatus";
+import { graphql } from "../../../src/gql";
+import request from "graphql-request";
 
 type Channel = {
   name: string;
@@ -46,31 +47,65 @@ type Channel = {
   isPrivate: boolean;
 };
 
+const ChannelDiscussionQueryDocument = graphql(`
+  query ChannelDiscussionQuery($channelId: Int!) {
+    channel(id: $channelId) {
+      banned {
+        user {
+          id
+        }
+        endAt
+      }
+      muted {
+        endAt
+        user {
+          id
+        }
+      }
+      private
+      passwordProtected
+      name
+      owner {
+        id
+        name
+        avatar
+      }
+      members {
+        id
+      }
+      admins {
+        id
+      }
+      messages {
+        readBy {
+          id
+          name
+          avatar
+          status
+        }
+        content
+        id
+        sentAt
+        author {
+          id
+          name
+          avatar
+          status
+        }
+      }
+    }
+  }
+`);
+
 const query = (
   channelId: number
-): UseQueryOptions<ChannelDiscussionQuery, unknown, Channel> => {
+): UseQueryOptions<ChannelDiscussionQuery, unknown, ChannelDiscussionQuery> => {
   return {
-    queryKey: useChannelDiscussionQuery.getKey({
-      channelId: channelId,
-    }),
-    queryFn: useChannelDiscussionQuery.fetcher({
-      channelId: channelId,
-    }),
-    select: (channels) => ({
-      name: channels.channel.name,
-      messages: channels.channel.messages,
-      owner: {
-        id: channels.channel.owner.id,
-        name: channels.channel.owner.name,
-        avatar: channels.channel.owner.avatar,
-      },
-      adminIds: channels.channel.admins,
-      memberIds: channels.channel.members,
-      banned: channels.channel.banned,
-      muted: channels.channel.muted,
-      isPasswordProtected: channels.channel.passwordProtected,
-      isPrivate: channels.channel.private,
-    }),
+    queryKey: ["ChannelDiscussion"],
+    queryFn: async () =>
+      request("/graphql", ChannelDiscussionQueryDocument, {
+        channelId: channelId,
+      }),
   };
 };
 
