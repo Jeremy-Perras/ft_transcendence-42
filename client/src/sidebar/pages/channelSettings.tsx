@@ -25,7 +25,12 @@ import { ReactComponent as ConnectionErrorIcon } from "pixelarticons/svg/downasa
 import { useRef, useState } from "react";
 import * as Avatar from "@radix-ui/react-avatar";
 import { useForm } from "react-hook-form";
-import { QueryClient, useQuery, UseQueryOptions } from "@tanstack/react-query";
+import {
+  QueryClient,
+  useMutation,
+  useQuery,
+  UseQueryOptions,
+} from "@tanstack/react-query";
 import {
   Header,
   HeaderCenterContent,
@@ -139,8 +144,16 @@ export const channelSettingsLoader = async (
 };
 
 const BanUserMutationDocument = graphql(`
-  mutation BanUser($userId: Int!, $channelId: Int!) {
-    banUser(userId: $userId, channelId: $channelId)
+  mutation BanUser(
+    $channelId: Int!
+    $restrictedId: Int!
+    $restrictUntil: Timestamp
+  ) {
+    banUser(
+      channelId: $channelId
+      userId: $restrictedId
+      restrictUntil: $restrictUntil
+    )
   }
 `);
 
@@ -151,8 +164,16 @@ const UnbanUserMutationDocument = graphql(`
 `);
 
 const MuteUserMutationDocument = graphql(`
-  mutation MuteUser($userId: Int!, $channelId: Int!) {
-    muteUser(userId: $userId, channelId: $channelId)
+  mutation MuteUser(
+    $channelId: Int!
+    $restrictedId: Int!
+    $restrictUntil: Timestamp
+  ) {
+    muteUser(
+      channelId: $channelId
+      userId: $restrictedId
+      restrictUntil: $restrictUntil
+    )
   }
 `);
 
@@ -179,10 +200,20 @@ const InviteUserMutationDocument = graphql(`
     inviteUser(userId: $userId, channelId: $channelId)
   }
 `);
+const LeaveChannelMutationDocument = graphql(`
+  mutation LeaveChannel($channelId: Int!) {
+    leaveChannel(channelId: $channelId)
+  }
+`);
+const DeleteChannelMutationDocument = graphql(`
+  mutation DeleteChannel($channelId: Int!) {
+    deleteChannel(channelId: $channelId)
+  }
+`);
 
 const UpdatePasswordMutationDocument = graphql(`
-  mutation UpdatePassword($channelId: Int!, $password: String) {
-    updatePassword(channelId: $channelId, password: $password)
+  mutation UpdatePassword($password: String, $channelId: Int!) {
+    updatePassword(password: $password, channelId: $channelId)
   }
 `);
 
@@ -222,27 +253,59 @@ const SetRestrictionTimeButton = ({
   action,
   setShowTime,
 }: {
-  channelId: number | undefined;
-  userId: number | undefined;
+  channelId: number;
+  userId: number;
   time: RestrictionTime;
   action: restrictionAction;
   setShowTime: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
-  // const restriction =
-  //   action === restrictionAction.BAN
-  //     ? useBanUserMutation({})
-  //     : useMuteUserMutation({});
+  const restriction =
+    action === restrictionAction.BAN
+      ? useMutation(
+          async ({
+            channelId,
+            restrictedId,
+            restrictUntil,
+          }: {
+            channelId: number;
+            restrictedId: number;
+            restrictUntil: number | null | undefined;
+          }) =>
+            request("/graphql", BanUserMutationDocument, {
+              restrictedId: restrictedId,
+              channelId: channelId,
+              restrictUntil: restrictUntil,
+            }),
+          { onError: () => alert("Error") } //TODO : change this in error store
+        )
+      : useMutation(
+          async ({
+            channelId,
+            restrictedId,
+            restrictUntil,
+          }: {
+            channelId: number;
+            restrictedId: number;
+            restrictUntil: number | null | undefined;
+          }) =>
+            request("/graphql", MuteUserMutationDocument, {
+              channelId: channelId,
+              restrictedId: restrictedId,
+              restrictUntil: restrictUntil,
+            }),
+          { onError: () => alert("Error") } //TODO : change this in error store
+        );
 
   return (
     <div
       className="hover:bg-slate-300"
       onClick={() => {
         setShowTime(false);
-        // restriction.mutate({
-        //   channelId: channelId,
-        //   restrictedId: userId,
-        //   restrictUntil: time.endAt,
-        // });
+        restriction.mutate({
+          channelId: channelId,
+          restrictedId: userId,
+          restrictUntil: time.endAt,
+        });
       }}
     >
       {time.text}
@@ -257,8 +320,8 @@ const ChooseTimeButton = ({
   showTime,
   setShowTime,
 }: {
-  userId: number | undefined;
-  channelId: number | undefined;
+  userId: number;
+  channelId: number;
   action: restrictionAction;
   showTime: boolean;
   setShowTime: React.Dispatch<React.SetStateAction<boolean>>;
@@ -358,7 +421,7 @@ const ToggleBanStatus = ({
   const [showInfoBan, setShowInfoBan] = useState(false);
   const [showTimeBan, setShowTimeBan] = useState(false);
 
-  const ubanUser = useMutation(
+  const unbanUser = useMutation(
     async ({ channelId, userId }: { channelId: number; userId: number }) =>
       request("/graphql", UnbanUserMutationDocument, {
         channelId: channelId,
@@ -647,6 +710,7 @@ const SearchResults = ({
       }),
     { onError: () => alert("Error") } //TODO : change this in error store
   );
+
   const { data: searchResults } = useQuery({
     queryKey: ["Users"],
     queryFn: async () =>
@@ -710,7 +774,13 @@ const LeaveChannelConfirm = ({
 }) => {
   const navigate = useNavigate();
 
-  // const leaveChannel = useLeaveChannelMutation({});
+  const leaveChannel = useMutation(
+    async ({ channelId, userId }: { channelId: number; userId: number }) =>
+      request("/graphql", LeaveChannelMutationDocument, {
+        channelId: channelId,
+      }),
+    { onError: () => alert("Error") } //TODO : change this in error store
+  );
 
   return (
     <div className="absolute top-0 right-0 z-10 flex h-full w-full flex-col items-center justify-center bg-black bg-opacity-30">
@@ -731,7 +801,7 @@ const LeaveChannelConfirm = ({
             <div className="mt-4 flex flex-row text-center">
               <button
                 onClick={() => {
-                  // leaveChannel.mutate({ channelId: channelId });
+                  leaveChannel.mutate({ channelId: channelId });
                   navigate("/");
                 }}
                 className="block w-full border-2 border-slate-200 bg-slate-100 px-4 py-3 text-sm font-semibold text-red-700 hover:bg-slate-200 "
@@ -769,7 +839,13 @@ const DeleteConfirm = ({
 }) => {
   const navigate = useNavigate();
 
-  // const deleteChannel = useDeleteChannelMutation({});
+  const deleteChannel = useMutation(
+    async ({ channelId }: { channelId: number }) =>
+      request("/graphql", DeleteChannelMutationDocument, {
+        channelId: channelId,
+      }),
+    { onError: () => alert("Error") } //TODO : change this in error store
+  );
 
   return (
     <div className="absolute top-0 right-0 z-10 flex h-full w-full flex-col items-center justify-center bg-black bg-opacity-30">
@@ -793,7 +869,7 @@ const DeleteConfirm = ({
             <div className="mt-4 flex flex-row text-center">
               <button
                 onClick={() => {
-                  // deleteChannel.mutate({ channelId: channelId });
+                  deleteChannel.mutate({ channelId: channelId });
                   navigate("/");
                 }}
                 className="block w-full border-2 border-slate-200 bg-slate-100 px-4 py-3 text-sm font-semibold text-red-700 hover:bg-slate-200 "
@@ -841,12 +917,26 @@ const ChannelMode = ({
     reset,
   } = useForm<ChangePasswordFormData>();
 
-  // const updatePassword = useUpdateChannelPasswordMutation({
-  //   onSuccess: () => {
-  //     setShowPasswordField(false);
-  //     reset();
-  //   },
-  // });
+  const updatePassword = useMutation(
+    async ({
+      password,
+      channelId,
+    }: {
+      password: string | undefined;
+      channelId: number;
+    }) =>
+      request("/graphql", UpdatePasswordMutationDocument, {
+        channelId: channelId,
+        password: password,
+      }),
+    {
+      onError: () => alert("Error"), //TODO : change this in error store
+      onSuccess: () => {
+        setShowPasswordField(false);
+        reset();
+      },
+    }
+  );
 
   const [showPasswordField, setShowPasswordField] = useState(false);
 
@@ -856,8 +946,8 @@ const ChannelMode = ({
       onSubmit={handleSubmit((data) => {
         showPasswordField
           ? updatePassword.mutate({
-              channelId: channelId,
               password: data.password,
+              channelId: channelId,
             })
           : null;
       })}
@@ -880,14 +970,14 @@ const ChannelMode = ({
             </button>
             {activeMode === "Password" && (
               <button
-                // onClick={() => {
-                //   !showPasswordField
-                //     ? updatePassword.mutate({
-                //         channelId: channelId,
-                //         password: null,
-                //       })
-                //     : null;
-                // }}
+                onClick={() => {
+                  !showPasswordField
+                    ? updatePassword.mutate({
+                        channelId: channelId,
+                        password: undefined, //null?
+                      })
+                    : null;
+                }}
                 className={`${
                   activeMode === "Password" && showPasswordField
                     ? "opacity-20 hover:cursor-not-allowed"

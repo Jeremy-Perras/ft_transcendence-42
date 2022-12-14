@@ -21,6 +21,16 @@ const documents = {
     "\n  mutation SendChannelMessage($message: String!, $channelId: Int!) {\n    sendChannelMessage(message: $message, channelId: $channelId)\n  }\n": types.SendChannelMessageDocument,
     "\n  query SearchUsers($name: String!) {\n    users(name: $name) {\n      id\n      name\n      avatar\n      status\n      channels {\n        id\n      }\n    }\n  }\n": types.SearchUsersDocument,
     "\n  query ChannelSettings($channelId: Int!) {\n    channel(id: $channelId) {\n      id\n      name\n      owner {\n        id\n        name\n        avatar\n      }\n      admins {\n        id\n      }\n      members {\n        id\n        name\n        avatar\n      }\n      banned {\n        user {\n          id\n          name\n          avatar\n        }\n        endAt\n      }\n      muted {\n        user {\n          id\n        }\n        endAt\n      }\n      passwordProtected\n      private\n    }\n  }\n": types.ChannelSettingsDocument,
+    "\n  mutation BanUser(\n    $channelId: Int!\n    $restrictedId: Int!\n    $restrictUntil: Timestamp\n  ) {\n    banUser(\n      channelId: $channelId\n      userId: $restrictedId\n      restrictUntil: $restrictUntil\n    )\n  }\n": types.BanUserDocument,
+    "\n  mutation UnbanUser($userId: Int!, $channelId: Int!) {\n    unbanUser(userId: $userId, channelId: $channelId)\n  }\n": types.UnbanUserDocument,
+    "\n  mutation MuteUser(\n    $channelId: Int!\n    $restrictedId: Int!\n    $restrictUntil: Timestamp\n  ) {\n    muteUser(\n      channelId: $channelId\n      userId: $restrictedId\n      restrictUntil: $restrictUntil\n    )\n  }\n": types.MuteUserDocument,
+    "\n  mutation UnmuteUser($userId: Int!, $channelId: Int!) {\n    unmuteUser(userId: $userId, channelId: $channelId)\n  }\n": types.UnmuteUserDocument,
+    "\n  mutation AddAdmin($userId: Int!, $channelId: Int!) {\n    addAdmin(userId: $userId, channelId: $channelId)\n  }\n": types.AddAdminDocument,
+    "\n  mutation RemoveAdmin($userId: Int!, $channelId: Int!) {\n    removeAdmin(userId: $userId, channelId: $channelId)\n  }\n": types.RemoveAdminDocument,
+    "\n  mutation InviteUser($userId: Int!, $channelId: Int!) {\n    inviteUser(userId: $userId, channelId: $channelId)\n  }\n": types.InviteUserDocument,
+    "\n  mutation LeaveChannel($channelId: Int!) {\n    leaveChannel(channelId: $channelId)\n  }\n": types.LeaveChannelDocument,
+    "\n  mutation DeleteChannel($channelId: Int!) {\n    deleteChannel(channelId: $channelId)\n  }\n": types.DeleteChannelDocument,
+    "\n  mutation UpdatePassword($password: String, $channelId: Int!) {\n    updatePassword(password: $password, channelId: $channelId)\n  }\n": types.UpdatePasswordDocument,
     "\n  query DirectMessages($userId: Int!) {\n    user(id: $userId) {\n      rank\n      name\n      avatar\n      status\n      messages {\n        id\n        content\n        readAt\n        sentAt\n        recipient {\n          id\n          name\n          avatar\n        }\n        author {\n          id\n          avatar\n          name\n        }\n      }\n      friendStatus\n      blocked\n      blocking\n    }\n  }\n": types.DirectMessagesDocument,
     "\n  mutation SendDirectMessage($userId: Int!, $message: String!) {\n    sendDirectMessage(userId: $userId, message: $message)\n  }\n": types.SendDirectMessageDocument,
     "\n  query DiscussionsAndInvitations($userId: Int) {\n    user(id: $userId) {\n      id\n      chats {\n        avatar\n        hasUnreadMessages\n        id\n        lastMessageContent\n        lastMessageDate\n        name\n        type\n        status\n      }\n      pendingFriends {\n        id\n        avatar\n        name\n      }\n    }\n  }\n": types.DiscussionsAndInvitationsDocument,
@@ -68,6 +78,46 @@ export function graphql(source: "\n  query SearchUsers($name: String!) {\n    us
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  query ChannelSettings($channelId: Int!) {\n    channel(id: $channelId) {\n      id\n      name\n      owner {\n        id\n        name\n        avatar\n      }\n      admins {\n        id\n      }\n      members {\n        id\n        name\n        avatar\n      }\n      banned {\n        user {\n          id\n          name\n          avatar\n        }\n        endAt\n      }\n      muted {\n        user {\n          id\n        }\n        endAt\n      }\n      passwordProtected\n      private\n    }\n  }\n"): (typeof documents)["\n  query ChannelSettings($channelId: Int!) {\n    channel(id: $channelId) {\n      id\n      name\n      owner {\n        id\n        name\n        avatar\n      }\n      admins {\n        id\n      }\n      members {\n        id\n        name\n        avatar\n      }\n      banned {\n        user {\n          id\n          name\n          avatar\n        }\n        endAt\n      }\n      muted {\n        user {\n          id\n        }\n        endAt\n      }\n      passwordProtected\n      private\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation BanUser(\n    $channelId: Int!\n    $restrictedId: Int!\n    $restrictUntil: Timestamp\n  ) {\n    banUser(\n      channelId: $channelId\n      userId: $restrictedId\n      restrictUntil: $restrictUntil\n    )\n  }\n"): (typeof documents)["\n  mutation BanUser(\n    $channelId: Int!\n    $restrictedId: Int!\n    $restrictUntil: Timestamp\n  ) {\n    banUser(\n      channelId: $channelId\n      userId: $restrictedId\n      restrictUntil: $restrictUntil\n    )\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation UnbanUser($userId: Int!, $channelId: Int!) {\n    unbanUser(userId: $userId, channelId: $channelId)\n  }\n"): (typeof documents)["\n  mutation UnbanUser($userId: Int!, $channelId: Int!) {\n    unbanUser(userId: $userId, channelId: $channelId)\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation MuteUser(\n    $channelId: Int!\n    $restrictedId: Int!\n    $restrictUntil: Timestamp\n  ) {\n    muteUser(\n      channelId: $channelId\n      userId: $restrictedId\n      restrictUntil: $restrictUntil\n    )\n  }\n"): (typeof documents)["\n  mutation MuteUser(\n    $channelId: Int!\n    $restrictedId: Int!\n    $restrictUntil: Timestamp\n  ) {\n    muteUser(\n      channelId: $channelId\n      userId: $restrictedId\n      restrictUntil: $restrictUntil\n    )\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation UnmuteUser($userId: Int!, $channelId: Int!) {\n    unmuteUser(userId: $userId, channelId: $channelId)\n  }\n"): (typeof documents)["\n  mutation UnmuteUser($userId: Int!, $channelId: Int!) {\n    unmuteUser(userId: $userId, channelId: $channelId)\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation AddAdmin($userId: Int!, $channelId: Int!) {\n    addAdmin(userId: $userId, channelId: $channelId)\n  }\n"): (typeof documents)["\n  mutation AddAdmin($userId: Int!, $channelId: Int!) {\n    addAdmin(userId: $userId, channelId: $channelId)\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation RemoveAdmin($userId: Int!, $channelId: Int!) {\n    removeAdmin(userId: $userId, channelId: $channelId)\n  }\n"): (typeof documents)["\n  mutation RemoveAdmin($userId: Int!, $channelId: Int!) {\n    removeAdmin(userId: $userId, channelId: $channelId)\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation InviteUser($userId: Int!, $channelId: Int!) {\n    inviteUser(userId: $userId, channelId: $channelId)\n  }\n"): (typeof documents)["\n  mutation InviteUser($userId: Int!, $channelId: Int!) {\n    inviteUser(userId: $userId, channelId: $channelId)\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation LeaveChannel($channelId: Int!) {\n    leaveChannel(channelId: $channelId)\n  }\n"): (typeof documents)["\n  mutation LeaveChannel($channelId: Int!) {\n    leaveChannel(channelId: $channelId)\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation DeleteChannel($channelId: Int!) {\n    deleteChannel(channelId: $channelId)\n  }\n"): (typeof documents)["\n  mutation DeleteChannel($channelId: Int!) {\n    deleteChannel(channelId: $channelId)\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation UpdatePassword($password: String, $channelId: Int!) {\n    updatePassword(password: $password, channelId: $channelId)\n  }\n"): (typeof documents)["\n  mutation UpdatePassword($password: String, $channelId: Int!) {\n    updatePassword(password: $password, channelId: $channelId)\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
