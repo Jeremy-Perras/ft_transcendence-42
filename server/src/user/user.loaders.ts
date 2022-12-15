@@ -30,7 +30,8 @@ export class FriendedByIdsLoader implements NestDataLoader<number, number[]> {
       const u = await this.prismaService.friendRequest.findMany({
         where: { senderId: { in: [...keys] } },
       });
-      return u.reduce((acc, curr) => {
+
+      const c = u.reduce((acc, curr) => {
         const index = keys.indexOf(curr.senderId);
         if (!acc[index]) {
           acc[index] = new Array<number>();
@@ -38,6 +39,13 @@ export class FriendedByIdsLoader implements NestDataLoader<number, number[]> {
         acc[index]?.push(curr.receiverId);
         return acc;
       }, new Array<number[]>());
+
+      for (let index = 0; index < keys.length; index++) {
+        if (!c[index]) {
+          c[index] = new Array<number>();
+        }
+      }
+      return c;
     });
   }
 }
@@ -47,11 +55,12 @@ export class FriendIdsLoader implements NestDataLoader<number, number[]> {
   constructor(private prismaService: PrismaService) {}
 
   generateDataLoader(): DataLoader<number, number[]> {
-    const c = new DataLoader<number, number[]>(async (keys) => {
+    return new DataLoader<number, number[]>(async (keys) => {
       const u = await this.prismaService.friendRequest.findMany({
         where: { receiverId: { in: [...keys] } },
       });
-      const t = u.reduce((acc, curr) => {
+
+      const c = u.reduce((acc, curr) => {
         const index = keys.indexOf(curr.receiverId);
         if (!acc[index]) {
           acc[index] = new Array<number>();
@@ -59,9 +68,14 @@ export class FriendIdsLoader implements NestDataLoader<number, number[]> {
         acc[index]?.push(curr.senderId);
         return acc;
       }, new Array<number[]>());
-      return t;
+
+      for (let index = 0; index < keys.length; index++) {
+        if (!c[index]) {
+          c[index] = new Array<number>();
+        }
+      }
+      return c;
     });
-    return c;
   }
 }
 
@@ -74,7 +88,8 @@ export class BlockedByIdsLoader implements NestDataLoader<number, number[]> {
       const u = await this.prismaService.userBlock.findMany({
         where: { blockerId: { in: [...keys] } },
       });
-      return u.reduce((acc, curr) => {
+
+      const c = u.reduce((acc, curr) => {
         const index = keys.indexOf(curr.blockerId);
         if (!acc[index]) {
           acc[index] = new Array<number>();
@@ -82,6 +97,13 @@ export class BlockedByIdsLoader implements NestDataLoader<number, number[]> {
         acc[index]?.push(curr.blockeeId);
         return acc;
       }, new Array<number[]>());
+
+      for (let index = 0; index < keys.length; index++) {
+        if (!c[index]) {
+          c[index] = new Array<number>();
+        }
+      }
+      return c;
     });
   }
 }
@@ -94,21 +116,22 @@ export class BlockingIdsLoader implements NestDataLoader<number, number[]> {
       const u = await this.prismaService.userBlock.findMany({
         where: { blockeeId: { in: [...keys] } },
       });
-      if (u && u.length > 0) {
-        return u.reduce((acc, curr) => {
-          const index = keys.indexOf(curr.blockeeId);
-          if (!acc[index]) {
-            acc[index] = new Array<number>();
-          }
-          acc[index]?.push(curr.blockerId);
-          return acc;
-        }, new Array<number[]>());
-      }
-      //TODO
-      return keys.reduce((acc, curr) => {
-        acc[curr] = new Array<number>();
+
+      const c = u.reduce((acc, curr) => {
+        const index = keys.indexOf(curr.blockeeId);
+        if (!acc[index]) {
+          acc[index] = new Array<number>();
+        }
+        acc[index]?.push(curr.blockerId);
         return acc;
       }, new Array<number[]>());
+
+      for (let index = 0; index < keys.length; index++) {
+        if (!c[index]) {
+          c[index] = new Array<number>();
+        }
+      }
+      return c;
     });
   }
 }
@@ -120,20 +143,25 @@ export class AchivementsLoader
   constructor(private prismaService: PrismaService) {}
 
   generateDataLoader(): DataLoader<number, UserAchievement[]> {
-    return new DataLoader<number, UserAchievement[]>(async (keys) =>
-      (
-        await this.prismaService.user.findMany({
-          select: {
-            achievements: true,
+    return new DataLoader<number, UserAchievement[]>(async (keys) => {
+      const users = await this.prismaService.user.findMany({
+        select: {
+          id: true,
+          achievements: true,
+        },
+        where: {
+          id: {
+            in: [...keys],
           },
-          where: {
-            id: {
-              in: [...keys],
-            },
-          },
-        })
-      ).map((user) => user.achievements)
-    );
+        },
+      });
+
+      return users.reduce((acc, curr) => {
+        const index = keys.indexOf(curr.id);
+        acc[index] = curr.achievements;
+        return acc;
+      }, new Array<UserAchievement[]>());
+    });
   }
 }
 @Injectable()
@@ -149,6 +177,7 @@ export class AvatarLoader implements NestDataLoader<number, Avatar> {
           },
         },
       });
+
       return avatars.reduce((acc, curr) => {
         const index = keys.indexOf(curr.userId);
         acc[index] = curr;
@@ -164,7 +193,6 @@ export class UserChannelIdsLoader implements NestDataLoader<number, number[]> {
 
   generateDataLoader(): DataLoader<number, number[]> {
     return new DataLoader<number, number[]>(async (keys) => {
-      console.log(keys);
       const c = await this.prismaService.channel.findMany({
         select: {
           id: true,
@@ -186,27 +214,32 @@ export class UserChannelIdsLoader implements NestDataLoader<number, number[]> {
           ],
         },
       });
-      if (c && c.length > 0) {
-        return c.reduce((acc, curr) => {
-          const index = keys.findIndex((e) => curr.ownerId === e);
-          if (index !== -1) {
+
+      const m = c.reduce((acc, curr) => {
+        const index = keys.findIndex((e) => curr.ownerId === e);
+        if (index !== -1) {
+          if (!acc[index]) {
+            acc[index] = new Array<number>();
+          }
+          acc[index]?.push(curr.id);
+        } else {
+          curr.members.forEach((m) => {
+            const index = keys.findIndex((e) => m.userId === e);
             if (!acc[index]) {
               acc[index] = new Array<number>();
             }
             acc[index]?.push(curr.id);
-          } else {
-            curr.members.forEach((m) => {
-              const index = keys.findIndex((e) => m.userId === e);
-              if (!acc[index]) {
-                acc[index] = new Array<number>();
-              }
-              acc[index]?.push(curr.id);
-            });
-          }
-          return acc;
-        }, new Array<number[]>());
+          });
+        }
+        return acc;
+      }, new Array<number[]>());
+
+      for (let index = 0; index < keys.length; index++) {
+        if (!m[index]) {
+          m[index] = new Array<number>();
+        }
       }
-      return new Array<number[]>();
+      return m;
     });
   }
 }
@@ -230,7 +263,6 @@ export class DirectMessagesSentLoader
       (DirectMessage & { author: User; recipient: User })[]
     >(async (keys) => {
       const initValue: { userId: number; friends: number[] }[] = [];
-
       const merged = keys.reduce((acc, curr) => {
         const [userId, friendId] = curr;
         const user = acc.find((user) => user.userId === userId);
@@ -242,46 +274,47 @@ export class DirectMessagesSentLoader
         return acc;
       }, initValue);
 
-      const m = await Promise.all(
-        merged.map(async (e) => {
-          const messages = await this.prismaService.directMessage.findMany({
-            orderBy: { sentAt: "desc" },
-            where: {
-              authorId: e.userId,
-              recipientId: {
-                in: e.friends,
+      const messagesArray = await Promise.all(
+        merged.map(
+          async (e) =>
+            await this.prismaService.directMessage.findMany({
+              orderBy: { sentAt: "desc" },
+              where: {
+                authorId: e.userId,
+                recipientId: {
+                  in: e.friends,
+                },
               },
-            },
-            include: {
-              author: true,
-              recipient: true,
-            },
-          });
-          return messages.reduce(
-            (acc, curr) => {
-              const index = acc.index.indexOf(curr.recipientId);
-              if (!acc.messages[index]) {
-                acc.messages[index] = new Array<
-                  DirectMessage & { author: User; recipient: User }
-                >();
-              }
-              const i = acc.messages[index];
-              i && i.push(curr);
-              return acc;
-            },
-            {
-              index: keys.map((k) => k[1]),
-              messages: new Array<
-                (DirectMessage & { author: User; recipient: User })[]
-              >(),
-            }
-          );
-        })
+              include: {
+                author: true,
+                recipient: true,
+              },
+            })
+        )
       );
-      return m.reduce((acc, curr) => {
-        acc.push(...curr.messages);
+
+      const result = messagesArray.reduce((acc, curr) => {
+        curr.map((m) => {
+          const index = keys.indexOf([m.authorId, m.recipientId]);
+          if (!acc[index]) {
+            acc[index] = new Array<
+              DirectMessage & { author: User; recipient: User }
+            >();
+          }
+          acc[index]?.push(m);
+        });
         return acc;
       }, new Array<(DirectMessage & { author: User; recipient: User })[]>());
+
+      for (let index = 0; index < keys.length; index++) {
+        if (!result[index]) {
+          result[index] = new Array<
+            DirectMessage & { author: User; recipient: User }
+          >();
+        }
+      }
+
+      return result;
     });
   }
 }
@@ -305,6 +338,7 @@ export class DirectMessagesReceivedLoader
       (DirectMessage & { author: User; recipient: User })[]
     >(async (keys) => {
       const initValue: { userId: number; friends: number[] }[] = [];
+
       const merged = keys.reduce((acc, curr) => {
         const [userId, friendId] = curr;
         const user = acc.find((user) => user.userId === userId);
@@ -315,96 +349,48 @@ export class DirectMessagesReceivedLoader
         }
         return acc;
       }, initValue);
-      const m = await Promise.all(
-        merged.map(async (e) => {
-          const messages = await this.prismaService.directMessage.findMany({
-            orderBy: { sentAt: "desc" },
-            where: {
-              recipientId: e.userId,
-              authorId: {
-                in: e.friends,
+
+      const messagesArray = await Promise.all(
+        merged.map(
+          async (e) =>
+            await this.prismaService.directMessage.findMany({
+              orderBy: { sentAt: "desc" },
+              where: {
+                recipientId: e.userId,
+                authorId: {
+                  in: e.friends,
+                },
               },
-            },
-            include: {
-              author: true,
-              recipient: true,
-            },
-          });
-          return messages.reduce(
-            (acc, curr) => {
-              const index = acc.index.indexOf(curr.authorId);
-              if (!acc.messages[index]) {
-                acc.messages[index] = new Array<
-                  DirectMessage & { author: User; recipient: User }
-                >();
-              }
-              const i = acc.messages[index];
-              i && i.push(curr);
-              return acc;
-            },
-            {
-              index: keys.map((k) => k[1]),
-              messages: new Array<
-                (DirectMessage & { author: User; recipient: User })[]
-              >(),
-            }
-          );
-        })
+              include: {
+                author: true,
+                recipient: true,
+              },
+            })
+        )
       );
 
-      return m.reduce((acc, curr) => {
-        acc.push(...curr.messages);
+      const result = messagesArray.reduce((acc, curr) => {
+        curr.map((m) => {
+          const index = keys.indexOf([m.recipientId, m.authorId]);
+          if (!acc[index]) {
+            acc[index] = new Array<
+              DirectMessage & { author: User; recipient: User }
+            >();
+          }
+          acc[index]?.push(m);
+        });
         return acc;
       }, new Array<(DirectMessage & { author: User; recipient: User })[]>());
-      // const m = await Promise.all(
-      //   merged.map(async (e) => {
-      //     const messages = await this.prismaService.directMessage.findMany({
-      //       orderBy: { sentAt: "desc" },
-      //       where: {
-      //         authorId: {
-      //           in: e.friends,
-      //         },
-      //         recipientId: e.userId,
-      //       },
-      //       include: {
-      //         author: true,
-      //         recipient: true,
-      //       },
-      //     });
 
-      //     return messages.reduce(
-      //       (acc, curr) => {
-      //         const index = acc.index.indexOf(curr.recipientId);
+      for (let index = 0; index < keys.length; index++) {
+        if (!result[index]) {
+          result[index] = new Array<
+            DirectMessage & { author: User; recipient: User }
+          >();
+        }
+      }
 
-      //         if (!acc.messages[index]) {
-      //           acc.messages[index] = new Array<
-      //             DirectMessage & { author: User; recipient: User }
-      //           >();
-      //         }
-      //         acc.messages && acc.messages[index]?.push(curr);
-      //         return acc;
-      //       },
-      //       {
-      //         index: keys.map((k) => k[1]),
-      //         messages: new Array<
-      //           (DirectMessage & { author: User; recipient: User })[]
-      //         >(),
-      //       }
-      //     );
-      //   })
-      // );
-
-      // const c = m.reduce((acc, curr) => {
-      //   if (!acc[acc.length]) {
-      //     acc[acc.length] = new Array<
-      //       DirectMessage & { author: User; recipient: User }
-      //     >();
-      //   }
-      //   acc.push(...curr.messages);
-      //   return acc;
-      // }, new Array<(DirectMessage & { author: User; recipient: User })[]>());
-      // console.log("c", c);
-      // return c;
+      return result;
     });
   }
 }
