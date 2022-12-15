@@ -292,15 +292,15 @@ const MessageInput = ({
       request("/graphql", SendChannelMessageMutationDocument, {
         message: message,
         channelId: channelId,
-      }),
-    {
-      onError: () => {
-        const pushError = useErrorStore((state) => state.pushError);
-        pushError("Error : send channel message failed");
-      },
-      onSuccess: () =>
-        queryClient.invalidateQueries(["ChannelDiscussion", channelId]),
-    }
+      })
+    // {
+    //   onError: () => {
+    //     const pushError = useErrorStore((state) => state.pushError);
+    //     pushError("Error : send channel message failed");
+    //   },
+    //   onSuccess: () =>
+    //     queryClient.invalidateQueries(["ChannelDiscussion", channelId]),
+    // }
   );
 
   const cannotSendMessage =
@@ -359,7 +359,7 @@ const ReadBy = ({ users }: { users: User[] }) => {
             >
               <img
                 className="h-4 w-4 border border-black transition-all hover:h-5 hover:w-5 hover:cursor-pointer"
-                src={`${avatar}`}
+                src={avatar}
                 alt={`${name}'s avatar`}
                 onMouseEnter={() => setHoverUser(name)}
                 onMouseLeave={() => setHoverUser("")}

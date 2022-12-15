@@ -111,13 +111,11 @@ export class ChannelResolver {
     userLoader: DataLoader<PrismaUser["id"], PrismaUser>,
     @Root() channel: Channel
   ): Promise<GraphqlUser[]> {
-    const c = await this.channelService.getAdmins(
+    return await this.channelService.getAdmins(
       channelMembersLoader,
       userLoader,
       channel.id
     );
-    console.log(c);
-    return c;
   }
 
   @ResolveField()
@@ -203,10 +201,11 @@ export class ChannelResolver {
     const channelMembers = await channelMembersLoader.load(c.id);
     const memberAndOwnerIds = channelMembers.map((member) => member.userId);
     memberAndOwnerIds.push(c.ownerId);
-    this.socketService.invalidateChannelMessagesCache(
-      channel.id,
-      memberAndOwnerIds
-    );
+    // this.socketService.invalidateChannelMessagesCache(
+    //   channel.id,
+    //   memberAndOwnerIds
+    // );
+    //JP : THIS IS THE ONE THAT MAKES FETCH INDEFINITELY
     return m;
   }
 
