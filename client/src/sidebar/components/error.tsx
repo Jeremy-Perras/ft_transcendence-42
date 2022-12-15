@@ -3,17 +3,17 @@ import { motion } from "framer-motion";
 import { useEffect } from "react";
 
 const ErrorLabel = ({ error, index }: { error: string; index: number }) => {
-  const errors = useErrorStore.getState().errorList;
+  const removeError = useErrorStore((state) => state.removeError);
   useEffect(() => {
     const timer = setTimeout(() => {
-      errors.splice(index, 1);
+      removeError(index);
     }, 3000);
     return () => clearTimeout(timer);
   }, []);
 
   return (
     <motion.span
-      onClick={() => errors.splice(index, 1)}
+      onClick={() => removeError(index)}
       initial={{ y: "-200%" }}
       transition={{ duration: 2 }}
       animate={{ y: "calc(0vw )" }}

@@ -44,6 +44,8 @@ import {
   UserProfileQuery,
 } from "../../../src/gql/graphql";
 import request from "graphql-request";
+import queryClient from "../../../src/query";
+import { useErrorStore } from "../../../src/stores";
 
 type formData = {
   name: string;
@@ -119,22 +121,12 @@ const RefuseInvitationMutationDocument = graphql(`
     refuseInvitation(userId: $userId)
   }
 `);
-const refuseInvitation = useMutation(async ({ userId }: { userId: number }) =>
-  request("/graphql", RefuseInvitationMutationDocument, {
-    userId: userId,
-  })
-);
 
 const FriendUserMutationDocument = graphql(`
   mutation FriendUser($userId: Int!) {
     friendUser(userId: $userId)
   }
 `);
-const friendUser = useMutation(async ({ userId }: { userId: number }) =>
-  request("/graphql", FriendUserMutationDocument, {
-    userId: userId,
-  })
-);
 
 const UnfriendUserMutationDocument = graphql(`
   mutation UnfriendUser($userId: Int!) {
@@ -142,45 +134,23 @@ const UnfriendUserMutationDocument = graphql(`
   }
 `);
 
-const unfriendUser = useMutation(async ({ userId }: { userId: number }) =>
-  request("/graphql", UnfriendUserMutationDocument, {
-    userId: userId,
-  })
-);
-
 const BlockUserMutationDocument = graphql(`
   mutation BlockUser($userId: Int!) {
     blockUser(userId: $userId)
   }
 `);
-const blockUser = useMutation(async ({ userId }: { userId: number }) =>
-  request("/graphql", BlockUserMutationDocument, {
-    userId: userId,
-  })
-);
 
 const UnblockUserMutationDocument = graphql(`
   mutation UnblockUser($userId: Int!) {
     unblockUser(userId: $userId)
   }
 `);
-const unblockUser = useMutation(async ({ userId }: { userId: number }) =>
-  request("/graphql", UnblockUserMutationDocument, {
-    userId: userId,
-  })
-);
 
 const CancelInvitationMutationDocument = graphql(`
   mutation CancelInvitation($userId: Int!) {
     cancelInvitation(userId: $userId)
   }
 `);
-
-const cancelInvitation = useMutation(async ({ userId }: { userId: number }) =>
-  request("/graphql", CancelInvitationMutationDocument, {
-    userId: userId,
-  })
-);
 
 const UpdateUserNameMutationDocument = graphql(`
   mutation UpdateUserName($name: String!) {
@@ -262,7 +232,7 @@ const UserProfileHeader = ({
       method: "POST",
       body: formData,
     }).then(() => {
-      //invalidate queries ?
+      queryClient.invalidateQueries(["UserProfile"]);
     });
   };
 
@@ -438,6 +408,62 @@ const AddFriend = ({
   pendingInvitation: boolean | undefined;
   pendingAccept: boolean | undefined;
 }) => {
+  const refuseInvitation = useMutation(
+    async ({ userId }: { userId: number }) =>
+      request("/graphql", RefuseInvitationMutationDocument, {
+        userId: userId,
+      }),
+    {
+      onError: () => {
+        const pushError = useErrorStore((state) => state.pushError);
+        pushError("Error : refuse invitation failed");
+      },
+      onSuccess: () => queryClient.invalidateQueries(["UserProfile"]),
+    }
+  );
+
+  const cancelInvitation = useMutation(
+    async ({ userId }: { userId: number }) =>
+      request("/graphql", CancelInvitationMutationDocument, {
+        userId: userId,
+      }),
+    {
+      onError: () => {
+        const pushError = useErrorStore((state) => state.pushError);
+        pushError("Error : cancel invitation failed");
+      },
+      onSuccess: () => queryClient.invalidateQueries(["UserProfile"]),
+    }
+  );
+
+  const friendUser = useMutation(
+    async ({ userId }: { userId: number }) =>
+      request("/graphql", FriendUserMutationDocument, {
+        userId: userId,
+      }),
+    {
+      onError: () => {
+        const pushError = useErrorStore((state) => state.pushError);
+        pushError("Error : friend user failed");
+      },
+      onSuccess: () => queryClient.invalidateQueries(["UserProfile"]),
+    }
+  );
+
+  const blockUser = useMutation(
+    async ({ userId }: { userId: number }) =>
+      request("/graphql", BlockUserMutationDocument, {
+        userId: userId,
+      }),
+    {
+      onError: () => {
+        const pushError = useErrorStore((state) => state.pushError);
+        pushError("Error : block user failed");
+      },
+      onSuccess: () => queryClient.invalidateQueries(["UserProfile"]),
+    }
+  );
+
   return (
     <div className="flex w-full select-none">
       <div
@@ -495,6 +521,19 @@ const AddFriend = ({
 };
 
 const Unblock = ({ userId }: { userId: number }) => {
+  const unblockUser = useMutation(
+    async ({ userId }: { userId: number }) =>
+      request("/graphql", UnblockUserMutationDocument, {
+        userId: userId,
+      }),
+    {
+      onError: () => {
+        const pushError = useErrorStore((state) => state.pushError);
+        pushError("Error : unblock user failed");
+      },
+      onSuccess: () => queryClient.invalidateQueries(["UserProfile"]),
+    }
+  );
   return (
     <div
       className="flex h-24 w-full select-none flex-col items-center justify-center border-2 border-red-500 bg-red-400 p-4 font-bold text-slate-800 transition-all hover:cursor-pointer hover:bg-red-500 "
@@ -531,6 +570,34 @@ const Blocked = () => {
 };
 
 const FriendButtons = ({ data }: { data: UserProfileQuery }) => {
+  const blockUser = useMutation(
+    async ({ userId }: { userId: number }) =>
+      request("/graphql", BlockUserMutationDocument, {
+        userId: userId,
+      }),
+    {
+      onError: () => {
+        const pushError = useErrorStore((state) => state.pushError);
+        pushError("Error : block user failed");
+      },
+      onSuccess: () => queryClient.invalidateQueries(["UserProfile"]),
+    }
+  );
+
+  const unfriendUser = useMutation(
+    async ({ userId }: { userId: number }) =>
+      request("/graphql", UnfriendUserMutationDocument, {
+        userId: userId,
+      }),
+    {
+      onError: () => {
+        const pushError = useErrorStore((state) => state.pushError);
+        pushError("Error : unfriend failed");
+      },
+      onSuccess: () => queryClient.invalidateQueries(["UserProfile"]),
+    }
+  );
+
   return (
     <div className="flex h-24 select-none bg-slate-100 text-2xl font-bold text-slate-600">
       <div
@@ -592,7 +659,10 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
       request("/graphql", UpdateUserNameMutationDocument, {
         name: name,
       }),
-    { onError: () => setShowNameError(true) }
+    {
+      onError: () => setShowNameError(true),
+      onSuccess: () => queryClient.invalidateQueries(["UserProfile"]),
+    }
   );
 
   const [width, setWidth] = useState(0);

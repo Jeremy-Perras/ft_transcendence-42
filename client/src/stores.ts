@@ -3,13 +3,16 @@ import create from "zustand";
 type ErrorStore = {
   errorList: string[];
   pushError: (newError: string) => void;
-  // removeError: ()
+  removeError: (index: number) => void;
 };
 
 const useErrorStore = create<ErrorStore>((set) => ({
   errorList: [""],
   pushError: (newError: string) => {
     return set((state) => ({ errorList: [...state.errorList, newError] }));
+  },
+  removeError: (index: number) => {
+    return set((state) => ({ errorList: state.errorList.slice(index, 1) }));
   },
 }));
 

@@ -31,6 +31,8 @@ import {
   ChatType,
   DiscussionsAndInvitationsQuery,
 } from "../../../src/gql/graphql";
+import queryClient from "../../../src/query";
+import { useErrorStore } from "../../../src/stores";
 
 const DiscussionsAndInvitationsQueryDocument = graphql(`
   query DiscussionsAndInvitations($userId: Int) {
@@ -147,16 +149,34 @@ const Invitation = ({
   avatar: string | undefined;
   name: string;
 }) => {
-  const acceptInvitation = useMutation(async ({ userId }: { userId: number }) =>
-    request("/graphql", AcceptInvitationMutationDocument, {
-      userId: userId,
-    })
+  const acceptInvitation = useMutation(
+    async ({ userId }: { userId: number }) =>
+      request("/graphql", AcceptInvitationMutationDocument, {
+        userId: userId,
+      }),
+    {
+      onError: () => {
+        const pushError = useErrorStore((state) => state.pushError);
+        pushError("Error : accept invitation failed");
+      },
+      onSuccess: () =>
+        queryClient.invalidateQueries(["DiscussionsAndIvitations"]),
+    }
   );
 
-  const refuseInvitation = useMutation(async ({ userId }: { userId: number }) =>
-    request("/graphql", RefuseInvitationMutationDocument, {
-      userId: userId,
-    })
+  const refuseInvitation = useMutation(
+    async ({ userId }: { userId: number }) =>
+      request("/graphql", RefuseInvitationMutationDocument, {
+        userId: userId,
+      }),
+    {
+      onError: () => {
+        const pushError = useErrorStore((state) => state.pushError);
+        pushError("Error : refuse invitation failed");
+      },
+      onSuccess: () =>
+        queryClient.invalidateQueries(["DiscussionsAndIvitations"]),
+    }
   );
 
   return (
