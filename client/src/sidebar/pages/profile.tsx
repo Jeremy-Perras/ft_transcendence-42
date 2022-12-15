@@ -682,7 +682,7 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
       return spanEl.current?.offsetWidth ? spanEl.current?.offsetWidth + 1 : w;
     });
   }, [setSpan, watchName]);
-
+  console.log(data.user.friendStatus);
   return (
     <div className="flex h-full w-full flex-col ">
       <Header>

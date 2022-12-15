@@ -313,7 +313,7 @@ export class UserResolver {
     const blockedBy = await this.userService.getBlockedBy(
       userLoader,
       blockingIdsLoader,
-      currentUserId
+      user.id
     );
     return blockedBy.some((e) => e.id === currentUserId);
   }
@@ -330,7 +330,7 @@ export class UserResolver {
     const blocking = await this.userService.getBlocking(
       userLoader,
       blockedByIdsLoader,
-      currentUserId
+      user.id
     );
     return blocking.some((e) => e.id === currentUserId);
   }

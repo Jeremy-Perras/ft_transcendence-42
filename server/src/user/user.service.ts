@@ -125,7 +125,9 @@ export class UserService {
   ) {
     try {
       const blockingIds = await blockingIdsLoader.load(id);
+
       const users = await userloader.loadMany(blockingIds);
+      console.log(users);
       return users.reduce((acc, curr) => {
         if (curr && "id" in curr) {
           acc.push(UserService.formatGraphqlUser(curr));

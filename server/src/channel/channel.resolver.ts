@@ -197,15 +197,7 @@ export class ChannelResolver {
       channel.id,
       currentUserId
     );
-    const c = await channelLoader.load(channel.id);
-    const channelMembers = await channelMembersLoader.load(c.id);
-    const memberAndOwnerIds = channelMembers.map((member) => member.userId);
-    memberAndOwnerIds.push(c.ownerId);
-    // this.socketService.invalidateChannelMessagesCache(
-    //   channel.id,
-    //   memberAndOwnerIds
-    // );
-    //JP : THIS IS THE ONE THAT MAKES FETCH INDEFINITELY
+
     return m;
   }
 
