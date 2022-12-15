@@ -9,15 +9,16 @@ export class UserLoader implements NestDataLoader<number, User> {
   constructor(private prismaService: PrismaService) {}
 
   generateDataLoader(): DataLoader<number, User> {
-    return new DataLoader<number, User>(async (keys) =>
-      this.prismaService.user.findMany({
+    return new DataLoader<number, User>(async (keys) => {
+      const c = this.prismaService.user.findMany({
         where: {
           id: {
             in: [...keys],
           },
         },
-      })
-    );
+      });
+      return c;
+    });
   }
 }
 
@@ -295,7 +296,10 @@ export class DirectMessagesSentLoader
 
       const result = messagesArray.reduce((acc, curr) => {
         curr.map((m) => {
-          const index = keys.indexOf([m.authorId, m.recipientId]);
+          const index = keys.findIndex(
+            (t) => t[0] === m.authorId && t[1] === m.recipientId
+          );
+          // keys.indexOf([m.authorId, m.recipientId]);
           if (!acc[index]) {
             acc[index] = new Array<
               DirectMessage & { author: User; recipient: User }
@@ -371,7 +375,9 @@ export class DirectMessagesReceivedLoader
 
       const result = messagesArray.reduce((acc, curr) => {
         curr.map((m) => {
-          const index = keys.indexOf([m.recipientId, m.authorId]);
+          const index = keys.findIndex(
+            (t) => t[0] === m.recipientId && t[1] === m.authorId
+          );
           if (!acc[index]) {
             acc[index] = new Array<
               DirectMessage & { author: User; recipient: User }
