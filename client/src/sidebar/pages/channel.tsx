@@ -395,7 +395,7 @@ const Message = ({
           <div className="flex self-end">
             <img
               className="h-6 w-6 border border-black transition-all hover:h-7 hover:w-7 hover:cursor-pointer"
-              src={`${author.avatar}`}
+              src={author.avatar}
               alt="Message author avatar"
               onClick={() => navigate(`/profile/${author.id}`)}
             />
@@ -448,9 +448,9 @@ const Messages = ({
           </div>
         ) : null}
         <ul>
-          {messages?.map((message, index) => (
-            <Message key={index} {...message} />
-          ))}
+          {messages?.map((message, index) => {
+            return <Message key={index} {...message} />;
+          })}
         </ul>
         <div ref={messagesEndRef} />
       </div>

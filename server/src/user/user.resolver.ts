@@ -106,7 +106,7 @@ export class UserResolver {
     @Args("id", { type: () => Int, nullable: true, defaultValue: null })
     id?: number | null
   ): Promise<GraphqlUser> {
-    return this.userService.getUserById(userLoader, id ?? currentUserId);
+    return await this.userService.getUserById(userLoader, id ?? currentUserId);
   }
 
   @Query((returns) => [User], { nullable: "items" })
@@ -115,7 +115,7 @@ export class UserResolver {
     userLoader: DataLoader<PrismaUser["id"], PrismaUser>,
     @Args("name", { type: () => String }) name: string
   ): Promise<GraphqlUser[]> {
-    return this.userService.searchUsersByName(userLoader, name);
+    return await this.userService.searchUsersByName(userLoader, name);
   }
 
   @ResolveField()
@@ -126,7 +126,7 @@ export class UserResolver {
     if (currentUserId !== user.id) {
       return undefined;
     }
-    return this.userService.getChats(user.id);
+    return await this.userService.getChats(user.id);
   }
 
   @ResolveField()
@@ -173,7 +173,7 @@ export class UserResolver {
     achievementsLoader: DataLoader<PrismaUser["id"], PrismaAchievement[]>,
     @Root() user: User
   ): Promise<Achievement[]> {
-    return this.userService.getAchievements(achievementsLoader, user.id);
+    return await this.userService.getAchievements(achievementsLoader, user.id);
   }
 
   @ResolveField()
@@ -182,7 +182,7 @@ export class UserResolver {
     avatarLoader: DataLoader<PrismaUser["id"], PrismaAvatar>,
     @Root() user: User
   ): Promise<string> {
-    return this.userService.getAvatar(avatarLoader, user.id);
+    return await this.userService.getAvatar(avatarLoader, user.id);
   }
 
   @ResolveField()
@@ -294,7 +294,7 @@ export class UserResolver {
     channelLoader: DataLoader<PrismaChannel["id"], PrismaChannel>,
     @Root() user: User
   ): Promise<GraphqlChannel[]> {
-    return this.userService.getChannels(
+    return await this.userService.getChannels(
       userChannelIdsLoader,
       channelLoader,
       user.id

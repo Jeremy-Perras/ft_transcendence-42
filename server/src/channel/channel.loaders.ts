@@ -110,7 +110,7 @@ export class ChannelMessagesLoader
         where: {
           channelId: { in: [...keys] },
         },
-        orderBy: { sentAt: "desc" },
+        orderBy: { sentAt: "asc" },
       });
       const result = m.reduce((acc, curr) => {
         const index = keys.indexOf(curr.channelId);

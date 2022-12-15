@@ -1206,7 +1206,6 @@ const MemberList = ({
   ) => {
     return userList.some((u) => u.user.id === id);
   };
-
   return (
     <div className="flex h-full w-full flex-col overflow-auto">
       <span className="ml-1 pt-5 text-left text-xl font-bold text-slate-700">

@@ -90,9 +90,12 @@ export class ChannelService {
         if (curr.role === ChannelRole.ADMIN) acc.push(curr.userId);
         return acc;
       }, new Array<number>());
+
       const admins = await userLoader.loadMany(adminIds);
+
       return admins.reduce((acc, curr) => {
-        if (curr && "id" in curr) {
+        if (curr && "id" in curr && adminIds.some((id) => id === curr.id)) {
+          //TODO : Remove the last condition when userloader repared
           acc.push(UserService.formatGraphqlUser(curr));
         }
         return acc;
@@ -109,12 +112,12 @@ export class ChannelService {
   ) {
     try {
       const channelMembers = await channelMembersLoader.load(channelId);
-      const adminIds = channelMembers.reduce((acc, curr) => {
+      const membersIds = channelMembers.reduce((acc, curr) => {
         if (curr.role === ChannelRole.MEMBER) acc.push(curr.userId);
         return acc;
       }, new Array<number>());
-      const admins = await userLoader.loadMany(adminIds);
-      return admins.reduce((acc, curr) => {
+      const members = await userLoader.loadMany(membersIds);
+      return members.reduce((acc, curr) => {
         if (curr && "id" in curr) {
           acc.push(UserService.formatGraphqlUser(curr));
         }

@@ -73,7 +73,7 @@ export class ChannelResolver {
     channelLoader: DataLoader<PrismaChannel["id"], PrismaChannel>,
     @Args("id", { type: () => Int }) id: number
   ): Promise<GraphqlChannel> {
-    return this.channelService.getChannelById(channelLoader, id);
+    return await this.channelService.getChannelById(channelLoader, id);
   }
 
   @Query((returns) => [Channel])
@@ -82,7 +82,7 @@ export class ChannelResolver {
     channelLoader: DataLoader<PrismaChannel["id"], PrismaChannel>,
     @Args("name", { type: () => String }) name: string
   ): Promise<GraphqlChannel[]> {
-    return this.channelService.searchChannelsByName(channelLoader, name);
+    return await this.channelService.searchChannelsByName(channelLoader, name);
   }
 
   @ResolveField()
@@ -93,7 +93,11 @@ export class ChannelResolver {
     userLoader: DataLoader<PrismaUser["id"], PrismaUser>,
     @Root() channel: Channel
   ): Promise<GraphqlUser> {
-    return this.channelService.getOwner(channelLoader, userLoader, channel.id);
+    return await this.channelService.getOwner(
+      channelLoader,
+      userLoader,
+      channel.id
+    );
   }
 
   @ResolveField()
@@ -107,11 +111,13 @@ export class ChannelResolver {
     userLoader: DataLoader<PrismaUser["id"], PrismaUser>,
     @Root() channel: Channel
   ): Promise<GraphqlUser[]> {
-    return this.channelService.getAdmins(
+    const c = await this.channelService.getAdmins(
       channelMembersLoader,
       userLoader,
       channel.id
     );
+    console.log(c);
+    return c;
   }
 
   @ResolveField()
@@ -125,7 +131,7 @@ export class ChannelResolver {
     userLoader: DataLoader<PrismaUser["id"], PrismaUser>,
     @Root() channel: Channel
   ): Promise<GraphqlUser[]> {
-    return this.channelService.getMembers(
+    return await this.channelService.getMembers(
       channelMembersLoader,
       userLoader,
       channel.id
@@ -142,7 +148,7 @@ export class ChannelResolver {
     >,
     @Loader(UserLoader) userLoader: DataLoader<PrismaUser["id"], PrismaUser>
   ): Promise<GraphqlChannelRestrictedUser[]> {
-    return this.channelService.getRestrictedMembers(
+    return await this.channelService.getRestrictedMembers(
       channelMutedMembersLoader,
       userLoader,
       channel.id,
@@ -160,7 +166,7 @@ export class ChannelResolver {
     >,
     @Loader(UserLoader) userLoader: DataLoader<PrismaUser["id"], PrismaUser>
   ): Promise<GraphqlChannelRestrictedUser[]> {
-    return this.channelService.getRestrictedMembers(
+    return await this.channelService.getRestrictedMembers(
       channelBannedMembersLoader,
       userLoader,
       channel.id,
@@ -193,16 +199,14 @@ export class ChannelResolver {
       channel.id,
       currentUserId
     );
-
     const c = await channelLoader.load(channel.id);
     const channelMembers = await channelMembersLoader.load(c.id);
-    const memberAndOwnerIds = channelMembers.map((m) => m.userId);
+    const memberAndOwnerIds = channelMembers.map((member) => member.userId);
     memberAndOwnerIds.push(c.ownerId);
     this.socketService.invalidateChannelMessagesCache(
       channel.id,
       memberAndOwnerIds
     );
-
     return m;
   }
 
@@ -457,14 +461,6 @@ export class ChannelMessageResolver {
     if (ismuted) {
       throw new ForbiddenException("You are muted");
     }
-
-    const usersChannel = await this.prismaService.channel.findUnique({
-      select: { members: true, ownerId: true },
-      where: { id: channelId },
-    });
-
-    const users = usersChannel?.members.map((u) => u.userId);
-    if (usersChannel?.ownerId) users?.push(usersChannel?.ownerId);
 
     await this.prismaService.channelMessage.create({
       data: {
