@@ -10,13 +10,19 @@ export class UserLoader implements NestDataLoader<number, User> {
 
   generateDataLoader(): DataLoader<number, User> {
     return new DataLoader<number, User>(async (keys) => {
-      const c = this.prismaService.user.findMany({
+      const users = await this.prismaService.user.findMany({
         where: {
           id: {
             in: [...keys],
           },
         },
       });
+      const c = users.reduce((acc, curr) => {
+        const index = keys.indexOf(curr.id);
+        acc[index] = curr;
+        return acc;
+      }, new Array<User>());
+      const test = c.map((y) => y.id);
       return c;
     });
   }

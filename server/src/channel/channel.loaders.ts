@@ -10,6 +10,7 @@ import DataLoader from "dataloader";
 import { NestDataLoader } from "../dataloader";
 import { PrismaService } from "../prisma/prisma.service";
 
+//TODO
 @Injectable()
 export class ChannelLoader implements NestDataLoader<number, Channel> {
   constructor(private prismaService: PrismaService) {}
