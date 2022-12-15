@@ -23,7 +23,7 @@ import {
   HeaderLeftBtn,
 } from "../components/header";
 import { RankIcon } from "../utils/rankIcon";
-import { useSidebarStore } from "../../stores";
+import { useErrorStore, useSidebarStore } from "../../stores";
 import { IsOnline } from "../components/isOnline";
 import { graphql } from "../../../src/gql";
 import request from "graphql-request";
@@ -32,6 +32,7 @@ import {
   FriendStatus,
   UserStatus,
 } from "../../../src/gql/graphql";
+import queryClient from "client/src/query";
 
 type DirectMessage = {
   userId: number;
@@ -181,13 +182,20 @@ export default function Chat() {
   const { data } = useQuery({ ...query(userId), initialData });
   if (typeof data === "undefined") return <Navigate to={"/"} replace={true} />;
 
-  const sendChannelMessage = useMutation(
+  const sendDirectMessage = useMutation(
     async ({ message, userId }: { message: string; userId: number }) =>
       request("/graphql", SendDirectMessageMutationDocument, {
         message: message,
         userId: userId,
       }),
-    { onError: () => alert("Error") } //TODO :replace with error store
+    {
+      onError: () => {
+        const pushError = useErrorStore((state) => state.pushError);
+        pushError("Error : send direct message failed");
+      },
+      onSuccess: () =>
+        queryClient.invalidateQueries(["DirectMessages", userId]),
+    }
   );
 
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
@@ -274,7 +282,7 @@ export default function Chat() {
           onKeyDown={(e) => {
             if (data.blocking === false && data.blocked === false) {
               if (e.code == "Enter" && !e.getModifierState("Shift")) {
-                sendChannelMessage.mutate({
+                sendDirectMessage.mutate({
                   message: content,
                   userId: userId,
                 });

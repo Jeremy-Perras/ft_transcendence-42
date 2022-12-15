@@ -38,16 +38,14 @@ import {
   HeaderNavigateBack,
 } from "../components/header";
 import { ChannelUserRole } from "../types/channelUserRole";
-import { useAuthStore } from "../../stores";
+import { useAuthStore, useErrorStore } from "../../stores";
 import { Empty } from "../components/Empty";
 import { Highlight } from "../components/highlight";
 import { ChannelUserStatus } from "../types/channelUserStatus";
-import { graphql } from "../../../src/gql";
+import { graphql } from "../../gql";
 import request from "graphql-request";
-import {
-  ChannelSettingsQuery,
-  SearchUsersQuery,
-} from "../../../src/gql/graphql";
+import { ChannelSettingsQuery, SearchUsersQuery } from "../../gql/graphql";
+import queryClient from "../../query";
 
 type ChannelQueryResult = Omit<ChannelSettingsQuery["channel"], "admins"> & {
   admins: ChannelSettingsQuery["channel"]["members"];
@@ -200,11 +198,13 @@ const InviteUserMutationDocument = graphql(`
     inviteUser(userId: $userId, channelId: $channelId)
   }
 `);
+
 const LeaveChannelMutationDocument = graphql(`
   mutation LeaveChannel($channelId: Int!) {
     leaveChannel(channelId: $channelId)
   }
 `);
+
 const DeleteChannelMutationDocument = graphql(`
   mutation DeleteChannel($channelId: Int!) {
     deleteChannel(channelId: $channelId)
@@ -274,7 +274,14 @@ const SetRestrictionTimeButton = ({
         channelId: channelId,
         restrictUntil: restrictUntil,
       }),
-    { onError: () => alert("Error") } //TODO : change this in error store
+    {
+      onError: () => {
+        const pushError = useErrorStore((state) => state.pushError);
+        pushError("Error : ban failed");
+      },
+      onSuccess: () =>
+        queryClient.invalidateQueries(["ChannelSettings", channelId]),
+    }
   );
   const mute = useMutation(
     async ({
@@ -291,7 +298,14 @@ const SetRestrictionTimeButton = ({
         restrictedId: restrictedId,
         restrictUntil: restrictUntil,
       }),
-    { onError: () => alert("Error") } //TODO : change this in error store
+    {
+      onError: () => {
+        const pushError = useErrorStore((state) => state.pushError);
+        pushError("Error : mute failed");
+      },
+      onSuccess: () =>
+        queryClient.invalidateQueries(["ChannelSettings", channelId]),
+    }
   );
 
   return (
@@ -373,7 +387,14 @@ const ToggleMuteStatus = ({
         channelId: channelId,
         userId: userId,
       }),
-    { onError: () => alert("Error") } //TODO : change this in error store
+    {
+      onError: () => {
+        const pushError = useErrorStore((state) => state.pushError);
+        pushError("Error : unmute failed");
+      },
+      onSuccess: () =>
+        queryClient.invalidateQueries(["ChannelSettings", channelId]),
+    }
   );
 
   return (
@@ -440,7 +461,14 @@ const ToggleBanStatus = ({
         channelId: channelId,
         userId: userId,
       }),
-    { onError: () => alert("Error") } //TODO : change this in error store
+    {
+      onError: () => {
+        const pushError = useErrorStore((state) => state.pushError);
+        pushError("Error : unban failed");
+      },
+      onSuccess: () =>
+        queryClient.invalidateQueries(["ChannelSettings", channelId]),
+    }
   );
   return (
     <div className="relative flex w-8 flex-col justify-end text-center transition-all hover:cursor-pointer">
@@ -507,7 +535,14 @@ const ToggleAdminRole = ({
         channelId: channelId,
         userId: userId,
       }),
-    { onError: () => alert("Error") } //TODO : change this in error store
+    {
+      onError: () => {
+        const pushError = useErrorStore((state) => state.pushError);
+        pushError("Error : add admin failed");
+      },
+      onSuccess: () =>
+        queryClient.invalidateQueries(["ChannelSettings", channelId]),
+    }
   );
 
   const removeAdmin = useMutation(
@@ -516,7 +551,14 @@ const ToggleAdminRole = ({
         channelId: channelId,
         userId: userId,
       }),
-    { onError: () => alert("Error") } //TODO : change this in error store
+    {
+      onError: () => {
+        const pushError = useErrorStore((state) => state.pushError);
+        pushError("Error : remove admin failed");
+      },
+      onSuccess: () =>
+        queryClient.invalidateQueries(["ChannelSettings", channelId]),
+    }
   );
   return (
     <div className="relative flex w-8 flex-col items-center justify-start">
@@ -730,7 +772,14 @@ const SearchResults = ({
         channelId: channelId,
         userId: userId,
       }),
-    { onError: () => alert("Error") } //TODO : change this in error store
+    {
+      onError: () => {
+        const pushError = useErrorStore((state) => state.pushError);
+        pushError("Error : invite user failed");
+      },
+      onSuccess: () =>
+        queryClient.invalidateQueries(["ChannelSettings", channel.id]),
+    }
   );
 
   const { data: searchResults } = useQuery({
@@ -801,7 +850,14 @@ const LeaveChannelConfirm = ({
       request("/graphql", LeaveChannelMutationDocument, {
         channelId: channelId,
       }),
-    { onError: () => alert("Error") } //TODO : change this in error store
+    {
+      onError: () => {
+        const pushError = useErrorStore((state) => state.pushError);
+        pushError("Error : leave channel failed");
+      },
+      onSuccess: () =>
+        queryClient.invalidateQueries(["DiscussionsAndInvitations"]),
+    }
   );
 
   return (
@@ -866,7 +922,14 @@ const DeleteConfirm = ({
       request("/graphql", DeleteChannelMutationDocument, {
         channelId: channelId,
       }),
-    { onError: () => alert("Error") } //TODO : change this in error store
+    {
+      onError: () => {
+        const pushError = useErrorStore((state) => state.pushError);
+        pushError("Error : delete channel failed");
+      },
+      onSuccess: () =>
+        queryClient.invalidateQueries(["DiscussionsAndInvitations"]),
+    }
   );
 
   return (
@@ -952,7 +1015,10 @@ const ChannelMode = ({
         password: password,
       }),
     {
-      onError: () => alert("Error"), //TODO : change this in error store
+      onError: () => {
+        const pushError = useErrorStore((state) => state.pushError);
+        pushError("Error : delete channel failed");
+      },
       onSuccess: () => {
         setShowPasswordField(false);
         reset();

@@ -160,7 +160,7 @@ const Invitation = ({
         pushError("Error : accept invitation failed");
       },
       onSuccess: () =>
-        queryClient.invalidateQueries(["DiscussionsAndIvitations"]),
+        queryClient.invalidateQueries(["DiscussionsAndInvitations"]),
     }
   );
 
@@ -175,7 +175,7 @@ const Invitation = ({
         pushError("Error : refuse invitation failed");
       },
       onSuccess: () =>
-        queryClient.invalidateQueries(["DiscussionsAndIvitations"]),
+        queryClient.invalidateQueries(["DiscussionsAndInvitations"]),
     }
   );
 

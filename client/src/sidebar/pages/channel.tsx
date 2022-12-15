@@ -27,12 +27,13 @@ import {
 } from "../components/header";
 import { User } from "../types/user";
 import { getDate } from "../utils/getDate";
-import { useAuthStore, useSidebarStore } from "../../stores";
+import { useAuthStore, useErrorStore, useSidebarStore } from "../../stores";
 import { ChannelUserRole } from "../types/channelUserRole";
 import { ChannelUserStatus } from "../types/channelUserStatus";
-import { graphql } from "../../../src/gql";
-import { ChannelDiscussionQuery } from "../../../src/gql/graphql";
+import { graphql } from "../../gql";
+import { ChannelDiscussionQuery } from "../../gql/graphql";
 import request from "graphql-request";
+import queryClient from "../../query";
 
 type Channel = {
   name: string;
@@ -278,7 +279,14 @@ const MessageInput = ({
         message: message,
         channelId: channelId,
       }),
-    { onError: () => alert("Error") } //TODO : change this in error store
+    {
+      onError: () => {
+        const pushError = useErrorStore((state) => state.pushError);
+        pushError("Error : send channel message failed");
+      },
+      onSuccess: () =>
+        queryClient.invalidateQueries(["ChannelDiscussion", channelId]),
+    }
   );
 
   const cannotSendMessage =

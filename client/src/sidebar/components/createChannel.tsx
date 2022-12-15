@@ -9,6 +9,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useMutation } from "@tanstack/react-query";
 import request from "graphql-request";
 import { graphql } from "../../gql/gql";
+import queryClient from "../../query";
+import { useErrorStore } from "../../stores";
 
 type formData = {
   name: string;
@@ -104,11 +106,19 @@ export default function CreateChannel({
       name: string;
       password: string | undefined | null;
     }) =>
-      await request("/graphql", CreateChannelMutationDocument, {
+      request("/graphql", CreateChannelMutationDocument, {
         inviteOnly: inviteOnly,
         name: name,
         password: password,
-      })
+      }),
+    {
+      onError: () => {
+        const pushError = useErrorStore((state) => state.pushError);
+        pushError("Error : channel creation failed");
+      },
+      onSuccess: () =>
+        queryClient.invalidateQueries(["DiscussionsAndIvitations"]),
+    }
   );
 
   return (
