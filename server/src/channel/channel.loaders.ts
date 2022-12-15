@@ -44,7 +44,7 @@ export class ChannelMembersLoader
         },
       });
 
-      return cm.reduce((acc, curr) => {
+      const result = cm.reduce((acc, curr) => {
         const index = keys.indexOf(curr.channelId);
         if (!acc[index]) {
           acc[index] = new Array<ChannelMember>();
@@ -52,6 +52,12 @@ export class ChannelMembersLoader
         acc[index]?.push(curr);
         return acc;
       }, new Array<ChannelMember[]>());
+      for (let index = 0; index < keys.length; index++) {
+        if (!result[index]) {
+          result[index] = new Array<ChannelMember>();
+        }
+      }
+      return result;
     });
   }
 }
@@ -74,7 +80,7 @@ export class ChannelRestrictedUserLoader
           },
         },
       });
-      return u.reduce((acc, curr) => {
+      const result = u.reduce((acc, curr) => {
         const index = keys.indexOf(curr.channelId);
         if (!acc[index]) {
           acc[index] = new Array<ChannelRestrictedUser>();
@@ -82,6 +88,12 @@ export class ChannelRestrictedUserLoader
         acc[index]?.push(curr);
         return acc;
       }, new Array<ChannelRestrictedUser[]>());
+      for (let index = 0; index < keys.length; index++) {
+        if (!result[index]) {
+          result[index] = new Array<ChannelRestrictedUser>();
+        }
+      }
+      return result;
     });
   }
 }
@@ -100,8 +112,7 @@ export class ChannelMessagesLoader
         },
         orderBy: { sentAt: "desc" },
       });
-      //TODO if empty ?
-      return m.reduce((acc, curr) => {
+      const result = m.reduce((acc, curr) => {
         const index = keys.indexOf(curr.channelId);
         if (!acc[index]) {
           acc[index] = new Array<ChannelMessage>();
@@ -109,6 +120,12 @@ export class ChannelMessagesLoader
         acc[index]?.push(curr);
         return acc;
       }, new Array<ChannelMessage[]>());
+      for (let index = 0; index < keys.length; index++) {
+        if (!result[index]) {
+          result[index] = new Array<ChannelMessage>();
+        }
+      }
+      return result;
     });
   }
 }
@@ -126,7 +143,7 @@ export class ChannelMessageReadIdsLoader
           messageId: { in: [...keys] },
         },
       });
-      return m.reduce((acc, curr) => {
+      const result = m.reduce((acc, curr) => {
         const index = keys.indexOf(curr.messageId);
         if (!acc[index]) {
           acc[index] = new Array<number>();
@@ -134,6 +151,12 @@ export class ChannelMessageReadIdsLoader
         acc[index]?.push(curr.userId);
         return acc;
       }, new Array<number[]>());
+      for (let index = 0; index < keys.length; index++) {
+        if (!result[index]) {
+          result[index] = new Array<number>();
+        }
+      }
+      return result;
     });
   }
 }

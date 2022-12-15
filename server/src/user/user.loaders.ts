@@ -31,7 +31,7 @@ export class FriendedByIdsLoader implements NestDataLoader<number, number[]> {
         where: { senderId: { in: [...keys] } },
       });
 
-      const c = u.reduce((acc, curr) => {
+      const result = u.reduce((acc, curr) => {
         const index = keys.indexOf(curr.senderId);
         if (!acc[index]) {
           acc[index] = new Array<number>();
@@ -41,11 +41,11 @@ export class FriendedByIdsLoader implements NestDataLoader<number, number[]> {
       }, new Array<number[]>());
 
       for (let index = 0; index < keys.length; index++) {
-        if (!c[index]) {
-          c[index] = new Array<number>();
+        if (!result[index]) {
+          result[index] = new Array<number>();
         }
       }
-      return c;
+      return result;
     });
   }
 }
@@ -60,7 +60,7 @@ export class FriendIdsLoader implements NestDataLoader<number, number[]> {
         where: { receiverId: { in: [...keys] } },
       });
 
-      const c = u.reduce((acc, curr) => {
+      const result = u.reduce((acc, curr) => {
         const index = keys.indexOf(curr.receiverId);
         if (!acc[index]) {
           acc[index] = new Array<number>();
@@ -70,11 +70,11 @@ export class FriendIdsLoader implements NestDataLoader<number, number[]> {
       }, new Array<number[]>());
 
       for (let index = 0; index < keys.length; index++) {
-        if (!c[index]) {
-          c[index] = new Array<number>();
+        if (!result[index]) {
+          result[index] = new Array<number>();
         }
       }
-      return c;
+      return result;
     });
   }
 }
@@ -89,7 +89,7 @@ export class BlockedByIdsLoader implements NestDataLoader<number, number[]> {
         where: { blockerId: { in: [...keys] } },
       });
 
-      const c = u.reduce((acc, curr) => {
+      const result = u.reduce((acc, curr) => {
         const index = keys.indexOf(curr.blockerId);
         if (!acc[index]) {
           acc[index] = new Array<number>();
@@ -99,11 +99,11 @@ export class BlockedByIdsLoader implements NestDataLoader<number, number[]> {
       }, new Array<number[]>());
 
       for (let index = 0; index < keys.length; index++) {
-        if (!c[index]) {
-          c[index] = new Array<number>();
+        if (!result[index]) {
+          result[index] = new Array<number>();
         }
       }
-      return c;
+      return result;
     });
   }
 }
@@ -117,7 +117,7 @@ export class BlockingIdsLoader implements NestDataLoader<number, number[]> {
         where: { blockeeId: { in: [...keys] } },
       });
 
-      const c = u.reduce((acc, curr) => {
+      const result = u.reduce((acc, curr) => {
         const index = keys.indexOf(curr.blockeeId);
         if (!acc[index]) {
           acc[index] = new Array<number>();
@@ -127,11 +127,11 @@ export class BlockingIdsLoader implements NestDataLoader<number, number[]> {
       }, new Array<number[]>());
 
       for (let index = 0; index < keys.length; index++) {
-        if (!c[index]) {
-          c[index] = new Array<number>();
+        if (!result[index]) {
+          result[index] = new Array<number>();
         }
       }
-      return c;
+      return result;
     });
   }
 }
@@ -215,7 +215,7 @@ export class UserChannelIdsLoader implements NestDataLoader<number, number[]> {
         },
       });
 
-      const m = c.reduce((acc, curr) => {
+      const result = c.reduce((acc, curr) => {
         const index = keys.findIndex((e) => curr.ownerId === e);
         if (index !== -1) {
           if (!acc[index]) {
@@ -235,11 +235,11 @@ export class UserChannelIdsLoader implements NestDataLoader<number, number[]> {
       }, new Array<number[]>());
 
       for (let index = 0; index < keys.length; index++) {
-        if (!m[index]) {
-          m[index] = new Array<number>();
+        if (!result[index]) {
+          result[index] = new Array<number>();
         }
       }
-      return m;
+      return result;
     });
   }
 }
