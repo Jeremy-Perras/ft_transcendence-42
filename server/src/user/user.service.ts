@@ -205,13 +205,13 @@ export class UserService {
 
   async block(currentUserId: number, userId: number) {
     try {
-      await this.unFriend(currentUserId, userId);
       await this.prismaService.userBlock.create({
         data: {
           blockeeId: userId,
           blockerId: currentUserId,
         },
       });
+      await this.unFriend(currentUserId, userId);
     } catch (error) {
       throw new NotFoundException("User not found");
     }
@@ -219,6 +219,7 @@ export class UserService {
 
   async unFriend(currentUserId: number, userId: number) {
     try {
+      //TODO : check if exists before delete or remove exception ?
       await this.prismaService.friendRequest.delete({
         where: {
           senderId_receiverId: {
@@ -229,7 +230,7 @@ export class UserService {
       });
       await this.refuseFriendInvite(currentUserId, userId);
     } catch (error) {
-      throw new NotFoundException("User not found");
+      // throw new NotFoundException("User not found");
     }
   }
 
@@ -248,6 +249,7 @@ export class UserService {
 
   async refuseFriendInvite(currentUserId: number, userId: number) {
     try {
+      //TODO : check if exists before delete or remove exception ?
       await this.prismaService.friendRequest.delete({
         where: {
           senderId_receiverId: {
@@ -257,7 +259,7 @@ export class UserService {
         },
       });
     } catch (error) {
-      throw new NotFoundException("User not found");
+      // throw new NotFoundException("User not found");
     }
   }
 
