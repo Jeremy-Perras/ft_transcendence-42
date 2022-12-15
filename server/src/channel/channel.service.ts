@@ -178,6 +178,7 @@ export class ChannelService {
       const userChannels = await userChannelIdsLoader.load(currentUserId);
       if (userChannels.some((c) => c === channelId)) {
         const messages = await channelMessageLoader.load(channelId);
+
         await this.prismaService.channelMessageRead.createMany({
           data: messages.map((message) => ({
             messageId: message.id,

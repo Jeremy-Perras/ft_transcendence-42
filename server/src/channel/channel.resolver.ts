@@ -417,7 +417,9 @@ export class ChannelMessageResolver {
     @Root() channelMessage: ChannelMessage
   ): Promise<GraphqlUser[]> {
     const userIds = await channelMessageReadIdsLoader.load(channelMessage.id);
+
     const users = await userLoader.loadMany(userIds);
+
     return users.reduce((acc, curr) => {
       if (curr && "id" in curr) {
         acc.push(UserService.formatGraphqlUser(curr));

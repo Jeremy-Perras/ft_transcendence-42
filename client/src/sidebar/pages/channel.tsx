@@ -107,7 +107,7 @@ const query = (
   ChannelDiscussionQuery["channel"]
 > => {
   return {
-    queryKey: ["ChannelDiscussion", channelId], //TODO : check key combo
+    queryKey: ["ChannelDiscussion", channelId],
     queryFn: async () =>
       request("/graphql", ChannelDiscussionQueryDocument, {
         channelId: channelId,
@@ -144,7 +144,15 @@ const JoinPublicChannel = ({ channelId }: { channelId: number }) => {
       request("/graphql", JoinChannelMutationDocument, {
         channelId: channelId,
         password: undefined, //null?
-      })
+      }),
+    {
+      onError: () => {
+        const pushError = useErrorStore((state) => state.pushError);
+        pushError("Error : join channel failed");
+      },
+      onSuccess: () =>
+        queryClient.invalidateQueries(["ChannelDiscussion", channelId]),
+    }
   );
   return (
     <div className="flex h-full w-full flex-col items-center justify-center pb-60">
@@ -207,7 +215,13 @@ const AccessProtected = ({ channelId }: { channelId: number }) => {
         channelId: channelId,
         password: password,
       }),
-    { onError: () => setShowPwdError(true) }
+    {
+      onError: () => {
+        setShowPwdError(true);
+      },
+      onSuccess: () =>
+        queryClient.invalidateQueries(["ChannelDiscussion", channelId]),
+    }
   );
 
   return (

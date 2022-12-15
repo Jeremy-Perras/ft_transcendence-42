@@ -1,4 +1,4 @@
-import { useErrorStore } from "client/src/stores";
+import { useErrorStore } from "../../stores";
 import { motion } from "framer-motion";
 import { useEffect } from "react";
 

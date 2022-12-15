@@ -25,14 +25,14 @@ import {
 import { RankIcon } from "../utils/rankIcon";
 import { useErrorStore, useSidebarStore } from "../../stores";
 import { IsOnline } from "../components/isOnline";
-import { graphql } from "../../../src/gql";
+import { graphql } from "../../gql";
 import request from "graphql-request";
 import {
   DirectMessagesQuery,
   FriendStatus,
   UserStatus,
-} from "../../../src/gql/graphql";
-import queryClient from "client/src/query";
+} from "../../gql/graphql";
+import queryClient from "../../query";
 
 type DirectMessage = {
   userId: number;

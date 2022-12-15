@@ -77,6 +77,8 @@ const ChannelSettingsQueryDocument = graphql(`
       }
       admins {
         id
+        name
+        avatar
       }
       members {
         id
@@ -241,7 +243,7 @@ const restrictionTimeArray: RestrictionTime[] = [
     endAt: Math.floor(new Date() as unknown as number) + 60 * 60 * 24 * 1000,
   },
   {
-    text: "Indefinite",
+    text: "Indef.",
     endAt: null,
   },
 ];
