@@ -58,9 +58,6 @@ const SearchUsersQueryDocument = graphql(`
       name
       avatar
       status
-      channels {
-        id
-      }
     }
   }
 `);
@@ -786,7 +783,7 @@ const SearchResults = ({
         queryClient.invalidateQueries(["ChannelSettings", channel.id]),
     }
   );
-
+  console.log(searchInput);
   const { data: searchResults } = useQuery({
     queryKey: ["Users"],
     queryFn: async () =>
@@ -794,6 +791,7 @@ const SearchResults = ({
         name: searchInput,
       }),
     select(data) {
+      console.log(data);
       return data.users.filter((u) => {
         if (u === null || channel.owner.id === u.id) return false;
         const pred = (m: typeof channel.members[number]) => m.id === u.id;

@@ -54,6 +54,7 @@ export class UserService {
         },
       },
     });
+    console.log(users);
     return users.map((user) => {
       userLoader.prime(user.id, user);
       return UserService.formatGraphqlUser(user);
