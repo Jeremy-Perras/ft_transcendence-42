@@ -305,7 +305,7 @@ expect.extend({
                           author: curr.authorId,
                           recipient: curr.recipientId,
                           content: curr.content,
-                          read: !!curr.readAt,
+                          read: !curr.readAt,
                           sent: curr.sentAt,
                         });
                       }
@@ -314,7 +314,7 @@ expect.extend({
                         author: curr.authorId,
                         recipient: curr.recipientId,
                         content: curr.content,
-                        read: !!curr.readAt,
+                        read: !curr.readAt,
                         sent: curr.sentAt,
                       });
                     }
