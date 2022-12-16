@@ -1,3 +1,0 @@
-mutation CancelInvitation($userId: Int!) {
-  cancelInvitation(userId: $userId)
-}

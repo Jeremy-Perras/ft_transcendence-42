@@ -127,7 +127,6 @@ export class UserService {
       const blockingIds = await blockingIdsLoader.load(id);
 
       const users = await userloader.loadMany(blockingIds);
-      console.log(users);
       return users.reduce((acc, curr) => {
         if (curr && "id" in curr) {
           acc.push(UserService.formatGraphqlUser(curr));
@@ -211,17 +210,8 @@ export class UserService {
           blockerId: currentUserId,
         },
       });
-      const friendStatus = await this.prismaService.user.findUnique({
-        select: {
-          friendRequestsReceived: { where: { senderId: currentUserId } },
-        },
-        where: { id: userId },
-      });
-      if (
-        friendStatus?.friendRequestsReceived &&
-        friendStatus?.friendRequestsReceived.length > 0
-      )
-        await this.unFriend(currentUserId, userId);
+
+      await this.unFriend(currentUserId, userId);
     } catch (error) {
       throw new NotFoundException("User not found");
     }
@@ -229,14 +219,24 @@ export class UserService {
 
   async unFriend(currentUserId: number, userId: number) {
     try {
-      await this.prismaService.friendRequest.delete({
-        where: {
-          senderId_receiverId: {
-            senderId: currentUserId,
-            receiverId: userId,
-          },
+      const invitationSent = await this.prismaService.user.findUnique({
+        select: {
+          friendRequestsReceived: { where: { senderId: currentUserId } },
         },
+        where: { id: userId },
       });
+      if (
+        invitationSent?.friendRequestsReceived &&
+        invitationSent?.friendRequestsReceived.length > 0
+      )
+        await this.prismaService.friendRequest.delete({
+          where: {
+            senderId_receiverId: {
+              senderId: currentUserId,
+              receiverId: userId,
+            },
+          },
+        });
       await this.refuseFriendInvite(currentUserId, userId);
     } catch (error) {
       throw new NotFoundException("User not found");
@@ -258,17 +258,26 @@ export class UserService {
 
   async refuseFriendInvite(currentUserId: number, userId: number) {
     try {
-      //TODO : check if exists before delete or remove exception ?
-      await this.prismaService.friendRequest.delete({
-        where: {
-          senderId_receiverId: {
-            senderId: userId,
-            receiverId: currentUserId,
-          },
+      const invitationReceived = await this.prismaService.user.findUnique({
+        select: {
+          friendRequestsReceived: { where: { senderId: userId } },
         },
+        where: { id: currentUserId },
       });
+      if (
+        invitationReceived?.friendRequestsReceived &&
+        invitationReceived?.friendRequestsReceived.length > 0
+      )
+        await this.prismaService.friendRequest.delete({
+          where: {
+            senderId_receiverId: {
+              senderId: userId,
+              receiverId: currentUserId,
+            },
+          },
+        });
     } catch (error) {
-      // throw new NotFoundException("User not found");
+      throw new NotFoundException("User not found");
     }
   }
 

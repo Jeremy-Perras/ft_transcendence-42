@@ -682,7 +682,7 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
       return spanEl.current?.offsetWidth ? spanEl.current?.offsetWidth + 1 : w;
     });
   }, [setSpan, watchName]);
-  console.log(data.user.friendStatus);
+
   return (
     <div className="flex h-full w-full flex-col ">
       <Header>
@@ -786,7 +786,7 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
         <AddFriend
           userId={data.user.id}
           pendingInvitation={
-            data.user.friendStatus === FriendStatus.InvitationSend
+            data.user.friendStatus === FriendStatus.InvitationSent
           }
           pendingAccept={
             data.user.friendStatus === FriendStatus.InvitationReceived
@@ -806,6 +806,5 @@ export default function Profile() {
   >;
   const { data } = useQuery({ ...query(userId), initialData });
   if (typeof data === "undefined") return <div>Error</div>;
-  console.log(data.user.status);
   return <DisplayUserProfile data={data} />;
 }

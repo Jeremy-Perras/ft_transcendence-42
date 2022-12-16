@@ -1,3 +1,0 @@
-mutation AddAdmin($channelId: Int!, $userId: Int!) {
-  addAdmin(channelId: $channelId, userId: $userId)
-}

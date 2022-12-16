@@ -1,3 +1,0 @@
-mutation RemoveAdmin($channelId: Int!, $userId: Int!) {
-  removeAdmin(channelId: $channelId, userId: $userId)
-}
