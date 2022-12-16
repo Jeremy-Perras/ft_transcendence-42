@@ -115,7 +115,6 @@ export const SearchResults = ({
       }) as ResultsType;
     },
   });
-
   return (
     <>
       {typeof searchResults === "undefined" ? (
