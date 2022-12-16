@@ -46,6 +46,7 @@ import {
 import request from "graphql-request";
 import queryClient from "../../../src/query";
 import { useErrorStore } from "../../../src/stores";
+import { ErrorMessages } from "../components/error";
 
 type formData = {
   name: string;
@@ -429,8 +430,12 @@ const AddFriend = ({
       }),
     {
       onError: () => {
-        const pushError = useErrorStore((state) => state.pushError);
-        pushError("Error : cancel invitation failed");
+        alert("Error");
+        // const pushError = useErrorStore((state) => state.pushError);
+        // pushError("Error : cancel invitation failed");
+        // useErrorStore((state) => {
+        //   state.pushError("Error");
+        // });
       },
       onSuccess: () => queryClient.invalidateQueries(["UserProfile"]),
     }
@@ -443,8 +448,12 @@ const AddFriend = ({
       }),
     {
       onError: () => {
-        const pushError = useErrorStore((state) => state.pushError);
-        pushError("Error : friend user failed");
+        alert("Error");
+        // const pushError = useErrorStore((state) => state.pushError);
+        // pushError("Error : friend user failed");
+        // useErrorStore((state) => {
+        //   state.pushError("Error");
+        // });
       },
       onSuccess: () => queryClient.invalidateQueries(["UserProfile"]),
     }
@@ -469,7 +478,10 @@ const AddFriend = ({
       <div
         className="flex h-24 basis-1/2 items-center justify-center border-2 bg-slate-100 p-4 text-xl font-bold text-slate-600 transition-all hover:cursor-pointer hover:bg-slate-200"
         onClick={() => {
-          pendingInvitation ? "" : friendUser.mutate({ userId }); //???
+          // useErrorStore((state) => {
+          //   state.pushError("Error");
+          // });
+          pendingInvitation ? "" : friendUser.mutate({ userId });
         }}
       >
         {!pendingAccept && !pendingInvitation ? (
@@ -482,6 +494,9 @@ const AddFriend = ({
         <span
           className="flex items-center text-center text-2xl font-bold"
           onClick={() => {
+            // useErrorStore((state) => {
+            //   state.pushError("Error");
+            // });
             pendingInvitation
               ? cancelInvitation.mutate({ userId: userId })
               : "";

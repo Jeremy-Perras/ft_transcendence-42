@@ -7,13 +7,11 @@ type ErrorStore = {
 };
 
 const useErrorStore = create<ErrorStore>((set) => ({
-  errorList: [""],
-  pushError: (newError: string) => {
-    return set((state) => ({ errorList: [...state.errorList, newError] }));
-  },
-  removeError: (index: number) => {
-    return set((state) => ({ errorList: state.errorList.slice(index, 1) }));
-  },
+  errorList: ["65", "68"],
+  pushError: (newError: string) =>
+    set((state) => ({ errorList: [...state.errorList, newError] })),
+  removeError: (index: number) =>
+    set((state) => ({ errorList: state.errorList.slice(index, 1) })),
 }));
 
 type SidebarStore = {

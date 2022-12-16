@@ -1,38 +1,54 @@
 import { useErrorStore } from "../../stores";
 import { motion } from "framer-motion";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
-const ErrorLabel = ({ error, index }: { error: string; index: number }) => {
-  const removeError = useErrorStore((state) => state.removeError);
+export const ErrorMessages = ({ error }: { error: string }) => {
+  // const removeError = useErrorStore((state) => state.removeError);
+  const [display, setDisplay] = useState(true);
   useEffect(() => {
     const timer = setTimeout(() => {
-      removeError(index);
+      setDisplay(false);
     }, 3000);
     return () => clearTimeout(timer);
   }, []);
-
   return (
-    <motion.span
-      onClick={() => removeError(index)}
-      initial={{ y: "-200%" }}
-      transition={{ duration: 2 }}
-      animate={{ y: "calc(0vw )" }}
-      exit={{ opacity: 0 }}
-      className="relative flex h-full min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-gray-50 transition-all"
-    >
-      {error}
-    </motion.span>
+    <>
+      {display && (
+        <>
+          <motion.span
+            onClick={() => setDisplay(false)}
+            initial={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="w-full items-center justify-center truncate bg-red-300 text-center transition-all"
+          >
+            {error}
+          </motion.span>
+        </>
+      )}
+    </>
   );
 };
 
-export const ErrorMessages = () => {
-  const errors = useErrorStore.getState().errorList;
-
-  return (
-    <div className="absolute top-0 flex flex-col justify-start">
-      {errors.map((error, index) => (
-        <ErrorLabel error={error} index={index} />
-      ))}
-    </div>
-  );
-};
+// export const ErrorMessages = () => {
+//   // const errors = useErrorStore.getState().errorList;
+//   // console.log(errors);
+//   // useEffect(() => {
+//   //   () => {
+//   //     return;
+//   //   };
+//   // }, [errors]);
+//   const errors = ["error1"];
+//   return (
+//     <div className="absolute top-0 ">
+//       {errors.map((error, index) => (
+//         <ErrorLabel
+//           error={error}
+//           index={index}
+//           key={error + index.toString()}
+//         />
+//       ))}
+//     </div>
+//   );
+// };
