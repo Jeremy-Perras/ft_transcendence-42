@@ -4,6 +4,8 @@ import { useAuthStore } from "./stores";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
+      staleTime: 10000,
+      refetchOnWindowFocus: false,
       retry: false,
     },
   },

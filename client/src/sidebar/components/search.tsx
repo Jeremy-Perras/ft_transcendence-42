@@ -97,7 +97,7 @@ export const SearchResults = ({
   )[];
 
   const { data: searchResults } = useQuery({
-    queryKey: ["UsersAndChannels"],
+    queryKey: ["UsersAndChannels", searchInput],
     queryFn: async () =>
       request("/graphql", SearchUsersAndChannelsQueryDocument, {
         name: searchInput,

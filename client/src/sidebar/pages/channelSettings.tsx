@@ -737,7 +737,8 @@ const SearchBar = ({
         className="w-full py-1 px-2 text-lg focus:outline-none focus:ring-2 focus:ring-inset"
         placeholder="Add member"
         onChange={(e) => {
-          queryClient.invalidateQueries(["Users"]);
+          // queryClient.invalidateQueries(["Users", search]);
+          // queryClient.invalidateQueries();
           setSearch(e.target.value);
         }}
         onKeyDown={(e) => {
@@ -785,7 +786,7 @@ const SearchResults = ({
   );
   console.log(searchInput);
   const { data: searchResults } = useQuery({
-    queryKey: ["Users"],
+    queryKey: ["Users", searchInput],
     queryFn: async () =>
       request("/graphql", SearchUsersQueryDocument, {
         name: searchInput,
@@ -801,7 +802,7 @@ const SearchResults = ({
   });
 
   return (
-    <div className="flex flex-col  divide-y divide-slate-200 overflow-y-scroll">
+    <div className="flex flex-col divide-y divide-slate-200 overflow-y-scroll bg-slate-100">
       {typeof searchResults === "undefined" ? (
         <Empty message="Connection error" Icon={ConnectionErrorIcon} />
       ) : searchResults.length === 0 ? (
