@@ -10,22 +10,26 @@ import DataLoader from "dataloader";
 import { NestDataLoader } from "../dataloader";
 import { PrismaService } from "../prisma/prisma.service";
 
-//TODO
 @Injectable()
 export class ChannelLoader implements NestDataLoader<number, Channel> {
   constructor(private prismaService: PrismaService) {}
 
   generateDataLoader(): DataLoader<number, Channel> {
-    const c = new DataLoader<number, Channel>(async (keys) =>
-      this.prismaService.channel.findMany({
+    return new DataLoader<number, Channel>(async (keys) => {
+      const channel = await this.prismaService.channel.findMany({
         where: {
           id: {
             in: [...keys],
           },
         },
-      })
-    );
-    return c;
+      });
+      const result = channel.reduce((acc, curr) => {
+        const index = keys.indexOf(curr.id);
+        acc[index] = curr;
+        return acc;
+      }, new Array<Channel>());
+      return result;
+    });
   }
 }
 

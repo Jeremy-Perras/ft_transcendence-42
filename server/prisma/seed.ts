@@ -284,7 +284,7 @@ try {
             channelId: 1,
             authorId: i + 1,
             content: faker.lorem.text(),
-            sentAt: new Date(now.valueOf() + (i + j) * 60000),
+            sentAt: new Date(now.valueOf() - (i + j) * 60000),
           }))
         )
         .flat(1),

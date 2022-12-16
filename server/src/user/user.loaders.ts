@@ -305,7 +305,6 @@ export class DirectMessagesSentLoader
           const index = keys.findIndex(
             (t) => t[0] === m.authorId && t[1] === m.recipientId
           );
-          // keys.indexOf([m.authorId, m.recipientId]);
           if (!acc[index]) {
             acc[index] = new Array<
               DirectMessage & { author: User; recipient: User }
