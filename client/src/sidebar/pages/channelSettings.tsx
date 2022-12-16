@@ -46,6 +46,7 @@ import { graphql } from "../../gql";
 import request from "graphql-request";
 import { ChannelSettingsQuery, SearchUsersQuery } from "../../gql/graphql";
 import queryClient from "../../query";
+import { useDebouncedState } from "@react-hookz/web";
 
 type ChannelQueryResult = Omit<ChannelSettingsQuery["channel"], "admins"> & {
   admins: ChannelSettingsQuery["channel"]["members"];
@@ -1273,7 +1274,7 @@ const MemberList = ({
 export default function ChannelSettings() {
   const [deleteConfirmation, setDeleteConfirmation] = useState(false);
   const [leaveConfirmation, setLeaveConfirmation] = useState(false);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useDebouncedState("", 200, 500);
 
   const userId = useAuthStore((state) => state.userId);
   if (!userId) {
