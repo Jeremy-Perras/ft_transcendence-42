@@ -458,7 +458,7 @@ export class UserService {
         hasUnreadMessages: channel.channelMessages[0]
           ? channel.channelMessages[0].authorId === currentUserId
             ? false
-            : channel.channelMessages[0].readBy.some(
+            : !channel.channelMessages[0].readBy.some(
                 (id) => id.userId === currentUserId
               )
           : false,
@@ -491,7 +491,7 @@ export class UserService {
         hasUnreadMessages: lastMessage
           ? lastMessage.authorId === currentUserId
             ? false
-            : !!lastMessage.readAt
+            : !lastMessage.readAt
           : false,
         lastMessageContent: lastMessage?.content,
         lastMessageDate: lastMessage?.sentAt,

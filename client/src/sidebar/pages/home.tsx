@@ -33,7 +33,7 @@ import {
 } from "../../../src/gql/graphql";
 import queryClient from "../../../src/query";
 import { useErrorStore } from "../../../src/stores";
-import { ErrorMessages } from "../components/error";
+import { useDebouncedState } from "@react-hookz/web";
 
 const DiscussionsAndInvitationsQueryDocument = graphql(`
   query DiscussionsAndInvitations($userId: Int) {
@@ -215,7 +215,7 @@ const Invitation = ({
 };
 
 export const Home = () => {
-  const [searchInput, setSearchInput] = useState("");
+  const [searchInput, setSearchInput] = useDebouncedState("", 200, 500);
   const [showChannelCreation, setShowChannelCreation] = useState(false);
 
   const initialData = useLoaderData() as Awaited<ReturnType<typeof homeLoader>>;
