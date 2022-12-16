@@ -305,7 +305,6 @@ const MessageInput = ({
 
   const cannotSendMessage =
     status === ChannelUserStatus.BANNED || status === ChannelUserStatus.MUTED;
-
   return (
     <div className="flex w-full bg-white px-[2px]">
       <textarea
@@ -315,7 +314,12 @@ const MessageInput = ({
         className={`${
           cannotSendMessage ? "hover:cursor-not-allowed" : ""
         }  w-full resize-none border-x-2 border-b-8 border-white px-2 pt-4 pb-2 `}
-        onChange={(e) => setContent(e.target.value)}
+        onChange={(e) => {
+          e.target.value === "\n"
+            ? (e.currentTarget.value = "")
+            : e.target.value;
+          setContent(e.target.value);
+        }}
         placeholder={`${
           status === ChannelUserStatus.BANNED
             ? "You are banned"
@@ -325,14 +329,16 @@ const MessageInput = ({
         }`}
         onKeyDown={(e) => {
           if (!cannotSendMessage) {
-            if (e.code == "Enter" && !e.getModifierState("Shift")) {
-              sendChannelMessage.mutate({
-                message: content,
-                channelId: channelId,
-              });
-              e.currentTarget.value = "";
-              e.preventDefault();
-              setContent("");
+            if (content != "") {
+              if (e.code == "Enter" && !e.getModifierState("Shift")) {
+                sendChannelMessage.mutate({
+                  message: content,
+                  channelId: channelId,
+                });
+                e.currentTarget.value = "";
+                e.preventDefault();
+                setContent("");
+              }
             }
           }
         }}
