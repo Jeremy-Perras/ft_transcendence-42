@@ -739,7 +739,10 @@ const SearchBar = ({
         spellCheck={false}
         className="w-full py-1 px-2 text-lg focus:outline-none focus:ring-2 focus:ring-inset"
         placeholder="Add member"
-        onChange={(e) => setSearch(e.target.value)}
+        onChange={(e) => {
+          queryClient.invalidateQueries(["Users"]);
+          setSearch(e.target.value);
+        }}
         onKeyDown={(e) => {
           if (e.code == "Escape" && search.length > 0) {
             e.preventDefault();
