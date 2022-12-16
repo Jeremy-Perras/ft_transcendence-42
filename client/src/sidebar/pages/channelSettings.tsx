@@ -721,7 +721,7 @@ const SearchBar = ({
   setSearch,
 }: {
   search: string;
-  setSearch: (value: string) => void;
+  setSearch: React.Dispatch<React.SetStateAction<string>>;
 }) => {
   const input = useRef<HTMLInputElement>(null);
 
@@ -792,8 +792,8 @@ const SearchResults = ({
       }),
     select(data) {
       return data.users.filter((u) => {
-        if (u === null) return false;
-        const pred = (m: typeof channel.members[number]) => m.id !== u.id;
+        if (u === null || channel.owner.id === u.id) return false;
+        const pred = (m: typeof channel.members[number]) => m.id === u.id;
         return !channel.members.some(pred) && !channel.admins.some(pred);
       }) as Exclude<SearchUsersQuery["users"][number], null>[];
     },
