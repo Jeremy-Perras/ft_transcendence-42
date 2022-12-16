@@ -348,7 +348,9 @@ export class ChannelResolver {
 
   @UseGuards(ExistingChannelGuard)
   @UseGuards(OwnerGuard)
-  @RoleGuard(Role.Admin)
+  @RoleGuard(Role.Owner)
+  // @RoleGuard(Role.Admin)
+  //issue is with the guard
   @Mutation((returns) => Boolean)
   async inviteUser(
     @Args("channelId", { type: () => Int }) channelId: number,

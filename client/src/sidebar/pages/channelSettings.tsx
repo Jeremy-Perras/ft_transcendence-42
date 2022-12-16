@@ -109,7 +109,7 @@ const query = (
   channelId: number
 ): UseQueryOptions<ChannelSettingsQuery, unknown, ChannelQueryResult> => {
   return {
-    queryKey: ["ChannelSettings", channelId], //TODO : check if this is the right key combo
+    queryKey: ["ChannelSettings", channelId],
     queryFn: async () =>
       request("/graphql", ChannelSettingsQueryDocument, {
         channelId: channelId,
@@ -821,7 +821,7 @@ const SearchResults = ({
               <Avatar.Root>
                 <Avatar.Image
                   className="h-10 w-10 border border-black object-cover"
-                  src={`uploads/avatars/${result?.avatar}`}
+                  src={result?.avatar}
                 />
                 <Avatar.Fallback>
                   <UserIcon className="h-10 w-10" />
@@ -1023,6 +1023,7 @@ const ChannelMode = ({
       },
       onSuccess: () => {
         setShowPasswordField(false);
+        queryClient.invalidateQueries(["ChannelSettings", channelId]);
         reset();
       },
     }
@@ -1050,7 +1051,7 @@ const ChannelMode = ({
               onClick={() => {
                 setShowPasswordField(!showPasswordField), reset();
               }}
-              className="mr-1 h-6  basis-1/2 border-2 border-slate-200 bg-slate-100 text-xs hover:cursor-pointer hover:bg-slate-200"
+              className="mr-1 h-6 basis-1/2 border-2 border-slate-300 bg-slate-200 text-xs hover:cursor-pointer hover:bg-slate-300"
             >
               {activeMode === "Password" && !showPasswordField
                 ? "Change password"
@@ -1151,7 +1152,7 @@ const ChannelHeader = ({
   setLeaveConfirmation: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   return (
-    <div className="relative flex w-full flex-col border-b-2 p-2">
+    <div className="relative flex w-full flex-col border-b-2 bg-slate-100 p-2">
       <div className="absolute top-1 right-1 flex">
         <LeaveIcon
           className="mt-1 w-8 self-center text-lg text-slate-500 hover:cursor-pointer hover:text-slate-700"

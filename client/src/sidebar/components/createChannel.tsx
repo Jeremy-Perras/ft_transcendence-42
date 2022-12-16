@@ -117,7 +117,7 @@ export default function CreateChannel({
         pushError("Error : channel creation failed");
       },
       onSuccess: () =>
-        queryClient.invalidateQueries(["DiscussionsAndIvitations"]),
+        queryClient.invalidateQueries(["DiscussionsAndInvitations"]),
     }
   );
 
@@ -140,11 +140,11 @@ export default function CreateChannel({
               <div
                 key="modal"
                 onClick={() => setShowChannelCreation(false)}
-                className="absolute h-screen w-screen backdrop-blur" //TODO: check why avatars stay in front
+                className="absolute z-10 h-screen w-screen backdrop-blur"
               ></div>
               <motion.div
                 key="content"
-                className="absolute bottom-0 w-full  shadow-[10px_10px_15px_15px_rgba(0,0,0,0.2)]"
+                className="absolute bottom-0 z-10 w-full bg-slate-100 shadow-[10px_10px_15px_15px_rgba(0,0,0,0.2)]"
                 initial={{ y: "100%" }}
                 exit={{ y: "100%" }}
                 animate={{ y: 0 }}
@@ -154,9 +154,9 @@ export default function CreateChannel({
                   val.y === 0 && setFocus("name");
                 }}
               >
-                <div className="z-20 flex h-full w-full flex-col bg-slate-100 pb-8 opacity-100 transition-all">
+                <div className=" flex h-full w-full flex-col pb-8 opacity-100 transition-all">
                   <form
-                    className="flex h-full flex-col bg-slate-100"
+                    className="flex h-full flex-col"
                     onSubmit={handleSubmit((data) => {
                       createChannelMutation.mutate({
                         inviteOnly: data.type === "Private",
@@ -166,7 +166,7 @@ export default function CreateChannel({
                       setShowChannelCreation(false);
                     })}
                   >
-                    <div className="flex flex-col bg-slate-100">
+                    <div className="flex flex-col">
                       <div className="mt-6 mb-2 self-center text-2xl text-slate-600">
                         Create your own Channel !
                       </div>
@@ -206,7 +206,7 @@ export default function CreateChannel({
 
                     <fieldset
                       role="radiogroup"
-                      className="flex justify-evenly  bg-slate-100 px-4"
+                      className="flex justify-evenly px-4"
                     >
                       <ChannelModeButton
                         text="Public"

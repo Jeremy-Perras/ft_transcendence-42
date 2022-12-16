@@ -180,7 +180,7 @@ const Invitation = ({
   );
 
   return (
-    <div className="my-px flex items-center justify-center border bg-slate-100">
+    <div className="my-px flex h-10 items-center justify-center border bg-slate-100">
       <div className="m-2 flex h-8 w-8 shrink-0  justify-center text-white">
         <Avatar.Root>
           <Avatar.Image
@@ -193,10 +193,10 @@ const Invitation = ({
         </Avatar.Root>
       </div>
       <div className="flex w-full ">
-        <span className="basis-2/3 pl-4 pt-1 align-middle font-bold">{`Accept ${name}'s invitation ? `}</span>
-        <div className="flex basis-1/3 justify-end">
+        <span className="flex grow truncate pl-2 pt-1 align-middle font-bold">{`Accept ${name}'s invitation ? `}</span>
+        <div className="flex basis-1/5 justify-end">
           <AcceptIcon
-            className=" w-8 border border-slate-300 bg-slate-200 hover:cursor-pointer hover:bg-slate-300"
+            className="w-8 border border-slate-300 bg-slate-200 hover:cursor-pointer hover:bg-slate-300"
             onClick={() => {
               acceptInvitation.mutate({ userId });
             }}
