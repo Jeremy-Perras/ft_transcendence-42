@@ -69,7 +69,10 @@ export class RolesGuard implements CanActivate {
       case Role.Admin: {
         if (!channel) {
           return false;
-        } else if (channel.members.some((m) => m.role === ChannelRole.ADMIN)) {
+        } else if (
+          channel.members.some((m) => m.role === ChannelRole.ADMIN) ||
+          userId === channel.ownerId
+        ) {
           return true;
         }
         return false;

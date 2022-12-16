@@ -58,9 +58,6 @@ const SearchUsersQueryDocument = graphql(`
       name
       avatar
       status
-      channels {
-        id
-      }
     }
   }
 `);
@@ -121,12 +118,8 @@ const query = (
       passwordProtected: data.channel.passwordProtected,
       private: data.channel.private,
       owner: data.channel.owner,
-      admins: data.channel.members.filter((m) =>
-        data.channel.admins.some((a) => a.id === m.id)
-      ),
-      members: data.channel.members.filter(
-        (m) => !data.channel.admins.some((a) => a.id === m.id)
-      ),
+      admins: data.channel.admins,
+      members: data.channel.members,
       banned: data.channel.banned,
       muted: data.channel.muted,
     }),
