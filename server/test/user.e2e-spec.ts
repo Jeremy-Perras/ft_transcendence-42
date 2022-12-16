@@ -305,7 +305,7 @@ expect.extend({
                           author: curr.authorId,
                           recipient: curr.recipientId,
                           content: curr.content,
-                          read: !curr.readAt,
+                          hasUnread: !curr.readAt,
                           sent: curr.sentAt,
                         });
                       }
@@ -314,14 +314,14 @@ expect.extend({
                         author: curr.authorId,
                         recipient: curr.recipientId,
                         content: curr.content,
-                        read: !curr.readAt,
+                        hasUnread: !curr.readAt,
                         sent: curr.sentAt,
                       });
                     }
                   }
 
                   return acc;
-                }, new Map<number, { recipient: number; author: number; content: string; sent: Date; read: boolean }>());
+                }, new Map<number, { recipient: number; author: number; content: string; sent: Date; hasUnread: boolean }>());
 
                 const formatChannel = (
                   channel: Prisma.ChannelGetPayload<{
@@ -354,10 +354,13 @@ expect.extend({
                     avatar: null,
                     lastMessageContent: lastMessage?.content ?? null,
                     lastMessageDate: lastMessage?.sentAt.valueOf() ?? null,
-                    hasUnreadMessages:
-                      lastMessage?.readBy.some(
-                        (id) => id.userId === currentUserId
-                      ) ?? false,
+                    hasUnreadMessages: lastMessage
+                      ? lastMessage.authorId === currentUserId
+                        ? false
+                        : !lastMessage.readBy.some(
+                            (id) => id.userId === currentUserId
+                          )
+                      : false,
                     status: null,
                   };
                 };
@@ -379,7 +382,9 @@ expect.extend({
                       friend.lastMessageContent = message.content;
                       friend.lastMessageDate = new Date(message.sent).valueOf();
                       friend.hasUnreadMessages =
-                        message.author === currentUserId ? false : message.read;
+                        message.author === currentUserId
+                          ? false
+                          : message.hasUnread;
                     }
                     return friend;
                   }),
@@ -440,7 +445,7 @@ declare global {
 const prisma = new PrismaClient();
 let currentUserId: number;
 
-describe("User", () => {
+describe("queries", () => {
   let app: INestApplication;
 
   beforeAll(async () => {
@@ -709,19 +714,54 @@ describe("User", () => {
     expect(response.body.errors[0].message).toBe("User not found");
   });
 
-  it(`wrong input`, async () => {
+  it(`search users empty`, async () => {
     currentUserId = 1;
 
     const response = await supertest(app.getHttpServer())
       .post("/graphql")
       .send({
-        query: `query ExampleQuery($id: String!) {
-          user(id: $String) {
+        query: `query Test($name: String!) {
+          users(name: $name) {
             id
             name
           }
         }`,
+        variables: { name: "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz" },
+      });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.data.users).toEqual([]);
+  });
+
+  it(`user by id wrong input`, async () => {
+    currentUserId = 1;
+
+    const response = await supertest(app.getHttpServer())
+      .post("/graphql")
+      .send({
+        query: `query Test($id: Number!) {
+          user(id: $Number) {
+            id
+          }
+        }`,
         variables: { id: "1" },
+      });
+
+    expect(response.statusCode).toBe(400);
+  });
+
+  it(`users by name wrong input`, async () => {
+    currentUserId = 1;
+
+    const response = await supertest(app.getHttpServer())
+      .post("/graphql")
+      .send({
+        query: `query Test($name: String!) {
+          users(name: $String) {
+            id
+          }
+        }`,
+        variables: { name: 1 },
       });
 
     expect(response.statusCode).toBe(400);
