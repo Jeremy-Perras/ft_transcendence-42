@@ -189,10 +189,7 @@ export default function Chat() {
         userId: userId,
       }),
     {
-      onError: () => {
-        const pushError = useErrorStore((state) => state.pushError);
-        pushError("Error : send direct message failed");
-      },
+      onError: () => alert("Error : send direct message failed"),
       onSuccess: () =>
         queryClient.invalidateQueries(["DirectMessages", userId]),
     }

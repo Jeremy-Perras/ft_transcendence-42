@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 
 export const ErrorMessages = ({ error }: { error: string }) => {
-  // const removeError = useErrorStore((state) => state.removeError);
   const [display, setDisplay] = useState(true);
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -21,7 +20,7 @@ export const ErrorMessages = ({ error }: { error: string }) => {
             transition={{ duration: 0.3 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="w-full items-center justify-center truncate bg-red-300 text-center transition-all"
+            className="w-full items-center justify-center truncate bg-red-200 text-center transition-all"
           >
             {error}
           </motion.span>

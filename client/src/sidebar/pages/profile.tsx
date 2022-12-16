@@ -45,8 +45,6 @@ import {
 } from "../../../src/gql/graphql";
 import request from "graphql-request";
 import queryClient from "../../../src/query";
-import { useErrorStore } from "../../../src/stores";
-import { ErrorMessages } from "../components/error";
 
 type formData = {
   name: string;
@@ -99,7 +97,7 @@ const query = (
   userId: number
 ): UseQueryOptions<UserProfileQuery, unknown, UserProfileQuery> => {
   return {
-    queryKey: ["UserProfile"],
+    queryKey: ["UserProfile", userId],
     queryFn: async () =>
       request("/graphql", UserProfileQueryDocument, {
         userId: userId,
@@ -233,7 +231,7 @@ const UserProfileHeader = ({
       method: "POST",
       body: formData,
     }).then(() => {
-      queryClient.invalidateQueries(["UserProfile"]);
+      queryClient.invalidateQueries(["UserProfile", data.user.id]);
     });
   };
 
@@ -415,10 +413,7 @@ const AddFriend = ({
         userId: userId,
       }),
     {
-      onError: () => {
-        const pushError = useErrorStore((state) => state.pushError);
-        pushError("Error : refuse invitation failed");
-      },
+      onError: () => alert("Error : refuse invitation failed"),
       onSuccess: () => queryClient.invalidateQueries(["UserProfile"]),
     }
   );
@@ -430,14 +425,13 @@ const AddFriend = ({
       }),
     {
       onError: () => {
-        alert("Error");
-        // const pushError = useErrorStore((state) => state.pushError);
-        // pushError("Error : cancel invitation failed");
+        alert("Error : cancel invitation failed");
+
         // useErrorStore((state) => {
         //   state.pushError("Error");
         // });
       },
-      onSuccess: () => queryClient.invalidateQueries(["UserProfile"]),
+      onSuccess: () => queryClient.invalidateQueries(["UserProfile", userId]),
     }
   );
 
@@ -447,15 +441,8 @@ const AddFriend = ({
         userId: userId,
       }),
     {
-      onError: () => {
-        alert("Error");
-        // const pushError = useErrorStore((state) => state.pushError);
-        // pushError("Error : friend user failed");
-        // useErrorStore((state) => {
-        //   state.pushError("Error");
-        // });
-      },
-      onSuccess: () => queryClient.invalidateQueries(["UserProfile"]),
+      onError: () => alert("Error : friend user failed"),
+      onSuccess: () => queryClient.invalidateQueries(["UserProfile", userId]),
     }
   );
 
@@ -465,11 +452,8 @@ const AddFriend = ({
         userId: userId,
       }),
     {
-      onError: () => {
-        const pushError = useErrorStore((state) => state.pushError);
-        pushError("Error : block user failed");
-      },
-      onSuccess: () => queryClient.invalidateQueries(["UserProfile"]),
+      onError: () => alert("Error : block user failed"),
+      onSuccess: () => queryClient.invalidateQueries(["UserProfile", userId]),
     }
   );
 
@@ -542,11 +526,8 @@ const Unblock = ({ userId }: { userId: number }) => {
         userId: userId,
       }),
     {
-      onError: () => {
-        const pushError = useErrorStore((state) => state.pushError);
-        pushError("Error : unblock user failed");
-      },
-      onSuccess: () => queryClient.invalidateQueries(["UserProfile"]),
+      onError: () => alert("Error : unblock user failed"),
+      onSuccess: () => queryClient.invalidateQueries(["UserProfile", userId]),
     }
   );
   return (
@@ -591,11 +572,9 @@ const FriendButtons = ({ data }: { data: UserProfileQuery }) => {
         userId: userId,
       }),
     {
-      onError: () => {
-        const pushError = useErrorStore((state) => state.pushError);
-        pushError("Error : block user failed");
-      },
-      onSuccess: () => queryClient.invalidateQueries(["UserProfile"]),
+      onError: () => alert("Error : block user message failed"),
+      onSuccess: () =>
+        queryClient.invalidateQueries(["UserProfile", data.user.id]),
     }
   );
 
@@ -605,11 +584,9 @@ const FriendButtons = ({ data }: { data: UserProfileQuery }) => {
         userId: userId,
       }),
     {
-      onError: () => {
-        const pushError = useErrorStore((state) => state.pushError);
-        pushError("Error : unfriend failed");
-      },
-      onSuccess: () => queryClient.invalidateQueries(["UserProfile"]),
+      onError: () => alert("Error : unblock user failed"),
+      onSuccess: () =>
+        queryClient.invalidateQueries(["UserProfile", data.user.id]),
     }
   );
 
@@ -676,7 +653,8 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
       }),
     {
       onError: () => setShowNameError(true),
-      onSuccess: () => queryClient.invalidateQueries(["UserProfile"]),
+      onSuccess: () =>
+        queryClient.invalidateQueries(["UserProfile", data.user.id]),
     }
   );
 

@@ -271,10 +271,7 @@ const SetRestrictionTimeButton = ({
         restrictUntil: restrictUntil,
       }),
     {
-      onError: () => {
-        const pushError = useErrorStore((state) => state.pushError);
-        pushError("Error : ban failed");
-      },
+      onError: () => alert("Error : ban failed"),
       onSuccess: () =>
         queryClient.invalidateQueries(["ChannelSettings", channelId]),
     }
@@ -295,10 +292,7 @@ const SetRestrictionTimeButton = ({
         restrictUntil: restrictUntil,
       }),
     {
-      onError: () => {
-        const pushError = useErrorStore((state) => state.pushError);
-        pushError("Error : mute failed");
-      },
+      onError: () => alert("Error : mute failed"),
       onSuccess: () =>
         queryClient.invalidateQueries(["ChannelSettings", channelId]),
     }
@@ -384,10 +378,7 @@ const ToggleMuteStatus = ({
         userId: userId,
       }),
     {
-      onError: () => {
-        const pushError = useErrorStore((state) => state.pushError);
-        pushError("Error : unmute failed");
-      },
+      onError: () => alert("Error : unmute failed"),
       onSuccess: () =>
         queryClient.invalidateQueries(["ChannelSettings", channelId]),
     }
@@ -458,10 +449,7 @@ const ToggleBanStatus = ({
         userId: userId,
       }),
     {
-      onError: () => {
-        const pushError = useErrorStore((state) => state.pushError);
-        pushError("Error : unban failed");
-      },
+      onError: () => alert("Error : unban failed"),
       onSuccess: () =>
         queryClient.invalidateQueries(["ChannelSettings", channelId]),
     }
@@ -532,10 +520,7 @@ const ToggleAdminRole = ({
         userId: userId,
       }),
     {
-      onError: () => {
-        const pushError = useErrorStore((state) => state.pushError);
-        pushError("Error : add admin failed");
-      },
+      onError: () => alert("Error : add admin failed"),
       onSuccess: () =>
         queryClient.invalidateQueries(["ChannelSettings", channelId]),
     }
@@ -548,10 +533,7 @@ const ToggleAdminRole = ({
         userId: userId,
       }),
     {
-      onError: () => {
-        const pushError = useErrorStore((state) => state.pushError);
-        pushError("Error : remove admin failed");
-      },
+      onError: () => alert("Error : remove admin message failed"),
       onSuccess: () =>
         queryClient.invalidateQueries(["ChannelSettings", channelId]),
     }
@@ -773,10 +755,7 @@ const SearchResults = ({
         userId: userId,
       }),
     {
-      onError: () => {
-        const pushError = useErrorStore((state) => state.pushError);
-        pushError("Error : invite user failed");
-      },
+      onError: () => alert("Error : invite user failed"),
       onSuccess: () =>
         queryClient.invalidateQueries(["ChannelSettings", channel.id]),
     }
@@ -852,10 +831,7 @@ const LeaveChannelConfirm = ({
         channelId: channelId,
       }),
     {
-      onError: () => {
-        const pushError = useErrorStore((state) => state.pushError);
-        pushError("Error : leave channel failed");
-      },
+      onError: () => alert("Error : leave channel failed"),
       onSuccess: () =>
         queryClient.invalidateQueries(["DiscussionsAndInvitations"]),
     }
@@ -924,10 +900,7 @@ const DeleteConfirm = ({
         channelId: channelId,
       }),
     {
-      onError: () => {
-        const pushError = useErrorStore((state) => state.pushError);
-        pushError("Error : delete channel failed");
-      },
+      onError: () => alert("Error : delete channel failed"),
       onSuccess: () =>
         queryClient.invalidateQueries(["DiscussionsAndInvitations"]),
     }
@@ -1016,10 +989,7 @@ const ChannelMode = ({
         password: password,
       }),
     {
-      onError: () => {
-        const pushError = useErrorStore((state) => state.pushError);
-        pushError("Error : delete channel failed");
-      },
+      onError: () => alert("Error : update password failed"),
       onSuccess: () => {
         setShowPasswordField(false);
         queryClient.invalidateQueries(["ChannelSettings", channelId]);

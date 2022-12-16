@@ -156,10 +156,7 @@ const Invitation = ({
         userId: userId,
       }),
     {
-      onError: () => {
-        const pushError = useErrorStore((state) => state.pushError);
-        pushError("Error : accept invitation failed");
-      },
+      onError: () => alert("Error : accept invitation failed"),
       onSuccess: () =>
         queryClient.invalidateQueries(["DiscussionsAndInvitations"]),
     }
@@ -171,10 +168,7 @@ const Invitation = ({
         userId: userId,
       }),
     {
-      onError: () => {
-        const pushError = useErrorStore((state) => state.pushError);
-        pushError("Error : refuse invitation failed");
-      },
+      onError: () => alert("Error : refuse invitation failed"),
       onSuccess: () =>
         queryClient.invalidateQueries(["DiscussionsAndInvitations"]),
     }

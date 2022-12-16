@@ -112,10 +112,7 @@ export default function CreateChannel({
         password: password,
       }),
     {
-      onError: () => {
-        const pushError = useErrorStore((state) => state.pushError);
-        pushError("Error : channel creation failed");
-      },
+      onError: () => alert("Error : channel creation failed"),
       onSuccess: () =>
         queryClient.invalidateQueries(["DiscussionsAndInvitations"]),
     }

@@ -146,10 +146,7 @@ const JoinPublicChannel = ({ channelId }: { channelId: number }) => {
         password: undefined, //null?
       }),
     {
-      onError: () => {
-        const pushError = useErrorStore((state) => state.pushError);
-        pushError("Error : join channel failed");
-      },
+      onError: () => alert("Error : join channel failed"),
       onSuccess: () =>
         queryClient.invalidateQueries(["ChannelDiscussion", channelId]),
     }
@@ -292,15 +289,12 @@ const MessageInput = ({
       request("/graphql", SendChannelMessageMutationDocument, {
         message: message,
         channelId: channelId,
-      })
-    // {
-    //   onError: () => {
-    //     const pushError = useErrorStore((state) => state.pushError);
-    //     pushError("Error : send channel message failed");
-    //   },
-    //   onSuccess: () =>
-    //     queryClient.invalidateQueries(["ChannelDiscussion", channelId]),
-    // }
+      }),
+    {
+      onError: () => alert("Error : send channel message failed"),
+      onSuccess: () =>
+        queryClient.invalidateQueries(["ChannelDiscussion", channelId]),
+    }
   );
 
   const cannotSendMessage =
