@@ -80,9 +80,14 @@ export class ChannelRestrictedUserLoader
           channelId: {
             in: [...keys],
           },
-          endAt: {
-            gte: new Date(),
-          },
+          OR: [
+            {
+              endAt: {
+                gte: new Date(),
+              },
+            },
+            { endAt: null },
+          ],
         },
       });
       const result = u.reduce((acc, curr) => {
