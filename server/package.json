@@ -65,6 +65,7 @@
     "tsconfig-paths": "^4.1.1"
   },
   "jest": {
+    "testTimeout": 30000,
     "moduleFileExtensions": [
       "js",
       "json",

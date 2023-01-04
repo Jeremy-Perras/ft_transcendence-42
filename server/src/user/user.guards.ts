@@ -49,7 +49,7 @@ export class BlockGuard implements CanActivate {
       if (block.blockerId === userId) {
         throw new ForbiddenException("You are blocking this user");
       }
-      if (block.blockerId === userId) {
+      if (block.blockeeId === userId) {
         throw new ForbiddenException("You are blocked by this user");
       }
     });
@@ -82,7 +82,7 @@ export class FriendGuard implements CanActivate {
       },
     });
 
-    if (friendship.length === 0) {
+    if (friendship.length !== 2) {
       throw new ForbiddenException("You are not friends with this user");
     }
 

@@ -1,4 +1,4 @@
-import { NotFoundException, UseGuards } from "@nestjs/common";
+import { UseGuards } from "@nestjs/common";
 import {
   Resolver,
   Query,
@@ -79,7 +79,7 @@ class GetUserArgs {
 @ArgsType()
 class SetUserName {
   @Field((type) => String)
-  @Length(1, 255)
+  @Length(1, 50)
   name: string;
 }
 
@@ -437,7 +437,7 @@ export class UserResolver {
   @Mutation((returns) => Boolean)
   async updateUserName(
     @CurrentUser() currentUserId: number,
-    @Args() args: SetUserName
+    @Args({ type: () => SetUserName }) args: SetUserName
   ) {
     await this.userService.updateName(currentUserId, args.name);
 
@@ -453,9 +453,9 @@ export class DirectMessageResolver {
     private socketService: SocketService
   ) {}
 
-  @UseGuards(SelfGuard)
-  @UseGuards(BlockGuard)
   @UseGuards(FriendGuard)
+  @UseGuards(BlockGuard)
+  @UseGuards(SelfGuard)
   @Mutation((returns) => Boolean)
   async sendDirectMessage(
     @CurrentUser() currentUserId: number,

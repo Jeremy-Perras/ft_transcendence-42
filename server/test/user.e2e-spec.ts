@@ -1,6 +1,10 @@
 import supertest from "supertest";
 import { Test } from "@nestjs/testing";
-import { ExecutionContext, INestApplication } from "@nestjs/common";
+import {
+  ExecutionContext,
+  INestApplication,
+  ValidationPipe,
+} from "@nestjs/common";
 import { UserModule } from "../src/user/user.module";
 import { ChannelModule } from "../src/channel/channel.module";
 import { GameModule } from "../src/game/game.module";
@@ -14,6 +18,7 @@ import { AuthModule } from "../src/auth/auth.module";
 import { GqlAuthenticatedGuard } from "../src/auth/authenticated.guard";
 import { Prisma, PrismaClient } from "@prisma/client";
 import { SocketModule } from "../src/socket/socket.module";
+import { execSync } from "child_process";
 
 const prismaUserArgs = {
   select: {
@@ -449,6 +454,8 @@ describe("queries", () => {
   let app: INestApplication;
 
   beforeAll(async () => {
+    execSync("npm run dev:seed");
+
     const moduleRef = await Test.createTestingModule({
       providers: [
         {
@@ -477,6 +484,11 @@ describe("queries", () => {
       .compile();
 
     app = moduleRef.createNestApplication();
+    app.useGlobalPipes(
+      new ValidationPipe({
+        transform: true,
+      })
+    );
     app.use((req: any, res: any, next: any) => {
       req.user = currentUserId;
       next();
@@ -546,8 +558,6 @@ describe("queries", () => {
       ...prismaUserArgs,
     });
 
-    if (!user) throw new Error("!!"); // TODO: handle this
-
     expect(response.statusCode).toBe(200);
     expect(response.body.data.user).toMatchUser(user, currentUserId);
   });
@@ -615,8 +625,6 @@ describe("queries", () => {
       },
       ...prismaUserArgs,
     });
-
-    if (!user) throw new Error("!!"); // TODO: handle this
 
     expect(response.statusCode).toBe(200);
     expect(response.body.data.user).toMatchUser(user, currentUserId);
@@ -688,8 +696,6 @@ describe("queries", () => {
       },
       ...prismaUserArgs,
     });
-
-    if (!users) throw new Error("!!"); // TODO: handle this
 
     expect(response.statusCode).toBe(200);
     expect(response.body.data.users).toMatchUser(users, currentUserId);
@@ -765,6 +771,718 @@ describe("queries", () => {
       });
 
     expect(response.statusCode).toBe(400);
+  });
+
+  it(`can block other user`, async () => {
+    currentUserId = 1;
+
+    const response = await supertest(app.getHttpServer())
+      .post("/graphql")
+      .send({
+        query: `mutation Mutation($userId: Int!) {
+          blockUser(userId: $userId)
+        }`,
+        variables: { userId: 20 },
+      });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.data.blockUser).toBe(true);
+
+    const block = await prisma.userBlock.findUnique({
+      where: {
+        blockerId_blockeeId: {
+          blockeeId: 20,
+          blockerId: 1,
+        },
+      },
+    });
+
+    expect(block).not.toBeNull();
+  });
+
+  it(`can block friend`, async () => {
+    currentUserId = 1;
+
+    const response = await supertest(app.getHttpServer())
+      .post("/graphql")
+      .send({
+        query: `mutation Mutation($userId: Int!) {
+          blockUser(userId: $userId)
+        }`,
+        variables: { userId: 2 },
+      });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.data.blockUser).toBe(true);
+
+    const block = await prisma.userBlock.findUnique({
+      where: {
+        blockerId_blockeeId: {
+          blockeeId: 20,
+          blockerId: 1,
+        },
+      },
+    });
+    expect(block).not.toBeNull();
+
+    const friendReq = await prisma.friendRequest.findUnique({
+      where: {
+        senderId_receiverId: {
+          receiverId: 2,
+          senderId: 1,
+        },
+      },
+    });
+    expect(friendReq).toBeNull();
+
+    const friendInvite = await prisma.friendRequest.findUnique({
+      where: {
+        senderId_receiverId: {
+          receiverId: 1,
+          senderId: 2,
+        },
+      },
+    });
+    expect(friendInvite).toBeNull();
+  });
+
+  it(`cannot block itself`, async () => {
+    currentUserId = 1;
+
+    const response = await supertest(app.getHttpServer())
+      .post("/graphql")
+      .send({
+        query: `mutation Mutation($userId: Int!) {
+          blockUser(userId: $userId)
+        }`,
+        variables: { userId: 1 },
+      });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.errors[0].message).toBe(
+      "You cannot do this action to yourself"
+    );
+
+    const block = await prisma.userBlock.findUnique({
+      where: {
+        blockerId_blockeeId: {
+          blockeeId: 1,
+          blockerId: 1,
+        },
+      },
+    });
+    expect(block).toBeNull();
+  });
+
+  it(`can unblock a user`, async () => {
+    currentUserId = 1;
+
+    const response = await supertest(app.getHttpServer())
+      .post("/graphql")
+      .send({
+        query: `mutation Mutation($userId: Int!) {
+          unblockUser(userId: $userId)
+        }`,
+        variables: { userId: 6 },
+      });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.data.unblockUser).toBe(true);
+
+    const block = await prisma.userBlock.findUnique({
+      where: {
+        blockerId_blockeeId: {
+          blockeeId: 6,
+          blockerId: 1,
+        },
+      },
+    });
+    expect(block).toBeNull();
+  });
+
+  it(`cannot unblock itself`, async () => {
+    currentUserId = 1;
+
+    const response = await supertest(app.getHttpServer())
+      .post("/graphql")
+      .send({
+        query: `mutation Mutation($userId: Int!) {
+          blockUser(userId: $userId)
+        }`,
+        variables: { userId: 1 },
+      });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.errors[0].message).toBe(
+      "You cannot do this action to yourself"
+    );
+
+    const block = await prisma.userBlock.findUnique({
+      where: {
+        blockerId_blockeeId: {
+          blockeeId: 1,
+          blockerId: 1,
+        },
+      },
+    });
+    expect(block).toBeNull();
+  });
+
+  it(`can friend an other user`, async () => {
+    currentUserId = 1;
+
+    const response = await supertest(app.getHttpServer())
+      .post("/graphql")
+      .send({
+        query: `mutation Mutation($userId: Int!) {
+          friendUser(userId: $userId)
+        }`,
+        variables: { userId: 10 },
+      });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.data.friendUser).toBe(true);
+
+    const friend = await prisma.friendRequest.findUnique({
+      where: {
+        senderId_receiverId: {
+          receiverId: 10,
+          senderId: 1,
+        },
+      },
+    });
+    expect(friend).not.toBeNull();
+  });
+
+  it(`cannot friend a blocked user`, async () => {
+    currentUserId = 1;
+
+    const response = await supertest(app.getHttpServer())
+      .post("/graphql")
+      .send({
+        query: `mutation Mutation($userId: Int!) {
+          friendUser(userId: $userId)
+        }`,
+        variables: { userId: 7 },
+      });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.errors[0].message).toBe("You are blocking this user");
+
+    const friend = await prisma.friendRequest.findUnique({
+      where: {
+        senderId_receiverId: {
+          receiverId: 7,
+          senderId: 1,
+        },
+      },
+    });
+    expect(friend).toBeNull();
+  });
+
+  it(`cannot friend a blocking user`, async () => {
+    currentUserId = 1;
+
+    const response = await supertest(app.getHttpServer())
+      .post("/graphql")
+      .send({
+        query: `mutation Mutation($userId: Int!) {
+          friendUser(userId: $userId)
+        }`,
+        variables: { userId: 8 },
+      });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.errors[0].message).toBe(
+      "You are blocked by this user"
+    );
+
+    const friend = await prisma.friendRequest.findUnique({
+      where: {
+        senderId_receiverId: {
+          receiverId: 8,
+          senderId: 1,
+        },
+      },
+    });
+    expect(friend).toBeNull();
+  });
+
+  it(`cannot friend itself`, async () => {
+    currentUserId = 1;
+
+    const response = await supertest(app.getHttpServer())
+      .post("/graphql")
+      .send({
+        query: `mutation Mutation($userId: Int!) {
+          friendUser(userId: $userId)
+        }`,
+        variables: { userId: 1 },
+      });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.errors[0].message).toBe(
+      "You cannot do this action to yourself"
+    );
+
+    const friend = await prisma.friendRequest.findUnique({
+      where: {
+        senderId_receiverId: {
+          receiverId: 1,
+          senderId: 1,
+        },
+      },
+    });
+    expect(friend).toBeNull();
+  });
+
+  it(`can unfriend a friended user`, async () => {
+    currentUserId = 1;
+
+    const response = await supertest(app.getHttpServer())
+      .post("/graphql")
+      .send({
+        query: `mutation Mutation($userId: Int!) {
+          unfriendUser(userId: $userId)
+        }`,
+        variables: { userId: 3 },
+      });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.data.unfriendUser).toBe(true);
+
+    const friendReq = await prisma.friendRequest.findUnique({
+      where: {
+        senderId_receiverId: {
+          receiverId: 3,
+          senderId: 1,
+        },
+      },
+    });
+    expect(friendReq).toBeNull();
+
+    const friendInvite = await prisma.friendRequest.findUnique({
+      where: {
+        senderId_receiverId: {
+          receiverId: 1,
+          senderId: 3,
+        },
+      },
+    });
+    expect(friendInvite).toBeNull();
+  });
+
+  it(`cannot unfriend a non friended user`, async () => {
+    currentUserId = 1;
+
+    const response = await supertest(app.getHttpServer())
+      .post("/graphql")
+      .send({
+        query: `mutation Mutation($userId: Int!) {
+          unfriendUser(userId: $userId)
+        }`,
+        variables: { userId: 4 },
+      });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.errors[0].message).toBe(
+      "You are not friends with this user"
+    );
+
+    // Check that the friend request still exists
+    const friend = await prisma.friendRequest.findUnique({
+      where: {
+        senderId_receiverId: {
+          receiverId: 4,
+          senderId: 1,
+        },
+      },
+    });
+    expect(friend).not.toBeNull();
+  });
+
+  it(`cannot unfriend itself`, async () => {
+    currentUserId = 1;
+
+    const response = await supertest(app.getHttpServer())
+      .post("/graphql")
+      .send({
+        query: `mutation Mutation($userId: Int!) {
+          friendUser(userId: $userId)
+        }`,
+        variables: { userId: 1 },
+      });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.errors[0].message).toBe(
+      "You cannot do this action to yourself"
+    );
+  });
+
+  it(`can cancel a friend invite`, async () => {
+    currentUserId = 1;
+
+    const response = await supertest(app.getHttpServer())
+      .post("/graphql")
+      .send({
+        query: `mutation Mutation($userId: Int!) {
+          cancelInvitation(userId: $userId)
+        }`,
+        variables: { userId: 10 },
+      });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.data.cancelInvitation).toBe(true);
+
+    const friendReq = await prisma.friendRequest.findUnique({
+      where: {
+        senderId_receiverId: {
+          receiverId: 10,
+          senderId: 1,
+        },
+      },
+    });
+    expect(friendReq).toBeNull();
+  });
+
+  it(`can cancel a non existing friend invite`, async () => {
+    currentUserId = 1;
+
+    const response = await supertest(app.getHttpServer())
+      .post("/graphql")
+      .send({
+        query: `mutation Mutation($userId: Int!) {
+          cancelInvitation(userId: $userId)
+        }`,
+        variables: { userId: 500 },
+      });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.data.cancelInvitation).toBe(true);
+  });
+
+  it(`cannot cancel a friend invite to itself`, async () => {
+    currentUserId = 1;
+
+    const response = await supertest(app.getHttpServer())
+      .post("/graphql")
+      .send({
+        query: `mutation Mutation($userId: Int!) {
+          cancelInvitation(userId: $userId)
+        }`,
+        variables: { userId: 1 },
+      });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.errors[0].message).toBe(
+      "You cannot do this action to yourself"
+    );
+  });
+
+  it(`can refuse a friend invite`, async () => {
+    currentUserId = 1;
+
+    const response = await supertest(app.getHttpServer())
+      .post("/graphql")
+      .send({
+        query: `mutation Mutation($userId: Int!) {
+          refuseInvitation(userId: $userId)
+        }`,
+        variables: { userId: 5 },
+      });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.data.refuseInvitation).toBe(true);
+
+    const friendReq = await prisma.friendRequest.findUnique({
+      where: {
+        senderId_receiverId: {
+          receiverId: 1,
+          senderId: 5,
+        },
+      },
+    });
+    expect(friendReq).toBeNull();
+  });
+
+  it(`can refuse a non existing friend invite`, async () => {
+    currentUserId = 1;
+
+    const response = await supertest(app.getHttpServer())
+      .post("/graphql")
+      .send({
+        query: `mutation Mutation($userId: Int!) {
+          refuseInvitation(userId: $userId)
+        }`,
+        variables: { userId: 500 },
+      });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.data.refuseInvitation).toBe(true);
+  });
+
+  it(`cannot refuse a friend invite to itself`, async () => {
+    currentUserId = 1;
+
+    const response = await supertest(app.getHttpServer())
+      .post("/graphql")
+      .send({
+        query: `mutation Mutation($userId: Int!) {
+          refuseInvitation(userId: $userId)
+        }`,
+        variables: { userId: 1 },
+      });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.errors[0].message).toBe(
+      "You cannot do this action to yourself"
+    );
+  });
+
+  it(`can update username`, async () => {
+    currentUserId = 1;
+
+    const response = await supertest(app.getHttpServer())
+      .post("/graphql")
+      .send({
+        query: `mutation Mutation($name: String!) {
+          updateUserName(name: $name)
+        }`,
+        variables: { name: "test" },
+      });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.data.updateUserName).toBe(true);
+
+    const user = await prisma.user.findUnique({
+      where: {
+        id: 1,
+      },
+    });
+    expect(user?.name).toBe("test");
+  });
+
+  it(`cannot set empty username`, async () => {
+    currentUserId = 1;
+
+    const response = await supertest(app.getHttpServer())
+      .post("/graphql")
+      .send({
+        query: `mutation Mutation($name: String!) {
+          updateUserName(name: $name)
+        }`,
+        variables: { name: "" },
+      });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.errors[0].message).toBe("Bad Request Exception");
+
+    const user = await prisma.user.findUnique({
+      where: {
+        id: 1,
+      },
+    });
+    expect(user?.name).toBe("test");
+  });
+
+  it(`cannot set long username`, async () => {
+    currentUserId = 1;
+
+    const response = await supertest(app.getHttpServer())
+      .post("/graphql")
+      .send({
+        query: `mutation Mutation($name: String!) {
+          updateUserName(name: $name)
+        }`,
+        variables: {
+          name: "123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789123456789",
+        },
+      });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.errors[0].message).toBe("Bad Request Exception");
+
+    const user = await prisma.user.findUnique({
+      where: {
+        id: 1,
+      },
+    });
+    expect(user?.name).toBe("test");
+  });
+
+  it(`cannot have same username as other user`, async () => {
+    currentUserId = 2;
+
+    const response = await supertest(app.getHttpServer())
+      .post("/graphql")
+      .send({
+        query: `mutation Mutation($name: String!) {
+          updateUserName(name: $name)
+        }`,
+        variables: { name: "test" },
+      });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.errors[0].message).toBe("Name already used");
+
+    const user = await prisma.user.findUnique({
+      where: {
+        id: 2,
+      },
+    });
+    expect(user?.name).not.toBe("test");
+  });
+
+  it(`can send message to friend`, async () => {
+    currentUserId = 2;
+
+    const response = await supertest(app.getHttpServer())
+      .post("/graphql")
+      .send({
+        query: `mutation Mutation($userId: Int!, $message: String!) {
+          sendDirectMessage(userId: $userId, message: $message)
+        }`,
+        variables: { userId: 3, message: "hello" },
+      });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.data.sendDirectMessage).toBe(true);
+
+    const messages = await prisma.directMessage.findMany({
+      where: {
+        authorId: 2,
+        recipientId: 3,
+      },
+    });
+    expect(messages.length).toBe(1);
+    expect(messages[0]?.content).toBe("hello");
+  });
+
+  it(`cannot send empty message`, async () => {
+    currentUserId = 2;
+
+    const response = await supertest(app.getHttpServer())
+      .post("/graphql")
+      .send({
+        query: `mutation Mutation($userId: Int!, $message: String!) {
+          sendDirectMessage(userId: $userId, message: $message)
+        }`,
+        variables: { userId: 3, message: "" },
+      });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.errors[0].message).toBe("Bad Request Exception");
+
+    const messages = await prisma.directMessage.findMany({
+      where: {
+        authorId: 2,
+        recipientId: 3,
+      },
+    });
+    expect(messages.length).toBe(1);
+    expect(messages[0]?.content).toBe("hello");
+  });
+
+  it(`cannot send long message`, async () => {
+    currentUserId = 2;
+
+    const genMessage = (num: number) => {
+      let res = "";
+      for (let i = 0; i < num; i++) {
+        const random = Math.floor(Math.random() * 27);
+        res += String.fromCharCode(97 + random);
+      }
+      return res;
+    };
+
+    const response = await supertest(app.getHttpServer())
+      .post("/graphql")
+      .send({
+        query: `mutation Mutation($userId: Int!, $message: String!) {
+          sendDirectMessage(userId: $userId, message: $message)
+        }`,
+        variables: { userId: 3, message: genMessage(70000) },
+      });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.errors[0].message).toBe("Bad Request Exception");
+
+    const messages = await prisma.directMessage.findMany({
+      where: {
+        authorId: 2,
+        recipientId: 3,
+      },
+    });
+    expect(messages.length).toBe(1);
+    expect(messages[0]?.content).toBe("hello");
+  });
+
+  it(`cannot send message to non friend`, async () => {
+    currentUserId = 1;
+
+    const response = await supertest(app.getHttpServer())
+      .post("/graphql")
+      .send({
+        query: `mutation Mutation($userId: Int!, $message: String!) {
+          sendDirectMessage(userId: $userId, message: $message)
+        }`,
+        variables: { userId: 4, message: "hello" },
+      });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.errors[0].message).toBe(
+      "You are not friends with this user"
+    );
+
+    const messages = await prisma.directMessage.findMany({
+      where: {
+        authorId: 1,
+        recipientId: 4,
+      },
+    });
+    expect(messages.length).toBe(0);
+  });
+
+  it(`cannot send message to itself`, async () => {
+    currentUserId = 1;
+
+    const response = await supertest(app.getHttpServer())
+      .post("/graphql")
+      .send({
+        query: `mutation Mutation($userId: Int!, $message: String!) {
+          sendDirectMessage(userId: $userId, message: $message)
+        }`,
+        variables: { userId: 1, message: "hello" },
+      });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.errors[0].message).toBe(
+      "You cannot do this action to yourself"
+    );
+
+    const messages = await prisma.directMessage.findMany({
+      where: {
+        authorId: 1,
+        recipientId: 1,
+      },
+    });
+    expect(messages.length).toBe(0);
+  });
+
+  it(`cannot use invalid userid`, async () => {
+    currentUserId = 1;
+
+    const response = await supertest(app.getHttpServer())
+      .post("/graphql")
+      .send({
+        query: `mutation Mutation($userId: Int!) {
+          blockUser(userId: $userId)
+        }`,
+        variables: { userId: -1 },
+      });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.errors[0].message).toBe("Bad Request Exception");
   });
 
   afterAll(async () => {
