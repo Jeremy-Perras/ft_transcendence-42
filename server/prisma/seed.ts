@@ -151,13 +151,13 @@ try {
         ...[...Array(100)].map((_, i) => ({
           authorId: 1,
           recipientId: 2,
-          sentAt: new Date(now.valueOf() + i * 60000),
+          sentAt: new Date(now.valueOf() - i * 60000),
           content: faker.lorem.text(),
         })),
         ...[...Array(100)].map((_, i) => ({
           authorId: 2,
           recipientId: 1,
-          sentAt: new Date(now.valueOf() + i * 60000 + 1),
+          sentAt: new Date(now.valueOf() - i * 60000 + 1),
           content: faker.lorem.text(),
         })),
       ],

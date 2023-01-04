@@ -6,6 +6,7 @@ export class SocketService {
   constructor(private socketGateway: SocketGateway) {}
 
   invalidateDirectMessagesCache(currentUserId: number, userId: number) {
+    console.log(currentUserId, userId);
     this.socketGateway.server
       .to(userId.toString())
       .emit("invalidateDirectMessageCache", currentUserId);

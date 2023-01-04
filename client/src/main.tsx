@@ -42,14 +42,16 @@ const App = () => {
 
       // TODO: invalidate cache events - don't forget to invalidate new messages - change keys in queries if needed to add userId / channelId
       socket.on("invalidateDirectMessageCache", (targetId: number) => {
-        queryClient.invalidateQueries(["DirectMessages", targetId]); // ?
+        queryClient.invalidateQueries(["DirectMessages"]);
+        queryClient.invalidateQueries(["DirectMessages", targetId]);
         queryClient.invalidateQueries(["NewMessages"]); //?
-        queryClient.invalidateQueries(["DiscussionAndInvitations"]); // ?
+        queryClient.invalidateQueries(["DiscussionsAndInvitations"]); // ?
+        queryClient.invalidateQueries(["DiscussionsAndInvitations", targetId]); // ?
       });
 
       socket.on("invalidateChannelMessageCache", (targetId: number) => {
         queryClient.invalidateQueries(["ChannelDiscussion", targetId]);
-        queryClient.invalidateQueries(["DiscussionAndInvitations"]); //?
+        queryClient.invalidateQueries(["DiscussionsAndInvitations"]); //?
         queryClient.invalidateQueries(["NewMessages"]); //?
       });
 

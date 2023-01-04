@@ -7,17 +7,37 @@ import {
   UseInterceptors,
   UnsupportedMediaTypeException,
   UnauthorizedException,
+  Get,
+  Param,
+  NotFoundException,
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { ImageFileType } from "@prisma/client";
 import { Request as ExpressRequest } from "express";
 import { AuthenticatedGuard } from "../auth/authenticated.guard";
+import { PrismaService } from "../prisma/prisma.service";
 import { UserService } from "../user/user.service";
 
 @UseGuards(AuthenticatedGuard)
 @Controller("/upload")
 export class UploadController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private prismaService: PrismaService
+  ) {}
+
+  @Get("/avatar:id")
+  async avatar(@Param("id") id: string) {
+    try {
+      return await this.prismaService.avatar.findUnique({
+        where: {
+          userId: +id,
+        },
+      });
+    } catch (error) {
+      throw new NotFoundException("User not found");
+    }
+  }
 
   @Post("/avatar")
   @UseInterceptors(
