@@ -361,7 +361,7 @@ export class UserResolver {
       directMessagesReceivedLoader,
       directMessagesSentLoader
     );
-    this.socketService.invalidateDirectMessagesCache(currentUserId, user.id);
+    // this.socketService.invalidateDirectMessagesCache(currentUserId, user.id) ; // infinite loop
 
     return messages;
   }

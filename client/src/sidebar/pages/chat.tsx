@@ -23,7 +23,7 @@ import {
   HeaderLeftBtn,
 } from "../components/header";
 import { RankIcon } from "../utils/rankIcon";
-import { useErrorStore, useSidebarStore } from "../../stores";
+import { useSidebarStore } from "../../stores";
 import { IsOnline } from "../components/isOnline";
 import { graphql } from "../../gql";
 import request from "graphql-request";

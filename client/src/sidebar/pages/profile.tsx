@@ -658,6 +658,11 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
     }
   );
 
+  const test = fetch("/upload/avatar/2", {
+    method: "GET",
+  });
+  console.log(test);
+
   const [width, setWidth] = useState(0);
   const spanEl = useRef<HTMLSpanElement | null>(null);
   const setSpan = useCallback((el: HTMLSpanElement | null) => {
