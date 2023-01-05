@@ -39,7 +39,6 @@ const DiscussionsAndInvitationsQueryDocument = graphql(`
     user(id: $userId) {
       id
       chats {
-        avatar
         hasUnreadMessages
         id
         lastMessageContent
@@ -50,7 +49,6 @@ const DiscussionsAndInvitationsQueryDocument = graphql(`
       }
       pendingFriends {
         id
-        avatar
         name
       }
     }
@@ -104,11 +102,11 @@ const ChannelAndFriendBanner = ({
       className="flex justify-center transition-all hover:cursor-pointer hover:bg-slate-100"
     >
       <div className="relative m-2 flex h-16 w-16 shrink-0 justify-center text-white">
-        {chat.type === ChatType.User && chat.status && chat.avatar ? (
+        {chat.type === ChatType.User && chat.status ? (
           <Avatar.Root>
             <Avatar.Image
               className="h-16 w-16 border border-black object-cover"
-              src={chat.avatar}
+              src={`http://localhost:5173/upload/avatar/${chat.id}`}
             />
             <IsOnline userStatus={chat.status} />
             <Avatar.Fallback delayMs={0}>
@@ -140,15 +138,7 @@ const ChannelAndFriendBanner = ({
   );
 };
 
-const Invitation = ({
-  userId,
-  avatar,
-  name,
-}: {
-  userId: number;
-  avatar: string | undefined;
-  name: string;
-}) => {
+const Invitation = ({ userId, name }: { userId: number; name: string }) => {
   const acceptInvitation = useMutation(
     async ({ userId }: { userId: number }) =>
       request("/graphql", AcceptInvitationMutationDocument, {
@@ -179,7 +169,7 @@ const Invitation = ({
         <Avatar.Root>
           <Avatar.Image
             className="h-8 w-8 border border-black object-cover"
-            src={avatar}
+            src={`http://localhost:5173/upload/avatar/${userId}`}
           />
           <Avatar.Fallback delayMs={0}>
             <UserIcon className="h-8 w-8 border border-black bg-slate-50 p-1 text-neutral-700" />
@@ -244,12 +234,7 @@ export const Home = () => {
         ) : (
           <>
             {chatsAndInvitations.user.pendingFriends.map((user, index) => (
-              <Invitation
-                key={index}
-                userId={user.id}
-                avatar={user.avatar}
-                name={user.name}
-              />
+              <Invitation key={index} userId={user.id} name={user.name} />
             ))}
             {chatsAndInvitations.user.chats.length === 0 ? (
               <Empty

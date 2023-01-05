@@ -49,7 +49,6 @@ const DirectMessagesQueryDocument = graphql(`
     user(id: $userId) {
       rank
       name
-      avatar
       status
       messages {
         id
@@ -59,11 +58,9 @@ const DirectMessagesQueryDocument = graphql(`
         recipient {
           id
           name
-          avatar
         }
         author {
           id
-          avatar
           name
         }
       }
@@ -88,7 +85,6 @@ const query = (
         userId: userId,
       }),
     select: (data) => ({
-      avatar: data.user.avatar,
       blocked: data.user.blocked,
       blocking: data.user.blocking,
       name: data.user.name,
@@ -144,7 +140,7 @@ const DirectMessage = ({
           <div className="relative">
             <img
               className="flex h-6 w-6 border border-black hover:h-7 hover:w-7 hover:cursor-pointer"
-              src={`${author.avatar}`}
+              src={`http://localhost:5173/upload/avatar/${author.id}`}
               alt="Message author avatar"
               onClick={() => navigate(`/profile/${author.id}`)}
             />
@@ -218,7 +214,7 @@ export default function Chat() {
               <div className="relative mr-4 h-8 w-8 shrink-0">
                 <img
                   className="h-8 w-8 border border-black"
-                  src={`${data.avatar}`}
+                  src={`http://localhost:5173/upload/avatar/${userId}`}
                 />
                 <IsOnline userStatus={data.status} />
                 <img

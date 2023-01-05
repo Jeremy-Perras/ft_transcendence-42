@@ -154,20 +154,6 @@ export class UserService {
     }
   }
 
-  async getAvatar(
-    avatarDataloader: DataLoader<User["id"], Avatar>,
-    id: number
-  ) {
-    try {
-      const avatar = await avatarDataloader.load(id);
-      return `data:image/${avatar.fileType.toLowerCase()};base64,${avatar.image.toString(
-        "base64"
-      )}`;
-    } catch (error) {
-      throw new NotFoundException("User not found");
-    }
-  }
-
   async getChannels(
     userChannelIdsLoader: DataLoader<User["id"], number[]>,
     channelLoader: DataLoader<Channel["id"], Channel>,
@@ -360,7 +346,6 @@ export class UserService {
               select: {
                 id: true,
                 name: true,
-                avatar: true,
                 messageReceived: {
                   where: {
                     authorId: currentUserId,
@@ -447,7 +432,6 @@ export class UserService {
         type: ChatType.CHANNEL,
         id: channel.id,
         name: channel.name,
-        avatar: undefined,
         lastMessageContent: res.usersBlocked.some(
           (u) => u.blockeeId === channel.channelMessages[0]?.authorId
         )
@@ -484,9 +468,6 @@ export class UserService {
         type: ChatType.USER,
         id: f.receiver.id,
         name: f.receiver.name,
-        avatar: `data:image/${f.receiver.avatar?.fileType.toLowerCase()};base64,${f.receiver.avatar?.image.toString(
-          "base64"
-        )}`,
         hasUnreadMessages: lastMessage
           ? lastMessage.authorId === currentUserId
             ? false

@@ -10,10 +10,12 @@ import {
   Get,
   Param,
   NotFoundException,
+  StreamableFile,
+  Res,
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { ImageFileType } from "@prisma/client";
-import { Request as ExpressRequest } from "express";
+import { Request as ExpressRequest, Response } from "express";
 import { AuthenticatedGuard } from "../auth/authenticated.guard";
 import { PrismaService } from "../prisma/prisma.service";
 import { UserService } from "../user/user.service";
@@ -26,14 +28,21 @@ export class UploadController {
     private prismaService: PrismaService
   ) {}
 
-  @Get("/avatar:id")
-  async avatar(@Param("id") id: string) {
+  @Get("/avatar/:id")
+  async avatar(
+    @Param("id") id: string,
+    @Res({ passthrough: true }) res: Response
+  ): Promise<StreamableFile | undefined> {
     try {
-      return await this.prismaService.avatar.findUnique({
+      const c = await this.prismaService.avatar.findUnique({
         where: {
           userId: +id,
         },
       });
+      res.set({
+        "Content-Type": `image/${c?.fileType.toLowerCase()}`,
+      });
+      if (c?.image) return new StreamableFile(c?.image);
     } catch (error) {
       throw new NotFoundException("User not found");
     }

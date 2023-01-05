@@ -5,7 +5,6 @@ import { PrismaModule } from "../prisma/prisma.module";
 import { SocketModule } from "../socket/socket.module";
 import {
   AchivementsLoader,
-  AvatarLoader,
   BlockedByIdsLoader,
   BlockingIdsLoader,
   DirectMessagesReceivedLoader,
@@ -30,7 +29,6 @@ import { UserService } from "./user.service";
     BlockedByIdsLoader,
     BlockingIdsLoader,
     AchivementsLoader,
-    AvatarLoader,
     UserChannelIdsLoader,
     DirectMessagesSentLoader,
     DirectMessagesReceivedLoader,
@@ -43,7 +41,6 @@ import { UserService } from "./user.service";
     BlockedByIdsLoader,
     BlockingIdsLoader,
     AchivementsLoader,
-    AvatarLoader,
     UserChannelIdsLoader,
     DirectMessagesSentLoader,
     DirectMessagesReceivedLoader,

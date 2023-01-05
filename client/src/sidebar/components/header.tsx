@@ -16,7 +16,6 @@ const UserHeaderQueryDocument = graphql(`
     user(id: $userId) {
       id
       name
-      avatar
       status
     }
   }
@@ -39,7 +38,7 @@ const CurrentUserProfile = () => {
         {isFetched ? (
           <Avatar.Image
             className="h-9 w-10 border-l-2 transition-all hover:brightness-90"
-            src={`${data?.user.avatar}`}
+            src={`http://localhost:5173/upload/avatar/${data?.user.id}`}
           />
         ) : null}
         <Avatar.Fallback delayMs={0}>

@@ -76,7 +76,6 @@ const SidebarOpenBtn = () => {
         userId: null,
       }),
   });
-  console.log(data);
   const openSidebar = useSidebarStore((state) => state.open);
 
   useEffect(() => {
