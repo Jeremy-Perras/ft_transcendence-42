@@ -199,7 +199,13 @@ type PasswordFormData = {
   password?: string;
 };
 
-const AccessProtected = ({ channelId }: { channelId: number }) => {
+const AccessProtected = ({
+  channelId,
+  setDisplayMutationError,
+}: {
+  channelId: number;
+  setDisplayMutationError: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
   const [showPwdError, setShowPwdError] = useState(false);
   const {
     register,
@@ -220,8 +226,10 @@ const AccessProtected = ({ channelId }: { channelId: number }) => {
         password: password,
       }),
     {
-      onError: () => {
-        setShowPwdError(true);
+      onError: (error) => {
+        if ((error as string).toString().includes("Password is incorrect"))
+          setShowPwdError(true);
+        else setDisplayMutationError(true);
       },
       onSuccess: () =>
         queryClient.invalidateQueries(["ChannelDiscussion", channelId]),
@@ -553,7 +561,10 @@ export default function Channel() {
         channel.private ? (
           <AccessForbidden owner={channel.owner} />
         ) : channel.passwordProtected ? (
-          <AccessProtected channelId={channelId} />
+          <AccessProtected
+            channelId={channelId}
+            setDisplayMutationError={setDisplayMutationError}
+          />
         ) : (
           <JoinPublicChannel
             channelId={channelId}

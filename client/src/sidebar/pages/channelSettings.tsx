@@ -47,6 +47,7 @@ import request from "graphql-request";
 import { ChannelSettingsQuery, SearchUsersQuery } from "../../gql/graphql";
 import queryClient from "../../query";
 import { useDebouncedState } from "@react-hookz/web";
+import { ErrorMessage } from "../components/error";
 
 type ChannelQueryResult = Omit<ChannelSettingsQuery["channel"], "admins"> & {
   admins: ChannelSettingsQuery["channel"]["members"];
@@ -248,12 +249,14 @@ const SetRestrictionTimeButton = ({
   time,
   action,
   setShowTime,
+  setDisplayMutationError,
 }: {
   channelId: number;
   userId: number;
   time: RestrictionTime;
   action: restrictionAction;
   setShowTime: React.Dispatch<React.SetStateAction<boolean>>;
+  setDisplayMutationError: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   const ban = useMutation(
     async ({
@@ -271,7 +274,7 @@ const SetRestrictionTimeButton = ({
         restrictUntil: restrictUntil,
       }),
     {
-      onError: () => alert("Error : ban failed"),
+      onError: () => setDisplayMutationError(true),
       onSuccess: () =>
         queryClient.invalidateQueries(["ChannelSettings", channelId]),
     }
@@ -292,7 +295,7 @@ const SetRestrictionTimeButton = ({
         restrictUntil: restrictUntil,
       }),
     {
-      onError: () => alert("Error : mute failed"),
+      onError: () => setDisplayMutationError(true),
       onSuccess: () =>
         queryClient.invalidateQueries(["ChannelSettings", channelId]),
     }
@@ -327,12 +330,14 @@ const ChooseTimeButton = ({
   action,
   showTime,
   setShowTime,
+  setDisplayMutationError,
 }: {
   userId: number;
   channelId: number;
   action: restrictionAction;
   showTime: boolean;
   setShowTime: React.Dispatch<React.SetStateAction<boolean>>;
+  setDisplayMutationError: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   return (
     <div
@@ -352,6 +357,7 @@ const ChooseTimeButton = ({
             setShowTime={setShowTime}
             action={action}
             time={restrictionTime}
+            setDisplayMutationError={setDisplayMutationError}
           />
         );
       })}
@@ -363,10 +369,12 @@ const ToggleMuteStatus = ({
   id,
   channelId,
   userStatus,
+  setDisplayMutationError,
 }: {
   id: number;
   channelId: number;
   userStatus: ChannelUserStatus;
+  setDisplayMutationError: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   const [showInfoMute, setShowInfoMute] = useState(false);
   const [showTimeMute, setShowTimeMute] = useState(false);
@@ -378,7 +386,7 @@ const ToggleMuteStatus = ({
         userId: userId,
       }),
     {
-      onError: () => alert("Error : unmute failed"),
+      onError: () => setDisplayMutationError(true),
       onSuccess: () =>
         queryClient.invalidateQueries(["ChannelSettings", channelId]),
     }
@@ -393,6 +401,7 @@ const ToggleMuteStatus = ({
           setShowTime={setShowTimeMute}
           showTime={showTimeMute}
           userId={id}
+          setDisplayMutationError={setDisplayMutationError}
         />
       )}
       <div className="flex flex-col items-center justify-center">
@@ -434,10 +443,12 @@ const ToggleBanStatus = ({
   id,
   channelId,
   userStatus,
+  setDisplayMutationError,
 }: {
   id: number;
   channelId: number;
   userStatus: ChannelUserStatus;
+  setDisplayMutationError: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   const [showInfoBan, setShowInfoBan] = useState(false);
   const [showTimeBan, setShowTimeBan] = useState(false);
@@ -449,7 +460,7 @@ const ToggleBanStatus = ({
         userId: userId,
       }),
     {
-      onError: () => alert("Error : unban failed"),
+      onError: () => setDisplayMutationError(true),
       onSuccess: () =>
         queryClient.invalidateQueries(["ChannelSettings", channelId]),
     }
@@ -463,6 +474,7 @@ const ToggleBanStatus = ({
           setShowTime={setShowTimeBan}
           showTime={showTimeBan}
           userId={id}
+          setDisplayMutationError={setDisplayMutationError}
         />
       )}
       <div className="flex flex-col items-center justify-center">
@@ -506,10 +518,12 @@ const ToggleAdminRole = ({
   id,
   channelId,
   userRole,
+  setDisplayMutationError,
 }: {
   id: number;
   channelId: number;
   userRole: ChannelUserRole;
+  setDisplayMutationError: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   const [showInfoAdmin, setShowInfoAdmin] = useState(false);
 
@@ -520,7 +534,7 @@ const ToggleAdminRole = ({
         userId: userId,
       }),
     {
-      onError: () => alert("Error : add admin failed"),
+      onError: () => setDisplayMutationError(true),
       onSuccess: () =>
         queryClient.invalidateQueries(["ChannelSettings", channelId]),
     }
@@ -533,7 +547,7 @@ const ToggleAdminRole = ({
         userId: userId,
       }),
     {
-      onError: () => alert("Error : remove admin message failed"),
+      onError: () => setDisplayMutationError(true),
       onSuccess: () =>
         queryClient.invalidateQueries(["ChannelSettings", channelId]),
     }
@@ -633,6 +647,7 @@ const UserBanner = ({
   userRole,
   userStatus,
   currentUserRole,
+  setDisplayMutationError,
 }: {
   channelId: number;
   user:
@@ -641,6 +656,7 @@ const UserBanner = ({
   userRole: ChannelUserRole;
   userStatus: ChannelUserStatus;
   currentUserRole: ChannelUserRole;
+  setDisplayMutationError: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   return (
     <li
@@ -660,6 +676,7 @@ const UserBanner = ({
                 id={user.id}
                 channelId={channelId}
                 userRole={userRole}
+                setDisplayMutationError={setDisplayMutationError}
               />
             ) : null}
             {(currentUserRole === ChannelUserRole.OWNER &&
@@ -670,6 +687,7 @@ const UserBanner = ({
                 id={user.id}
                 channelId={channelId}
                 userStatus={userStatus}
+                setDisplayMutationError={setDisplayMutationError}
               />
             ) : null}
           </>
@@ -685,6 +703,7 @@ const UserBanner = ({
             id={user.id}
             channelId={channelId}
             userStatus={userStatus}
+            setDisplayMutationError={setDisplayMutationError}
           />
         ) : null}
       </div>
@@ -716,8 +735,6 @@ const SearchBar = ({
         className="w-full py-1 px-2 text-lg focus:outline-none focus:ring-2 focus:ring-inset"
         placeholder="Add member"
         onChange={(e) => {
-          // queryClient.invalidateQueries(["Users", search]);
-          // queryClient.invalidateQueries();
           setSearch(e.target.value);
         }}
         onKeyDown={(e) => {
@@ -755,7 +772,6 @@ const SearchResults = ({
         userId: userId,
       }),
     {
-      onError: () => alert("Error : invite user failed"),
       onSuccess: () =>
         queryClient.invalidateQueries(["ChannelSettings", channel.id]),
     }
@@ -819,9 +835,11 @@ const SearchResults = ({
 const LeaveChannelConfirm = ({
   channelId,
   setConfirmation,
+  setDisplayMutationError,
 }: {
   channelId: number;
   setConfirmation: React.Dispatch<React.SetStateAction<boolean>>;
+  setDisplayMutationError: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   const navigate = useNavigate();
 
@@ -831,7 +849,7 @@ const LeaveChannelConfirm = ({
         channelId: channelId,
       }),
     {
-      onError: () => alert("Error : leave channel failed"),
+      onError: () => setDisplayMutationError(true),
       onSuccess: () =>
         queryClient.invalidateQueries(["DiscussionsAndInvitations"]),
     }
@@ -900,7 +918,6 @@ const DeleteConfirm = ({
         channelId: channelId,
       }),
     {
-      onError: () => alert("Error : delete channel failed"),
       onSuccess: () =>
         queryClient.invalidateQueries(["DiscussionsAndInvitations"]),
     }
@@ -989,7 +1006,6 @@ const ChannelMode = ({
         password: password,
       }),
     {
-      onError: () => alert("Error : update password failed"),
       onSuccess: () => {
         setShowPasswordField(false);
         queryClient.invalidateQueries(["ChannelSettings", channelId]);
@@ -1034,7 +1050,7 @@ const ChannelMode = ({
                   !showPasswordField
                     ? updatePassword.mutate({
                         channelId: channelId,
-                        password: undefined, //null?
+                        password: undefined,
                       })
                     : null;
                 }}
@@ -1166,9 +1182,11 @@ const ChannelHeader = ({
 const MemberList = ({
   channel,
   currentUserRole,
+  setDisplayMutationError,
 }: {
   channel: ChannelQueryResult;
   currentUserRole: ChannelUserRole;
+  setDisplayMutationError: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   const isInList = (
     id: number,
@@ -1188,6 +1206,7 @@ const MemberList = ({
           userRole={ChannelUserRole.OWNER}
           userStatus={ChannelUserStatus.OK}
           currentUserRole={currentUserRole}
+          setDisplayMutationError={setDisplayMutationError}
         />
         {channel.admins.map((user, index) => (
           <UserBanner
@@ -1201,6 +1220,7 @@ const MemberList = ({
                 : ChannelUserStatus.OK
             }
             currentUserRole={currentUserRole}
+            setDisplayMutationError={setDisplayMutationError}
           />
         ))}
         {channel.members.map((user, index) => (
@@ -1215,6 +1235,7 @@ const MemberList = ({
                 : ChannelUserStatus.OK
             }
             currentUserRole={currentUserRole}
+            setDisplayMutationError={setDisplayMutationError}
           />
         ))}
       </ul>
@@ -1230,6 +1251,7 @@ const MemberList = ({
             userRole={ChannelUserRole.NON_MEMBER}
             userStatus={ChannelUserStatus.BANNED}
             currentUserRole={currentUserRole}
+            setDisplayMutationError={setDisplayMutationError}
           />
         ))}
       </ul>
@@ -1245,6 +1267,7 @@ const MemberList = ({
 export default function ChannelSettings() {
   const [deleteConfirmation, setDeleteConfirmation] = useState(false);
   const [leaveConfirmation, setLeaveConfirmation] = useState(false);
+  const [displayMutationError, setDisplayMutationError] = useState(false);
   const [search, setSearch] = useDebouncedState("", 200, 500);
 
   const userId = useAuthStore((state) => state.userId);
@@ -1288,6 +1311,12 @@ export default function ChannelSettings() {
           </HeaderCenterContent>
         </>
       </Header>
+      {displayMutationError && (
+        <ErrorMessage
+          error={"You cannot do this action"}
+          setDisplay={setDisplayMutationError}
+        />
+      )}
       <div className="relative flex h-full w-full flex-col ">
         {deleteConfirmation ? (
           <DeleteConfirm
@@ -1298,6 +1327,7 @@ export default function ChannelSettings() {
           <LeaveChannelConfirm
             channelId={channelId}
             setConfirmation={setLeaveConfirmation}
+            setDisplayMutationError={setDisplayMutationError}
           />
         ) : null}
         <div
@@ -1314,7 +1344,11 @@ export default function ChannelSettings() {
             setDeleteConfirmation={setDeleteConfirmation}
             setLeaveConfirmation={setLeaveConfirmation}
           />
-          <MemberList channel={channel} currentUserRole={currentUserRole} />
+          <MemberList
+            channel={channel}
+            currentUserRole={currentUserRole}
+            setDisplayMutationError={setDisplayMutationError}
+          />
           {currentUserRole === ChannelUserRole.OWNER ||
           currentUserRole === ChannelUserRole.ADMIN ? (
             <div
