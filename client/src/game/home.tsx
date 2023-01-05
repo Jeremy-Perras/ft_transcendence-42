@@ -9,7 +9,28 @@ import {
   VariantLabels,
 } from "framer-motion";
 import LogoImage from "../assets/images/logo.svg";
-import ArrowImage from "../assets/game_modes/arrow.svg";
+import ArrowImage from "../../public/game_modes/arrow.svg";
+import bouncing_ball1 from "../../public/game_modes/bouncing_ball/bouncing_ball01.svg";
+import bouncing_ball2 from "../../public/game_modes/bouncing_ball/bouncing_ball02.svg";
+import bouncing_ball3 from "../../public/game_modes/bouncing_ball/bouncing_ball03.svg";
+import bouncing_ball4 from "../../public/game_modes/bouncing_ball/bouncing_ball04.svg";
+import bouncing_ball5 from "../../public/game_modes/bouncing_ball/bouncing_ball05.svg";
+import bouncing_ball6 from "../../public/game_modes/bouncing_ball/bouncing_ball06.svg";
+import bouncing_ball7 from "../../public/game_modes/bouncing_ball/bouncing_ball07.svg";
+import bouncing_ball8 from "../../public/game_modes/bouncing_ball/bouncing_ball08.svg";
+import bouncing_ball9 from "../../public/game_modes/bouncing_ball/bouncing_ball09.svg";
+import bouncing_ball10 from "../../public/game_modes/bouncing_ball/bouncing_ball10.svg";
+import bouncing_ball11 from "../../public/game_modes/bouncing_ball/bouncing_ball11.svg";
+import bouncing_ball12 from "../../public/game_modes/bouncing_ball/bouncing_ball12.svg";
+import bouncing_ball13 from "../../public/game_modes/bouncing_ball/bouncing_ball13.svg";
+import bouncing_ball14 from "../../public/game_modes/bouncing_ball/bouncing_ball14.svg";
+import bouncing_ball15 from "../../public/game_modes/bouncing_ball/bouncing_ball15.svg";
+import bouncing_ball16 from "../../public/game_modes/bouncing_ball/bouncing_ball16.svg";
+import bouncing_ball17 from "../../public/game_modes/bouncing_ball/bouncing_ball17.svg";
+import bouncing_ball18 from "../../public/game_modes/bouncing_ball/bouncing_ball18.svg";
+import bouncing_ball19 from "../../public/game_modes/bouncing_ball/bouncing_ball19.svg";
+import bouncing_ball20 from "../../public/game_modes/bouncing_ball/bouncing_ball20.svg";
+import bouncing_ball21 from "../../public/game_modes/bouncing_ball/bouncing_ball21.svg";
 
 type State = "idle" | "selecting" | "waiting";
 
@@ -25,6 +46,31 @@ const Idle = ({ play }: { play: () => void }) => {
 };
 
 const gameModeIntervalId = [-1, -1, -1];
+
+const a = [
+  bouncing_ball1,
+  bouncing_ball2,
+  bouncing_ball3,
+  bouncing_ball4,
+  bouncing_ball5,
+  bouncing_ball6,
+  bouncing_ball7,
+  bouncing_ball8,
+  bouncing_ball9,
+  bouncing_ball10,
+  bouncing_ball11,
+  bouncing_ball12,
+  bouncing_ball13,
+  bouncing_ball14,
+  bouncing_ball15,
+  bouncing_ball16,
+  bouncing_ball17,
+  bouncing_ball18,
+  bouncing_ball19,
+  bouncing_ball20,
+  bouncing_ball21,
+];
+
 const GameMode = ({
   imgs,
   name,
@@ -41,7 +87,7 @@ const GameMode = ({
       gameModeIntervalId[i] = setInterval(
         () => {
           setanimationIndex((animationIndex) => {
-            return animationIndex == imgs.length - 1 ? 0 : animationIndex + 1;
+            return animationIndex == a.length - 1 ? 0 : animationIndex + 1;
           });
         },
         isSelected ? 40 : 60
@@ -55,7 +101,7 @@ const GameMode = ({
 
   const isNarrow = useMediaQuery("(max-width : 640px)");
   const isSmall = useMediaQuery("(max-height : 720px)");
-
+  console.log(gameModeIntervalId);
   return (
     <motion.li
       onClick={selectMode}
@@ -87,14 +133,14 @@ const GameMode = ({
             transition={{ repeat: Infinity, duration: 1 }}
           />
         )}
-        {!isSmall && (
-          <motion.img
-            src={new URL(imgs[animationIndex] ?? "", import.meta.url).href}
-            className="w-1/4 sm:w-1/2"
-            alt={alt}
-            animate={animate(isSelected)}
-          />
-        )}
+        {!isSmall
+          ? a.map((e, i) => (
+              <img
+                className={`${animationIndex === i ? "" : "hidden"}`}
+                src={`${e}`}
+              />
+            ))
+          : null}
       </div>
       {/* TODO */}
       <motion.div
@@ -109,7 +155,7 @@ const GameMode = ({
 };
 
 type GameModeType = {
-  imgs: string[];
+  imgs: any;
   name: string;
   alt: string;
   textEffects: string;
@@ -117,54 +163,63 @@ type GameModeType = {
     isEnter: boolean
   ) => boolean | VariantLabels | AnimationControls | TargetAndTransition;
 };
-
 function importAnimation(mode: string) {
-  let modules: Record<string, unknown>;
+  const modules = [];
   switch (mode) {
     case "classic": {
-      modules = import.meta.glob("../assets/game_modes/bouncing_ball/*.svg", {
-        eager: true,
-      });
+      modules.push(
+        <motion.img
+          src={bouncing_ball1}
+          className="w-1/4 sm:w-1/2"
+          alt={"test"}
+        />
+      );
+      modules.push(
+        <motion.img
+          src={bouncing_ball2}
+          className="w-1/4 sm:w-1/2"
+          alt={"test"}
+        />
+      );
+      modules.push(
+        <motion.img
+          src={bouncing_ball3}
+          className="w-1/4 sm:w-1/2"
+          alt={"test"}
+        />
+      );
+      modules.push(
+        <motion.img
+          src={bouncing_ball4}
+          className="w-1/4 sm:w-1/2"
+          alt={"test"}
+        />
+      );
+
       break;
     }
     case "fireball": {
-      modules = import.meta.glob("../assets/game_modes/fireball/*.svg", {
-        eager: true,
-      });
+      // modules.push(bouncing_ball1);
+      // modules.push(bouncing_ball2);
+      // modules.push(bouncing_ball3);
+
       break;
     }
     case "bonus": {
-      modules = import.meta.glob("../assets/game_modes/bonus/*.svg", {
-        eager: true,
-      });
+      // modules.push(bouncing_ball1);
+      // modules.push(bouncing_ball2);
+      // modules.push(bouncing_ball3);
+
       break;
     }
+
     default: {
       return ["", ""];
       break;
     }
   }
-  return (() =>
-    Object.keys(modules)
-      .sort()
-      .map((m) => m))();
+  return modules;
 }
-
-// function importClassic(mode: string, classic: boolean) {
-//   if (!classic) {
-//     classic = true;
-//     const modules: Record<string, unknown> = import.meta.glob(
-//       "../assets/game_modes/bouncing_ball/*.svg",
-//       {
-//         eager: true,
-//       }
-//     );
-//     return (() =>
-//       Object.keys(modules)
-//         .sort()
-//         .map((m) => m))();
-//   }
-// }
 
 const ModeSelection = ({ selectMode }: { selectMode: () => void }) => {
   const gameModes: GameModeType[] = [
@@ -175,37 +230,37 @@ const ModeSelection = ({ selectMode }: { selectMode: () => void }) => {
       textEffects: "text-white",
       animate: () => false,
     },
-    {
-      imgs: importAnimation("fireball"),
-      name: "fireball",
-      alt: "Click to play inspeed mode",
-      textEffects: "text-red-500",
-      animate: () => false,
-    },
-    {
-      name: "bonus",
-      imgs: importAnimation("bonus"),
-      alt: "Click to play bonus mode",
-      textEffects: "text-amber-500",
-      animate: (isEnter: boolean) => {
-        return isEnter
-          ? {
-              rotate: [0, -5, 5, 0],
-              transition: {
-                duration: 1,
-                delay: 0.1,
-                repeat: Infinity,
-              },
-            }
-          : {
-              scale: [0.8, 1, 0.8],
-              transition: {
-                duration: 2,
-                repeat: Infinity,
-              },
-            };
-      },
-    },
+    // {
+    //   imgs: importAnimation("fireball"),
+    //   name: "fireball",
+    //   alt: "Click to play inspeed mode",
+    //   textEffects: "text-red-500",
+    //   animate: () => false,
+    // },
+    // {
+    //   name: "bonus",
+    //   imgs: importAnimation("bonus"),
+    //   alt: "Click to play bonus mode",
+    //   textEffects: "text-amber-500",
+    //   animate: (isEnter: boolean) => {
+    //     return isEnter
+    //       ? {
+    //           rotate: [0, -5, 5, 0],
+    //           transition: {
+    //             duration: 1,
+    //             delay: 0.1,
+    //             repeat: Infinity,
+    //           },
+    //         }
+    //       : {
+    //           scale: [0.8, 1, 0.8],
+    //           transition: {
+    //             duration: 2,
+    //             repeat: Infinity,
+    //           },
+    //         };
+    //   },
+    // },
   ];
 
   return (
@@ -276,7 +331,6 @@ export const Home = () => {
   const [state, setState] = useState<State>("idle");
   const isLoggedIn = !!useAuthStore((state) => state.userId);
   const isSmall = useMediaQuery("(max-height : 1000px)");
-
   return (
     <>
       <img
