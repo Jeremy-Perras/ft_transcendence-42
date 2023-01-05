@@ -1,7 +1,7 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": {
-    "rootDir": "./",
+    "rootDir": "./src",
     "outDir": "./dist",
     "tsBuildInfoFile": "./dist/tsconfig.tsbuildinfo",
     "declaration": true,
@@ -10,5 +10,5 @@
     "module": "CommonJS",
     "strictPropertyInitialization": false
   },
-  "exclude": ["./dist", "./prisma", "./coverage"]
+  "exclude": ["./dist", "./prisma", "./coverage", "./test"]
 }
