@@ -112,7 +112,6 @@ export default function CreateChannel({
         password: password,
       }),
     {
-      onError: () => alert("Error : channel creation failed"),
       onSuccess: () =>
         queryClient.invalidateQueries(["DiscussionsAndInvitations"]),
     }

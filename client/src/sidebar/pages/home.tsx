@@ -34,6 +34,7 @@ import {
 import queryClient from "../../../src/query";
 
 import { useDebouncedState } from "@react-hookz/web";
+import { ErrorMessage } from "../components/error";
 
 const DiscussionsAndInvitationsQueryDocument = graphql(`
   query DiscussionsAndInvitations($userId: Int) {
@@ -145,10 +146,12 @@ const Invitation = ({
   userId,
   avatar,
   name,
+  setDisplayMutationError,
 }: {
   userId: number;
   avatar: string | undefined;
   name: string;
+  setDisplayMutationError: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   const acceptInvitation = useMutation(
     async ({ userId }: { userId: number }) =>
@@ -156,7 +159,7 @@ const Invitation = ({
         userId: userId,
       }),
     {
-      onError: () => alert("Error : accept invitation failed"),
+      onError: () => setDisplayMutationError(true),
       onSuccess: () =>
         queryClient.invalidateQueries(["DiscussionsAndInvitations"]),
     }
@@ -168,7 +171,7 @@ const Invitation = ({
         userId: userId,
       }),
     {
-      onError: () => alert("Error : refuse invitation failed"),
+      onError: () => setDisplayMutationError(true),
       onSuccess: () =>
         queryClient.invalidateQueries(["DiscussionsAndInvitations"]),
     }
@@ -211,6 +214,7 @@ const Invitation = ({
 export const Home = () => {
   const [searchInput, setSearchInput] = useDebouncedState("", 200, 500);
   const [showChannelCreation, setShowChannelCreation] = useState(false);
+  const [displayMutationError, setDisplayMutationError] = useState(false);
 
   const initialData = useLoaderData() as Awaited<ReturnType<typeof homeLoader>>;
   const { data: chatsAndInvitations } = useQuery({ ...query(), initialData });
@@ -232,6 +236,12 @@ export const Home = () => {
           </HeaderCenterContent>
         </>
       </Header>
+      {displayMutationError && (
+        <ErrorMessage
+          error={"You cannot do this action"}
+          setDisplay={setDisplayMutationError}
+        />
+      )}
       <div className="flex h-full flex-col overflow-y-auto">
         <CreateChannel
           showChannelCreation={showChannelCreation}
@@ -250,6 +260,7 @@ export const Home = () => {
                 userId={user.id}
                 avatar={user.avatar}
                 name={user.name}
+                setDisplayMutationError={setDisplayMutationError}
               />
             ))}
             {chatsAndInvitations.user.chats.length === 0 ? (
