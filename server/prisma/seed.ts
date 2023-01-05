@@ -168,18 +168,18 @@ try {
       data: [
         // channel 1 is public & owned by user 1
         {
-          name: "Public Channel",
+          name: "Public Channel - 1",
           ownerId: 1,
         },
         // channel 2 is password protected & owned by user 2
         {
-          name: "Password Channel",
+          name: "Password Channel - 2",
           ownerId: 2,
           password: hashSync("password", 10),
         },
         // channel 3 is private & owned by user 3
         {
-          name: "Password Channel",
+          name: "Private Channel - 3",
           ownerId: 3,
           inviteOnly: true,
         },
@@ -260,10 +260,10 @@ try {
           userId: i + 30,
           restriction: ChannelRestriction.MUTE,
         })),
-        // user 60 to 80 are banned in channel 1
-        ...[...Array(21)].map((_, i) => ({
+        // user 82 to 99 are banned in channel 1
+        ...[...Array(17)].map((_, i) => ({
           channelId: 1,
-          userId: i + 60,
+          userId: i + 82,
           restriction: ChannelRestriction.BAN,
         })),
         // user 30 to 50 are banned in channel 2
@@ -277,17 +277,33 @@ try {
 
     console.log("CREATE CHANNEL MESSAGES");
     await prisma.channelMessage.createMany({
-      // user 1 to 10 have sent 100 messages in channel 1
-      data: [...Array(10)]
-        .map((_, i) =>
-          [...Array(100)].map((_, j) => ({
-            channelId: 1,
-            authorId: i + 1,
-            content: faker.lorem.text(),
-            sentAt: new Date(now.valueOf() - (i + j) * 60000),
-          }))
-        )
-        .flat(1),
+      data: [
+        // user 1 to 10 have sent 100 messages in channel 1
+        ...[...Array(10)]
+          .map((_, i) =>
+            [...Array(100)].map((_, j) => ({
+              channelId: 1,
+              authorId: i + 1,
+              content: faker.lorem.text(),
+              sentAt: new Date(now.valueOf() - (i + j) * 60000),
+            }))
+          )
+          .flat(1),
+        // user 2 sent 1 message in channel 2
+        {
+          channelId: 2,
+          authorId: 2,
+          content: faker.lorem.text(),
+          sentAt: new Date(),
+        },
+        // user 3 sent 1 message in channel 3
+        {
+          channelId: 3,
+          authorId: 3,
+          content: faker.lorem.text(),
+          sentAt: new Date(),
+        },
+      ],
     });
 
     console.log("CREATE GAMES");
