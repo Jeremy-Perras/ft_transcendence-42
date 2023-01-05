@@ -265,15 +265,15 @@ export class ChannelService {
     }
 
     if (channel.members.length > 0 || channel.ownerId === currentUserId) {
-      throw new ForbiddenException("User is already a member");
+      throw new ForbiddenException("You are already a member");
     }
 
     if (channel.restrictedMembers.length > 0) {
-      throw new ForbiddenException("User is banned");
+      throw new ForbiddenException("You are banned from this channel");
     }
 
     if (channel.inviteOnly) {
-      throw new ForbiddenException("Channel is invite only");
+      throw new ForbiddenException("This channel is invite only");
     }
 
     if (

@@ -24,7 +24,7 @@ export class RolesGuard implements CanActivate {
       ctx.getClass(),
     ]);
     const userId = +ctx.getContext().req.user;
-    const channelId = ctx.getArgs<{ id: number }>().id;
+    const { id } = ctx.getArgs<{ id: number }>();
 
     let channel;
     if (role === Role.Admin || role === Role.Owner || role === Role.Member) {
@@ -41,7 +41,7 @@ export class RolesGuard implements CanActivate {
           },
         },
         where: {
-          id: channelId,
+          id: id,
         },
       });
     }
