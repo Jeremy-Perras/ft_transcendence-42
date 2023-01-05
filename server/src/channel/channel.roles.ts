@@ -24,7 +24,7 @@ export class RolesGuard implements CanActivate {
       ctx.getClass(),
     ]);
     const userId = +ctx.getContext().req.user;
-    const channelId = ctx.getArgs<{ channelId: number }>().channelId;
+    const channelId = ctx.getArgs<{ id: number }>().id;
 
     let channel;
     if (role === Role.Admin || role === Role.Owner || role === Role.Member) {
