@@ -45,6 +45,7 @@ import {
 } from "../../../src/gql/graphql";
 import request from "graphql-request";
 import queryClient from "../../../src/query";
+import { ErrorMessage } from "../components/error";
 
 type formData = {
   name: string;
@@ -407,14 +408,17 @@ const AddFriend = ({
   pendingInvitation: boolean | undefined;
   pendingAccept: boolean | undefined;
 }) => {
+  const [error, setError] = useState(false);
+
   const refuseInvitation = useMutation(
     async ({ userId }: { userId: number }) =>
       request("/graphql", RefuseInvitationMutationDocument, {
         userId: userId,
       }),
     {
-      onError: () => alert("Error : refuse invitation failed"),
-      onSuccess: () => queryClient.invalidateQueries(["UserProfile"]),
+      onSuccess: () => (
+        <ErrorMessage display={true} setDisplay={setError} error={"Failed"} />
+      ), // onSuccess: () => queryClient.invalidateQueries(["UserProfile"]),
     }
   );
 
@@ -424,14 +428,9 @@ const AddFriend = ({
         userId: userId,
       }),
     {
-      onError: () => {
-        alert("Error : cancel invitation failed");
-
-        // useErrorStore((state) => {
-        //   state.pushError("Error");
-        // });
-      },
-      onSuccess: () => queryClient.invalidateQueries(["UserProfile", userId]),
+      onSuccess: () => (
+        <ErrorMessage display={true} setDisplay={setError} error={"Failed"} />
+      ), // onSuccess: () => queryClient.invalidateQueries(["UserProfile", userId]),
     }
   );
 
@@ -441,8 +440,9 @@ const AddFriend = ({
         userId: userId,
       }),
     {
-      onError: () => alert("Error : friend user failed"),
-      onSuccess: () => queryClient.invalidateQueries(["UserProfile", userId]),
+      onSuccess: () => (
+        <ErrorMessage display={true} setDisplay={setError} error={"Failed"} />
+      ), // onSuccess: () => queryClient.invalidateQueries(["UserProfile", userId]),
     }
   );
 
@@ -452,8 +452,9 @@ const AddFriend = ({
         userId: userId,
       }),
     {
-      onError: () => alert("Error : block user failed"),
-      onSuccess: () => queryClient.invalidateQueries(["UserProfile", userId]),
+      onSuccess: () => (
+        <ErrorMessage display={true} setDisplay={setError} error={"Failed"} />
+      ), // onSuccess: () => queryClient.invalidateQueries(["UserProfile", userId]),
     }
   );
 
@@ -520,14 +521,17 @@ const AddFriend = ({
 };
 
 const Unblock = ({ userId }: { userId: number }) => {
+  const [error, setError] = useState(false);
+
   const unblockUser = useMutation(
     async ({ userId }: { userId: number }) =>
       request("/graphql", UnblockUserMutationDocument, {
         userId: userId,
       }),
     {
-      onError: () => alert("Error : unblock user failed"),
-      onSuccess: () => queryClient.invalidateQueries(["UserProfile", userId]),
+      onSuccess: () => (
+        <ErrorMessage display={true} setDisplay={setError} error={"Failed"} />
+      ), // onSuccess: () => queryClient.invalidateQueries(["UserProfile", userId]),
     }
   );
   return (
@@ -566,15 +570,18 @@ const Blocked = () => {
 };
 
 const FriendButtons = ({ data }: { data: UserProfileQuery }) => {
+  const [error, setError] = useState(false);
   const blockUser = useMutation(
     async ({ userId }: { userId: number }) =>
       request("/graphql", BlockUserMutationDocument, {
         userId: userId,
       }),
     {
-      onError: () => alert("Error : block user message failed"),
-      onSuccess: () =>
-        queryClient.invalidateQueries(["UserProfile", data.user.id]),
+      onSuccess: () => (
+        <ErrorMessage display={true} setDisplay={setError} error={"Failed"} />
+      ),
+      // onSuccess: () =>
+      //   queryClient.invalidateQueries(["UserProfile", data.user.id]),
     }
   );
 
@@ -584,9 +591,15 @@ const FriendButtons = ({ data }: { data: UserProfileQuery }) => {
         userId: userId,
       }),
     {
-      onError: () => alert("Error : unblock user failed"),
-      onSuccess: () =>
-        queryClient.invalidateQueries(["UserProfile", data.user.id]),
+      onSuccess: () => (
+        <ErrorMessage
+          display={true}
+          setDisplay={setError}
+          error={"Unblock user failed"}
+        />
+      ),
+      // onSuccess: () =>
+      //   queryClient.invalidateQueries(["UserProfile", data.user.id]),
     }
   );
 

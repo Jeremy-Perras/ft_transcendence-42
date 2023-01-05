@@ -23,7 +23,7 @@ import {
   HeaderLeftBtn,
 } from "../components/header";
 import { RankIcon } from "../utils/rankIcon";
-import { useErrorStore, useSidebarStore } from "../../stores";
+import { useSidebarStore } from "../../stores";
 import { IsOnline } from "../components/isOnline";
 import { graphql } from "../../gql";
 import request from "graphql-request";
@@ -33,6 +33,7 @@ import {
   UserStatus,
 } from "../../gql/graphql";
 import queryClient from "../../query";
+import { ErrorMessage } from "../components/error";
 
 type DirectMessage = {
   userId: number;
@@ -173,6 +174,7 @@ export default function Chat() {
   const navigate = useNavigate();
   const sidebarIsOpen = useSidebarStore((state) => state.isOpen);
   const [content, setContent] = useState("");
+  const [displayError, setDisplayError] = useState(false);
 
   if (typeof params.userId === "undefined")
     return <Navigate to={"/"} replace={true} />;
@@ -189,7 +191,7 @@ export default function Chat() {
         userId: userId,
       }),
     {
-      onError: () => alert("Error : send direct message failed"),
+      onError: () => setDisplayError(true),
       onSuccess: () =>
         queryClient.invalidateQueries(["DirectMessages", userId]),
     }
@@ -231,6 +233,12 @@ export default function Chat() {
           </HeaderCenterContent>
         </>
       </Header>
+      {displayError && (
+        <ErrorMessage
+          error={"Send message failed"}
+          setDisplay={setDisplayError}
+        />
+      )}
       <ul className="mt-4 flex h-fit w-full grow flex-col overflow-auto pr-2 pl-px ">
         {data.messages.length === 0 ? (
           <div className="mb-48 flex h-full flex-col items-center justify-center overflow-auto text-center text-slate-300">
