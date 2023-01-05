@@ -27,13 +27,14 @@ import {
 } from "../components/header";
 import { User } from "../types/user";
 import { getDate } from "../utils/getDate";
-import { useAuthStore, useErrorStore, useSidebarStore } from "../../stores";
+import { useAuthStore, useSidebarStore } from "../../stores";
 import { ChannelUserRole } from "../types/channelUserRole";
 import { ChannelUserStatus } from "../types/channelUserStatus";
 import { graphql } from "../../gql";
 import { ChannelDiscussionQuery } from "../../gql/graphql";
 import request from "graphql-request";
 import queryClient from "../../query";
+import { ErrorMessage } from "../components/error";
 
 type Channel = {
   name: string;
@@ -138,15 +139,21 @@ const SendChannelMessageMutationDocument = graphql(`
   }
 `);
 
-const JoinPublicChannel = ({ channelId }: { channelId: number }) => {
+const JoinPublicChannel = ({
+  channelId,
+  setDisplayMutationError,
+}: {
+  channelId: number;
+  setDisplayMutationError: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
   const joinChannel = useMutation(
     async ({ channelId }: { channelId: number }) =>
       request("/graphql", JoinChannelMutationDocument, {
         channelId: channelId,
-        password: undefined, //null?
+        password: undefined,
       }),
     {
-      onError: () => alert("Error : join channel failed"),
+      onError: () => setDisplayMutationError(true),
       onSuccess: () =>
         queryClient.invalidateQueries(["ChannelDiscussion", channelId]),
     }
@@ -278,9 +285,11 @@ const AccessProtected = ({ channelId }: { channelId: number }) => {
 const MessageInput = ({
   channelId,
   status,
+  setDisplayMutationError,
 }: {
   channelId: number;
   status: ChannelUserStatus;
+  setDisplayMutationError: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   const [content, setContent] = useState("");
 
@@ -291,7 +300,7 @@ const MessageInput = ({
         channelId: channelId,
       }),
     {
-      onError: () => alert("Error : send channel message failed"),
+      onError: () => setDisplayMutationError(true),
       onSuccess: () =>
         queryClient.invalidateQueries(["ChannelDiscussion", channelId]),
     }
@@ -425,10 +434,12 @@ const Messages = ({
   channelId,
   status,
   messages,
+  setDisplayMutationError,
 }: {
   channelId: number;
   status: ChannelUserStatus;
   messages: ChannelDiscussionQuery["channel"]["messages"] | undefined;
+  setDisplayMutationError: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   const sidebarIsOpen = useSidebarStore((state) => state.isOpen);
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
@@ -454,7 +465,11 @@ const Messages = ({
         </ul>
         <div ref={messagesEndRef} />
       </div>
-      <MessageInput status={status} channelId={channelId} />
+      <MessageInput
+        status={status}
+        channelId={channelId}
+        setDisplayMutationError={setDisplayMutationError}
+      />
     </>
   );
 };
@@ -462,6 +477,7 @@ const Messages = ({
 export default function Channel() {
   const navigate = useNavigate();
   const params = useParams();
+  const [displayMutationError, setDisplayMutationError] = useState(false);
 
   const userId = useAuthStore((state) => state.userId);
   if (!userId) {
@@ -520,6 +536,12 @@ export default function Channel() {
           </HeaderCenterContent>
         </>
       </Header>
+      {displayMutationError && (
+        <ErrorMessage
+          error={"You cannot do this action"}
+          setDisplay={setDisplayMutationError}
+        />
+      )}
       {status === ChannelUserStatus.BANNED ? (
         <div className="flex h-full w-full flex-col items-center justify-center overflow-auto pb-60">
           <img src={BannedIcon} className="w-96 text-slate-100 opacity-30" />
@@ -533,13 +555,17 @@ export default function Channel() {
         ) : channel.passwordProtected ? (
           <AccessProtected channelId={channelId} />
         ) : (
-          <JoinPublicChannel channelId={channelId} />
+          <JoinPublicChannel
+            channelId={channelId}
+            setDisplayMutationError={setDisplayMutationError}
+          />
         )
       ) : (
         <Messages
           channelId={channelId}
           status={status}
           messages={channel.messages}
+          setDisplayMutationError={setDisplayMutationError}
         />
       )}
     </>

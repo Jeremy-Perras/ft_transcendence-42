@@ -403,22 +403,21 @@ const AddFriend = ({
   userId,
   pendingInvitation,
   pendingAccept,
+  setDisplayMutationError,
 }: {
   userId: number;
   pendingInvitation: boolean | undefined;
   pendingAccept: boolean | undefined;
+  setDisplayMutationError: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
-  const [error, setError] = useState(false);
-
   const refuseInvitation = useMutation(
     async ({ userId }: { userId: number }) =>
       request("/graphql", RefuseInvitationMutationDocument, {
         userId: userId,
       }),
     {
-      onSuccess: () => (
-        <ErrorMessage display={true} setDisplay={setError} error={"Failed"} />
-      ), // onSuccess: () => queryClient.invalidateQueries(["UserProfile"]),
+      onError: () => setDisplayMutationError(true),
+      onSuccess: () => queryClient.invalidateQueries(["UserProfile", userId]),
     }
   );
 
@@ -428,9 +427,8 @@ const AddFriend = ({
         userId: userId,
       }),
     {
-      onSuccess: () => (
-        <ErrorMessage display={true} setDisplay={setError} error={"Failed"} />
-      ), // onSuccess: () => queryClient.invalidateQueries(["UserProfile", userId]),
+      onError: () => setDisplayMutationError(true),
+      onSuccess: () => queryClient.invalidateQueries(["UserProfile", userId]),
     }
   );
 
@@ -440,9 +438,8 @@ const AddFriend = ({
         userId: userId,
       }),
     {
-      onSuccess: () => (
-        <ErrorMessage display={true} setDisplay={setError} error={"Failed"} />
-      ), // onSuccess: () => queryClient.invalidateQueries(["UserProfile", userId]),
+      onError: () => setDisplayMutationError(true),
+      onSuccess: () => queryClient.invalidateQueries(["UserProfile", userId]),
     }
   );
 
@@ -452,9 +449,8 @@ const AddFriend = ({
         userId: userId,
       }),
     {
-      onSuccess: () => (
-        <ErrorMessage display={true} setDisplay={setError} error={"Failed"} />
-      ), // onSuccess: () => queryClient.invalidateQueries(["UserProfile", userId]),
+      onError: () => setDisplayMutationError(true),
+      onSuccess: () => queryClient.invalidateQueries(["UserProfile", userId]),
     }
   );
 
@@ -463,9 +459,6 @@ const AddFriend = ({
       <div
         className="flex h-24 basis-1/2 items-center justify-center border-2 bg-slate-100 p-4 text-xl font-bold text-slate-600 transition-all hover:cursor-pointer hover:bg-slate-200"
         onClick={() => {
-          // useErrorStore((state) => {
-          //   state.pushError("Error");
-          // });
           pendingInvitation ? "" : friendUser.mutate({ userId });
         }}
       >
@@ -479,9 +472,6 @@ const AddFriend = ({
         <span
           className="flex items-center text-center text-2xl font-bold"
           onClick={() => {
-            // useErrorStore((state) => {
-            //   state.pushError("Error");
-            // });
             pendingInvitation
               ? cancelInvitation.mutate({ userId: userId })
               : "";
@@ -520,18 +510,21 @@ const AddFriend = ({
   );
 };
 
-const Unblock = ({ userId }: { userId: number }) => {
-  const [error, setError] = useState(false);
-
+const Unblock = ({
+  userId,
+  setDisplayMutationError,
+}: {
+  userId: number;
+  setDisplayMutationError: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
   const unblockUser = useMutation(
     async ({ userId }: { userId: number }) =>
       request("/graphql", UnblockUserMutationDocument, {
         userId: userId,
       }),
     {
-      onSuccess: () => (
-        <ErrorMessage display={true} setDisplay={setError} error={"Failed"} />
-      ), // onSuccess: () => queryClient.invalidateQueries(["UserProfile", userId]),
+      onError: () => setDisplayMutationError(true),
+      onSuccess: () => queryClient.invalidateQueries(["UserProfile", userId]),
     }
   );
   return (
@@ -569,19 +562,22 @@ const Blocked = () => {
   );
 };
 
-const FriendButtons = ({ data }: { data: UserProfileQuery }) => {
-  const [error, setError] = useState(false);
+const FriendButtons = ({
+  data,
+  setDisplayMutationError,
+}: {
+  data: UserProfileQuery;
+  setDisplayMutationError: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
   const blockUser = useMutation(
     async ({ userId }: { userId: number }) =>
       request("/graphql", BlockUserMutationDocument, {
         userId: userId,
       }),
     {
-      onSuccess: () => (
-        <ErrorMessage display={true} setDisplay={setError} error={"Failed"} />
-      ),
-      // onSuccess: () =>
-      //   queryClient.invalidateQueries(["UserProfile", data.user.id]),
+      onError: () => setDisplayMutationError(true),
+      onSuccess: () =>
+        queryClient.invalidateQueries(["UserProfile", data.user.id]),
     }
   );
 
@@ -591,15 +587,9 @@ const FriendButtons = ({ data }: { data: UserProfileQuery }) => {
         userId: userId,
       }),
     {
-      onSuccess: () => (
-        <ErrorMessage
-          display={true}
-          setDisplay={setError}
-          error={"Unblock user failed"}
-        />
-      ),
-      // onSuccess: () =>
-      //   queryClient.invalidateQueries(["UserProfile", data.user.id]),
+      onError: () => setDisplayMutationError(true),
+      onSuccess: () =>
+        queryClient.invalidateQueries(["UserProfile", data.user.id]),
     }
   );
 
@@ -643,6 +633,7 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
   }
 
   const [showNameError, setShowNameError] = useState(false);
+  const [displayMutationError, setDisplayMutationError] = useState(false);
 
   const {
     register,
@@ -778,16 +769,28 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
           </HeaderCenterContent>
         </>
       </Header>
+      {displayMutationError && (
+        <ErrorMessage
+          error={"You cannot do this action"}
+          setDisplay={setDisplayMutationError}
+        />
+      )}
       <UserProfileHeader data={data} currentUserId={currentUserId} />
       <GameHistory data={data} currentUserId={currentUserId} />
       {currentUserId === data.user.id ? (
         <Disconnect />
       ) : data.user.blocked ? (
-        <Unblock userId={data.user.id} />
+        <Unblock
+          userId={data.user.id}
+          setDisplayMutationError={setDisplayMutationError}
+        />
       ) : data.user.blocking ? (
         <Blocked />
       ) : data.user.friendStatus === FriendStatus.Friend ? (
-        <FriendButtons data={data} />
+        <FriendButtons
+          data={data}
+          setDisplayMutationError={setDisplayMutationError}
+        />
       ) : (
         <AddFriend
           userId={data.user.id}
@@ -797,6 +800,7 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
           pendingAccept={
             data.user.friendStatus === FriendStatus.InvitationReceived
           }
+          setDisplayMutationError={setDisplayMutationError}
         />
       )}
     </div>
