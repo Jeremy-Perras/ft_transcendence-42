@@ -14,7 +14,7 @@ export class ExistingChannelGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const ctx = GqlExecutionContext.create(context);
-    const channelId = ctx.getArgs<{ channelId: number }>().channelId;
+    const channelId = ctx.getArgs<{ id: number }>().id;
 
     const channel = await this.prisma.channel.findUnique({
       where: { id: channelId },
@@ -33,8 +33,8 @@ export class OwnerGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const ctx = GqlExecutionContext.create(context);
-    const { channelId, userId } = ctx.getArgs<{
-      channelId: number;
+    const { id, userId } = ctx.getArgs<{
+      id: number;
       userId: number;
     }>();
 
@@ -42,7 +42,7 @@ export class OwnerGuard implements CanActivate {
       select: {
         ownerId: true,
       },
-      where: { id: channelId },
+      where: { id: id },
     });
 
     if (!channel) {
