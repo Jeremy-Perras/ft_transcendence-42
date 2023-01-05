@@ -52,8 +52,8 @@ type Channel = {
 };
 
 const ChannelDiscussionQueryDocument = graphql(`
-  query ChannelDiscussion($channelId: Int!) {
-    channel(id: $channelId) {
+  query ChannelDiscussion($id: Int!) {
+    channel(id: $id) {
       name
       private
       passwordProtected
@@ -108,7 +108,7 @@ const query = (
     queryKey: ["ChannelDiscussion", channelId],
     queryFn: async () =>
       request("/graphql", ChannelDiscussionQueryDocument, {
-        channelId: channelId,
+        id: channelId,
       }),
     select: (data) => data.channel,
   };
@@ -125,14 +125,14 @@ export const channelLoader = async (
 };
 
 const JoinChannelMutationDocument = graphql(`
-  mutation JoinChannel($channelId: Int!, $password: String) {
-    joinChannel(channelId: $channelId, password: $password)
+  mutation JoinChannel($id: Int!, $password: String) {
+    joinChannel(id: $id, password: $password)
   }
 `);
 
 const SendChannelMessageMutationDocument = graphql(`
-  mutation SendChannelMessage($message: String!, $channelId: Int!) {
-    sendChannelMessage(message: $message, channelId: $channelId)
+  mutation SendChannelMessage($message: String!, $id: Int!) {
+    sendChannelMessage(message: $message, id: $id)
   }
 `);
 
@@ -146,7 +146,7 @@ const JoinPublicChannel = ({
   const joinChannel = useMutation(
     async ({ channelId }: { channelId: number }) =>
       request("/graphql", JoinChannelMutationDocument, {
-        channelId: channelId,
+        id: channelId,
         password: undefined,
       }),
     {
@@ -219,7 +219,7 @@ const AccessProtected = ({
       password: string | undefined;
     }) =>
       request("/graphql", JoinChannelMutationDocument, {
-        channelId: channelId,
+        id: channelId,
         password: password,
       }),
     {
@@ -302,7 +302,7 @@ const MessageInput = ({
     async ({ message, channelId }: { message: string; channelId: number }) =>
       request("/graphql", SendChannelMessageMutationDocument, {
         message: message,
-        channelId: channelId,
+        id: channelId,
       }),
     {
       onError: () => setDisplayMutationError(true),

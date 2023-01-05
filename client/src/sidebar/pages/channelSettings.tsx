@@ -64,8 +64,8 @@ const SearchUsersQueryDocument = graphql(`
 `);
 
 const ChannelSettingsQueryDocument = graphql(`
-  query ChannelSettings($channelId: Int!) {
-    channel(id: $channelId) {
+  query ChannelSettings($id: Int!) {
+    channel(id: $id) {
       id
       name
       owner {
@@ -106,7 +106,7 @@ const query = (
     queryKey: ["ChannelSettings", channelId],
     queryFn: async () =>
       request("/graphql", ChannelSettingsQueryDocument, {
-        channelId: channelId,
+        id: channelId,
       }),
 
     select: (data) => ({
@@ -134,78 +134,62 @@ export const channelSettingsLoader = async (
 };
 
 const BanUserMutationDocument = graphql(`
-  mutation BanUser(
-    $channelId: Int!
-    $restrictedId: Int!
-    $restrictUntil: DateTime
-  ) {
-    banUser(
-      channelId: $channelId
-      userId: $restrictedId
-      restrictUntil: $restrictUntil
-    )
+  mutation BanUser($id: Int!, $restrictedId: Int!, $restrictUntil: DateTime) {
+    banUser(id: $id, userId: $restrictedId, restrictUntil: $restrictUntil)
   }
 `);
 
 const UnbanUserMutationDocument = graphql(`
-  mutation UnbanUser($userId: Int!, $channelId: Int!) {
-    unbanUser(userId: $userId, channelId: $channelId)
+  mutation UnbanUser($userId: Int!, $id: Int!) {
+    unbanUser(userId: $userId, id: $id)
   }
 `);
 
 const MuteUserMutationDocument = graphql(`
-  mutation MuteUser(
-    $channelId: Int!
-    $restrictedId: Int!
-    $restrictUntil: DateTime
-  ) {
-    muteUser(
-      channelId: $channelId
-      userId: $restrictedId
-      restrictUntil: $restrictUntil
-    )
+  mutation MuteUser($id: Int!, $restrictedId: Int!, $restrictUntil: DateTime) {
+    muteUser(id: $id, userId: $restrictedId, restrictUntil: $restrictUntil)
   }
 `);
 
 const UnmuteUserMutationDocument = graphql(`
-  mutation UnmuteUser($userId: Int!, $channelId: Int!) {
-    unmuteUser(userId: $userId, channelId: $channelId)
+  mutation UnmuteUser($userId: Int!, $id: Int!) {
+    unmuteUser(userId: $userId, id: $id)
   }
 `);
 
 const AddAdminMutationDocument = graphql(`
-  mutation AddAdmin($userId: Int!, $channelId: Int!) {
-    addAdmin(userId: $userId, channelId: $channelId)
+  mutation AddAdmin($userId: Int!, $id: Int!) {
+    addAdmin(userId: $userId, id: $id)
   }
 `);
 
 const RemoveAdminMutationDocument = graphql(`
-  mutation RemoveAdmin($userId: Int!, $channelId: Int!) {
-    removeAdmin(userId: $userId, channelId: $channelId)
+  mutation RemoveAdmin($userId: Int!, $id: Int!) {
+    removeAdmin(userId: $userId, id: $id)
   }
 `);
 
 const InviteUserMutationDocument = graphql(`
-  mutation InviteUser($userId: Int!, $channelId: Int!) {
-    inviteUser(userId: $userId, channelId: $channelId)
+  mutation InviteUser($userId: Int!, $id: Int!) {
+    inviteUser(userId: $userId, id: $id)
   }
 `);
 
 const LeaveChannelMutationDocument = graphql(`
-  mutation LeaveChannel($channelId: Int!) {
-    leaveChannel(channelId: $channelId)
+  mutation LeaveChannel($id: Int!) {
+    leaveChannel(id: $id)
   }
 `);
 
 const DeleteChannelMutationDocument = graphql(`
-  mutation DeleteChannel($channelId: Int!) {
-    deleteChannel(channelId: $channelId)
+  mutation DeleteChannel($id: Int!) {
+    deleteChannel(id: $id)
   }
 `);
 
 const UpdatePasswordMutationDocument = graphql(`
-  mutation UpdatePassword($password: String, $channelId: Int!) {
-    updatePassword(password: $password, channelId: $channelId)
+  mutation UpdatePassword($password: String, $id: Int!) {
+    updatePassword(password: $password, id: $id)
   }
 `);
 
@@ -265,7 +249,7 @@ const SetRestrictionTimeButton = ({
     }) =>
       request("/graphql", BanUserMutationDocument, {
         restrictedId: restrictedId,
-        channelId: channelId,
+        id: channelId,
         restrictUntil: restrictUntil,
       }),
     {
@@ -285,7 +269,7 @@ const SetRestrictionTimeButton = ({
       restrictUntil: string | null;
     }) =>
       request("/graphql", MuteUserMutationDocument, {
-        channelId: channelId,
+        id: channelId,
         restrictedId: restrictedId,
         restrictUntil: restrictUntil,
       }),
@@ -377,7 +361,7 @@ const ToggleMuteStatus = ({
   const unmuteUser = useMutation(
     async ({ channelId, userId }: { channelId: number; userId: number }) =>
       request("/graphql", UnmuteUserMutationDocument, {
-        channelId: channelId,
+        id: channelId,
         userId: userId,
       }),
     {
@@ -451,7 +435,7 @@ const ToggleBanStatus = ({
   const unbanUser = useMutation(
     async ({ channelId, userId }: { channelId: number; userId: number }) =>
       request("/graphql", UnbanUserMutationDocument, {
-        channelId: channelId,
+        id: channelId,
         userId: userId,
       }),
     {
@@ -525,7 +509,7 @@ const ToggleAdminRole = ({
   const addAdmin = useMutation(
     async ({ channelId, userId }: { channelId: number; userId: number }) =>
       request("/graphql", AddAdminMutationDocument, {
-        channelId: channelId,
+        id: channelId,
         userId: userId,
       }),
     {
@@ -538,7 +522,7 @@ const ToggleAdminRole = ({
   const removeAdmin = useMutation(
     async ({ channelId, userId }: { channelId: number; userId: number }) =>
       request("/graphql", RemoveAdminMutationDocument, {
-        channelId: channelId,
+        id: channelId,
         userId: userId,
       }),
     {
@@ -763,7 +747,7 @@ const SearchResults = ({
   const updateMembers = useMutation(
     async ({ channelId, userId }: { channelId: number; userId: number }) =>
       request("/graphql", InviteUserMutationDocument, {
-        channelId: channelId,
+        id: channelId,
         userId: userId,
       }),
     {
@@ -839,7 +823,7 @@ const LeaveChannelConfirm = ({
   const leaveChannel = useMutation(
     async ({ channelId }: { channelId: number }) =>
       request("/graphql", LeaveChannelMutationDocument, {
-        channelId: channelId,
+        id: channelId,
       }),
     {
       onError: () => setDisplayMutationError(true),
@@ -908,7 +892,7 @@ const DeleteConfirm = ({
   const deleteChannel = useMutation(
     async ({ channelId }: { channelId: number }) =>
       request("/graphql", DeleteChannelMutationDocument, {
-        channelId: channelId,
+        id: channelId,
       }),
     {
       onSuccess: () =>
@@ -995,7 +979,7 @@ const ChannelMode = ({
       channelId: number;
     }) =>
       request("/graphql", UpdatePasswordMutationDocument, {
-        channelId: channelId,
+        id: channelId,
         password: password,
       }),
     {

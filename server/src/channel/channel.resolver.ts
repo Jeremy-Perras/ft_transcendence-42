@@ -113,7 +113,7 @@ class RestrictUserArgs extends PickType(ChannelArgs, ["id"] as const) {
   userId: number;
 
   @Field((type) => Date, { nullable: true })
-  restrictedUntil: Date | null;
+  restrictUntil: Date | null;
 }
 
 @ArgsType()
@@ -331,11 +331,11 @@ export class ChannelResolver {
   @UseGuards(OwnerGuard)
   @RoleGuard(Role.Admin)
   @Mutation((returns) => Boolean)
-  async muteUser(@Args() { id, userId, restrictedUntil }: RestrictUserArgs) {
+  async muteUser(@Args() { id, userId, restrictUntil }: RestrictUserArgs) {
     await this.channelService.setUserRestriction(
       id,
       userId,
-      restrictedUntil,
+      restrictUntil,
       ChannelRestriction.MUTE
     );
 
@@ -346,11 +346,11 @@ export class ChannelResolver {
   @UseGuards(OwnerGuard)
   @RoleGuard(Role.Admin)
   @Mutation((returns) => Boolean)
-  async banUser(@Args() { id, userId, restrictedUntil }: RestrictUserArgs) {
+  async banUser(@Args() { id, userId, restrictUntil }: RestrictUserArgs) {
     await this.channelService.setUserRestriction(
       id,
       userId,
-      restrictedUntil,
+      restrictUntil,
       ChannelRestriction.BAN
     );
 
