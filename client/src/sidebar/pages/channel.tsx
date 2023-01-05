@@ -405,7 +405,7 @@ const Message = ({
   return (
     <li className="flex flex-col">
       <span className="left-0 mt-6 text-center text-xs text-slate-300">
-        {getDate(+sentAt)}
+        {getDate(sentAt)}
       </span>
       <div className="flex w-full">
         <div className="flex w-9 shrink-0 justify-center">

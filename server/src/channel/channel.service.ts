@@ -388,8 +388,17 @@ export class ChannelService {
             },
           },
         });
-
-      if (isRestricted) {
+      if (isRestricted && restrictUntil && restrictUntil <= new Date())
+        await this.prismaService.channelRestrictedUser.delete({
+          where: {
+            channelId_userId_restriction: {
+              channelId,
+              userId,
+              restriction: type,
+            },
+          },
+        });
+      else if (isRestricted) {
         await this.prismaService.channelRestrictedUser.update({
           where: {
             channelId_userId_restriction: {

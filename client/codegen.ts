@@ -9,7 +9,7 @@ const config: CodegenConfig = {
       plugins: ["typescript", "typescript-operations"],
       config: {
         scalars: {
-          Timestamp: "number",
+          DateTime: "string",
         },
       },
     },

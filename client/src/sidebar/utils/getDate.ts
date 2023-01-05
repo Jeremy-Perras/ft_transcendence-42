@@ -1,8 +1,4 @@
-export const getDate = (time: number) => {
-  const date = new Date(time);
-  return (
-    date.toISOString().substring(0, 10) +
-    " at " +
-    date.toISOString().substring(11, 16)
-  );
+export const getDate = (time: string | null) => {
+  if (time) return time.substring(0, 10) + " at " + time.substring(11, 16);
+  return "-";
 };

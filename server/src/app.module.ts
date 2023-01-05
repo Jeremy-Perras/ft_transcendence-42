@@ -44,7 +44,7 @@ if (process.env.NODE_ENV === "production") {
       definitions: { emitTypenameField: true },
       autoSchemaFile: join(process.cwd(), "src/schema.gql"),
       buildSchemaOptions: {
-        dateScalarMode: "timestamp",
+        dateScalarMode: "isoDate",
       },
       playground: false,
       plugins: [ApolloServerPluginLandingPageLocalDefault()],

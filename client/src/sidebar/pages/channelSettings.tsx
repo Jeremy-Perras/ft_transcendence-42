@@ -142,7 +142,7 @@ const BanUserMutationDocument = graphql(`
   mutation BanUser(
     $channelId: Int!
     $restrictedId: Int!
-    $restrictUntil: Timestamp
+    $restrictUntil: DateTime
   ) {
     banUser(
       channelId: $channelId
@@ -162,7 +162,7 @@ const MuteUserMutationDocument = graphql(`
   mutation MuteUser(
     $channelId: Int!
     $restrictedId: Int!
-    $restrictUntil: Timestamp
+    $restrictUntil: DateTime
   ) {
     muteUser(
       channelId: $channelId
@@ -221,21 +221,21 @@ enum restrictionAction {
 
 type RestrictionTime = {
   text: string;
-  endAt: number | null | undefined;
+  endAt: Date | null;
 };
 
 const restrictionTimeArray: RestrictionTime[] = [
   {
     text: "1h",
-    endAt: Math.floor(new Date() as unknown as number) + 60 * 60 * 1000,
+    endAt: new Date(new Date().getTime() + 60 * 60 * 1000),
   },
   {
     text: "8h",
-    endAt: Math.floor(new Date() as unknown as number) + 60 * 60 * 8 * 1000,
+    endAt: new Date(new Date().getTime() + 8 * 60 * 60 * 1000),
   },
   {
     text: "24h",
-    endAt: Math.floor(new Date() as unknown as number) + 60 * 60 * 24 * 1000,
+    endAt: new Date(new Date().getTime() + 24 * 60 * 60 * 1000),
   },
   {
     text: "Indef.",
@@ -266,7 +266,7 @@ const SetRestrictionTimeButton = ({
     }: {
       channelId: number;
       restrictedId: number;
-      restrictUntil: number | null | undefined;
+      restrictUntil: string | null;
     }) =>
       request("/graphql", BanUserMutationDocument, {
         restrictedId: restrictedId,
@@ -287,7 +287,7 @@ const SetRestrictionTimeButton = ({
     }: {
       channelId: number;
       restrictedId: number;
-      restrictUntil: number | null | undefined;
+      restrictUntil: string | null;
     }) =>
       request("/graphql", MuteUserMutationDocument, {
         channelId: channelId,
@@ -310,12 +310,12 @@ const SetRestrictionTimeButton = ({
           ? ban.mutate({
               channelId: channelId,
               restrictedId: userId,
-              restrictUntil: time.endAt,
+              restrictUntil: time.endAt ? time.endAt.toISOString() : null,
             })
           : mute.mutate({
               channelId: channelId,
               restrictedId: userId,
-              restrictUntil: time.endAt,
+              restrictUntil: time.endAt ? time.endAt.toISOString() : null,
             });
       }}
     >
@@ -776,7 +776,6 @@ const SearchResults = ({
         queryClient.invalidateQueries(["ChannelSettings", channel.id]),
     }
   );
-  console.log(searchInput);
   const { data: searchResults } = useQuery({
     queryKey: ["Users", searchInput],
     queryFn: async () =>
@@ -784,7 +783,6 @@ const SearchResults = ({
         name: searchInput,
       }),
     select(data) {
-      console.log(data);
       return data.users.filter((u) => {
         if (u === null || channel.owner.id === u.id) return false;
         const pred = (m: typeof channel.members[number]) => m.id === u.id;

@@ -10,7 +10,6 @@ import { useMutation } from "@tanstack/react-query";
 import request from "graphql-request";
 import { graphql } from "../../gql/gql";
 import queryClient from "../../query";
-import { useErrorStore } from "../../stores";
 
 type formData = {
   name: string;
