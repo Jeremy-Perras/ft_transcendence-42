@@ -150,6 +150,22 @@ function importAnimation(mode: string) {
       .map((m) => m))();
 }
 
+// function importClassic(mode: string, classic: boolean) {
+//   if (!classic) {
+//     classic = true;
+//     const modules: Record<string, unknown> = import.meta.glob(
+//       "../assets/game_modes/bouncing_ball/*.svg",
+//       {
+//         eager: true,
+//       }
+//     );
+//     return (() =>
+//       Object.keys(modules)
+//         .sort()
+//         .map((m) => m))();
+//   }
+// }
+
 const ModeSelection = ({ selectMode }: { selectMode: () => void }) => {
   const gameModes: GameModeType[] = [
     {

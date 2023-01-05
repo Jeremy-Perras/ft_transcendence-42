@@ -29,7 +29,6 @@ import { SocketService } from "../socket/socket.service";
 import { BlockGuard, FriendGuard, SelfGuard } from "./user.guards";
 import {
   AchivementsLoader,
-  AvatarLoader,
   BlockedByIdsLoader,
   BlockingIdsLoader,
   DirectMessagesReceivedLoader,
@@ -66,7 +65,6 @@ export type GraphqlUser = Omit<
   | "pendingFriends"
   | "chats"
   | "status"
-  | "avatar"
 >;
 
 @ArgsType()
@@ -174,15 +172,6 @@ export class UserResolver {
     @Root() user: User
   ): Promise<Achievement[]> {
     return await this.userService.getAchievements(achievementsLoader, user.id);
-  }
-
-  @ResolveField()
-  async avatar(
-    @Loader(AvatarLoader)
-    avatarLoader: DataLoader<PrismaUser["id"], PrismaAvatar>,
-    @Root() user: User
-  ): Promise<string> {
-    return await this.userService.getAvatar(avatarLoader, user.id);
   }
 
   @ResolveField()

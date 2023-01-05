@@ -38,9 +38,6 @@ export class User {
   @Field()
   name: string;
 
-  @Field((type) => String)
-  avatar: string;
-
   @Field((type) => Int)
   rank: number;
 
@@ -88,9 +85,6 @@ export class Chat {
 
   @Field((type) => String)
   name: string;
-
-  @Field((type) => String, { nullable: true })
-  avatar: string | undefined;
 
   @Field((type) => String, { nullable: true })
   lastMessageContent: string | undefined;

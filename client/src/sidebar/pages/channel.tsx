@@ -39,7 +39,7 @@ import { ErrorMessage } from "../components/error";
 type Channel = {
   name: string;
   messages: ChannelDiscussionQuery["channel"]["messages"];
-  owner: { id: number; name: string; avatar: string };
+  owner: { id: number; name: string };
   adminIds: { id: number }[];
   memberIds: { id: number }[];
   banned: {
@@ -60,7 +60,6 @@ const ChannelDiscussionQueryDocument = graphql(`
       owner {
         id
         name
-        avatar
       }
       members {
         id
@@ -74,13 +73,11 @@ const ChannelDiscussionQueryDocument = graphql(`
         author {
           id
           name
-          avatar
           status
         }
         readBy {
           id
           name
-          avatar
           status
         }
       }
@@ -185,7 +182,7 @@ const AccessForbidden = ({ owner }: { owner: Channel["owner"] }) => {
       >
         <span>Ask access to </span>
         <img
-          src={`${owner.avatar}`}
+          src={`http://localhost:5173/upload/avatar/${owner.id}`}
           alt={`${owner.name}'s avatar`}
           className="my-2 h-10 w-10 border border-black"
         />
@@ -368,7 +365,7 @@ const ReadBy = ({ users }: { users: User[] }) => {
         {users.length > 20 ? `Seen by ${users.length} users` : "Seen by"}
       </span>
       <ul className="flex items-center">
-        {users.slice(0, 20).map(({ id, name, avatar }, index) => {
+        {users.slice(0, 20).map(({ id, name }, index) => {
           return (
             <li
               className="flex h-5 w-5 shrink-0 grow-0 items-center justify-center"
@@ -376,7 +373,7 @@ const ReadBy = ({ users }: { users: User[] }) => {
             >
               <img
                 className="h-4 w-4 border border-black transition-all hover:h-5 hover:w-5 hover:cursor-pointer"
-                src={avatar}
+                src={`http://localhost:5173/upload/avatar/${id}`}
                 alt={`${name}'s avatar`}
                 onMouseEnter={() => setHoverUser(name)}
                 onMouseLeave={() => setHoverUser("")}
@@ -412,7 +409,7 @@ const Message = ({
           <div className="flex self-end">
             <img
               className="h-6 w-6 border border-black transition-all hover:h-7 hover:w-7 hover:cursor-pointer"
-              src={author.avatar}
+              src={`http://localhost:5173/upload/avatar/${author.id}`}
               alt="Message author avatar"
               onClick={() => navigate(`/profile/${author.id}`)}
             />

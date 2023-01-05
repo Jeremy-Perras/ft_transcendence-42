@@ -19,7 +19,6 @@ const SearchUsersAndChannelsQueryDocument = graphql(`
   query SearchUsersAndChannels($name: String!) {
     users(name: $name) {
       __typename
-      avatar
       id
       name
       status
@@ -148,7 +147,7 @@ export const SearchResults = ({
                 <Avatar.Root>
                   <Avatar.Image
                     className="h-10 w-10 border border-black object-cover"
-                    src={`${result?.avatar}`}
+                    src={`http://localhost:5173/upload/avatar/${result.id}`}
                   />
                   <Avatar.Fallback>
                     <UserIcon className="h-10 w-10" />

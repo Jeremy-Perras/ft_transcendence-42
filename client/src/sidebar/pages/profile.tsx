@@ -16,7 +16,6 @@ import ClassicIcon from "/src/assets/images/ClassicIcon.svg";
 import BonusIcon from "/src/assets/images/BonusIcon.svg";
 import FireIcon from "/src/assets/images/FireIcon.svg";
 import UnachievedIcon from "/achievements/Unachieved.svg";
-import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { ReactComponent as AddAvatarIcon } from "pixelarticons/svg/cloud-upload.svg";
 import { ReactComponent as AddFriendIcon } from "pixelarticons/svg/user-plus.svg";
 import { ReactComponent as PlayIcon } from "pixelarticons/svg/gamepad.svg";
@@ -56,21 +55,18 @@ const UserProfileQueryDocument = graphql(`
     user(id: $userId) {
       id
       name
-      avatar
       rank
       games {
         finishedAt
         gameMode
         players {
           player1 {
-            avatar
             status
             name
             rank
             id
           }
           player2 {
-            avatar
             status
             name
             rank
@@ -242,16 +238,11 @@ const UserProfileHeader = ({
     <div className="relative flex flex-col">
       <div className="flex w-full items-center">
         <div className="relative my-2 ml-3 mr-2 flex shrink-0">
-          {typeof data?.user.avatar !== undefined &&
-          data?.user.avatar !== "" ? (
-            <img
-              src={`${data?.user.avatar}`}
-              alt="Player avatar"
-              className="h-28 w-28 border border-black"
-            />
-          ) : (
-            <UserIcon className="h-28 w-28 border border-black text-neutral-700" />
-          )}
+          <img
+            src={`http://localhost:5173/upload/avatar/${data.user.id}`}
+            alt="Player avatar"
+            className="h-28 w-28 border border-black"
+          />
           <IsOnline userStatus={data.user.status} />
           {data.user.id === currentUserId ? (
             <div>
@@ -339,7 +330,7 @@ const GameHistory = ({
               <img
                 onClick={() => navigate(`/profile/${game.players.player1.id}`)}
                 className=" h-10 w-10 border border-black object-cover hover:cursor-pointer "
-                src={`${game.players.player1.avatar}`}
+                src={`http://localhost:5173/upload/avatar/${game.players.player1.id}`}
                 alt="Player 1 avatar"
               />
               <IsOnline userStatus={game.players.player1.status} />
@@ -358,7 +349,7 @@ const GameHistory = ({
                     navigate(`/profile/${game.players.player2.id}`)
                   }
                   className="h-10 w-10 justify-end border border-black object-cover hover:cursor-pointer"
-                  src={`${game.players.player2.avatar}`}
+                  src={`http://localhost:5173/upload/avatar/${game.players.player2.id}`}
                   alt="Player 2 avatar"
                 />
                 <IsOnline userStatus={game.players.player2.status} />
@@ -662,11 +653,6 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
     }
   );
 
-  const test = fetch("/upload/avatar/2", {
-    method: "GET",
-  });
-  console.log(test);
-
   const [width, setWidth] = useState(0);
   const spanEl = useRef<HTMLSpanElement | null>(null);
   const setSpan = useCallback((el: HTMLSpanElement | null) => {
@@ -757,7 +743,7 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
                   <div className="relative mr-4 h-8 w-8 shrink-0 ">
                     <img
                       className="h-8 w-8 border border-black"
-                      src={`${data?.user.avatar}`}
+                      src={`http://localhost:5173/upload/avatar/${data.user.id}`}
                     />
                     <IsOnline userStatus={data?.user.status} />
                     <img

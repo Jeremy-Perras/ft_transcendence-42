@@ -58,7 +58,6 @@ const SearchUsersQueryDocument = graphql(`
     users(name: $name) {
       id
       name
-      avatar
       status
     }
   }
@@ -72,23 +71,19 @@ const ChannelSettingsQueryDocument = graphql(`
       owner {
         id
         name
-        avatar
       }
       admins {
         id
         name
-        avatar
       }
       members {
         id
         name
-        avatar
       }
       banned {
         user {
           id
           name
-          avatar
         }
         endAt
       }
@@ -613,7 +608,7 @@ const UserHeader = ({
       onClick={() => navigate(`/profile/${user.id}`)}
     >
       <img
-        src={`${user.avatar}`}
+        src={`http://localhost:5173/upload/avatar/${user.id}`}
         alt="Player avatar"
         className="my-1 ml-1 h-12 w-12 border border-black"
       />
@@ -813,7 +808,7 @@ const SearchResults = ({
               <Avatar.Root>
                 <Avatar.Image
                   className="h-10 w-10 border border-black object-cover"
-                  src={result?.avatar}
+                  src={`http://localhost:5173/upload/avatar/${result.id}`}
                 />
                 <Avatar.Fallback>
                   <UserIcon className="h-10 w-10" />
