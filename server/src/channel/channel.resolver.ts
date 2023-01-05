@@ -48,7 +48,7 @@ import { UserService } from "../user/user.service";
 import { PrismaService } from "../prisma/prisma.service";
 import { SocketService } from "../socket/socket.service";
 import { GraphqlUser } from "../user/user.resolver";
-import { IsByteLength, Length, Min } from "class-validator";
+import { IsByteLength, IsOptional, Length, Min } from "class-validator";
 
 export type GraphqlChannel = Omit<
   Channel,
@@ -73,6 +73,7 @@ class ChannelArgs {
   name: string;
 
   @Field((type) => String, { nullable: true })
+  @IsOptional()
   @Length(1, 255)
   password: string | null;
 
