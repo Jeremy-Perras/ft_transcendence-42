@@ -25,12 +25,6 @@ const prismaUserArgs = {
     id: true,
     name: true,
     rank: true,
-    avatar: {
-      select: {
-        fileType: true,
-        image: true,
-      },
-    },
     usersBlocked: true,
     blockedByUsers: true,
     achievements: {
@@ -47,12 +41,6 @@ const prismaUserArgs = {
             id: true,
             name: true,
             rank: true,
-            avatar: {
-              select: {
-                fileType: true,
-                image: true,
-              },
-            },
           },
         },
         receiver: {
@@ -60,12 +48,6 @@ const prismaUserArgs = {
             id: true,
             name: true,
             rank: true,
-            avatar: {
-              select: {
-                fileType: true,
-                image: true,
-              },
-            },
           },
         },
       },
@@ -79,12 +61,6 @@ const prismaUserArgs = {
             id: true,
             name: true,
             rank: true,
-            avatar: {
-              select: {
-                fileType: true,
-                image: true,
-              },
-            },
           },
         },
         receiver: {
@@ -92,12 +68,6 @@ const prismaUserArgs = {
             id: true,
             name: true,
             rank: true,
-            avatar: {
-              select: {
-                fileType: true,
-                image: true,
-              },
-            },
           },
         },
       },
@@ -176,10 +146,6 @@ expect.extend({
         name: e.name,
 
         rank: e.rank,
-
-        avatar: `data:image/${e.avatar?.fileType.toLowerCase()};base64,${e.avatar?.image.toString(
-          "base64"
-        )}`,
 
         blocking:
           e.id === currentUserId
@@ -262,7 +228,7 @@ expect.extend({
                     m.authorId === currentUserId ||
                     m.recipientId === currentUserId
                 )
-                .sort((a, b) => b.sentAt.valueOf() - a.sentAt.valueOf())
+                .sort((a, b) => a.sentAt.valueOf() - b.sentAt.valueOf())
                 .map((m) => ({
                   id: m.id,
                   author: {
@@ -288,9 +254,6 @@ expect.extend({
                   .map((f) => ({
                     id: f.receiverId,
                     name: f.receiver.name,
-                    avatar: `data:image/${f.receiver.avatar?.fileType.toLowerCase()};base64,${f.receiver.avatar?.image.toString(
-                      "base64"
-                    )}`,
                   }));
 
                 const lastMessages = [
@@ -356,7 +319,6 @@ expect.extend({
                     id: channel.id,
                     type: "CHANNEL",
                     name: channel.name,
-                    avatar: null,
                     lastMessageContent: lastMessage?.content ?? null,
                     lastMessageDate: lastMessage?.sentAt.valueOf() ?? null,
                     hasUnreadMessages: lastMessage
@@ -496,6 +458,10 @@ describe("queries", () => {
     await app.init();
   });
 
+  afterAll(async () => {
+    await app.close();
+  });
+
   it(`get self`, async () => {
     currentUserId = 1;
 
@@ -508,7 +474,6 @@ describe("queries", () => {
             id
             name
             rank
-            avatar
             blocked
             blocking
             friendStatus
@@ -537,7 +502,6 @@ describe("queries", () => {
             chats {
               id
               type
-              avatar
               name
               lastMessageContent
               lastMessageDate
@@ -575,7 +539,6 @@ describe("queries", () => {
             id
             name
             rank
-            avatar
             blocked
             blocking
             friendStatus
@@ -604,7 +567,6 @@ describe("queries", () => {
             chats {
               id
               type
-              avatar
               name
               lastMessageContent
               lastMessageDate
@@ -643,7 +605,6 @@ describe("queries", () => {
             id
             name
             rank
-            avatar
             blocked
             blocking
             friendStatus
@@ -672,7 +633,6 @@ describe("queries", () => {
             chats {
               id
               type
-              avatar
               name
               lastMessageContent
               lastMessageDate
@@ -1483,9 +1443,5 @@ describe("queries", () => {
 
     expect(response.statusCode).toBe(200);
     expect(response.body.errors[0].message).toBe("Bad Request Exception");
-  });
-
-  afterAll(async () => {
-    await app.close();
   });
 });
