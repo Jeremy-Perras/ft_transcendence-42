@@ -14,10 +14,10 @@ export class ExistingChannelGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const ctx = GqlExecutionContext.create(context);
-    const channelId = ctx.getArgs<{ id: number }>().id;
+    const { id } = ctx.getArgs<{ id: number }>();
 
     const channel = await this.prisma.channel.findUnique({
-      where: { id: channelId },
+      where: { id: id },
     });
     if (!channel) {
       throw new NotFoundException("Channel not found");
