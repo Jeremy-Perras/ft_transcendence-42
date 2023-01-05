@@ -6,7 +6,7 @@ import { PrismaService } from "../prisma/prisma.service";
 import { ChannelRole } from "@prisma/client";
 
 export enum Role {
-  Member,
+  Member = 1,
   Admin,
   Owner,
 }
@@ -28,12 +28,11 @@ export class RolesGuard implements CanActivate {
 
     let channel;
     if (role === Role.Admin || role === Role.Owner || role === Role.Member) {
-      channel = await this.prisma.channel.findFirst({
+      channel = await this.prisma.channel.findUnique({
         select: {
           ownerId: true,
           members: {
             select: {
-              userId: true,
               role: true,
             },
             where: {
@@ -43,44 +42,34 @@ export class RolesGuard implements CanActivate {
         },
         where: {
           id: channelId,
-          OR: [
-            {
-              ownerId: userId,
-            },
-            {
-              members: {
-                some: {
-                  userId,
-                },
-              },
-            },
-          ],
         },
       });
     }
 
     switch (role) {
       case Role.Member: {
-        if (!channel) {
-          return false;
+        if (channel?.ownerId === userId) {
+          return true;
         }
-        return true;
+        if (channel?.members.length) {
+          return true;
+        }
+        return false;
       }
       case Role.Admin: {
-        if (!channel) {
-          return false;
-        } else if (
-          channel.members.some((m) => m.role === ChannelRole.ADMIN) ||
-          userId === channel.ownerId
+        if (channel?.ownerId === userId) {
+          return true;
+        }
+        if (
+          channel?.members.length &&
+          channel.members[0]?.role === ChannelRole.ADMIN
         ) {
           return true;
         }
         return false;
       }
       case Role.Owner: {
-        if (!channel) {
-          return false;
-        } else if (channel.ownerId === userId) {
+        if (channel?.ownerId === userId) {
           return true;
         }
         return false;

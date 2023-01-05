@@ -437,7 +437,7 @@ export class UserResolver {
   @Mutation((returns) => Boolean)
   async updateUserName(
     @CurrentUser() currentUserId: number,
-    @Args({ type: () => SetUserName }) args: SetUserName
+    @Args() args: SetUserName
   ) {
     await this.userService.updateName(currentUserId, args.name);
 

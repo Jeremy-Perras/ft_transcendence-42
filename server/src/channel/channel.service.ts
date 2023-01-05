@@ -80,55 +80,77 @@ export class ChannelService {
   }
 
   async getAdmins(
+    currentUserId: number,
+    channelLoader: DataLoader<Channel["id"], Channel>,
     channelMembersLoader: DataLoader<Channel["id"], ChannelMember[]>,
     userLoader: DataLoader<User["id"], User>,
     channelId: number
   ) {
     try {
+      const channel = await channelLoader.load(channelId);
       const channelMembers = await channelMembersLoader.load(channelId);
-      const adminIds = channelMembers.reduce((acc, curr) => {
-        if (curr.role === ChannelRole.ADMIN) acc.push(curr.userId);
-        return acc;
-      }, new Array<number>());
+      if (
+        channel.ownerId === currentUserId ||
+        channelMembers.some((member) => member.userId === currentUserId)
+      ) {
+        const adminIds = channelMembers.reduce((acc, curr) => {
+          if (curr.role === ChannelRole.ADMIN) acc.push(curr.userId);
+          return acc;
+        }, new Array<number>());
 
-      const admins = await userLoader.loadMany(adminIds);
+        const admins = await userLoader.loadMany(adminIds);
 
-      return admins.reduce((acc, curr) => {
-        if (curr && "id" in curr && adminIds.some((id) => id === curr.id)) {
-          //TODO : Remove the last condition when userloader repared
-          acc.push(UserService.formatGraphqlUser(curr));
-        }
-        return acc;
-      }, new Array<GraphqlUser>());
+        return admins.reduce((acc, curr) => {
+          if (curr && "id" in curr) {
+            acc.push(UserService.formatGraphqlUser(curr));
+          }
+          return acc;
+        }, new Array<GraphqlUser>());
+      }
+      return [];
     } catch (error) {
       throw new NotFoundException("Channel not found");
     }
   }
 
   async getMembers(
+    currentUserId: number,
+    channelLoader: DataLoader<Channel["id"], Channel>,
     channelMembersLoader: DataLoader<Channel["id"], ChannelMember[]>,
     userLoader: DataLoader<User["id"], User>,
     channelId: number
   ) {
     try {
+      const channel = await channelLoader.load(channelId);
       const channelMembers = await channelMembersLoader.load(channelId);
-      const membersIds = channelMembers.reduce((acc, curr) => {
-        if (curr.role === ChannelRole.MEMBER) acc.push(curr.userId);
-        return acc;
-      }, new Array<number>());
-      const members = await userLoader.loadMany(membersIds);
-      return members.reduce((acc, curr) => {
-        if (curr && "id" in curr) {
-          acc.push(UserService.formatGraphqlUser(curr));
-        }
-        return acc;
-      }, new Array<GraphqlUser>());
+      if (
+        channel.ownerId === currentUserId ||
+        channelMembers.some(
+          (member) =>
+            member.userId === currentUserId && member.role === ChannelRole.ADMIN
+        )
+      ) {
+        const membersIds = channelMembers.reduce((acc, curr) => {
+          if (curr.role === ChannelRole.MEMBER) acc.push(curr.userId);
+          return acc;
+        }, new Array<number>());
+        const members = await userLoader.loadMany(membersIds);
+        return members.reduce((acc, curr) => {
+          if (curr && "id" in curr) {
+            acc.push(UserService.formatGraphqlUser(curr));
+          }
+          return acc;
+        }, new Array<GraphqlUser>());
+      }
+      return [];
     } catch (error) {
       throw new NotFoundException("Channel not found");
     }
   }
 
   async getRestrictedMembers(
+    userChannelIdsLoader: DataLoader<User["id"], number[]>,
+    currentUserId: number,
     channelRestrictedUserLoader: DataLoader<
       Channel["id"],
       ChannelRestrictedUser[]
@@ -138,33 +160,39 @@ export class ChannelService {
     type: ChannelRestriction
   ) {
     try {
-      const restrictedUsers = await channelRestrictedUserLoader.load(channelId);
-      const restrictedMembersId = restrictedUsers.reduce((acc, curr) => {
-        if (curr.restriction === type) {
-          acc.push(curr.userId);
-        }
-        return acc;
-      }, new Array<number>());
-      const users = await userLoader.loadMany(restrictedMembersId);
-      return users.reduce((acc, curr) => {
-        if (curr && "id" in curr) {
-          const restricted: GraphqlChannelRestrictedUser = {
-            user: UserService.formatGraphqlUser(curr),
-          };
-          const restrictedUserIndex = restrictedUsers.findIndex(
-            (m) => curr.id === m.userId
-          );
-          if (restrictedUserIndex >= 0) {
-            const restrictedUser = restrictedUsers[restrictedUserIndex];
-            if (restrictedUser) {
-              restricted.endAt = restrictedUser.endAt ?? undefined;
-              restrictedUsers.slice(restrictedUserIndex, 0);
-              acc.push(restricted);
+      const userChannels = await userChannelIdsLoader.load(currentUserId);
+      if (userChannels.some((c) => c === channelId)) {
+        const restrictedUsers = await channelRestrictedUserLoader.load(
+          channelId
+        );
+        const restrictedMembersId = restrictedUsers.reduce((acc, curr) => {
+          if (curr.restriction === type) {
+            acc.push(curr.userId);
+          }
+          return acc;
+        }, new Array<number>());
+        const users = await userLoader.loadMany(restrictedMembersId);
+        return users.reduce((acc, curr) => {
+          if (curr && "id" in curr) {
+            const restricted: GraphqlChannelRestrictedUser = {
+              user: UserService.formatGraphqlUser(curr),
+            };
+            const restrictedUserIndex = restrictedUsers.findIndex(
+              (m) => curr.id === m.userId
+            );
+            if (restrictedUserIndex >= 0) {
+              const restrictedUser = restrictedUsers[restrictedUserIndex];
+              if (restrictedUser) {
+                restricted.endAt = restrictedUser.endAt ?? undefined;
+                restrictedUsers.slice(restrictedUserIndex, 0);
+                acc.push(restricted);
+              }
             }
           }
-        }
-        return acc;
-      }, new Array<GraphqlChannelRestrictedUser>());
+          return acc;
+        }, new Array<GraphqlChannelRestrictedUser>());
+      }
+      return [];
     } catch (error) {
       throw new NotFoundException("Channel not found");
     }
