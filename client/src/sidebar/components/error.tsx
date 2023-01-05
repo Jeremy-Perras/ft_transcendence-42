@@ -1,53 +1,37 @@
-import { useErrorStore } from "../../stores";
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
-export const ErrorMessages = ({ error }: { error: string }) => {
-  const [display, setDisplay] = useState(true);
+export const ErrorMessage = ({
+  setDisplay,
+  error,
+}: {
+  setDisplay: React.Dispatch<React.SetStateAction<boolean>>;
+  error: string;
+}) => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setDisplay(false);
     }, 3000);
     return () => clearTimeout(timer);
   }, []);
+
   return (
     <>
-      {display && (
-        <>
-          <motion.span
-            onClick={() => setDisplay(false)}
-            initial={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="w-full items-center justify-center truncate bg-red-200 text-center transition-all"
-          >
-            {error}
-          </motion.span>
-        </>
-      )}
+      <motion.span
+        onClick={() => setDisplay(false)}
+        transition={{
+          duration: 0.1,
+          ease: "linear",
+          repeatType: "reverse",
+          repeat: 1,
+          repeatDelay: 2.8,
+        }}
+        initial={{ y: -36 }}
+        animate={{ y: 0 }}
+        className="absolute top-0 left-0 z-20 h-9 w-full truncate border-b border-red-500 bg-red-400 pt-1.5 text-center align-middle transition-all hover:cursor-pointer"
+      >
+        {error}
+      </motion.span>
     </>
   );
 };
-
-// export const ErrorMessages = () => {
-//   // const errors = useErrorStore.getState().errorList;
-//   // console.log(errors);
-//   // useEffect(() => {
-//   //   () => {
-//   //     return;
-//   //   };
-//   // }, [errors]);
-//   const errors = ["error1"];
-//   return (
-//     <div className="absolute top-0 ">
-//       {errors.map((error, index) => (
-//         <ErrorLabel
-//           error={error}
-//           index={index}
-//           key={error + index.toString()}
-//         />
-//       ))}
-//     </div>
-//   );
-// };

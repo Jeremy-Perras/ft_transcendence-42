@@ -32,7 +32,7 @@ import {
   DiscussionsAndInvitationsQuery,
 } from "../../../src/gql/graphql";
 import queryClient from "../../../src/query";
-import { useErrorStore } from "../../../src/stores";
+
 import { useDebouncedState } from "@react-hookz/web";
 
 const DiscussionsAndInvitationsQueryDocument = graphql(`
