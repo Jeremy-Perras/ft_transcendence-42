@@ -39,8 +39,8 @@ type DirectMessage = {
   userId: number;
   id: number;
   content: string;
-  sentAt: number;
-  readAt?: number | null | undefined;
+  sentAt: string | null;
+  readAt?: string | null | undefined;
   author: User;
   status: UserStatus;
 };
@@ -96,7 +96,10 @@ const query = (
       rank: data.user.rank,
       status: data.user.status,
       friendStatus: data.user.friendStatus,
-      messages: data.user.messages.sort((a, b) => a.sentAt - b.sentAt),
+      messages: data.user.messages,
+      // messages: data.user.messages.sort(
+      //   (a, b) => new Date(a.sentAt).valueOf() - b.sentAt.valueOf()
+      // ),
     }),
   };
 };
@@ -130,7 +133,7 @@ const DirectMessage = ({
   return (
     <li className="mx-2 mb-5 flex flex-col ">
       <span className="mb-2 text-center text-xs text-slate-300">
-        {getDate(+sentAt)}
+        {getDate(sentAt)}
       </span>
       <div
         className={`${

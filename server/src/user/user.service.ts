@@ -326,7 +326,7 @@ export class UserService {
       ]);
 
       return [...received, ...sent]
-        .sort((a, b) => b.sentAt.valueOf() - a.sentAt.valueOf())
+        .sort((a, b) => a.sentAt.valueOf() - b.sentAt.valueOf())
         .map((message) => ({
           id: message.id,
           content: message.content,

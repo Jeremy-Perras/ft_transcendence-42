@@ -125,7 +125,7 @@ const ChannelAndFriendBanner = ({
         <div className="flex justify-between">
           <span className="w-60 truncate pb-px font-bold">{chat.name}</span>
           <span className="mt-1 text-xs text-slate-400">
-            {chat.lastMessageDate ? getDate(+chat.lastMessageDate) : ""}
+            {chat.lastMessageDate ? getDate(chat.lastMessageDate) : ""}
           </span>
         </div>
         <span
