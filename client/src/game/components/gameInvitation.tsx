@@ -8,31 +8,31 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import request from "graphql-request";
 import { io } from "socket.io-client";
 
-// const GameInvitationQueryDocument = graphql(`
-//   query GameInvitation($gameId: Int!) {
-//     game(id: $gameId) {
-//       gameMode
-//       players {
-//         player1 {
-//           id
-//           name
-//         }
-//       }
-//     }
-//   }
-// `);
+const GameInvitationQueryDocument = graphql(`
+  query GameInvitation($gameId: Int!) {
+    game(id: $gameId) {
+      gameMode
+      players {
+        player1 {
+          id
+          name
+        }
+      }
+    }
+  }
+`);
 
-// const LaunchGameMutationDocument = graphql(`
-//   mutation LaunchGame($gameId: Int!) {
-//     launchGame(gameId: $gameId)
-//   }
-// `);
+const LaunchGameMutationDocument = graphql(`
+  mutation LaunchGame($gameId: Int!) {
+    launchGame(gameId: $gameId)
+  }
+`);
 
-// const RefuseGameInvitationMutationDocument = graphql(`
-//   mutation RefuseGameInvitation($gameId: Int!) {
-//     deleteGame(gameId: $gameId)
-//   }
-// `);
+const RefuseGameInvitationMutationDocument = graphql(`
+  mutation RefuseGameInvitation($gameId: Int!) {
+    deleteGame(gameId: $gameId)
+  }
+`);
 
 export const GameInvitation = () => {
   const [display, setDisplay] = useState(true);
@@ -45,35 +45,35 @@ export const GameInvitation = () => {
     setGameId(targetId);
   });
 
-  //   const { data: gameInvitation } = useQuery({
-  //     queryKey: ["GameInvitation"],
-  //     queryFn: async () =>
-  //       gameId != -1
-  //         ? request("/graphql", GameInvitationQueryDocument, {
-  //             gameId: gameId,
-  //           })
-  //         : null,
-  //   }); //TODO : find better way to do this
+  const { data: gameInvitation } = useQuery({
+    queryKey: ["GameInvitation"],
+    queryFn: async () =>
+      gameId != -1
+        ? request("/graphql", GameInvitationQueryDocument, {
+            gameId: gameId,
+          })
+        : null,
+  }); //TODO : find better way to do this
 
-  //   const launchGame = useMutation(
-  //     async ({ gameId }: { gameId: number }) =>
-  //       request("/graphql", LaunchGameMutationDocument, {
-  //         gameId: gameId,
-  //       }),
-  //     {
-  //       onSuccess: () => {
-  //         navigate(`/game/${gameInvitation.id}`);
-  //       },
-  //     }
-  //   );
+  const launchGame = useMutation(
+    async ({ gameId }: { gameId: number }) =>
+      request("/graphql", LaunchGameMutationDocument, {
+        gameId: gameId,
+      }),
+    {
+      onSuccess: () => {
+        navigate(`/game/${gameInvitation.id}`);
+      },
+    }
+  );
 
-  //   const refuseGameInvitation = useMutation(
-  //     async ({ gameId }: { gameId: number }) =>
-  //       request("/graphql", RefuseGameInvitationMutationDocument, {
-  //         gameId: gameId,
-  //       }),
-  //     {}
-  //   );
+  const refuseGameInvitation = useMutation(
+    async ({ gameId }: { gameId: number }) =>
+      request("/graphql", RefuseGameInvitationMutationDocument, {
+        gameId: gameId,
+      }),
+    {}
+  );
 
   return (
     //   display ? (
