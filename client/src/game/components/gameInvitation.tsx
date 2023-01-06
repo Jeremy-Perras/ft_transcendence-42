@@ -24,6 +24,18 @@ const Invitation = ({ invitation }: { invitation: GameInvitation }) => {
   const navigate = useNavigate();
   const [display, setDisplay] = useState(true);
 
+  // const launchGame = useMutation(
+  //   async ({ gameId }: { gameId: number }) =>
+  //     request("/graphql", LaunchGameMutationDocument, {
+  //       gameId: gameId,
+  //     }),
+  //   {
+  //     onSuccess: () => {
+  //       navigate(`/game/${gameId}`);
+  //     },
+  //   }
+  // );
+
   const launchGame = useMutation(
     async ({ gameId }: { gameId: number }) =>
       request("/graphql", LaunchGameMutationDocument, {
@@ -100,17 +112,17 @@ export const GameInvitations = () => {
   const firstInvitation: GameInvitation[] = [];
   const [invitationList, setInvitationList] = useState(firstInvitation);
 
-  const socket = io();
+  // const socket = io();
 
-  socket.on("launchInvitation", (targetId: GameInvitation) => {
-    const newInvitation: GameInvitation = {
-      userIds: targetId.userIds,
-      gameMode: targetId.gameMode,
-      gameId: targetId.gameId,
-      userName: targetId.userName,
-    };
-    setInvitationList([newInvitation, ...invitationList]);
-  });
+  // socket.on("launchInvitation", (targetId: GameInvitation) => {
+  //   const newInvitation: GameInvitation = {
+  //     userIds: targetId.userIds,
+  //     gameMode: targetId.gameMode,
+  //     gameId: targetId.gameId,
+  //     userName: targetId.userName,
+  //   };
+  //   setInvitationList([newInvitation, ...invitationList]);
+  // });
 
   return (
     <>
