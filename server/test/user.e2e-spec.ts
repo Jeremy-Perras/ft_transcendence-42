@@ -238,8 +238,8 @@ expect.extend({
                     id: m.recipientId,
                   },
                   content: m.content,
-                  sentAt: m.sentAt.valueOf(),
-                  readAt: m.readAt?.valueOf() ?? null,
+                  sentAt: m.sentAt.toISOString(),
+                  readAt: m.readAt?.toISOString() ?? null,
                 })),
 
         chats:
@@ -320,7 +320,7 @@ expect.extend({
                     type: "CHANNEL",
                     name: channel.name,
                     lastMessageContent: lastMessage?.content ?? null,
-                    lastMessageDate: lastMessage?.sentAt.valueOf() ?? null,
+                    lastMessageDate: lastMessage?.sentAt.toISOString() ?? null,
                     hasUnreadMessages: lastMessage
                       ? lastMessage.authorId === currentUserId
                         ? false
@@ -347,7 +347,9 @@ expect.extend({
                     const message = lastMessages.get(f.id);
                     if (message) {
                       friend.lastMessageContent = message.content;
-                      friend.lastMessageDate = new Date(message.sent).valueOf();
+                      friend.lastMessageDate = new Date(
+                        message.sent
+                      ).toISOString();
                       friend.hasUnreadMessages =
                         message.author === currentUserId
                           ? false
@@ -358,11 +360,11 @@ expect.extend({
                 ];
 
                 return merged.sort((x, y) => {
-                  const x_val = x.lastMessageDate
-                    ? x.lastMessageDate.valueOf()
+                  const x_val = new Date(x.lastMessageDate).valueOf()
+                    ? new Date(x.lastMessageDate).valueOf()
                     : -1;
-                  const y_val = y.lastMessageDate
-                    ? y.lastMessageDate.valueOf()
+                  const y_val = new Date(y.lastMessageDate).valueOf()
+                    ? new Date(y.lastMessageDate).valueOf()
                     : -1;
                   return y_val - x_val;
                 });
@@ -436,7 +438,7 @@ describe("queries", () => {
           driver: ApolloDriver,
           autoSchemaFile: join(process.cwd(), "test/schema.gql"),
           buildSchemaOptions: {
-            dateScalarMode: "timestamp",
+            dateScalarMode: "isoDate",
           },
         }),
       ],

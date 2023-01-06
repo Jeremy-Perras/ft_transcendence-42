@@ -500,7 +500,7 @@ export class ChannelMessageResolver {
         channel?.ownerId !== currentUserId &&
         !channel?.members.some((member) => member.userId === currentUserId)
       ) {
-        throw new ForbiddenException("You are not member of this channel");
+        throw new ForbiddenException("You are not a member of this channel");
       }
 
       const isMuted = await this.prismaService.channelRestrictedUser.findFirst({

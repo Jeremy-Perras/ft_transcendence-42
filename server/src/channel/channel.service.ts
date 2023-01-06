@@ -423,7 +423,7 @@ export class ChannelService {
     type: ChannelRestriction
   ) {
     try {
-      const channel = await this.prismaService.channel.findUnique({
+      const channel = await this.prismaService.channel.findUniqueOrThrow({
         where: {
           id: channelId,
         },
@@ -463,7 +463,7 @@ export class ChannelService {
         (targetRole === "ADMIN" && role !== "OWNER")
       )
         throw new ForbiddenException(
-          "You do not have the permission to do this"
+          "You do not have the permission to do that"
         );
 
       await this.prismaService.channelRestrictedUser.upsert({

@@ -111,7 +111,7 @@ expect.extend({
                 .filter((m) => (m.endAt ? m.endAt > new Date() : true))
                 .map((m) => ({
                   user: { id: m.userId },
-                  endAt: m.endAt?.valueOf() ?? null,
+                  endAt: m.endAt?.toISOString() ?? null,
                 }))
             )
           : [],
@@ -122,7 +122,7 @@ expect.extend({
                 .filter((m) => (m.endAt ? m.endAt > new Date() : true))
                 .map((m) => ({
                   user: { id: m.userId },
-                  endAt: m.endAt?.valueOf() ?? null,
+                  endAt: m.endAt?.toISOString() ?? null,
                 }))
             )
           : [],
@@ -194,7 +194,7 @@ describe("queries", () => {
           driver: ApolloDriver,
           autoSchemaFile: join(process.cwd(), "test/schema.gql"),
           buildSchemaOptions: {
-            dateScalarMode: "timestamp",
+            dateScalarMode: "isoDate",
           },
         }),
       ],
@@ -299,6 +299,7 @@ describe("queries", () => {
 
   it(`cannot use invalid channel id`, async () => {
     currentUserId = 1;
+    const channelId = -1;
 
     const response = await supertest(app.getHttpServer())
       .post("/graphql")
@@ -308,7 +309,7 @@ describe("queries", () => {
             id
           }
         }`,
-        variables: { id: -1 },
+        variables: { id: channelId },
       });
 
     expect(response.statusCode).toBe(200);
@@ -317,6 +318,7 @@ describe("queries", () => {
 
   it(`can get channel`, async () => {
     currentUserId = 1;
+    const channelId = 1;
 
     const response = await supertest(app.getHttpServer())
       .post("/graphql")
@@ -357,14 +359,14 @@ describe("queries", () => {
             }
           }
         }`,
-        variables: { id: 1 },
+        variables: { id: channelId },
       });
 
     expect(response.statusCode).toBe(200);
 
     const channel = await prisma.channel.findUnique({
       where: {
-        id: 1,
+        id: channelId,
       },
       ...prismaChannelArgs,
     });
@@ -374,6 +376,7 @@ describe("queries", () => {
 
   it(`cannot get non existing channel`, async () => {
     currentUserId = 1;
+    const channelId = 10;
 
     const response = await supertest(app.getHttpServer())
       .post("/graphql")
@@ -383,7 +386,7 @@ describe("queries", () => {
             id
           }
         }`,
-        variables: { id: 10 },
+        variables: { id: channelId },
       });
 
     expect(response.statusCode).toBe(200);
@@ -392,6 +395,7 @@ describe("queries", () => {
 
   it(`cannot access channel info as non member`, async () => {
     currentUserId = 1;
+    const channelId = 3;
 
     const response = await supertest(app.getHttpServer())
       .post("/graphql")
@@ -432,14 +436,14 @@ describe("queries", () => {
             }
           }
         }`,
-        variables: { id: 3 },
+        variables: { id: channelId },
       });
 
     expect(response.statusCode).toBe(200);
 
     const channel = await prisma.channel.findUnique({
       where: {
-        id: 3,
+        id: channelId,
       },
       ...prismaChannelArgs,
     });
@@ -449,6 +453,7 @@ describe("queries", () => {
 
   it(`can join public channel`, async () => {
     currentUserId = 81;
+    const channelId = 1;
 
     const response = await supertest(app.getHttpServer())
       .post("/graphql")
@@ -456,7 +461,7 @@ describe("queries", () => {
         query: `mutation Mutation($id: Int!) {
           joinChannel(id: $id)
         }`,
-        variables: { id: 1 },
+        variables: { id: channelId },
       });
 
     expect(response.statusCode).toBe(200);
@@ -465,7 +470,7 @@ describe("queries", () => {
     const member = await prisma.channelMember.findUnique({
       where: {
         channelId_userId: {
-          channelId: 1,
+          channelId: channelId,
           userId: currentUserId,
         },
       },
@@ -475,6 +480,7 @@ describe("queries", () => {
 
   it(`cannot join public channel if banned`, async () => {
     currentUserId = 82;
+    const channelId = 1;
 
     const response = await supertest(app.getHttpServer())
       .post("/graphql")
@@ -482,7 +488,7 @@ describe("queries", () => {
         query: `mutation Mutation($id: Int!) {
           joinChannel(id: $id)
         }`,
-        variables: { id: 1 },
+        variables: { id: channelId },
       });
 
     expect(response.statusCode).toBe(200);
@@ -493,7 +499,7 @@ describe("queries", () => {
     const member = await prisma.channelMember.findUnique({
       where: {
         channelId_userId: {
-          channelId: 1,
+          channelId: channelId,
           userId: currentUserId,
         },
       },
@@ -503,6 +509,7 @@ describe("queries", () => {
 
   it(`cannot join private channel`, async () => {
     currentUserId = 82;
+    const channelId = 3;
 
     const response = await supertest(app.getHttpServer())
       .post("/graphql")
@@ -510,7 +517,7 @@ describe("queries", () => {
         query: `mutation Mutation($id: Int!) {
           joinChannel(id: $id)
         }`,
-        variables: { id: 3 },
+        variables: { id: channelId },
       });
 
     expect(response.statusCode).toBe(200);
@@ -519,7 +526,7 @@ describe("queries", () => {
     const member = await prisma.channelMember.findUnique({
       where: {
         channelId_userId: {
-          channelId: 3,
+          channelId: channelId,
           userId: currentUserId,
         },
       },
@@ -529,6 +536,8 @@ describe("queries", () => {
 
   it(`can join password channel`, async () => {
     currentUserId = 60;
+    const channelId = 2;
+    const password = "password";
 
     const response = await supertest(app.getHttpServer())
       .post("/graphql")
@@ -536,7 +545,7 @@ describe("queries", () => {
         query: `mutation Mutation($id: Int!, $password: String!) {
           joinChannel(id: $id, password: $password)
         }`,
-        variables: { id: 2, password: "password" },
+        variables: { id: channelId, password },
       });
 
     expect(response.statusCode).toBe(200);
@@ -545,7 +554,7 @@ describe("queries", () => {
     const member = await prisma.channelMember.findUnique({
       where: {
         channelId_userId: {
-          channelId: 2,
+          channelId: channelId,
           userId: currentUserId,
         },
       },
@@ -555,6 +564,7 @@ describe("queries", () => {
 
   it(`cannot join password channel without password`, async () => {
     currentUserId = 61;
+    const channelId = 2;
 
     const response = await supertest(app.getHttpServer())
       .post("/graphql")
@@ -562,7 +572,7 @@ describe("queries", () => {
         query: `mutation Mutation($id: Int!) {
           joinChannel(id: $id)
         }`,
-        variables: { id: 2 },
+        variables: { id: channelId },
       });
 
     expect(response.statusCode).toBe(200);
@@ -571,7 +581,7 @@ describe("queries", () => {
     const member = await prisma.channelMember.findUnique({
       where: {
         channelId_userId: {
-          channelId: 2,
+          channelId: channelId,
           userId: currentUserId,
         },
       },
@@ -581,6 +591,8 @@ describe("queries", () => {
 
   it(`cannot join password channel with the wrong password`, async () => {
     currentUserId = 62;
+    const channelId = 2;
+    const password = "test";
 
     const response = await supertest(app.getHttpServer())
       .post("/graphql")
@@ -588,7 +600,7 @@ describe("queries", () => {
         query: `mutation Mutation($id: Int!, $password: String!) {
           joinChannel(id: $id, password: $password)
         }`,
-        variables: { id: 2, password: "test" },
+        variables: { id: channelId, password },
       });
 
     expect(response.statusCode).toBe(200);
@@ -597,7 +609,7 @@ describe("queries", () => {
     const member = await prisma.channelMember.findUnique({
       where: {
         channelId_userId: {
-          channelId: 2,
+          channelId: channelId,
           userId: currentUserId,
         },
       },
@@ -607,6 +619,7 @@ describe("queries", () => {
 
   it(`can create a new channel`, async () => {
     currentUserId = 60;
+    const name = "test";
 
     const response = await supertest(app.getHttpServer())
       .post("/graphql")
@@ -614,7 +627,7 @@ describe("queries", () => {
         query: `mutation Mutation($inviteOnly: Boolean!, $password: String, $name: String!) {
           createChannel(inviteOnly: $inviteOnly, password: $password, name: $name)
         }`,
-        variables: { inviteOnly: false, password: null, name: "test" },
+        variables: { inviteOnly: false, password: null, name },
       });
 
     expect(response.statusCode).toBe(200);
@@ -622,20 +635,22 @@ describe("queries", () => {
 
     const channel = await prisma.channel.findFirst({
       where: {
-        name: "test",
+        name,
       },
     });
     expect(channel).not.toBeNull();
     expect(channel).toMatchObject({
       inviteOnly: false,
-      name: "test",
-      ownerId: 60,
+      name,
+      ownerId: currentUserId,
       password: null,
     });
   });
 
   it(`can create a new private password channel`, async () => {
     currentUserId = 60;
+    const name = "test_password";
+    const password = "hello";
 
     const response = await supertest(app.getHttpServer())
       .post("/graphql")
@@ -645,8 +660,8 @@ describe("queries", () => {
         }`,
         variables: {
           inviteOnly: true,
-          password: "hello",
-          name: "test_password",
+          password,
+          name,
         },
       });
 
@@ -655,21 +670,22 @@ describe("queries", () => {
 
     const channel = await prisma.channel.findFirst({
       where: {
-        name: "test_password",
+        name,
       },
     });
     expect(channel).not.toBeNull();
     expect(channel).toMatchObject({
       inviteOnly: true,
-      name: "test_password",
+      name,
       ownerId: 60,
     });
     expect(channel?.password).not.toBeNull();
-    expect(bcrypt.compareSync("hello", channel?.password ?? "")).toBe(true);
+    expect(bcrypt.compareSync(password, channel?.password ?? "")).toBe(true);
   });
 
   it(`can leave channel`, async () => {
     currentUserId = 3;
+    const channelId = 2;
 
     const response = await supertest(app.getHttpServer())
       .post("/graphql")
@@ -678,7 +694,7 @@ describe("queries", () => {
           leaveChannel(id: $id)
         }`,
         variables: {
-          id: 2,
+          id: channelId,
         },
       });
 
@@ -688,7 +704,7 @@ describe("queries", () => {
     const member = await prisma.channelMember.findUnique({
       where: {
         channelId_userId: {
-          channelId: 2,
+          channelId: channelId,
           userId: currentUserId,
         },
       },
@@ -698,6 +714,7 @@ describe("queries", () => {
 
   it(`can leave channel as owner`, async () => {
     currentUserId = 3;
+    const channelId = 3;
 
     const response = await supertest(app.getHttpServer())
       .post("/graphql")
@@ -706,7 +723,7 @@ describe("queries", () => {
           leaveChannel(id: $id)
         }`,
         variables: {
-          id: 3,
+          id: channelId,
         },
       });
 
@@ -716,7 +733,7 @@ describe("queries", () => {
     const member = await prisma.channelMember.findUnique({
       where: {
         channelId_userId: {
-          channelId: 3,
+          channelId: channelId,
           userId: currentUserId,
         },
       },
@@ -725,7 +742,7 @@ describe("queries", () => {
 
     const channel = await prisma.channel.findUnique({
       where: {
-        id: 3,
+        id: channelId,
       },
     });
     expect(channel?.ownerId).toBe(1);
@@ -733,6 +750,7 @@ describe("queries", () => {
 
   it(`can leave channel as owner and last member`, async () => {
     currentUserId = 60;
+    const channelId = 4;
 
     const response = await supertest(app.getHttpServer())
       .post("/graphql")
@@ -741,7 +759,7 @@ describe("queries", () => {
           leaveChannel(id: $id)
         }`,
         variables: {
-          id: 4,
+          id: channelId,
         },
       });
 
@@ -750,7 +768,7 @@ describe("queries", () => {
 
     const channel = await prisma.channel.findFirst({
       where: {
-        id: 4,
+        id: channelId,
       },
     });
     expect(channel).toBeNull();
@@ -758,6 +776,7 @@ describe("queries", () => {
 
   it(`cannot leave channel if not a member`, async () => {
     currentUserId = 90;
+    const channelId = 1;
 
     const response = await supertest(app.getHttpServer())
       .post("/graphql")
@@ -766,7 +785,7 @@ describe("queries", () => {
           leaveChannel(id: $id)
         }`,
         variables: {
-          id: 1,
+          id: channelId,
         },
       });
 
@@ -778,6 +797,7 @@ describe("queries", () => {
 
   it(`can delete channel as owner`, async () => {
     currentUserId = 1;
+    const channelId = 3;
 
     const response = await supertest(app.getHttpServer())
       .post("/graphql")
@@ -786,7 +806,7 @@ describe("queries", () => {
           deleteChannel(id: $id)
         }`,
         variables: {
-          id: 3,
+          id: channelId,
         },
       });
 
@@ -795,7 +815,7 @@ describe("queries", () => {
 
     const channel = await prisma.channel.findFirst({
       where: {
-        id: 3,
+        id: channelId,
       },
     });
     expect(channel).toBeNull();
@@ -823,6 +843,7 @@ describe("queries", () => {
 
   it(`cannot delete channel if not owner`, async () => {
     currentUserId = 1;
+    const channelId = 2;
 
     const response = await supertest(app.getHttpServer())
       .post("/graphql")
@@ -831,7 +852,7 @@ describe("queries", () => {
           deleteChannel(id: $id)
         }`,
         variables: {
-          id: 2,
+          id: channelId,
         },
       });
 
@@ -842,7 +863,7 @@ describe("queries", () => {
 
     const channel = await prisma.channel.findFirst({
       where: {
-        id: 2,
+        id: channelId,
       },
     });
     expect(channel).not.toBeNull();
@@ -850,6 +871,8 @@ describe("queries", () => {
 
   it(`can update password as owner`, async () => {
     currentUserId = 2;
+    const channelId = 2;
+    const password = "hello";
 
     const response = await supertest(app.getHttpServer())
       .post("/graphql")
@@ -858,8 +881,8 @@ describe("queries", () => {
         updatePassword(id: $id, password: $password)
       }`,
         variables: {
-          id: 2,
-          password: "hello",
+          id: channelId,
+          password,
         },
       });
 
@@ -868,14 +891,16 @@ describe("queries", () => {
 
     const channel = await prisma.channel.findUnique({
       where: {
-        id: 2,
+        id: channelId,
       },
     });
-    expect(bcrypt.compareSync("hello", channel?.password ?? "")).toBe(true);
+    expect(bcrypt.compareSync(password, channel?.password ?? "")).toBe(true);
   });
 
   it(`cannot update password if member`, async () => {
     currentUserId = 11;
+    const channelId = 2;
+    const password = "test";
 
     const response = await supertest(app.getHttpServer())
       .post("/graphql")
@@ -884,8 +909,8 @@ describe("queries", () => {
         updatePassword(id: $id, password: $password)
       }`,
         variables: {
-          id: 2,
-          password: "hello",
+          id: channelId,
+          password,
         },
       });
 
@@ -896,14 +921,16 @@ describe("queries", () => {
 
     const channel = await prisma.channel.findUnique({
       where: {
-        id: 2,
+        id: channelId,
       },
     });
-    expect(bcrypt.compareSync("hello", channel?.password ?? "")).toBe(true);
+    expect(bcrypt.compareSync(password, channel?.password ?? "")).toBe(false);
   });
 
   it(`cannot update password if not member`, async () => {
     currentUserId = 80;
+    const channelId = 2;
+    const password = "test";
 
     const response = await supertest(app.getHttpServer())
       .post("/graphql")
@@ -912,8 +939,8 @@ describe("queries", () => {
         updatePassword(id: $id, password: $password)
       }`,
         variables: {
-          id: 2,
-          password: "hello",
+          id: channelId,
+          password,
         },
       });
 
@@ -924,14 +951,16 @@ describe("queries", () => {
 
     const channel = await prisma.channel.findUnique({
       where: {
-        id: 2,
+        id: channelId,
       },
     });
-    expect(bcrypt.compareSync("hello", channel?.password ?? "")).toBe(true);
+    expect(bcrypt.compareSync(password, channel?.password ?? "")).toBe(false);
   });
 
   it(`cannot update password if admin`, async () => {
     currentUserId = 3;
+    const channelId = 2;
+    const password = "test";
 
     const response = await supertest(app.getHttpServer())
       .post("/graphql")
@@ -940,8 +969,8 @@ describe("queries", () => {
         updatePassword(id: $id, password: $password)
       }`,
         variables: {
-          id: 2,
-          password: "hello",
+          id: channelId,
+          password: password,
         },
       });
 
@@ -952,14 +981,16 @@ describe("queries", () => {
 
     const channel = await prisma.channel.findUnique({
       where: {
-        id: 2,
+        id: channelId,
       },
     });
-    expect(bcrypt.compareSync("hello", channel?.password ?? "")).toBe(true);
+    expect(bcrypt.compareSync(password, channel?.password ?? "")).toBe(false);
   });
 
   it(`can add admin as owner`, async () => {
     currentUserId = 1;
+    const channelId = 1;
+    const userId = 30;
 
     const response = await supertest(app.getHttpServer())
       .post("/graphql")
@@ -968,8 +999,8 @@ describe("queries", () => {
         addAdmin(id: $id, userId: $userId)
       }`,
         variables: {
-          id: 1,
-          userId: 30,
+          id: channelId,
+          userId,
         },
       });
 
@@ -979,8 +1010,8 @@ describe("queries", () => {
     const member = await prisma.channelMember.findUnique({
       where: {
         channelId_userId: {
-          channelId: 1,
-          userId: 30,
+          channelId,
+          userId,
         },
       },
     });
@@ -989,6 +1020,8 @@ describe("queries", () => {
 
   it(`can remove admin as owner`, async () => {
     currentUserId = 1;
+    const channelId = 1;
+    const userId = 30;
 
     const response = await supertest(app.getHttpServer())
       .post("/graphql")
@@ -997,8 +1030,8 @@ describe("queries", () => {
         removeAdmin(id: $id, userId: $userId)
       }`,
         variables: {
-          id: 1,
-          userId: 30,
+          id: channelId,
+          userId,
         },
       });
 
@@ -1008,8 +1041,8 @@ describe("queries", () => {
     const member = await prisma.channelMember.findUnique({
       where: {
         channelId_userId: {
-          channelId: 1,
-          userId: 30,
+          channelId,
+          userId,
         },
       },
     });
@@ -1018,6 +1051,8 @@ describe("queries", () => {
 
   it(`cannot remove unexisting admin as owner`, async () => {
     currentUserId = 1;
+    const channelId = 1;
+    const userId = 85;
 
     const response = await supertest(app.getHttpServer())
       .post("/graphql")
@@ -1026,8 +1061,8 @@ describe("queries", () => {
         removeAdmin(id: $id, userId: $userId)
       }`,
         variables: {
-          id: 1,
-          userId: 85,
+          id: channelId,
+          userId,
         },
       });
 
@@ -1037,8 +1072,8 @@ describe("queries", () => {
     const member = await prisma.channelMember.findUnique({
       where: {
         channelId_userId: {
-          channelId: 1,
-          userId: 85,
+          channelId,
+          userId,
         },
       },
     });
@@ -1047,6 +1082,8 @@ describe("queries", () => {
 
   it(`cannot add admin if not owner`, async () => {
     currentUserId = 2;
+    const channelId = 1;
+    const userId = 27;
 
     const response = await supertest(app.getHttpServer())
       .post("/graphql")
@@ -1055,8 +1092,8 @@ describe("queries", () => {
         addAdmin(id: $id, userId: $userId)
       }`,
         variables: {
-          id: 1,
-          userId: 27,
+          id: channelId,
+          userId,
         },
       });
 
@@ -1068,8 +1105,8 @@ describe("queries", () => {
     const member = await prisma.channelMember.findUnique({
       where: {
         channelId_userId: {
-          channelId: 1,
-          userId: 27,
+          channelId,
+          userId,
         },
       },
     });
@@ -1078,6 +1115,8 @@ describe("queries", () => {
 
   it(`cannot remove admin if not owner`, async () => {
     currentUserId = 2;
+    const channelId = 1;
+    const userId = 3;
 
     const response = await supertest(app.getHttpServer())
       .post("/graphql")
@@ -1086,8 +1125,8 @@ describe("queries", () => {
         removeAdmin(id: $id, userId: $userId)
       }`,
         variables: {
-          id: 1,
-          userId: 3,
+          id: channelId,
+          userId,
         },
       });
 
@@ -1099,8 +1138,8 @@ describe("queries", () => {
     const member = await prisma.channelMember.findUnique({
       where: {
         channelId_userId: {
-          channelId: 1,
-          userId: 3,
+          channelId,
+          userId,
         },
       },
     });
@@ -1109,6 +1148,8 @@ describe("queries", () => {
 
   it(`can invite user to channel if owner`, async () => {
     currentUserId = 2;
+    const channelId = 2;
+    const userId = 90;
 
     const response = await supertest(app.getHttpServer())
       .post("/graphql")
@@ -1117,8 +1158,8 @@ describe("queries", () => {
         inviteUser(id: $id, userId: $userId)
       }`,
         variables: {
-          id: 2,
-          userId: 90,
+          id: channelId,
+          userId,
         },
       });
 
@@ -1128,8 +1169,8 @@ describe("queries", () => {
     const member = await prisma.channelMember.findUnique({
       where: {
         channelId_userId: {
-          channelId: 2,
-          userId: 90,
+          channelId,
+          userId,
         },
       },
     });
@@ -1138,6 +1179,8 @@ describe("queries", () => {
 
   it(`can invite user to channel`, async () => {
     currentUserId = 11;
+    const channelId = 2;
+    const userId = 91;
 
     const response = await supertest(app.getHttpServer())
       .post("/graphql")
@@ -1146,8 +1189,8 @@ describe("queries", () => {
         inviteUser(id: $id, userId: $userId)
       }`,
         variables: {
-          id: 2,
-          userId: 91,
+          id: channelId,
+          userId,
         },
       });
 
@@ -1157,8 +1200,8 @@ describe("queries", () => {
     const member = await prisma.channelMember.findUnique({
       where: {
         channelId_userId: {
-          channelId: 2,
-          userId: 91,
+          channelId,
+          userId,
         },
       },
     });
@@ -1167,6 +1210,8 @@ describe("queries", () => {
 
   it(`cannot invite user to channel if is owner`, async () => {
     currentUserId = 11;
+    const channelId = 1;
+    const userId = 1;
 
     const response = await supertest(app.getHttpServer())
       .post("/graphql")
@@ -1175,8 +1220,8 @@ describe("queries", () => {
         inviteUser(id: $id, userId: $userId)
       }`,
         variables: {
-          id: 1,
-          userId: 1,
+          id: channelId,
+          userId,
         },
       });
 
@@ -1186,8 +1231,8 @@ describe("queries", () => {
     const member = await prisma.channelMember.findUnique({
       where: {
         channelId_userId: {
-          channelId: 1,
-          userId: 1,
+          channelId,
+          userId,
         },
       },
     });
@@ -1196,6 +1241,8 @@ describe("queries", () => {
 
   it(`cannot invite user to channel if is already member`, async () => {
     currentUserId = 11;
+    const channelId = 1;
+    const userId = 16;
 
     const response = await supertest(app.getHttpServer())
       .post("/graphql")
@@ -1204,8 +1251,8 @@ describe("queries", () => {
         inviteUser(id: $id, userId: $userId)
       }`,
         variables: {
-          id: 1,
-          userId: 16,
+          id: channelId,
+          userId,
         },
       });
 
@@ -1215,8 +1262,8 @@ describe("queries", () => {
     const member = await prisma.channelMember.findUnique({
       where: {
         channelId_userId: {
-          channelId: 1,
-          userId: 16,
+          channelId,
+          userId,
         },
       },
     });
@@ -1225,6 +1272,8 @@ describe("queries", () => {
 
   it(`cannot invite user to channel if user is banned`, async () => {
     currentUserId = 1;
+    const channelId = 1;
+    const userId = 84;
 
     const response = await supertest(app.getHttpServer())
       .post("/graphql")
@@ -1233,8 +1282,8 @@ describe("queries", () => {
         inviteUser(id: $id, userId: $userId)
       }`,
         variables: {
-          id: 1,
-          userId: 84,
+          id: channelId,
+          userId,
         },
       });
 
@@ -1244,56 +1293,442 @@ describe("queries", () => {
     const member = await prisma.channelMember.findUnique({
       where: {
         channelId_userId: {
-          channelId: 1,
-          userId: 84,
+          channelId,
+          userId,
         },
       },
     });
     expect(member).toBeNull();
   });
 
-  // it(`can mute user if owner/admin`, async () => {});
+  it(`can mute member if admin`, async () => {
+    currentUserId = 4;
+    const channelId = 2;
+    const userId = 11;
+    const date = new Date();
 
-  // it(`can mute admin user if owner`, async () => {});
+    const response = await supertest(app.getHttpServer())
+      .post("/graphql")
+      .send({
+        query: `mutation Mutation($id: Int!, $userId: Int!, $restrictUntil: DateTime) {
+        muteUser(id: $id, userId: $userId, restrictUntil: $restrictUntil)
+      }`,
+        variables: {
+          id: channelId,
+          userId,
+          restrictUntil: date,
+        },
+      });
 
-  // it(`cannot mute if user is not member`, async () => {});
+    expect(response.statusCode).toBe(200);
+    expect(response.body.data.muteUser).toBe(true);
 
-  // it(`cannot mute admin user if admin`, async () => {});
+    const restriction = await prisma.channelRestrictedUser.findUnique({
+      where: {
+        channelId_userId_restriction: {
+          channelId,
+          restriction: "MUTE",
+          userId,
+        },
+      },
+    });
+    expect(restriction).not.toBeNull();
+    expect(restriction?.endAt?.valueOf()).toBe(date.valueOf());
+  });
 
-  // it(`cannot mute user if not owner/admin`, async () => {});
+  it(`can mute admin if owner`, async () => {
+    currentUserId = 2;
+    const channelId = 2;
+    const userId = 4;
 
-  // it(`can unmute user if owner/admin`, async () => {});
+    const response = await supertest(app.getHttpServer())
+      .post("/graphql")
+      .send({
+        query: `mutation Mutation($id: Int!, $userId: Int!, $restrictUntil: DateTime) {
+        muteUser(id: $id, userId: $userId, restrictUntil: $restrictUntil)
+      }`,
+        variables: {
+          id: channelId,
+          userId,
+        },
+      });
 
-  // it(`can unmute admin user if owner`, async () => {});
+    expect(response.statusCode).toBe(200);
+    expect(response.body.data.muteUser).toBe(true);
 
-  // it(`cannot unmute admin user if admin`, async () => {});
+    const restriction = await prisma.channelRestrictedUser.findUnique({
+      where: {
+        channelId_userId_restriction: {
+          channelId,
+          restriction: "MUTE",
+          userId,
+        },
+      },
+    });
+    expect(restriction).not.toBeNull();
+    expect(restriction?.endAt).toBeNull();
+  });
 
-  // it(`cannot unmute user if not owner/admin`, async () => {});
+  it(`can update mute`, async () => {
+    currentUserId = 5;
+    const channelId = 2;
+    const userId = 11;
+    const date = new Date();
 
-  // it(`cannot umute user is not muted`, async () => {});
+    const response = await supertest(app.getHttpServer())
+      .post("/graphql")
+      .send({
+        query: `mutation Mutation($id: Int!, $userId: Int!, $restrictUntil: DateTime) {
+        muteUser(id: $id, userId: $userId, restrictUntil: $restrictUntil)
+      }`,
+        variables: {
+          id: channelId,
+          userId,
+          restrictUntil: date,
+        },
+      });
 
-  // it(`can ban user if owner/admin`, async () => {});
+    expect(response.statusCode).toBe(200);
+    expect(response.body.data.muteUser).toBe(true);
 
-  // it(`can ban admin user if owner`, async () => {});
+    const restriction = await prisma.channelRestrictedUser.findUnique({
+      where: {
+        channelId_userId_restriction: {
+          channelId,
+          restriction: "MUTE",
+          userId,
+        },
+      },
+    });
+    expect(restriction).not.toBeNull();
+    expect(restriction?.endAt?.valueOf()).toBe(date.valueOf());
+  });
 
-  // it(`cannot ban if user is not member`, async () => {});
+  it(`cannot mute owner`, async () => {
+    currentUserId = 2;
+    const channelId = 2;
+    const userId = 2;
 
-  // it(`cannot ban admin user if admin`, async () => {});
+    const response = await supertest(app.getHttpServer())
+      .post("/graphql")
+      .send({
+        query: `mutation Mutation($id: Int!, $userId: Int!, $restrictUntil: DateTime) {
+        muteUser(id: $id, userId: $userId, restrictUntil: $restrictUntil)
+      }`,
+        variables: {
+          id: channelId,
+          userId,
+        },
+      });
 
-  // it(`cannot ban user if not owner/admin`, async () => {});
+    expect(response.statusCode).toBe(200);
+    expect(response.body.errors[0].message).toBe(
+      "You do not have the permission to do that"
+    );
 
-  // it(`can unban user if owner/admin`, async () => {});
+    const restriction = await prisma.channelRestrictedUser.findUnique({
+      where: {
+        channelId_userId_restriction: {
+          channelId,
+          restriction: "MUTE",
+          userId,
+        },
+      },
+    });
+    expect(restriction).toBeNull();
+  });
 
-  // it(`can unban admin user if owner`, async () => {});
+  it(`cannot mute admin if admin`, async () => {
+    currentUserId = 5;
+    const channelId = 2;
+    const userId = 6;
 
-  // it(`cannot unban admin user if admin`, async () => {});
+    const response = await supertest(app.getHttpServer())
+      .post("/graphql")
+      .send({
+        query: `mutation Mutation($id: Int!, $userId: Int!, $restrictUntil: DateTime) {
+        muteUser(id: $id, userId: $userId, restrictUntil: $restrictUntil)
+      }`,
+        variables: {
+          id: channelId,
+          userId,
+        },
+      });
 
-  // it(`cannot unban user if not owner/admin`, async () => {});
+    expect(response.statusCode).toBe(200);
+    expect(response.body.errors[0].message).toBe(
+      "You do not have the permission to do that"
+    );
 
-  // it(`cannot unban user is not banned`, async () => {});
+    const restriction = await prisma.channelRestrictedUser.findUnique({
+      where: {
+        channelId_userId_restriction: {
+          channelId,
+          restriction: "MUTE",
+          userId,
+        },
+      },
+    });
+    expect(restriction).toBeNull();
+  });
+
+  it(`cannot mute member if member`, async () => {
+    currentUserId = 13;
+    const channelId = 2;
+    const userId = 14;
+
+    const response = await supertest(app.getHttpServer())
+      .post("/graphql")
+      .send({
+        query: `mutation Mutation($id: Int!, $userId: Int!, $restrictUntil: DateTime) {
+        muteUser(id: $id, userId: $userId, restrictUntil: $restrictUntil)
+      }`,
+        variables: {
+          id: channelId,
+          userId,
+        },
+      });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.errors[0].message).toBe(
+      "You do not have the permission to do that"
+    );
+
+    const restriction = await prisma.channelRestrictedUser.findUnique({
+      where: {
+        channelId_userId_restriction: {
+          channelId,
+          restriction: "MUTE",
+          userId,
+        },
+      },
+    });
+    expect(restriction).toBeNull();
+  });
+
+  it(`cannot mute member if not member`, async () => {
+    currentUserId = 1;
+    const channelId = 2;
+    const userId = 14;
+
+    const response = await supertest(app.getHttpServer())
+      .post("/graphql")
+      .send({
+        query: `mutation Mutation($id: Int!, $userId: Int!, $restrictUntil: DateTime) {
+        muteUser(id: $id, userId: $userId, restrictUntil: $restrictUntil)
+      }`,
+        variables: {
+          id: channelId,
+          userId,
+        },
+      });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.errors[0].message).toBe(
+      "You do not have the permission to do that"
+    );
+
+    const restriction = await prisma.channelRestrictedUser.findUnique({
+      where: {
+        channelId_userId_restriction: {
+          channelId,
+          restriction: "MUTE",
+          userId,
+        },
+      },
+    });
+    expect(restriction).toBeNull();
+  });
+
+  it(`can unmute`, async () => {
+    currentUserId = 2;
+    const channelId = 2;
+    const userId = 4;
+
+    const response = await supertest(app.getHttpServer())
+      .post("/graphql")
+      .send({
+        query: `mutation Mutation($id: Int!, $userId: Int!) {
+        unmuteUser(id: $id, userId: $userId)
+      }`,
+        variables: {
+          id: channelId,
+          userId,
+        },
+      });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.data.unmuteUser).toBe(true);
+
+    const restriction = await prisma.channelRestrictedUser.findUnique({
+      where: {
+        channelId_userId_restriction: {
+          channelId,
+          restriction: "MUTE",
+          userId,
+        },
+      },
+    });
+    expect(restriction).not.toBeNull();
+    expect(restriction?.endAt).not.toBeNull();
+  });
+
+  it(`can ban member`, async () => {
+    currentUserId = 5;
+    const channelId = 2;
+    const userId = 16;
+
+    const response = await supertest(app.getHttpServer())
+      .post("/graphql")
+      .send({
+        query: `mutation Mutation($id: Int!, $userId: Int!, $restrictUntil: DateTime) {
+        banUser(id: $id, userId: $userId, restrictUntil: $restrictUntil)
+      }`,
+        variables: {
+          id: channelId,
+          userId,
+        },
+      });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.data.banUser).toBe(true);
+
+    const member = await prisma.channelMember.findFirst({
+      where: {
+        channelId,
+        userId,
+      },
+    });
+    expect(member).toBeNull();
+
+    const restriction = await prisma.channelRestrictedUser.findUnique({
+      where: {
+        channelId_userId_restriction: {
+          channelId: 2,
+          restriction: "BAN",
+          userId: 16,
+        },
+      },
+    });
+    expect(restriction).not.toBeNull();
+    expect(restriction?.endAt).toBeNull();
+  });
+
+  it(`can ban non member`, async () => {
+    currentUserId = 5;
+    const channelId = 2;
+    const userId = 24;
+    const date = new Date();
+
+    const response = await supertest(app.getHttpServer())
+      .post("/graphql")
+      .send({
+        query: `mutation Mutation($id: Int!, $userId: Int!, $restrictUntil: DateTime) {
+        banUser(id: $id, userId: $userId, restrictUntil: $restrictUntil)
+      }`,
+        variables: {
+          id: channelId,
+          userId,
+          restrictUntil: date,
+        },
+      });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.data.banUser).toBe(true);
+
+    const member = await prisma.channelMember.findFirst({
+      where: {
+        channelId,
+        userId,
+      },
+    });
+    expect(member).toBeNull();
+
+    const restriction = await prisma.channelRestrictedUser.findUnique({
+      where: {
+        channelId_userId_restriction: {
+          channelId,
+          restriction: "BAN",
+          userId,
+        },
+      },
+    });
+    expect(restriction).not.toBeNull();
+    expect(restriction?.endAt?.valueOf()).toBe(date.valueOf());
+  });
+
+  it(`can update ban`, async () => {
+    currentUserId = 5;
+    const channelId = 2;
+    const userId = 43;
+    const date = new Date();
+
+    const response = await supertest(app.getHttpServer())
+      .post("/graphql")
+      .send({
+        query: `mutation Mutation($id: Int!, $userId: Int!, $restrictUntil: DateTime) {
+        banUser(id: $id, userId: $userId, restrictUntil: $restrictUntil)
+      }`,
+        variables: {
+          id: channelId,
+          userId,
+          restrictUntil: date,
+        },
+      });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.data.banUser).toBe(true);
+
+    const restriction = await prisma.channelRestrictedUser.findUnique({
+      where: {
+        channelId_userId_restriction: {
+          channelId,
+          restriction: "BAN",
+          userId,
+        },
+      },
+    });
+    expect(restriction).not.toBeNull();
+    expect(restriction?.endAt?.valueOf()).toBe(date.valueOf());
+  });
+
+  it(`can unban`, async () => {
+    currentUserId = 5;
+    const channelId = 2;
+    const userId = 37;
+
+    const response = await supertest(app.getHttpServer())
+      .post("/graphql")
+      .send({
+        query: `mutation Mutation($id: Int!, $userId: Int!) {
+        unbanUser(id: $id, userId: $userId)
+      }`,
+        variables: {
+          id: channelId,
+          userId,
+        },
+      });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.data.unbanUser).toBe(true);
+
+    const restriction = await prisma.channelRestrictedUser.findUnique({
+      where: {
+        channelId_userId_restriction: {
+          channelId,
+          restriction: "BAN",
+          userId,
+        },
+      },
+    });
+    expect(restriction).not.toBeNull();
+    expect(restriction?.endAt).not.toBeNull();
+  });
 
   it(`can send message if member`, async () => {
     currentUserId = 11;
+    const channelId = 1;
+    const message = "hello";
 
     const response = await supertest(app.getHttpServer())
       .post("/graphql")
@@ -1302,29 +1737,31 @@ describe("queries", () => {
         sendChannelMessage(id: $id, message: $message)
       }`,
         variables: {
-          id: 1,
-          message: "hello",
+          id: channelId,
+          message,
         },
       });
 
     expect(response.statusCode).toBe(200);
     expect(response.body.data.sendChannelMessage).toBe(true);
 
-    const message = await prisma.channelMessage.findFirst({
+    const m = await prisma.channelMessage.findFirst({
       where: {
-        channelId: 1,
-        authorId: 11,
+        channelId,
+        authorId: currentUserId,
       },
       orderBy: {
         sentAt: "desc",
       },
     });
-    expect(message).not.toBeNull();
-    expect(message?.content).toBe("hello");
+    expect(m).not.toBeNull();
+    expect(m?.content).toBe(message);
   });
 
   it(`cannot send message if not member`, async () => {
     currentUserId = 70;
+    const channelId = 2;
+    const message = "hello";
 
     const response = await supertest(app.getHttpServer())
       .post("/graphql")
@@ -1333,8 +1770,8 @@ describe("queries", () => {
         sendChannelMessage(id: $id, message: $message)
       }`,
         variables: {
-          id: 2,
-          message: "hello",
+          id: channelId,
+          message,
         },
       });
 
@@ -1343,17 +1780,19 @@ describe("queries", () => {
       "You are not a member of this channel"
     );
 
-    const message = await prisma.channelMessage.findFirst({
+    const m = await prisma.channelMessage.findFirst({
       where: {
-        channelId: 2,
-        authorId: 70,
+        channelId,
+        authorId: currentUserId,
       },
     });
-    expect(message).toBeNull();
+    expect(m).toBeNull();
   });
 
   it(`cannot send message muted`, async () => {
     currentUserId = 32;
+    const channelId = 1;
+    const message = "hello";
 
     const response = await supertest(app.getHttpServer())
       .post("/graphql")
@@ -1362,8 +1801,8 @@ describe("queries", () => {
         sendChannelMessage(id: $id, message: $message)
       }`,
         variables: {
-          id: 1,
-          message: "hello",
+          id: channelId,
+          message,
         },
       });
 
@@ -1372,10 +1811,75 @@ describe("queries", () => {
       "You are muted in this channel"
     );
 
+    const m = await prisma.channelMessage.findFirst({
+      where: {
+        channelId,
+        authorId: currentUserId,
+      },
+    });
+    expect(m).toBeNull();
+  });
+
+  it(`cannot send long message`, async () => {
+    currentUserId = 12;
+    const channelId = 1;
+
+    const genMessage = (num: number) => {
+      let res = "";
+      for (let i = 0; i < num; i++) {
+        const random = Math.floor(Math.random() * 27);
+        res += String.fromCharCode(97 + random);
+      }
+      return res;
+    };
+
+    const response = await supertest(app.getHttpServer())
+      .post("/graphql")
+      .send({
+        query: `mutation Mutation($id: Int!, $message: String!) {
+        sendChannelMessage(id: $id, message: $message)
+      }`,
+        variables: {
+          id: channelId,
+          message: genMessage(70000),
+        },
+      });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.errors[0].message).toBe("Bad Request Exception");
+
     const message = await prisma.channelMessage.findFirst({
       where: {
-        channelId: 1,
-        authorId: 32,
+        channelId: channelId,
+        authorId: currentUserId,
+      },
+    });
+    expect(message).toBeNull();
+  });
+
+  it(`cannot send empty message`, async () => {
+    currentUserId = 12;
+    const channelId = 1;
+
+    const response = await supertest(app.getHttpServer())
+      .post("/graphql")
+      .send({
+        query: `mutation Mutation($id: Int!, $message: String!) {
+        sendChannelMessage(id: $id, message: $message)
+      }`,
+        variables: {
+          id: channelId,
+          message: "",
+        },
+      });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.errors[0].message).toBe("Bad Request Exception");
+
+    const message = await prisma.channelMessage.findFirst({
+      where: {
+        channelId: channelId,
+        authorId: currentUserId,
       },
     });
     expect(message).toBeNull();
