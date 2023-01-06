@@ -184,4 +184,28 @@ export class GameResolver {
 
     return game.id;
   }
+
+  @Mutation((returns) => Boolean)
+  async launchGame(
+    @Args("gameId", { type: () => Int, nullable: true }) gameId: number,
+    @CurrentUser() currentUserId: number
+  ) {
+    const game = await this.prisma.game.update({
+      where: { id: gameId },
+      data: { startedAt: new Date() },
+    });
+
+    return true;
+  }
+
+  @Mutation((returns) => Boolean)
+  async deleteGame(
+    @Args("gameId", { type: () => Int, nullable: true }) gameId: number
+  ) {
+    const game = await this.prisma.game.delete({
+      where: { id: gameId },
+    });
+
+    return true;
+  }
 }
