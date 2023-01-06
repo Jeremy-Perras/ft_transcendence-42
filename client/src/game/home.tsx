@@ -31,6 +31,28 @@ import bouncing_ball18 from "../../public/game_modes/bouncing_ball/bouncing_ball
 import bouncing_ball19 from "../../public/game_modes/bouncing_ball/bouncing_ball19.svg";
 import bouncing_ball20 from "../../public/game_modes/bouncing_ball/bouncing_ball20.svg";
 import bouncing_ball21 from "../../public/game_modes/bouncing_ball/bouncing_ball21.svg";
+import fireball1 from "../../public/game_modes/fireball/fireball01.svg";
+import fireball2 from "../../public/game_modes/fireball/fireball02.svg";
+import fireball3 from "../../public/game_modes/fireball/fireball03.svg";
+import fireball4 from "../../public/game_modes/fireball/fireball04.svg";
+import fireball5 from "../../public/game_modes/fireball/fireball05.svg";
+import fireball6 from "../../public/game_modes/fireball/fireball06.svg";
+import fireball7 from "../../public/game_modes/fireball/fireball07.svg";
+import fireball8 from "../../public/game_modes/fireball/fireball08.svg";
+import fireball9 from "../../public/game_modes/fireball/fireball09.svg";
+import fireball10 from "../../public/game_modes/fireball/fireball10.svg";
+import fireball11 from "../../public/game_modes/fireball/fireball11.svg";
+import fireball12 from "../../public/game_modes/fireball/fireball12.svg";
+import fireball13 from "../../public/game_modes/fireball/fireball13.svg";
+import fireball14 from "../../public/game_modes/fireball/fireball14.svg";
+import fireball15 from "../../public/game_modes/fireball/fireball15.svg";
+import fireball16 from "../../public/game_modes/fireball/fireball16.svg";
+import fireball17 from "../../public/game_modes/fireball/fireball17.svg";
+import fireball18 from "../../public/game_modes/fireball/fireball18.svg";
+import fireball19 from "../../public/game_modes/fireball/fireball19.svg";
+import fireball20 from "../../public/game_modes/fireball/fireball20.svg";
+import fireball21 from "../../public/game_modes/fireball/fireball21.svg";
+import bonus1 from "../../public/game_modes/bonus/bonus1.svg";
 
 type State = "idle" | "selecting" | "waiting";
 
@@ -47,7 +69,7 @@ const Idle = ({ play }: { play: () => void }) => {
 
 const gameModeIntervalId = [-1, -1, -1];
 
-const a = [
+const bouncing_ball = [
   bouncing_ball1,
   bouncing_ball2,
   bouncing_ball3,
@@ -71,23 +93,62 @@ const a = [
   bouncing_ball21,
 ];
 
+const fireball = [
+  fireball1,
+  fireball2,
+  fireball3,
+  fireball4,
+  fireball5,
+  fireball6,
+  fireball7,
+  fireball8,
+  fireball9,
+  fireball10,
+  fireball11,
+  fireball12,
+  fireball13,
+  fireball14,
+  fireball15,
+  fireball16,
+  fireball17,
+  fireball18,
+  fireball19,
+  fireball20,
+  fireball21,
+];
+
+const bonus = [bonus1];
+
 const GameMode = ({
-  imgs,
   name,
-  alt,
   textEffects,
-  animate,
   selectMode,
-}: GameModeType & { selectMode: () => void }) => {
+  animate,
+  array,
+}: {
+  name: string;
+  textEffects: string;
+  selectMode: () => void;
+  array: string[];
+  animate:
+    | boolean
+    | VariantLabels
+    | AnimationControls
+    | TargetAndTransition
+    | undefined;
+}) => {
+  const [isEnter, setIsEnter] = useState(false);
   const [isSelected, setIsSelected] = useState(false);
   const [animationIndex, setanimationIndex] = useState(0);
-  const i = name === "classic" ? 0 : name === "fireball" ? 1 : 2; //TODO : find another trick to prevent rerendering ?
+  const i = name === "classic" ? 0 : name === "fireball" ? 1 : 1; //TODO : find another trick to prevent rerendering ?
   useEffect(() => {
     if (gameModeIntervalId[i] == -1) {
       gameModeIntervalId[i] = setInterval(
         () => {
           setanimationIndex((animationIndex) => {
-            return animationIndex == a.length - 1 ? 0 : animationIndex + 1;
+            return animationIndex == bouncing_ball.length - 1
+              ? 0
+              : animationIndex + 1;
           });
         },
         isSelected ? 40 : 60
@@ -105,7 +166,7 @@ const GameMode = ({
   return (
     <motion.li
       onClick={selectMode}
-      className={`flex cursor-pointer flex-col items-center ${
+      className={`flex  cursor-pointer flex-col items-center ${
         isSmall ? "mb-4 last:mb-0" : null
       }`}
       initial={{ scale: 0, opacity: 0.5 }}
@@ -123,7 +184,7 @@ const GameMode = ({
       onMouseOver={() => setIsSelected(true)}
       onMouseOut={() => setIsSelected(false)}
     >
-      <div className="relative flex justify-center">
+      <div className="relative flex w-2/3 justify-center">
         {isSelected && !isSmall && !isNarrow && (
           <motion.img
             className="absolute -top-16 left-1/2"
@@ -134,15 +195,27 @@ const GameMode = ({
           />
         )}
         {!isSmall
-          ? a.map((e, i) => (
-              <img
+          ? array.map((e, i) => (
+              <motion.img
                 className={`${animationIndex === i ? "" : "hidden"}`}
                 src={`${e}`}
+                animate={
+                  isEnter
+                    ? animate
+                    : {
+                        scale: [0.8, 1, 0.8],
+                        transition: {
+                          duration: 2,
+                          repeat: Infinity,
+                        },
+                      }
+                }
+                onMouseOver={() => setIsEnter(true)}
+                onMouseOut={() => setIsEnter(false)}
               />
             ))
           : null}
       </div>
-      {/* TODO */}
       <motion.div
         className={`${
           isSmall && !isNarrow ? "px-10" : !isNarrow ? "mt-5" : "mb-5"
@@ -151,126 +224,6 @@ const GameMode = ({
         {name}
       </motion.div>
     </motion.li>
-  );
-};
-
-type GameModeType = {
-  imgs: any;
-  name: string;
-  alt: string;
-  textEffects: string;
-  animate: (
-    isEnter: boolean
-  ) => boolean | VariantLabels | AnimationControls | TargetAndTransition;
-};
-function importAnimation(mode: string) {
-  const modules = [];
-  switch (mode) {
-    case "classic": {
-      modules.push(
-        <motion.img
-          src={bouncing_ball1}
-          className="w-1/4 sm:w-1/2"
-          alt={"test"}
-        />
-      );
-      modules.push(
-        <motion.img
-          src={bouncing_ball2}
-          className="w-1/4 sm:w-1/2"
-          alt={"test"}
-        />
-      );
-      modules.push(
-        <motion.img
-          src={bouncing_ball3}
-          className="w-1/4 sm:w-1/2"
-          alt={"test"}
-        />
-      );
-      modules.push(
-        <motion.img
-          src={bouncing_ball4}
-          className="w-1/4 sm:w-1/2"
-          alt={"test"}
-        />
-      );
-
-      break;
-    }
-    case "fireball": {
-      // modules.push(bouncing_ball1);
-      // modules.push(bouncing_ball2);
-      // modules.push(bouncing_ball3);
-
-      break;
-    }
-    case "bonus": {
-      // modules.push(bouncing_ball1);
-      // modules.push(bouncing_ball2);
-      // modules.push(bouncing_ball3);
-
-      break;
-    }
-
-    default: {
-      return ["", ""];
-      break;
-    }
-  }
-  return modules;
-}
-
-const ModeSelection = ({ selectMode }: { selectMode: () => void }) => {
-  const gameModes: GameModeType[] = [
-    {
-      imgs: importAnimation("classic"),
-      name: "classic",
-      alt: "Click to play classic mode",
-      textEffects: "text-white",
-      animate: () => false,
-    },
-    // {
-    //   imgs: importAnimation("fireball"),
-    //   name: "fireball",
-    //   alt: "Click to play inspeed mode",
-    //   textEffects: "text-red-500",
-    //   animate: () => false,
-    // },
-    // {
-    //   name: "bonus",
-    //   imgs: importAnimation("bonus"),
-    //   alt: "Click to play bonus mode",
-    //   textEffects: "text-amber-500",
-    //   animate: (isEnter: boolean) => {
-    //     return isEnter
-    //       ? {
-    //           rotate: [0, -5, 5, 0],
-    //           transition: {
-    //             duration: 1,
-    //             delay: 0.1,
-    //             repeat: Infinity,
-    //           },
-    //         }
-    //       : {
-    //           scale: [0.8, 1, 0.8],
-    //           transition: {
-    //             duration: 2,
-    //             repeat: Infinity,
-    //           },
-    //         };
-    //   },
-    // },
-  ];
-
-  return (
-    <ul className="flex h-full w-full flex-col justify-center  sm:flex-row sm:items-center">
-      {gameModes.map((gameMode) => {
-        return (
-          <GameMode key={gameMode.name} {...gameMode} selectMode={selectMode} />
-        );
-      })}
-    </ul>
   );
 };
 
@@ -321,7 +274,38 @@ const renderState = (
     case "idle":
       return <Idle play={play} />;
     case "selecting":
-      return <ModeSelection selectMode={selectMode} />;
+      return (
+        <ul className="flex h-1/3 w-full flex-col justify-center  sm:flex-row sm:items-center">
+          <GameMode
+            selectMode={selectMode}
+            name={"classic"}
+            textEffects={"text-white"}
+            animate={false}
+            array={bouncing_ball}
+          />
+          <GameMode
+            selectMode={selectMode}
+            name={"fireball"}
+            textEffects={"text-red-500"}
+            animate={false}
+            array={fireball}
+          />
+          <GameMode
+            selectMode={selectMode}
+            name={"bonus"}
+            textEffects={"text-amber-500"}
+            animate={{
+              rotate: [0, -5, 5, 0],
+              transition: {
+                duration: 1,
+                delay: 0.1,
+                repeat: Infinity,
+              },
+            }}
+            array={bonus}
+          />
+        </ul>
+      );
     case "waiting":
       return <WaitingScreen />;
   }
@@ -348,7 +332,7 @@ export const Home = () => {
           className="absolute left-2 top-1 w-8 cursor-pointer text-red-600 sm:w-9"
         />
       ) : null}
-      <div className="flex h-full w-4/5 items-center justify-center">
+      <div className="flex h-full items-center justify-center">
         {isLoggedIn ? (
           renderState(state, setState)
         ) : (
