@@ -591,7 +591,7 @@ const FriendButtons = ({
     <div className="flex h-24 select-none bg-slate-100 text-2xl font-bold text-slate-600">
       <div
         onClick={() => {
-          socket?.emit(
+          socket.emit(
             "gameInvitation",
             [data.user.id, currentUserId],
             GameMode.Classic

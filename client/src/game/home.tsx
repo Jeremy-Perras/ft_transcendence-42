@@ -163,7 +163,6 @@ const GameMode = ({
 
   const isNarrow = useMediaQuery("(max-width : 640px)");
   const isSmall = useMediaQuery("(max-height : 720px)");
-  console.log(gameModeIntervalId);
   return (
     <motion.li
       onClick={selectMode}

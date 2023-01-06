@@ -7,7 +7,10 @@ import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import request from "graphql-request";
 import { io } from "socket.io-client";
+
 import { useMediaQuery } from "@react-hookz/web";
+
+import { GameInvitationQuery } from "client/src/gql/graphql";
 
 // const GameInvitationQueryDocument = graphql(`
 //   query GameInvitation($gameId: Int!) {
@@ -50,6 +53,18 @@ const Invitation = () => {
   //       },
   //     }
   //   );
+
+  const launchGame = useMutation(
+    async ({ gameId }: { gameId: number }) =>
+      request("/graphql", LaunchGameMutationDocument, {
+        gameId: gameId,
+      }),
+    {
+      onSuccess: () => {
+        // navigate(`/game/${gameId?.game.}`);
+      },
+    }
+  );
 
   const refuseGameInvitation = useMutation(
     async ({ gameId }: { gameId: number }) =>
@@ -119,7 +134,7 @@ export const GameInvitations = () => {
 
   const socket = io();
 
-  socket.on("gameInvitation", (targetId: GameInvitation) => {
+  socket.on("launchInvitation", (targetId: GameInvitation) => {
     const newInvitation: GameInvitation = {
       userIds: targetId.userIds,
       gameMode: targetId.gameMode,
