@@ -323,7 +323,6 @@ export const Home = () => {
   const isLoggedIn = !!useAuthStore((state) => state.userId);
   const isSmall = useMediaQuery("(max-height : 1000px)");
   const isNarrow = useMediaQuery("(max-width : 640px)");
-  const socket = io();
 
   return (
     <>
