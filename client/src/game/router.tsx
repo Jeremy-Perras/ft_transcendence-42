@@ -29,7 +29,7 @@ const router = createBrowserRouter([
 ]);
 
 export const GameRouter = () => (
-  <div className="crt turn relative flex shrink grow flex-col items-center bg-[#002a2a] font-display text-gray-200">
+  <div className=" relative flex shrink grow flex-col items-center bg-[#002a2a] font-display text-gray-200">
     <RouterProvider router={router} />
   </div>
 );

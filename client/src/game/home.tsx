@@ -53,8 +53,7 @@ import fireball19 from "../assets/game_modes/fireball/fireball19.svg";
 import fireball20 from "../assets/game_modes/fireball/fireball20.svg";
 import fireball21 from "../assets/game_modes/fireball/fireball21.svg";
 import bonus1 from "../assets/game_modes/bonus/bonus1.svg";
-import { GameInvitation } from "./components/gameInvitation";
-import { io } from "socket.io-client";
+import { GameInvitations } from "./components/gameInvitation";
 
 type State = "idle" | "selecting" | "waiting";
 
@@ -142,7 +141,7 @@ const GameMode = ({
   const [isEnter, setIsEnter] = useState(false);
   const [isSelected, setIsSelected] = useState(false);
   const [animationIndex, setanimationIndex] = useState(0);
-  const i = name === "classic" ? 0 : name === "fireball" ? 1 : 1; //TODO : find another trick to prevent rerendering ?
+  const i = name === "classic" ? 0 : name === "fireball" ? 1 : 1;
   useEffect(() => {
     if (gameModeIntervalId[i] == -1) {
       gameModeIntervalId[i] = setInterval(
@@ -168,7 +167,7 @@ const GameMode = ({
   return (
     <motion.li
       onClick={selectMode}
-      className={`flex  cursor-pointer flex-col items-center ${
+      className={`flex cursor-pointer flex-col items-center ${
         isSmall ? "mb-4 last:mb-0" : null
       }`}
       initial={{ scale: 0, opacity: 0.5 }}
@@ -338,15 +337,12 @@ export const Home = () => {
           onClick={() => {
             setState("idle");
           }}
-          className="absolute left-2 top-1 w-8 cursor-pointer text-red-600 sm:w-9"
+          className="crt turn absolute left-2 top-1 w-8 cursor-pointer text-red-600 sm:w-9"
         />
       ) : null}
-      <div className="flex h-full items-center justify-center">
+      <div className="crt turn flex h-full items-center justify-center">
         {isLoggedIn ? (
-          <>
-            {renderState(state, setState, isNarrow)}
-            <GameInvitation />
-          </>
+          <>{renderState(state, setState, isNarrow)}</>
         ) : (
           <a
             href="http://localhost:3000/auth/login"
@@ -356,6 +352,7 @@ export const Home = () => {
           </a>
         )}
       </div>
+      <GameInvitations />
     </>
   );
 };
