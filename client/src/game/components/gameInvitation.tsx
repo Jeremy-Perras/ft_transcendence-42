@@ -29,7 +29,7 @@ const LaunchGameMutationDocument = graphql(`
 `);
 
 const RefuseGameInvitationMutationDocument = graphql(`
-  mutation RefuseInvitation($gameId: Int!) {
+  mutation RefuseGameInvitation($gameId: Int!) {
     deleteGame(gameId: $gameId)
   }
 `);
