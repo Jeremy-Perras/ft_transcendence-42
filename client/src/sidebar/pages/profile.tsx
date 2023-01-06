@@ -45,6 +45,7 @@ import {
 import request from "graphql-request";
 import queryClient from "../../../src/query";
 import { ErrorMessage } from "../components/error";
+import { io } from "socket.io-client";
 
 type formData = {
   name: string;
@@ -560,6 +561,8 @@ const FriendButtons = ({
   data: UserProfileQuery;
   setDisplayMutationError: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
+  const currentUserId = useAuthStore((state) => state.userId);
+  const socket = io();
   const blockUser = useMutation(
     async ({ userId }: { userId: number }) =>
       request("/graphql", BlockUserMutationDocument, {
@@ -588,7 +591,11 @@ const FriendButtons = ({
     <div className="flex h-24 select-none bg-slate-100 text-2xl font-bold text-slate-600">
       <div
         onClick={() => {
-          alert("Launch game invitation"); //TODO : launch invitation
+          socket?.emit(
+            "gameInvitation",
+            [data.user.id, currentUserId],
+            GameMode.Classic
+          );
         }}
         className="flex h-24 basis-1/3 items-center justify-center border-2 p-4 text-center transition-all hover:cursor-pointer hover:bg-slate-200"
       >

@@ -2,6 +2,7 @@ import { NotFoundException, UseGuards } from "@nestjs/common";
 import {
   Args,
   Int,
+  Mutation,
   Query,
   ResolveField,
   Resolver,
@@ -9,6 +10,7 @@ import {
 } from "@nestjs/graphql";
 import { Prisma, GameMode } from "@prisma/client";
 import { GqlAuthenticatedGuard } from "../auth/authenticated.guard";
+import { CurrentUser } from "../auth/currentUser.decorator";
 import { PrismaService } from "../prisma/prisma.service";
 import { GraphqlUser } from "../user/user.resolver";
 import { Game } from "./game.model";
@@ -162,5 +164,24 @@ export class GameResolver {
         rank: g.player2.rank,
       },
     };
+  }
+
+  @Mutation((returns) => Int)
+  async createGame(
+    @Args("gameMode", { type: () => GameMode }) gameMode: GameMode,
+    @Args("player2Id", { type: () => Int, nullable: true }) player2Id: number,
+    @CurrentUser() currentUserId: number
+  ) {
+    const game = await this.prisma.game.create({
+      data: {
+        player1Score: 0,
+        player2Score: 0,
+        player1Id: currentUserId,
+        mode: gameMode,
+        player2Id: player2Id,
+      },
+    });
+
+    return game.id;
   }
 }
