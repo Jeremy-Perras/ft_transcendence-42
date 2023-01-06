@@ -53,6 +53,8 @@ import fireball19 from "../assets/game_modes/fireball/fireball19.svg";
 import fireball20 from "../assets/game_modes/fireball/fireball20.svg";
 import fireball21 from "../assets/game_modes/fireball/fireball21.svg";
 import bonus1 from "../assets/game_modes/bonus/bonus1.svg";
+import { GameInvitation } from "./components/gameInvitation";
+import { io } from "socket.io-client";
 
 type State = "idle" | "selecting" | "waiting";
 
@@ -321,6 +323,8 @@ export const Home = () => {
   const isLoggedIn = !!useAuthStore((state) => state.userId);
   const isSmall = useMediaQuery("(max-height : 1000px)");
   const isNarrow = useMediaQuery("(max-width : 640px)");
+  const socket = io();
+
   return (
     <>
       <img
@@ -340,7 +344,10 @@ export const Home = () => {
       ) : null}
       <div className="flex h-full items-center justify-center">
         {isLoggedIn ? (
-          renderState(state, setState, isNarrow)
+          <>
+            {renderState(state, setState, isNarrow)}
+            <GameInvitation />
+          </>
         ) : (
           <a
             href="http://localhost:3000/auth/login"
