@@ -537,7 +537,7 @@ const Disconnect = () => {
       onClick={() => {
         useAuthStore.getState().logout();
       }}
-      className="flex h-24 w-full select-none items-center justify-center border-2 border-slate-300 bg-slate-200 p-4 text-xl font-bold text-slate-400 transition-all hover:cursor-pointer hover:bg-slate-300  hover:text-slate-500 "
+      className="flex h-24 w-full select-none items-center justify-center border-2 bg-slate-100 p-4 text-xl font-bold text-slate-600 transition-all hover:cursor-pointer hover:bg-slate-200  hover:text-slate-500 "
     >
       <LogOutIcon className="m-1 h-12 rotate-180 cursor-pointer" />
       <span className="text-2xl">Logout</span>
@@ -590,7 +590,7 @@ const FriendButtons = ({
         onClick={() => {
           alert("Launch game invitation"); //TODO : launch invitation
         }}
-        className="flex h-24 basis-1/3 items-center justify-center border-2  bg-slate-100 p-4 text-center text-2xl font-bold  text-slate-600 transition-all  hover:cursor-pointer hover:bg-slate-200"
+        className="flex h-24 basis-1/3 items-center justify-center border-2 p-4 text-center transition-all hover:cursor-pointer hover:bg-slate-200"
       >
         <PlayIcon className="mr-2 w-10 self-center" />
         <span>Play !</span>
@@ -599,7 +599,7 @@ const FriendButtons = ({
         onClick={() => {
           unfriendUser.mutate({ userId: data.user.id });
         }}
-        className="flex h-24 basis-1/3 items-center justify-center border-y-2  bg-slate-100 p-4 text-center text-2xl font-bold  text-slate-600 transition-all  hover:cursor-pointer hover:bg-slate-200"
+        className="flex h-24 basis-1/3 items-center justify-center border-y-2 p-4 text-center transition-all hover:cursor-pointer hover:bg-slate-200"
       >
         <UnfriendIcon className="mr-2 w-10 self-center" />
         <span>Unfriend</span>
@@ -608,7 +608,7 @@ const FriendButtons = ({
         onClick={() => {
           blockUser.mutate({ userId: data.user.id });
         }}
-        className="flex h-24 basis-1/3 items-center justify-center border-2  bg-slate-100 p-4 text-center text-2xl font-bold  text-slate-600 transition-all  hover:cursor-pointer hover:bg-slate-200"
+        className="flex h-24 basis-1/3 items-center justify-center border-2 p-4 text-center transition-all hover:cursor-pointer hover:bg-slate-200"
       >
         <img className="mr-2 w-8" src={BannedDarkIcon} />
         <span>Block</span>
