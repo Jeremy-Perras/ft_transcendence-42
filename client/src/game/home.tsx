@@ -1,4 +1,4 @@
-import { useAuthStore } from "../stores";
+import { useAuthStore, useInvitationStore, useSocketStore } from "../stores";
 import { useMediaQuery } from "@react-hookz/web";
 import { useEffect, useState } from "react";
 import { ReactComponent as CloseBox } from "pixelarticons/svg/close-box.svg";
@@ -54,6 +54,7 @@ import fireball20 from "../assets/game_modes/fireball/fireball20.svg";
 import fireball21 from "../assets/game_modes/fireball/fireball21.svg";
 import bonus1 from "../assets/game_modes/bonus/bonus1.svg";
 import { GameInvitations } from "./components/gameInvitation";
+import { GameMode } from "../gql/graphql";
 
 type State = "idle" | "selecting" | "waiting";
 
@@ -120,7 +121,7 @@ const fireball = [
 
 const bonus = [bonus1];
 
-const GameMode = ({
+const Mode = ({
   name,
   textEffects,
   selectMode,
@@ -231,6 +232,8 @@ let waitingScreenIntervalId = -1;
 const WaitingScreen = () => {
   const [width, setWidth] = useState(0);
 
+  const { invitationName } = useInvitationStore();
+
   useEffect(() => {
     if (waitingScreenIntervalId == -1) {
       waitingScreenIntervalId = setInterval(() => {
@@ -252,7 +255,7 @@ const WaitingScreen = () => {
         className="relative mb-4 inline-block animate-pulse  select-none text-4xl"
         style={{ textShadow: "none" }}
       >
-        Waiting For An Opponent
+        {`Waiting For ${invitationName ?? "An Opponent"}`}
         <span className="absolute">{[...Array(width)].map(() => ".")}</span>
       </div>
     </div>
@@ -264,10 +267,19 @@ const renderState = (
   setState: React.Dispatch<React.SetStateAction<State>>,
   isNarrow: boolean | undefined
 ) => {
+  const { invitationState, invitationId, sendInvite } = useInvitationStore();
+  const socket = useSocketStore().socket;
+
   const play = () => {
     setState("selecting");
   };
-  const selectMode = () => {
+  const selectMode = (gameMode: GameMode) => {
+    if (invitationState) {
+      socket.emit("gameInvitation", { gameMode, invitationId });
+      sendInvite();
+    } else {
+      socket.emit("joinMatchmaking", gameMode);
+    }
     setState("waiting");
   };
 
@@ -281,22 +293,22 @@ const renderState = (
             isNarrow ? "w-1/3" : "w-full"
           } flex h-1/3 flex-col justify-center  sm:flex-row sm:items-center`}
         >
-          <GameMode
-            selectMode={selectMode}
+          <Mode
+            selectMode={() => selectMode(GameMode.Classic)}
             name={"classic"}
             textEffects={"text-white"}
             animate={false}
             array={bouncing_ball}
           />
-          <GameMode
-            selectMode={selectMode}
+          <Mode
+            selectMode={() => selectMode(GameMode.Speed)}
             name={"fireball"}
             textEffects={"text-red-500"}
             animate={false}
             array={fireball}
           />
-          <GameMode
-            selectMode={selectMode}
+          <Mode
+            selectMode={() => selectMode(GameMode.Random)}
             name={"bonus"}
             textEffects={"text-amber-500"}
             animate={{
@@ -319,11 +331,34 @@ const renderState = (
 export const Home = () => {
   const [state, setState] = useState<State>("idle");
   const isLoggedIn = !!useAuthStore((state) => state.userId);
+  const { invitationState, clearInvite } = useInvitationStore();
+
   const isSmall = useMediaQuery("(max-height : 1000px)");
   const isNarrow = useMediaQuery("(max-width : 640px)");
 
+  const socket = useSocketStore().socket;
+
+  useEffect(() => {
+    switch (invitationState) {
+      case "selecting":
+        setState("selecting");
+        break;
+      case "waiting":
+        setState("waiting");
+        break;
+    }
+
+    if (invitationState) {
+      socket.on("cancelInvitation", (_) => {
+        clearInvite();
+        setState("idle");
+      });
+    }
+  }, [invitationState]);
+
   return (
     <>
+      s
       <img
         src={LogoImage}
         className={`mt-5 w-4/5 sm:max-w-lg lg:max-w-xl 2xl:max-w-2xl ${
@@ -334,6 +369,11 @@ export const Home = () => {
       {state !== "idle" ? (
         <CloseBox
           onClick={() => {
+            if (invitationState) {
+              if (invitationState === "waiting")
+                socket.emit("cancelInvitation");
+              clearInvite();
+            } else if (state === "waiting") socket.emit("leaveMatchmaking");
             setState("idle");
           }}
           className="crt turn absolute left-2 top-1 w-8 cursor-pointer text-red-600 sm:w-9"

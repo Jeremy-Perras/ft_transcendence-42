@@ -1,18 +1,5 @@
+import { Socket, io } from "socket.io-client";
 import create from "zustand";
-
-type ErrorStore = {
-  errorList: string[];
-  pushError: (newError: string) => void;
-  removeError: (index: number) => void;
-};
-
-const useErrorStore = create<ErrorStore>((set) => ({
-  errorList: ["65", "68"],
-  pushError: (newError: string) =>
-    set((state) => ({ errorList: [...state.errorList, newError] })),
-  removeError: (index: number) =>
-    set((state) => ({ errorList: state.errorList.slice(index, 1) })),
-}));
 
 type SidebarStore = {
   isOpen: boolean;
@@ -25,6 +12,36 @@ const useSidebarStore = create<SidebarStore>((set) => ({
   close: () => set({ isOpen: false }),
   open: () => set({ isOpen: true }),
   toggle: () => set((state) => ({ isOpen: !state.isOpen })),
+}));
+
+type SocketStore = {
+  socket: Socket;
+};
+const useSocketStore = create<SocketStore>(() => ({
+  socket: io(),
+}));
+
+type InvitationStore = {
+  invitationName?: string;
+  invitationId?: number;
+  invitationState?: "selecting" | "waiting";
+  createInvite: (name: string, id: number) => void;
+  sendInvite: () => void;
+  clearInvite: () => void;
+};
+const useInvitationStore = create<InvitationStore>((set) => ({
+  invitationName: undefined,
+  invitationId: undefined,
+  invitationState: undefined,
+  createInvite: (name, id) =>
+    set({
+      invitationName: name,
+      invitationId: id,
+      invitationState: "selecting",
+    }),
+  sendInvite: () => set({ invitationState: "waiting" }),
+  clearInvite: () =>
+    set({ invitationName: undefined, invitationState: undefined }),
 }));
 
 type AuthStore = {
@@ -44,4 +61,4 @@ const useAuthStore = create<AuthStore>((set) => ({
   },
 }));
 
-export { useSidebarStore, useAuthStore, useErrorStore };
+export { useSidebarStore, useAuthStore, useSocketStore, useInvitationStore };

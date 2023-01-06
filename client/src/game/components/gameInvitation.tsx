@@ -1,48 +1,19 @@
 import { motion } from "framer-motion";
-import { graphql } from "../../../src/gql";
 import { useState } from "react";
 import { ReactComponent as AcceptIcon } from "pixelarticons/svg/check.svg";
 import { ReactComponent as RefuseIcon } from "pixelarticons/svg/close.svg";
-import { useNavigate } from "react-router-dom";
-import { useMutation } from "@tanstack/react-query";
-import request from "graphql-request";
-import { io } from "socket.io-client";
+import { useSocketStore } from "../../stores";
+import { GameInvitation } from "../types/gameInvitation";
 
-const LaunchGameMutationDocument = graphql(`
-  mutation LaunchGame($gameId: Int!) {
-    launchGame(gameId: $gameId)
-  }
-`);
-
-const RefuseGameInvitationMutationDocument = graphql(`
-  mutation RefuseGameInvitation($gameId: Int!) {
-    deleteGame(gameId: $gameId)
-  }
-`);
-
-const Invitation = ({ invitation }: { invitation: GameInvitation }) => {
-  const navigate = useNavigate();
+const Invitation = ({
+  invitation,
+  setInvitationList,
+}: {
+  invitation: GameInvitation;
+  setInvitationList: React.Dispatch<React.SetStateAction<GameInvitation[]>>;
+}) => {
   const [display, setDisplay] = useState(true);
-
-  const launchGame = useMutation(
-    async ({ gameId }: { gameId: number }) =>
-      request("/graphql", LaunchGameMutationDocument, {
-        gameId: gameId,
-      }),
-    {
-      onSuccess: () => {
-        navigate(`/game/${invitation.gameId}`);
-      },
-    }
-  );
-
-  const refuseGameInvitation = useMutation(
-    async ({ gameId }: { gameId: number }) =>
-      request("/graphql", RefuseGameInvitationMutationDocument, {
-        gameId: gameId,
-      }),
-    {}
-  );
+  const socket = useSocketStore().socket;
 
   return display ? (
     <div className="absolute bottom-0 z-10 flex w-screen justify-center">
@@ -59,11 +30,11 @@ const Invitation = ({ invitation }: { invitation: GameInvitation }) => {
         <span className="mx-4 flex max-w-[80%] shrink grow-0 items-center whitespace-nowrap text-base tracking-wide">
           <img
             className="mx-2 h-8 w-8 shrink-0 border border-black"
-            src={`http://localhost:5173/upload/avatar/${invitation.userIds[0]}`}
+            src={`http://localhost:5173/upload/avatar/${invitation.inviterId}`}
           />
           <span
             className={`shrink grow-0 truncate`}
-          >{`${invitation.userName}`}</span>
+          >{`${invitation.inviterName}`}</span>
           <span className="w-content">{` invites you to play ${invitation.gameMode} mode. Accept?`}</span>
         </span>
 
@@ -71,16 +42,17 @@ const Invitation = ({ invitation }: { invitation: GameInvitation }) => {
           <AcceptIcon
             className="h-8 w-8 animate-none border border-slate-300 bg-slate-200 hover:cursor-pointer hover:bg-slate-300"
             onClick={() => {
-              launchGame.mutate({ gameId: invitation.gameId });
-              setDisplay(false);
+              socket.emit("acceptInvitation", invitation);
+              setInvitationList([]);
             }}
           />
           <RefuseIcon
             className="mx-2 h-8 w-8 border border-slate-300 bg-slate-200 hover:cursor-pointer hover:bg-slate-300"
             onClick={() => {
-              refuseGameInvitation.mutate({ gameId: invitation.gameId });
-              setDisplay(false);
-              // send refuse invitation notification from back
+              setInvitationList((list) =>
+                list.filter((invite) => invite !== invitation)
+              );
+              socket.emit("refuseInvitation", invitation);
             }}
           />
         </div>
@@ -89,33 +61,34 @@ const Invitation = ({ invitation }: { invitation: GameInvitation }) => {
   ) : null;
 };
 
-type GameInvitation = {
-  userIds: [number, number]; //en 1er : inviter
-  gameMode: string;
-  gameId: number;
-  userName: string;
-};
-
 export const GameInvitations = () => {
-  const firstInvitation: GameInvitation[] = [];
-  const [invitationList, setInvitationList] = useState(firstInvitation);
+  const [invitationList, setInvitationList] = useState<GameInvitation[]>([]);
+  const socket = useSocketStore().socket;
 
-  const socket = io();
-
-  socket.on("launchInvitation", (targetId: GameInvitation) => {
+  socket.on("newInvitation", (gameInvite: GameInvitation) => {
     const newInvitation: GameInvitation = {
-      userIds: targetId.userIds,
-      gameMode: targetId.gameMode,
-      gameId: targetId.gameId,
-      userName: targetId.userName,
+      inviterId: gameInvite.inviterId,
+      inviteeId: gameInvite.inviteeId,
+      gameMode: gameInvite.gameMode,
+      inviterName: gameInvite.inviterName,
     };
     setInvitationList([newInvitation, ...invitationList]);
+  });
+
+  socket.on("cancelInvitation", (gameInvitation: GameInvitation) => {
+    setInvitationList((list) =>
+      list.filter((invite) => invite !== gameInvitation)
+    );
   });
 
   return (
     <>
       {invitationList.map((invitation, index) => (
-        <Invitation key={index} invitation={invitation} />
+        <Invitation
+          key={index}
+          invitation={invitation}
+          setInvitationList={setInvitationList}
+        />
       ))}
     </>
   );

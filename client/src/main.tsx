@@ -4,14 +4,14 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { GameRouter } from "./game/router";
 import SideBar from "./sidebar/sidebar";
 import queryClient from "./query";
-import { useAuthStore } from "./stores";
+import { useAuthStore, useSocketStore } from "./stores";
 import "./index.css";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { io } from "socket.io-client";
 
 let init = false;
 const App = () => {
   const isLoggedIn = !!useAuthStore((state) => state.userId);
+  const socket = useSocketStore().socket;
 
   useEffect(() => {
     if (!init) {
@@ -30,8 +30,6 @@ const App = () => {
 
   useEffect(() => {
     if (isLoggedIn) {
-      const socket = io();
-
       socket.on("connect", () => {
         console.log("connected", socket);
       });
@@ -40,24 +38,19 @@ const App = () => {
         console.log("disconnected", socket);
       });
 
-      // TODO: invalidate cache events - don't forget to invalidate new messages - change keys in queries if needed to add userId / channelId
       socket.on("invalidateDirectMessageCache", (targetId: number) => {
         queryClient.invalidateQueries(["DirectMessages"]);
         queryClient.invalidateQueries(["DirectMessages", targetId]);
-        queryClient.invalidateQueries(["NewMessages"]); //?
-        queryClient.invalidateQueries(["DiscussionsAndInvitations"]); // ?
-        queryClient.invalidateQueries(["DiscussionsAndInvitations", targetId]); // ?
+        queryClient.invalidateQueries(["NewMessages"]);
+        queryClient.invalidateQueries(["DiscussionsAndInvitations"]);
+        queryClient.invalidateQueries(["DiscussionsAndInvitations", targetId]);
       });
 
       socket.on("invalidateChannelMessageCache", (targetId: number) => {
         queryClient.invalidateQueries(["ChannelDiscussion", targetId]);
-        queryClient.invalidateQueries(["DiscussionsAndInvitations"]); //?
-        queryClient.invalidateQueries(["NewMessages"]); //?
+        queryClient.invalidateQueries(["DiscussionsAndInvitations"]);
+        queryClient.invalidateQueries(["NewMessages"]);
       });
-
-      return () => {
-        socket.close();
-      };
     }
   }, [isLoggedIn]);
 
