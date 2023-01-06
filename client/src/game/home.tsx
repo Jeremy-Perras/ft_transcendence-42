@@ -9,50 +9,50 @@ import {
   VariantLabels,
 } from "framer-motion";
 import LogoImage from "../assets/images/logo.svg";
-import ArrowImage from "../../public/game_modes/arrow.svg";
-import bouncing_ball1 from "../../public/game_modes/bouncing_ball/bouncing_ball01.svg";
-import bouncing_ball2 from "../../public/game_modes/bouncing_ball/bouncing_ball02.svg";
-import bouncing_ball3 from "../../public/game_modes/bouncing_ball/bouncing_ball03.svg";
-import bouncing_ball4 from "../../public/game_modes/bouncing_ball/bouncing_ball04.svg";
-import bouncing_ball5 from "../../public/game_modes/bouncing_ball/bouncing_ball05.svg";
-import bouncing_ball6 from "../../public/game_modes/bouncing_ball/bouncing_ball06.svg";
-import bouncing_ball7 from "../../public/game_modes/bouncing_ball/bouncing_ball07.svg";
-import bouncing_ball8 from "../../public/game_modes/bouncing_ball/bouncing_ball08.svg";
-import bouncing_ball9 from "../../public/game_modes/bouncing_ball/bouncing_ball09.svg";
-import bouncing_ball10 from "../../public/game_modes/bouncing_ball/bouncing_ball10.svg";
-import bouncing_ball11 from "../../public/game_modes/bouncing_ball/bouncing_ball11.svg";
-import bouncing_ball12 from "../../public/game_modes/bouncing_ball/bouncing_ball12.svg";
-import bouncing_ball13 from "../../public/game_modes/bouncing_ball/bouncing_ball13.svg";
-import bouncing_ball14 from "../../public/game_modes/bouncing_ball/bouncing_ball14.svg";
-import bouncing_ball15 from "../../public/game_modes/bouncing_ball/bouncing_ball15.svg";
-import bouncing_ball16 from "../../public/game_modes/bouncing_ball/bouncing_ball16.svg";
-import bouncing_ball17 from "../../public/game_modes/bouncing_ball/bouncing_ball17.svg";
-import bouncing_ball18 from "../../public/game_modes/bouncing_ball/bouncing_ball18.svg";
-import bouncing_ball19 from "../../public/game_modes/bouncing_ball/bouncing_ball19.svg";
-import bouncing_ball20 from "../../public/game_modes/bouncing_ball/bouncing_ball20.svg";
-import bouncing_ball21 from "../../public/game_modes/bouncing_ball/bouncing_ball21.svg";
-import fireball1 from "../../public/game_modes/fireball/fireball01.svg";
-import fireball2 from "../../public/game_modes/fireball/fireball02.svg";
-import fireball3 from "../../public/game_modes/fireball/fireball03.svg";
-import fireball4 from "../../public/game_modes/fireball/fireball04.svg";
-import fireball5 from "../../public/game_modes/fireball/fireball05.svg";
-import fireball6 from "../../public/game_modes/fireball/fireball06.svg";
-import fireball7 from "../../public/game_modes/fireball/fireball07.svg";
-import fireball8 from "../../public/game_modes/fireball/fireball08.svg";
-import fireball9 from "../../public/game_modes/fireball/fireball09.svg";
-import fireball10 from "../../public/game_modes/fireball/fireball10.svg";
-import fireball11 from "../../public/game_modes/fireball/fireball11.svg";
-import fireball12 from "../../public/game_modes/fireball/fireball12.svg";
-import fireball13 from "../../public/game_modes/fireball/fireball13.svg";
-import fireball14 from "../../public/game_modes/fireball/fireball14.svg";
-import fireball15 from "../../public/game_modes/fireball/fireball15.svg";
-import fireball16 from "../../public/game_modes/fireball/fireball16.svg";
-import fireball17 from "../../public/game_modes/fireball/fireball17.svg";
-import fireball18 from "../../public/game_modes/fireball/fireball18.svg";
-import fireball19 from "../../public/game_modes/fireball/fireball19.svg";
-import fireball20 from "../../public/game_modes/fireball/fireball20.svg";
-import fireball21 from "../../public/game_modes/fireball/fireball21.svg";
-import bonus1 from "../../public/game_modes/bonus/bonus1.svg";
+import ArrowImage from "../assets/game_modes/arrow.svg";
+import bouncing_ball1 from "../assets/game_modes/bouncing_ball/bouncing_ball01.svg";
+import bouncing_ball2 from "../assets/game_modes/bouncing_ball/bouncing_ball02.svg";
+import bouncing_ball3 from "../assets/game_modes/bouncing_ball/bouncing_ball03.svg";
+import bouncing_ball4 from "../assets/game_modes/bouncing_ball/bouncing_ball04.svg";
+import bouncing_ball5 from "../assets/game_modes/bouncing_ball/bouncing_ball05.svg";
+import bouncing_ball6 from "../assets/game_modes/bouncing_ball/bouncing_ball06.svg";
+import bouncing_ball7 from "../assets/game_modes/bouncing_ball/bouncing_ball07.svg";
+import bouncing_ball8 from "../assets/game_modes/bouncing_ball/bouncing_ball08.svg";
+import bouncing_ball9 from "../assets/game_modes/bouncing_ball/bouncing_ball09.svg";
+import bouncing_ball10 from "../assets/game_modes/bouncing_ball/bouncing_ball10.svg";
+import bouncing_ball11 from "../assets/game_modes/bouncing_ball/bouncing_ball11.svg";
+import bouncing_ball12 from "../assets/game_modes/bouncing_ball/bouncing_ball12.svg";
+import bouncing_ball13 from "../assets/game_modes/bouncing_ball/bouncing_ball13.svg";
+import bouncing_ball14 from "../assets/game_modes/bouncing_ball/bouncing_ball14.svg";
+import bouncing_ball15 from "../assets/game_modes/bouncing_ball/bouncing_ball15.svg";
+import bouncing_ball16 from "../assets/game_modes/bouncing_ball/bouncing_ball16.svg";
+import bouncing_ball17 from "../assets/game_modes/bouncing_ball/bouncing_ball17.svg";
+import bouncing_ball18 from "../assets/game_modes/bouncing_ball/bouncing_ball18.svg";
+import bouncing_ball19 from "../assets/game_modes/bouncing_ball/bouncing_ball19.svg";
+import bouncing_ball20 from "../assets/game_modes/bouncing_ball/bouncing_ball20.svg";
+import bouncing_ball21 from "../assets/game_modes/bouncing_ball/bouncing_ball21.svg";
+import fireball1 from "../assets/game_modes/fireball/fireball01.svg";
+import fireball2 from "../assets/game_modes/fireball/fireball02.svg";
+import fireball3 from "../assets/game_modes/fireball/fireball03.svg";
+import fireball4 from "../assets/game_modes/fireball/fireball04.svg";
+import fireball5 from "../assets/game_modes/fireball/fireball05.svg";
+import fireball6 from "../assets/game_modes/fireball/fireball06.svg";
+import fireball7 from "../assets/game_modes/fireball/fireball07.svg";
+import fireball8 from "../assets/game_modes/fireball/fireball08.svg";
+import fireball9 from "../assets/game_modes/fireball/fireball09.svg";
+import fireball10 from "../assets/game_modes/fireball/fireball10.svg";
+import fireball11 from "../assets/game_modes/fireball/fireball11.svg";
+import fireball12 from "../assets/game_modes/fireball/fireball12.svg";
+import fireball13 from "../assets/game_modes/fireball/fireball13.svg";
+import fireball14 from "../assets/game_modes/fireball/fireball14.svg";
+import fireball15 from "../assets/game_modes/fireball/fireball15.svg";
+import fireball16 from "../assets/game_modes/fireball/fireball16.svg";
+import fireball17 from "../assets/game_modes/fireball/fireball17.svg";
+import fireball18 from "../assets/game_modes/fireball/fireball18.svg";
+import fireball19 from "../assets/game_modes/fireball/fireball19.svg";
+import fireball20 from "../assets/game_modes/fireball/fireball20.svg";
+import fireball21 from "../assets/game_modes/fireball/fireball21.svg";
+import bonus1 from "../assets/game_modes/bonus/bonus1.svg";
 
 type State = "idle" | "selecting" | "waiting";
 
@@ -261,7 +261,8 @@ const WaitingScreen = () => {
 
 const renderState = (
   state: State,
-  setState: React.Dispatch<React.SetStateAction<State>>
+  setState: React.Dispatch<React.SetStateAction<State>>,
+  isNarrow: boolean | undefined
 ) => {
   const play = () => {
     setState("selecting");
@@ -275,7 +276,11 @@ const renderState = (
       return <Idle play={play} />;
     case "selecting":
       return (
-        <ul className="flex h-1/3 w-full flex-col justify-center  sm:flex-row sm:items-center">
+        <ul
+          className={`${
+            isNarrow ? "w-1/3" : "w-full"
+          } flex h-1/3 flex-col justify-center  sm:flex-row sm:items-center`}
+        >
           <GameMode
             selectMode={selectMode}
             name={"classic"}
@@ -315,6 +320,7 @@ export const Home = () => {
   const [state, setState] = useState<State>("idle");
   const isLoggedIn = !!useAuthStore((state) => state.userId);
   const isSmall = useMediaQuery("(max-height : 1000px)");
+  const isNarrow = useMediaQuery("(max-width : 640px)");
   return (
     <>
       <img
@@ -334,7 +340,7 @@ export const Home = () => {
       ) : null}
       <div className="flex h-full items-center justify-center">
         {isLoggedIn ? (
-          renderState(state, setState)
+          renderState(state, setState, isNarrow)
         ) : (
           <a
             href="http://localhost:3000/auth/login"
