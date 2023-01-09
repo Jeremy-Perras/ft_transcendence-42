@@ -7,50 +7,90 @@ import {
 import { Server, Socket } from "socket.io";
 import { PrismaService } from "../prisma/prisma.service";
 import { GameMode } from "@prisma/client";
-import { Game } from "../game/game.model";
-import { CurrentUser } from "../auth/currentUser.decorator";
+import e from "express";
+type GameInvitation = {
+  inviterId: number; // personne qui invite
+  inviteeId: number;
+  gameMode: string;
+  inviterName: string;
+};
+
 @WebSocketGateway({ cors: "*" })
 export class SocketGateway {
   constructor(private prismaService: PrismaService) {}
   @WebSocketServer()
   server: Server;
+  private saveInvitation: GameInvitation[] = [];
 
   handleConnection(client: Socket, ...args: any[]) {
     client.join(client.request.session.passport.user.toString());
   }
 
   @SubscribeMessage("gameInvitation")
-  async onInvitation(@MessageBody() body: string[]) {
-    if (body[0] && body[1] && body[0][0] && body[0][1]) {
-      const game = await this.prismaService.game.create({
-        data: {
-          player1Score: 0,
-          player2Score: 0,
-          player1Id: +body[0][0],
-          mode:
-            body[1] == "Classic"
-              ? GameMode.CLASSIC
-              : body[1] == "Fireball"
-              ? GameMode.SPEED
-              : GameMode.RANDOM,
-          player2Id: +body[0][1],
-        },
-      });
-      body.push(game.id.toString());
-      const user = await this.prismaService.user.findUnique({
-        select: { name: true },
-        where: { id: +body[0][1] },
-      });
-      if (user?.name) {
-        body.push(user.name.toString());
-      }
-      console.log(body);
-      this.server.to(body[0][0].toString()).emit("launchInvitation", body);
-    }
+  async onGameInvitation(@MessageBody() body: GameInvitation) {
+    if (
+      !this.saveInvitation.some(
+        (e) => e.inviterId == body.inviterId && e.inviteeId == body.inviterId
+      )
+    )
+      this.saveInvitation.push(body);
+    this.server.to(body.inviteeId.toString()).emit("newInvitation", body);
+  }
+
+  @SubscribeMessage("acceptInvitation")
+  async onAcceptInvitation(@MessageBody() body: GameInvitation) {
+    this.saveInvitation.splice(0, 1, body);
+    const game = this.prismaService.game.create({
+      data: {
+        player1Id: body.inviterId,
+        player2Id: body.inviteeId,
+        mode:
+          body.gameMode == "Classic"
+            ? GameMode.CLASSIC
+            : body.gameMode == "Random"
+            ? GameMode.RANDOM
+            : GameMode.SPEED,
+        player1Score: 0,
+        player2Score: 0,
+      },
+    });
+    this.server
+      .to(body.inviteeId.toString())
+      .emit("startGame", (await game).id);
+    this.server
+      .to(body.inviterId.toString())
+      .emit("startGame", (await game).id);
+  }
+
+  @SubscribeMessage("refuseInvitation")
+  async onRefuseInvitation(@MessageBody() body: GameInvitation) {
+    this.saveInvitation.splice(0, 1, body);
+    this.server.to(body.inviterId.toString()).emit("refuseInvitation", body);
+  }
+
+  @SubscribeMessage("cancelInvitation")
+  async onCancelInvitation(@MessageBody() body: GameInvitation) {
+    this.saveInvitation.splice(0, 1, body);
+    this.server.to(body.inviteeId.toString()).emit("cancelInvitation", body);
+  }
+
+  @SubscribeMessage("leaveMatchmaking")
+  async onLeaveMatchMaking(@MessageBody() body: GameInvitation) {
+    return;
   }
 
   afterInit(server: Server, ...args: any[]) {
     server.of("/").adapter.on("delete-room", (room) => {
+      this.saveInvitation.forEach((e) => {
+        if (e.inviterId == room) {
+          this.server.to(e.inviteeId.toString()).emit("cancelInvitation", e);
+        }
+      });
+      this.saveInvitation.forEach((e) => {
+        if (e.inviteeId == room) {
+          this.server.to(e.inviterId.toString()).emit("refuseInvitation", e);
+        }
+      });
       console.log("room destroyed", room);
       server.emit("offline", room);
     });
