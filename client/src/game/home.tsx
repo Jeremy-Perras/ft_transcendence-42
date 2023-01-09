@@ -9,50 +9,6 @@ import {
   VariantLabels,
 } from "framer-motion";
 import LogoImage from "../assets/images/logo.svg";
-import ArrowImage from "../assets/game_modes/arrow.svg";
-import bouncing_ball1 from "../assets/game_modes/bouncing_ball/bouncing_ball01.svg";
-import bouncing_ball2 from "../assets/game_modes/bouncing_ball/bouncing_ball02.svg";
-import bouncing_ball3 from "../assets/game_modes/bouncing_ball/bouncing_ball03.svg";
-import bouncing_ball4 from "../assets/game_modes/bouncing_ball/bouncing_ball04.svg";
-import bouncing_ball5 from "../assets/game_modes/bouncing_ball/bouncing_ball05.svg";
-import bouncing_ball6 from "../assets/game_modes/bouncing_ball/bouncing_ball06.svg";
-import bouncing_ball7 from "../assets/game_modes/bouncing_ball/bouncing_ball07.svg";
-import bouncing_ball8 from "../assets/game_modes/bouncing_ball/bouncing_ball08.svg";
-import bouncing_ball9 from "../assets/game_modes/bouncing_ball/bouncing_ball09.svg";
-import bouncing_ball10 from "../assets/game_modes/bouncing_ball/bouncing_ball10.svg";
-import bouncing_ball11 from "../assets/game_modes/bouncing_ball/bouncing_ball11.svg";
-import bouncing_ball12 from "../assets/game_modes/bouncing_ball/bouncing_ball12.svg";
-import bouncing_ball13 from "../assets/game_modes/bouncing_ball/bouncing_ball13.svg";
-import bouncing_ball14 from "../assets/game_modes/bouncing_ball/bouncing_ball14.svg";
-import bouncing_ball15 from "../assets/game_modes/bouncing_ball/bouncing_ball15.svg";
-import bouncing_ball16 from "../assets/game_modes/bouncing_ball/bouncing_ball16.svg";
-import bouncing_ball17 from "../assets/game_modes/bouncing_ball/bouncing_ball17.svg";
-import bouncing_ball18 from "../assets/game_modes/bouncing_ball/bouncing_ball18.svg";
-import bouncing_ball19 from "../assets/game_modes/bouncing_ball/bouncing_ball19.svg";
-import bouncing_ball20 from "../assets/game_modes/bouncing_ball/bouncing_ball20.svg";
-import bouncing_ball21 from "../assets/game_modes/bouncing_ball/bouncing_ball21.svg";
-import fireball1 from "../assets/game_modes/fireball/fireball01.svg";
-import fireball2 from "../assets/game_modes/fireball/fireball02.svg";
-import fireball3 from "../assets/game_modes/fireball/fireball03.svg";
-import fireball4 from "../assets/game_modes/fireball/fireball04.svg";
-import fireball5 from "../assets/game_modes/fireball/fireball05.svg";
-import fireball6 from "../assets/game_modes/fireball/fireball06.svg";
-import fireball7 from "../assets/game_modes/fireball/fireball07.svg";
-import fireball8 from "../assets/game_modes/fireball/fireball08.svg";
-import fireball9 from "../assets/game_modes/fireball/fireball09.svg";
-import fireball10 from "../assets/game_modes/fireball/fireball10.svg";
-import fireball11 from "../assets/game_modes/fireball/fireball11.svg";
-import fireball12 from "../assets/game_modes/fireball/fireball12.svg";
-import fireball13 from "../assets/game_modes/fireball/fireball13.svg";
-import fireball14 from "../assets/game_modes/fireball/fireball14.svg";
-import fireball15 from "../assets/game_modes/fireball/fireball15.svg";
-import fireball16 from "../assets/game_modes/fireball/fireball16.svg";
-import fireball17 from "../assets/game_modes/fireball/fireball17.svg";
-import fireball18 from "../assets/game_modes/fireball/fireball18.svg";
-import fireball19 from "../assets/game_modes/fireball/fireball19.svg";
-import fireball20 from "../assets/game_modes/fireball/fireball20.svg";
-import fireball21 from "../assets/game_modes/fireball/fireball21.svg";
-import bonus1 from "../assets/game_modes/bonus/bonus1.svg";
 import { GameInvitations } from "./components/gameInvitation";
 import { GameMode } from "../gql/graphql";
 
@@ -71,75 +27,23 @@ const Idle = ({ play }: { play: () => void }) => {
 
 const gameModeIntervalId = [-1, -1, -1];
 
-const bouncing_ball = [
-  bouncing_ball1,
-  bouncing_ball2,
-  bouncing_ball3,
-  bouncing_ball4,
-  bouncing_ball5,
-  bouncing_ball6,
-  bouncing_ball7,
-  bouncing_ball8,
-  bouncing_ball9,
-  bouncing_ball10,
-  bouncing_ball11,
-  bouncing_ball12,
-  bouncing_ball13,
-  bouncing_ball14,
-  bouncing_ball15,
-  bouncing_ball16,
-  bouncing_ball17,
-  bouncing_ball18,
-  bouncing_ball19,
-  bouncing_ball20,
-  bouncing_ball21,
-];
-
-const fireball = [
-  fireball1,
-  fireball2,
-  fireball3,
-  fireball4,
-  fireball5,
-  fireball6,
-  fireball7,
-  fireball8,
-  fireball9,
-  fireball10,
-  fireball11,
-  fireball12,
-  fireball13,
-  fireball14,
-  fireball15,
-  fireball16,
-  fireball17,
-  fireball18,
-  fireball19,
-  fireball20,
-  fireball21,
-];
-
-const bonus = [bonus1];
-
 const Mode = ({
   name,
   textEffects,
   selectMode,
   animate,
-  array,
+  nbOfFrames,
+  urlBase,
 }: {
   name: string;
   textEffects: string;
   selectMode: () => void;
-  array: string[];
-  animate:
-    | boolean
-    | VariantLabels
-    | AnimationControls
-    | TargetAndTransition
-    | undefined;
+  nbOfFrames: number;
+  urlBase: string;
+  animate: (
+    isEnter: boolean
+  ) => boolean | VariantLabels | AnimationControls | TargetAndTransition;
 }) => {
-  const [isEnter, setIsEnter] = useState(false);
   const [isSelected, setIsSelected] = useState(false);
   const [animationIndex, setanimationIndex] = useState(0);
   const i = name === "classic" ? 0 : name === "fireball" ? 1 : 1;
@@ -148,9 +52,7 @@ const Mode = ({
       gameModeIntervalId[i] = setInterval(
         () => {
           setanimationIndex((animationIndex) => {
-            return animationIndex == bouncing_ball.length - 1
-              ? 0
-              : animationIndex + 1;
+            return animationIndex === nbOfFrames - 1 ? 0 : animationIndex + 1;
           });
         },
         isSelected ? 40 : 60
@@ -189,30 +91,19 @@ const Mode = ({
         {isSelected && !isSmall && !isNarrow && (
           <motion.img
             className="absolute -top-16 left-1/2"
-            src={ArrowImage}
+            src={"game_modes/arrow.svg"}
             initial={{ x: "-50%" }}
             animate={{ y: [0, 20, 0] }}
             transition={{ repeat: Infinity, duration: 1 }}
           />
         )}
         {!isSmall
-          ? array.map((e, i) => (
+          ? [...Array(nbOfFrames).keys()].map((e) => (
               <motion.img
-                className={`${animationIndex === i ? "" : "hidden"}`}
-                src={`${e}`}
-                animate={
-                  isEnter
-                    ? animate
-                    : {
-                        scale: [0.8, 1, 0.8],
-                        transition: {
-                          duration: 2,
-                          repeat: Infinity,
-                        },
-                      }
-                }
-                onMouseOver={() => setIsEnter(true)}
-                onMouseOut={() => setIsEnter(false)}
+                className={`${animationIndex === e ? "" : "hidden"}`}
+                src={`game_modes/${urlBase}/frame${e + 1}.svg`}
+                animate={animate(isSelected)}
+                key={e}
               />
             ))
           : null}
@@ -262,11 +153,15 @@ const WaitingScreen = () => {
   );
 };
 
-const renderState = (
-  state: State,
-  setState: React.Dispatch<React.SetStateAction<State>>,
-  isNarrow: boolean | undefined
-) => {
+const RenderState = ({
+  state,
+  setState,
+  isNarrow,
+}: {
+  state: State;
+  setState: React.Dispatch<React.SetStateAction<State>>;
+  isNarrow: boolean | undefined;
+}) => {
   const { invitationState, invitationId, sendInvite } = useInvitationStore();
   const socket = useSocketStore().socket;
 
@@ -297,29 +192,42 @@ const renderState = (
             selectMode={() => selectMode(GameMode.Classic)}
             name={"classic"}
             textEffects={"text-white"}
-            animate={false}
-            array={bouncing_ball}
+            animate={() => false}
+            urlBase={"bouncing_ball"}
+            nbOfFrames={21}
           />
           <Mode
             selectMode={() => selectMode(GameMode.Speed)}
             name={"fireball"}
             textEffects={"text-red-500"}
-            animate={false}
-            array={fireball}
+            animate={() => false}
+            urlBase={"fireball"}
+            nbOfFrames={21}
           />
           <Mode
             selectMode={() => selectMode(GameMode.Random)}
             name={"bonus"}
             textEffects={"text-amber-500"}
-            animate={{
-              rotate: [0, -5, 5, 0],
-              transition: {
-                duration: 1,
-                delay: 0.1,
-                repeat: Infinity,
-              },
+            animate={(isEnter: boolean) => {
+              return isEnter
+                ? {
+                    rotate: [0, -5, 5, 0],
+                    transition: {
+                      duration: 1,
+                      delay: 0.1,
+                      repeat: Infinity,
+                    },
+                  }
+                : {
+                    scale: [0.8, 1, 0.8],
+                    transition: {
+                      duration: 2,
+                      repeat: Infinity,
+                    },
+                  };
             }}
-            array={bonus}
+            urlBase={"bonus"}
+            nbOfFrames={1}
           />
         </ul>
       );
@@ -358,7 +266,6 @@ export const Home = () => {
 
   return (
     <>
-      s
       <img
         src={LogoImage}
         className={`mt-5 w-4/5 sm:max-w-lg lg:max-w-xl 2xl:max-w-2xl ${
@@ -381,7 +288,7 @@ export const Home = () => {
       ) : null}
       <div className="crt turn flex h-full items-center justify-center">
         {isLoggedIn ? (
-          <>{renderState(state, setState, isNarrow)}</>
+          <RenderState state={state} setState={setState} isNarrow={isNarrow} />
         ) : (
           <a
             href="http://localhost:3000/auth/login"
