@@ -32,11 +32,11 @@ const router = createBrowserRouter([
       {
         path: "/game/:gameId",
         element: <Game />,
-        loader: () => {
-          if (!useAuthStore.getState().userId) {
-            return redirect("/");
-          }
-        },
+        // loader: () => {
+        //   if (!useAuthStore.getState().userId) {
+        //     return redirect("/");
+        //   }
+        // },
       },
     ],
   },
