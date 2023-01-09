@@ -23,6 +23,7 @@ export class SocketGateway {
   constructor(private prismaService: PrismaService) {}
   @WebSocketServer()
   server: Server;
+
   private saveInvitation: SavedInvitation[] = [];
 
   handleConnection(client: Socket, ...args: any[]) {
@@ -72,10 +73,12 @@ export class SocketGateway {
         player1Id: inviterId,
         player2Id: inviteeId,
         mode: gameMode as GameMode,
+
         player1Score: 0,
         player2Score: 0,
       },
     });
+
     // TODO create callback Timer
     this.server.to(inviteeId.toString()).emit("startGame", (await game).id);
     this.server.to(inviterId.toString()).emit("startGame", (await game).id);
@@ -137,6 +140,7 @@ export class SocketGateway {
         }
         return acc;
       }, new Array<SavedInvitation>());
+
       console.log("room destroyed", room);
       server.emit("offline", room);
     });
