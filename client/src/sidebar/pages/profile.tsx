@@ -15,7 +15,6 @@ import {
 import ClassicIcon from "/src/assets/images/ClassicIcon.svg";
 import BonusIcon from "/src/assets/images/BonusIcon.svg";
 import FireIcon from "/src/assets/images/FireIcon.svg";
-import UnachievedIcon from "/achievements/Unachieved.svg";
 import { ReactComponent as AddAvatarIcon } from "pixelarticons/svg/cloud-upload.svg";
 import { ReactComponent as AddFriendIcon } from "pixelarticons/svg/user-plus.svg";
 import { ReactComponent as PlayIcon } from "pixelarticons/svg/gamepad.svg";
@@ -182,7 +181,7 @@ const Achievement = ({
           achieved ? "text-slate-600" : "text-slate-200"
         }`}
       >
-        {name}
+        {name.toLowerCase()}
       </div>
     </div>
   );
@@ -214,7 +213,7 @@ const UserProfileHeader = ({
     unachievedMedals.push(
       <Achievement
         key={i}
-        icon={UnachievedIcon}
+        icon={`achievements/unachieved_medal.svg`}
         name={"Unachieved"}
         achieved={false}
       />
@@ -277,7 +276,7 @@ const UserProfileHeader = ({
           {data.user.achievements.map((a, key) => (
             <Achievement
               key={key}
-              icon={UnachievedIcon} //TODO : get corresponding icon
+              icon={`achievements/${a.name.toLowerCase()}.svg`} //TODO : get corresponding icon
               name={a.name}
               achieved={true}
             />
