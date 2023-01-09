@@ -170,7 +170,7 @@ const RenderState = ({
   };
   const selectMode = (gameMode: GameMode) => {
     if (invitationState) {
-      socket.emit("gameInvitation", { gameMode, invitationId });
+      socket.emit("gameInvitation", { gameMode, inviteeId: invitationId });
       sendInvite();
     } else {
       socket.emit("joinMatchmaking", gameMode);
