@@ -45,7 +45,8 @@
     "reflect-metadata": "0.1.13",
     "rxjs": "^7.6.0",
     "supertest": "^6.3.3",
-    "ts-jest": "^29.0.3"
+    "ts-jest": "^29.0.3",
+    "xstate": "^4.35.2"
   },
   "devDependencies": {
     "@faker-js/faker": "^7.6.0",
