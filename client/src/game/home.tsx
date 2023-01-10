@@ -272,11 +272,9 @@ export const Home = () => {
 
   const isSmall = useMediaQuery("(max-height : 1000px)");
   const isNarrow = useMediaQuery("(max-width : 640px)");
-  const [displayInvitationError, setDisplayInvitationError] = useState(true);
+  const [displayInvitationError, setDisplayInvitationError] = useState(false);
   const socket = useSocketStore().socket;
-  const [message, setMessage] = useState<string>(
-    "testladasdasdadasdsadadasddaskasjkdsajadkljaskldajsklasjdklasdjaskad;lsajdlk;asdklasdjaksljsfklkldasjkl;dsjksdkldjsakljsjgfdjldasjdkladasdasdasdasdasdladka"
-  );
+  const [message, setMessage] = useState<string>();
 
   socket.on("error", (message) => {
     const info = message;

@@ -62,7 +62,7 @@ export class SocketGateway {
     const isPlaying = await this.prismaService.game.findMany({
       where: { OR: [{ player1Id: id }, { player2Id: id }], finishedAt: null },
     });
-    if (isPlaying != undefined) {
+    if (isPlaying.length > 0) {
       return UserState.PLAYING;
     }
 
@@ -181,7 +181,6 @@ export class SocketGateway {
     const currentUserId = client.request.session.passport.user;
     const currentUserState = await this.getUserState(currentUserId);
     const userState = await this.getUserState(inviteeId);
-
     switch (currentUserState) {
       case UserState.PLAYING:
         this.server
@@ -232,8 +231,6 @@ export class SocketGateway {
         break;
     }
 
-    this.cancelSentAndReceivedInvitations(currentUserId);
-
     if (
       !this.saveInvitation.some(
         (e) => e.inviteeId == inviteeId && e.inviterId === currentUserId
@@ -252,6 +249,7 @@ export class SocketGateway {
       gameMode,
       inviterName: inviterName,
     });
+    this.cancelSentAndReceivedInvitations(currentUserId);
   }
 
   @SubscribeMessage("acceptInvitation")
