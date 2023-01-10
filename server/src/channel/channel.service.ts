@@ -1,7 +1,6 @@
 import {
   ForbiddenException,
   Injectable,
-  Logger,
   NotFoundException,
 } from "@nestjs/common";
 import {
@@ -23,8 +22,6 @@ import { GraphqlChannelRestrictedUser } from "./channel.resolver";
 @Injectable()
 export class ChannelService {
   constructor(private prismaService: PrismaService) {}
-
-  private readonly logger = new Logger(ChannelService.name);
 
   static formatChannel(channel: Channel) {
     return {
@@ -238,57 +235,60 @@ export class ChannelService {
     password: string | null,
     currentUserId: number
   ) {
-    const channel = await this.prismaService.channel.findUnique({
-      select: {
-        inviteOnly: true,
-        password: true,
-        ownerId: true,
-        members: {
-          where: {
-            userId: currentUserId,
+    try {
+      const channel = await this.prismaService.channel.findUniqueOrThrow({
+        select: {
+          inviteOnly: true,
+          password: true,
+          ownerId: true,
+          members: {
+            where: {
+              userId: currentUserId,
+            },
+          },
+          restrictedMembers: {
+            where: {
+              userId: currentUserId,
+              restriction: ChannelRestriction.BAN,
+            },
           },
         },
-        restrictedMembers: {
-          where: {
-            userId: currentUserId,
-            restriction: ChannelRestriction.BAN,
-          },
+        where: {
+          id: channelId,
         },
-      },
-      where: {
-        id: channelId,
-      },
-    });
+      });
 
-    if (!channel) {
+      if (channel.members.length > 0 || channel.ownerId === currentUserId) {
+        throw new ForbiddenException("You are already a member");
+      }
+
+      if (channel.restrictedMembers.length > 0) {
+        throw new ForbiddenException("You are banned from this channel");
+      }
+
+      if (channel.inviteOnly) {
+        throw new ForbiddenException("This channel is invite only");
+      }
+
+      if (
+        channel.password &&
+        (!password || !bcrypt.compareSync(password, channel.password))
+      ) {
+        throw new ForbiddenException("Password is incorrect");
+      }
+
+      await this.prismaService.channelMember.create({
+        data: {
+          userId: currentUserId,
+          channelId,
+        },
+      });
+    } catch (error) {
+      if (error instanceof ForbiddenException) {
+        throw error;
+      }
       throw new NotFoundException("Channel not found");
     }
-
-    if (channel.members.length > 0 || channel.ownerId === currentUserId) {
-      throw new ForbiddenException("You are already a member");
-    }
-
-    if (channel.restrictedMembers.length > 0) {
-      throw new ForbiddenException("You are banned from this channel");
-    }
-
-    if (channel.inviteOnly) {
-      throw new ForbiddenException("This channel is invite only");
-    }
-
-    if (
-      channel.password &&
-      (!password || !bcrypt.compareSync(password, channel.password))
-    ) {
-      throw new ForbiddenException("Password is incorrect");
-    }
-
-    await this.prismaService.channelMember.create({
-      data: {
-        userId: currentUserId,
-        channelId,
-      },
-    });
   }
 
   async leaveChannel(channelId: number, currentUserId: number) {
@@ -353,7 +353,7 @@ export class ChannelService {
               });
             }
           }
-        } else {
+        } else if (channel.members.some((m) => m.userId === currentUserId)) {
           await this.prismaService.channelMember.delete({
             where: {
               channelId_userId: {
@@ -362,9 +362,14 @@ export class ChannelService {
               },
             },
           });
+        } else {
+          throw new ForbiddenException("You are not a member of this channel");
         }
       }
     } catch (error) {
+      if (error instanceof ForbiddenException) {
+        throw error;
+      }
       throw new NotFoundException("Channel not found");
     }
   }
@@ -385,11 +390,22 @@ export class ChannelService {
         },
       });
     } catch (error) {
-      throw new NotFoundException("Channel not found");
+      throw new ForbiddenException("This channel cannot be created");
     }
   }
 
-  async deleteChannel(channelId: number) {
+  async deleteChannel(channelId: number, currentUserId: number) {
+    try {
+      await this.prismaService.channel.findFirstOrThrow({
+        where: {
+          id: channelId,
+          ownerId: currentUserId,
+        },
+      });
+    } catch (error) {
+      throw new ForbiddenException("You are not the owner of this channel");
+    }
+
     try {
       await this.prismaService.channel.delete({
         where: { id: channelId },
@@ -400,96 +416,159 @@ export class ChannelService {
   }
 
   async setUserRestriction(
+    currentUserId: number,
     channelId: number,
     userId: number,
     restrictUntil: Date | null,
     type: ChannelRestriction
   ) {
     try {
-      const isRestricted =
-        await this.prismaService.channelRestrictedUser.findUnique({
-          where: {
-            channelId_userId_restriction: {
-              channelId,
-              userId,
-              restriction: type,
-            },
-          },
-        });
-      if (isRestricted && restrictUntil && restrictUntil <= new Date())
-        await this.prismaService.channelRestrictedUser.delete({
-          where: {
-            channelId_userId_restriction: {
-              channelId,
-              userId,
-              restriction: type,
-            },
-          },
-        });
-      else if (isRestricted) {
-        await this.prismaService.channelRestrictedUser.update({
-          where: {
-            channelId_userId_restriction: {
-              channelId,
-              userId,
-              restriction: type,
-            },
-          },
-          data: {
-            endAt: restrictUntil,
-          },
-        });
-      } else {
-        await this.prismaService.channelRestrictedUser.create({
-          data: { endAt: restrictUntil, channelId, userId, restriction: type },
-        });
-        if (
-          type === ChannelRestriction.BAN &&
-          (restrictUntil === null || restrictUntil > new Date())
-        ) {
-          try {
-            await this.prismaService.channelMember.delete({
-              where: {
-                channelId_userId: {
-                  channelId,
-                  userId,
+      const channel = await this.prismaService.channel.findUniqueOrThrow({
+        where: {
+          id: channelId,
+        },
+        select: {
+          ownerId: true,
+          members: {
+            where: {
+              OR: [
+                {
+                  userId: userId,
                 },
-              },
-            });
-          } catch (error) {
-            this.logger.warn(error);
-          }
-        }
+                {
+                  userId: currentUserId,
+                },
+              ],
+            },
+            select: {
+              userId: true,
+              role: true,
+            },
+          },
+        },
+      });
+      const role =
+        channel?.ownerId === currentUserId
+          ? "OWNER"
+          : channel?.members.find((m) => m.userId === currentUserId)?.role ??
+            null;
+      const targetRole =
+        channel?.ownerId === userId
+          ? "OWNER"
+          : channel?.members.find((m) => m.userId === userId)?.role ?? null;
+
+      if (
+        !(role === "OWNER" || role === "ADMIN") ||
+        targetRole === "OWNER" ||
+        (targetRole === "ADMIN" && role !== "OWNER")
+      )
+        throw new ForbiddenException(
+          "You do not have the permission to do that"
+        );
+
+      await this.prismaService.channelRestrictedUser.upsert({
+        where: {
+          channelId_userId_restriction: {
+            channelId,
+            userId,
+            restriction: type,
+          },
+        },
+        create: {
+          channelId,
+          restriction: type,
+          userId,
+          endAt: restrictUntil,
+        },
+        update: {
+          endAt: restrictUntil,
+        },
+      });
+
+      if (type === ChannelRestriction.BAN && targetRole) {
+        await this.prismaService.channelMember.delete({
+          where: {
+            channelId_userId: {
+              channelId,
+              userId,
+            },
+          },
+        });
       }
+    } catch (error) {
+      if (error instanceof ForbiddenException) {
+        throw error;
+      }
+      throw new NotFoundException("Channel not found");
+    }
+  }
+
+  async updatePassword(
+    channelId: number,
+    hash: string | null,
+    currentUserId: number
+  ) {
+    try {
+      await this.prismaService.channel.findFirstOrThrow({
+        where: {
+          id: channelId,
+          ownerId: currentUserId,
+        },
+      });
+    } catch (error) {
+      throw new ForbiddenException("You are not the owner of this channel");
+    }
+
+    try {
+      await this.prismaService.channel.update({
+        where: { id: channelId },
+        data: { password: hash },
+      });
     } catch (error) {
       throw new NotFoundException("Channel not found");
     }
   }
 
-  async updatePassword(channelId: number, hash: string | null) {
-    await this.prismaService.channel.update({
-      where: { id: channelId },
-      data: { password: hash },
-    });
-  }
-
   async inviteUser(channelId: number, userId: number) {
-    try {
-      const isbanned =
-        await this.prismaService.channelRestrictedUser.findUnique({
-          where: {
-            channelId_userId_restriction: {
-              channelId,
-              userId,
-              restriction: ChannelRestriction.BAN,
+    const isMember = await this.prismaService.channel.findFirst({
+      where: {
+        id: channelId,
+        OR: [
+          {
+            ownerId: userId,
+          },
+          {
+            members: {
+              some: {
+                userId,
+              },
             },
           },
-        });
+        ],
+      },
+    });
+    if (isMember) throw new ForbiddenException("User is already a member");
 
-      if (isbanned) {
-        throw new ForbiddenException("User is banned");
-      }
+    const isBanned = await this.prismaService.channelRestrictedUser.findFirst({
+      where: {
+        channelId,
+        userId,
+        restriction: ChannelRestriction.BAN,
+        OR: [
+          {
+            endAt: {
+              gt: new Date(),
+            },
+          },
+          {
+            endAt: null,
+          },
+        ],
+      },
+    });
+    if (isBanned) throw new ForbiddenException("User is banned");
 
+    try {
       await this.prismaService.channelMember.create({
         data: { channelId, userId },
       });
@@ -498,57 +577,83 @@ export class ChannelService {
     }
   }
 
-  async addAdmin(channelId: number, userId: number) {
+  async addAdmin(channelId: number, userId: number, currentUserId: number) {
     try {
-      const ismember = await this.prismaService.channelMember.findUniqueOrThrow(
-        {
-          where: {
-            channelId_userId: {
-              channelId,
-              userId,
-            },
-          },
-        }
-      );
+      await this.prismaService.channel.findFirstOrThrow({
+        where: {
+          id: channelId,
+          ownerId: currentUserId,
+        },
+      });
+    } catch (error) {
+      throw new ForbiddenException("You are not the owner of this channel");
+    }
+
+    try {
+      await this.prismaService.channelMember.findFirstOrThrow({
+        where: {
+          userId,
+          role: ChannelRole.MEMBER,
+        },
+      });
     } catch {
       throw new NotFoundException("User is not a member");
     }
 
-    await this.prismaService.channelMember.update({
-      where: {
-        channelId_userId: {
-          channelId,
-          userId,
+    try {
+      await this.prismaService.channelMember.update({
+        where: {
+          channelId_userId: {
+            channelId,
+            userId,
+          },
         },
-      },
-      data: {
-        role: ChannelRole.ADMIN,
-      },
-    });
+        data: {
+          role: ChannelRole.ADMIN,
+        },
+      });
+    } catch (error) {
+      throw new NotFoundException("Channel not found");
+    }
   }
 
-  async removeAdmin(channelId: number, userId: number) {
+  async removeAdmin(channelId: number, userId: number, currentUserId: number) {
     try {
-      const isadmin = await this.prismaService.channelMember.findFirstOrThrow({
+      await this.prismaService.channel.findFirstOrThrow({
+        where: {
+          id: channelId,
+          ownerId: currentUserId,
+        },
+      });
+    } catch (error) {
+      throw new ForbiddenException("You are not the owner of this channel");
+    }
+
+    try {
+      await this.prismaService.channelMember.findFirstOrThrow({
         where: {
           userId,
           role: ChannelRole.ADMIN,
         },
       });
     } catch {
-      throw new NotFoundException("User is not a member or an admin");
+      throw new NotFoundException("User is not an admin");
     }
 
-    await this.prismaService.channelMember.update({
-      where: {
-        channelId_userId: {
-          channelId,
-          userId,
+    try {
+      await this.prismaService.channelMember.update({
+        where: {
+          channelId_userId: {
+            channelId,
+            userId,
+          },
         },
-      },
-      data: {
-        role: ChannelRole.MEMBER,
-      },
-    });
+        data: {
+          role: ChannelRole.MEMBER,
+        },
+      });
+    } catch (error) {
+      throw new NotFoundException("Channel not found");
+    }
   }
 }

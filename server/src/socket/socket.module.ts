@@ -12,6 +12,6 @@ import { SocketService } from "./socket.service";
     ScheduleModule.forRoot(),
   ],
   providers: [SocketService, SocketGateway],
-  exports: [SocketService],
+  exports: [SocketService, SocketGateway],
 })
 export class SocketModule {}

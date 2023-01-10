@@ -39,3 +39,4 @@ coverage/
 !.vscode/launch.json
 !.vscode/extensions.json
 apps/client/codegen.ts
+*.typegen.ts

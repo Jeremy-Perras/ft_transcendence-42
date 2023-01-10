@@ -18,15 +18,11 @@ import { ImageFileType } from "@prisma/client";
 import { Request as ExpressRequest, Response } from "express";
 import { AuthenticatedGuard } from "../auth/authenticated.guard";
 import { PrismaService } from "../prisma/prisma.service";
-import { UserService } from "../user/user.service";
 
 @UseGuards(AuthenticatedGuard)
 @Controller("/upload")
 export class UploadController {
-  constructor(
-    private readonly userService: UserService,
-    private prismaService: PrismaService
-  ) {}
+  constructor(private prismaService: PrismaService) {}
 
   @Get("/avatar/:id")
   async avatar(
@@ -76,6 +72,13 @@ export class UploadController {
       ? ImageFileType.JPG
       : ImageFileType.PNG;
 
-    await this.userService.updateAvatar(+userId, type, file.buffer);
+    try {
+      await this.prismaService.avatar.update({
+        where: { userId: +userId },
+        data: { fileType: type, image: file.buffer },
+      });
+    } catch (error) {
+      throw new NotFoundException("User not found");
+    }
   }
 }
