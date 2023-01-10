@@ -12,6 +12,7 @@ import { SocketModule } from "./socket/socket.module";
 import { DataLoaderInterceptor } from "./dataloader";
 import { APP_INTERCEPTOR } from "@nestjs/core";
 import { ApolloServerPluginLandingPageLocalDefault } from "apollo-server-core";
+import { EventEmitterModule } from "@nestjs/event-emitter";
 
 const serveStaticModule: DynamicModule[] = [];
 if (process.env.NODE_ENV === "production") {
@@ -32,6 +33,7 @@ if (process.env.NODE_ENV === "production") {
     },
   ],
   imports: [
+    EventEmitterModule.forRoot(),
     ...serveStaticModule,
     SocketModule,
     AuthModule,
