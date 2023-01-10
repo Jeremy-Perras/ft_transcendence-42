@@ -243,7 +243,7 @@ export class SocketGateway {
         inviterName: inviterName,
       });
 
-    this.server.to(inviteeId.toString()).emit("newInvitation", {
+    this.server.to("user_" + inviteeId.toString()).emit("newInvitation", {
       inviterId: currentUserId,
       inviteeId,
       gameMode,
@@ -312,8 +312,12 @@ export class SocketGateway {
     });
 
     // TODO create callback Timer
-    this.server.to(inviteeId.toString()).emit("startGame", (await game).id);
-    this.server.to(inviterId.toString()).emit("startGame", (await game).id);
+    this.server
+      .to("user_" + inviteeId.toString())
+      .emit("startGame", (await game).id);
+    this.server
+      .to("user_" + inviterId.toString())
+      .emit("startGame", (await game).id);
   }
 
   @SubscribeMessage("refuseInvitation")
@@ -363,7 +367,7 @@ export class SocketGateway {
       });
     } else {
       this.server
-        .to(currentUserId.toString())
+        .to("user_" + currentUserId.toString())
         .emit("error", `Action not allowed `);
     }
   }
@@ -389,7 +393,7 @@ export class SocketGateway {
       }
     else {
       this.server
-        .to(currentUserId.toString())
+        .to("user_" + currentUserId.toString())
         .emit("error", "You are not in queue for matchmaking");
     }
   }
