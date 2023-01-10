@@ -74,12 +74,12 @@ export class SocketGateway {
       if (invitation.inviterId === userId)
         //cancel sent invitation
         this.server
-          .to(invitation.inviteeId.toString())
+          .to("user_" + invitation.inviteeId.toString())
           .emit("cancelInvitation", invitation);
       else if (invitation.inviteeId === userId)
         //refuse received invitation
         this.server
-          .to(invitation.inviterId.toString())
+          .to("user_" + invitation.inviterId.toString())
           .emit("refuseInvitation", invitation);
       return !(
         invitation.inviterId === userId || invitation.inviteeId === userId
@@ -103,12 +103,12 @@ export class SocketGateway {
     switch (currentUserState) {
       case UserState.PLAYING:
         this.server
-          .to(currentUserId.toString())
+          .to("user_" + currentUserId.toString())
           .emit("error", "Action not allowed - You are already playing");
         return;
       case UserState.INVITING:
         this.server
-          .to(currentUserId.toString())
+          .to("user_" + currentUserId.toString())
           .emit(
             "error",
             "Action not allowed - You are inviting someone. Cancel invitation first"
@@ -116,7 +116,7 @@ export class SocketGateway {
         return;
       case UserState.MATCHING:
         this.server
-          .to(currentUserId.toString())
+          .to("user_" + currentUserId.toString())
           .emit(
             "error",
             "Action not allowed - You are already in queue for matchmaking"
@@ -151,8 +151,8 @@ export class SocketGateway {
           },
         });
         this.server
-          .to(ids[0].toString())
-          .to(ids[1].toString())
+          .to("user_" + ids[0].toString())
+          .to("user_" + ids[1].toString())
           .emit("startGame", game.id);
         (await this.server.in(gameMode).fetchSockets()).forEach((socket) => {
           socket.rooms.forEach((room) => {
@@ -184,7 +184,7 @@ export class SocketGateway {
     switch (currentUserState) {
       case UserState.PLAYING:
         this.server
-          .to(currentUserId.toString())
+          .to("user_" + currentUserId.toString())
           .emit("error", "Action not allowed - You are already playing");
         return;
       case UserState.INVITING:
@@ -197,7 +197,7 @@ export class SocketGateway {
         return;
       case UserState.MATCHING:
         this.server
-          .to(currentUserId.toString())
+          .to("user_" + currentUserId.toString())
           .emit(
             "error",
             "Action not allowed - You are in matchmaking. Leave queue first"
@@ -210,12 +210,12 @@ export class SocketGateway {
     switch (userState) {
       case UserState.PLAYING:
         this.server
-          .to(currentUserId.toString())
+          .to("user_" + currentUserId.toString())
           .emit("error", " User is already in game");
         return;
       case UserState.MATCHING:
         this.server
-          .to(currentUserId.toString())
+          .to("user_" + currentUserId.toString())
           .emit(
             "error",
             " User is in queue for matchmaking. Send a direct message!"
@@ -223,7 +223,7 @@ export class SocketGateway {
         return;
       case UserState.INVITING:
         this.server
-          .to(currentUserId.toString())
+          .to("user_" + currentUserId.toString())
           .emit("error", " User is already inviting someone");
         return;
 
@@ -265,14 +265,14 @@ export class SocketGateway {
 
     if (userState !== UserState.INVITING) {
       this.server
-        .to(currentUserId.toString())
+        .to("user_" + currentUserId.toString())
         .emit("error", inviterName + " canceled invitation");
       return;
     }
 
     if (currentUserState !== UserState.IDLE) {
       this.server
-        .to(currentUserId.toString())
+        .to("user_" + currentUserId.toString())
         .emit(
           "error",
           `Action not allowed - ${
@@ -284,7 +284,7 @@ export class SocketGateway {
           }`
         );
       this.server
-        .to(inviterId.toString())
+        .to("user_" + inviterId.toString())
         .emit(
           "error",
           `${
@@ -336,13 +336,13 @@ export class SocketGateway {
 
     if (userState !== UserState.INVITING) {
       this.server
-        .to(inviteeId.toString())
+        .to("user_" + inviteeId.toString())
         .emit("error", "User is not inviting you anymore");
       return;
     }
 
     if (currentUserState === UserState.IDLE)
-      this.server.to(inviterId.toString()).emit("cancelInvitation", {
+      this.server.to("user_" + inviterId.toString()).emit("cancelInvitation", {
         gameMode,
         inviteeId,
         inviterId,
@@ -360,7 +360,7 @@ export class SocketGateway {
       this.saveInvitation.filter((i) => {
         if (i.inviterId === currentUserId) {
           this.server
-            .to(i.inviteeId.toString())
+            .to("user_" + i.inviteeId.toString())
             .emit("error", `${i.inviterName} canceled invitation`);
           return false;
         }
@@ -404,11 +404,11 @@ export class SocketGateway {
       this.saveInvitation = this.saveInvitation.reduce((acc, curr) => {
         if (curr.inviteeId === +room) {
           this.server
-            .to(curr.inviterId.toString())
+            .to("user_" + curr.inviterId.toString())
             .emit("refuseInvitation", curr);
         } else if (curr.inviterId === +room) {
           this.server
-            .to(curr.inviteeId.toString())
+            .to("user_" + curr.inviteeId.toString())
             .emit("cancelInvitation", curr);
         } else {
           acc.push(curr);
