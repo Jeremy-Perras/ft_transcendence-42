@@ -1,7 +1,14 @@
 import "reflect-metadata";
-import { Field, Int, ObjectType, registerEnumType } from "@nestjs/graphql";
+import {
+  createUnionType,
+  Field,
+  Int,
+  ObjectType,
+  registerEnumType,
+} from "@nestjs/graphql";
 import { Channel } from "../channel/channel.model";
 import { Game } from "../game/game.model";
+import { GameMode } from "@prisma/client";
 
 export enum FriendStatus {
   NOT_FRIEND,
@@ -73,7 +80,49 @@ export class User {
 
   @Field((type) => [Chat])
   chats: [Chat | undefined];
+
+  @Field((type) => StatesUnion, { nullable: true })
+  state: typeof StatesUnion | null;
+
+  @Field((type) => [Invitation], { nullable: true })
+  invitations: [Invitation | undefined];
 }
+
+@ObjectType()
+export class Invitation {
+  @Field((type) => User)
+  sender: User;
+
+  @Field((type) => GameMode)
+  gameMode: GameMode;
+}
+
+@ObjectType()
+export class WaitingForInviteeState {
+  @Field((type) => User)
+  invitee: User;
+
+  @Field((type) => GameMode)
+  gameMode: GameMode;
+}
+
+@ObjectType()
+export class MatchmakingState {
+  @Field((type) => GameMode)
+  gameMode: GameMode;
+}
+
+@ObjectType()
+export class PlayingState {
+  @Field((type) => Game)
+  game: Game;
+}
+
+export const StatesUnion = createUnionType({
+  name: "StatesUnion",
+  types: () =>
+    [WaitingForInviteeState, MatchmakingState, PlayingState] as const,
+});
 
 @ObjectType()
 export class Chat {
