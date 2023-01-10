@@ -11,7 +11,7 @@ import {
 import LogoImage from "../assets/images/logo.svg";
 import { GameInvitations } from "./components/gameInvitation";
 import { GameMode } from "../gql/graphql";
-
+import { ReactComponent as RefuseIcon } from "pixelarticons/svg/close.svg";
 type State = "idle" | "selecting" | "waiting";
 
 const Idle = ({ play }: { play: () => void }) => {
@@ -236,6 +236,30 @@ const RenderState = ({
   }
 };
 
+const Error = ({
+  message,
+  setDisplayInvitationError,
+}: {
+  message: string | undefined;
+  setDisplayInvitationError: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
+  return (
+    <div className="absolute top-0 z-10  w-1/3 justify-center ">
+      <div className=" flex w-full flex-auto flex-row  bg-slate-100 ">
+        <span className="flex grow overflow-hidden text-ellipsis pl-2 pt-1 align-middle font-sans text-black">{`${message}`}</span>
+        <div className="flex w-1/3 basis-1/5 justify-end ">
+          <RefuseIcon
+            className="mx-2 w-5 bg-red-300 hover:cursor-pointer "
+            onClick={() => {
+              setDisplayInvitationError(false);
+            }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const Home = () => {
   const [state, setState] = useState<State>("idle");
   const isLoggedIn = !!useAuthStore((state) => state.userId);
@@ -243,9 +267,17 @@ export const Home = () => {
 
   const isSmall = useMediaQuery("(max-height : 1000px)");
   const isNarrow = useMediaQuery("(max-width : 640px)");
-
+  const [displayInvitationError, setDisplayInvitationError] = useState(true);
   const socket = useSocketStore().socket;
+  const [message, setMessage] = useState<string>(
+    "testladasdasdadasdsadadasddaskasjkdsajadkljaskldajsklasjdklasdjaskad;lsajdlk;asdklasdjaksljsfklkldasjkl;dsjksdkldjsakljsjgfdjldasjdkladasdasdasdasdasdladka"
+  );
 
+  socket.on("error", (message) => {
+    const info = message;
+    setMessage(info);
+    setDisplayInvitationError(true);
+  });
   useEffect(() => {
     switch (invitationState) {
       case "selecting":
@@ -298,6 +330,12 @@ export const Home = () => {
           </a>
         )}
       </div>
+      {displayInvitationError ? (
+        <Error
+          message={message}
+          setDisplayInvitationError={setDisplayInvitationError}
+        />
+      ) : null}
       <GameInvitations />
     </>
   );
