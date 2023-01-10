@@ -133,8 +133,8 @@ model Game {
   player2   User @relation("GamePlayer2", fields: [player2Id], references: [id], onDelete: Cascade)
   player2Id Int
 
-  player1Score Int
-  player2Score Int
+  player1Score Int @default(0)
+  player2Score Int @default(0)
 
   id Int @id @default(autoincrement())
 }

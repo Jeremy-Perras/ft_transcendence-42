@@ -1,7 +1,10 @@
 import { NotFoundException, UseGuards } from "@nestjs/common";
 import {
   Args,
+  ArgsType,
+  Field,
   Int,
+  IntersectionType,
   Mutation,
   Query,
   ResolveField,
@@ -12,8 +15,10 @@ import { Prisma, GameMode } from "@prisma/client";
 import { GqlAuthenticatedGuard } from "../auth/authenticated.guard";
 import { CurrentUser } from "../auth/currentUser.decorator";
 import { PrismaService } from "../prisma/prisma.service";
-import { GraphqlUser } from "../user/user.resolver";
+import { GetUserArgs, GraphqlUser } from "../user/user.resolver";
 import { Game } from "./game.model";
+import { GameService } from "./game.service";
+import { waitFor } from "xstate/lib/waitFor";
 
 export type GraphqlGame = Omit<Game, "players">;
 
@@ -22,10 +27,22 @@ type GraphqlPlayers = {
   player2: GraphqlUser;
 };
 
+@ArgsType()
+class GameModeArgs {
+  @Field((type) => GameMode)
+  gameMode: GameMode;
+}
+
+@ArgsType()
+class InviteArgs extends IntersectionType(GetUserArgs, GameModeArgs) {}
+
 @Resolver(Game)
 @UseGuards(GqlAuthenticatedGuard)
 export class GameResolver {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private gameService: GameService
+  ) {}
 
   @Query((returns) => Game)
   async game(
@@ -166,46 +183,107 @@ export class GameResolver {
     };
   }
 
-  @Mutation((returns) => Int)
-  async createGame(
-    @Args("gameMode", { type: () => GameMode }) gameMode: GameMode,
-    @Args("player2Id", { type: () => Int, nullable: true }) player2Id: number,
-    @CurrentUser() currentUserId: number
-  ) {
-    const game = await this.prisma.game.create({
-      data: {
-        player1Score: 0,
-        player2Score: 0,
-        player1Id: currentUserId,
-        mode: gameMode,
-        player2Id: player2Id,
-      },
-    });
-
-    return game.id;
-  }
-
   @Mutation((returns) => Boolean)
-  async launchGame(
-    @Args("gameId", { type: () => Int, nullable: true }) gameId: number,
+  async sendGameInvite(
+    @Args() { userId, gameMode }: InviteArgs,
     @CurrentUser() currentUserId: number
   ) {
-    const game = await this.prisma.game.update({
-      where: { id: gameId },
-      data: { startedAt: new Date() },
+    const currentPlayer = this.gameService.getPlayer(currentUserId);
+    if (!currentPlayer) throw new Error();
+    const wait = waitFor(
+      currentPlayer,
+      (state) => state.matches("_.waitingForInvitee"),
+      {
+        timeout: 1000,
+      }
+    ).catch(() => {
+      throw new Error();
     });
-
+    currentPlayer.send({ type: "INVITE", inviteeId: userId, gameMode });
+    await wait;
     return true;
   }
 
   @Mutation((returns) => Boolean)
-  async deleteGame(
-    @Args("gameId", { type: () => Int, nullable: true }) gameId: number
-  ) {
-    const game = await this.prisma.game.delete({
-      where: { id: gameId },
+  async cancelGameInvite(@CurrentUser() currentUserId: number) {
+    const currentPlayer = this.gameService.getPlayer(currentUserId);
+    if (!currentPlayer) throw new Error();
+    const wait = waitFor(currentPlayer, (state) => state.matches("_.idle"), {
+      timeout: 10000,
+    }).catch(() => {
+      throw new Error();
     });
-
+    currentPlayer.send({ type: "CANCEL_INVITATION" });
+    await wait;
     return true;
+  }
+
+  @Mutation((returns) => Boolean)
+  async acceptGameInvite(
+    @Args() { userId }: GetUserArgs,
+    @CurrentUser() currentUserId: number
+  ) {
+    const currentPlayer = this.gameService.getPlayer(currentUserId);
+    if (!currentPlayer) throw new Error();
+    const wait = waitFor(currentPlayer, (state) => state.matches("_.playing"), {
+      timeout: 10000,
+    }).catch(() => {
+      throw new Error();
+    });
+    currentPlayer.send({ type: "ACCEPT_INVITATION", inviterId: userId });
+    await wait;
+  }
+
+  @Mutation((returns) => Boolean)
+  async refuseGameInvite(
+    @Args() { userId }: GetUserArgs,
+    @CurrentUser() currentUserId: number
+  ) {
+    const currentPlayer = this.gameService.getPlayer(currentUserId);
+    if (!currentPlayer) throw new Error();
+    const wait = waitFor(
+      currentPlayer,
+      (state) => !state.context.invitations.has(userId),
+      {
+        timeout: 10000,
+      }
+    ).catch(() => {
+      throw new Error();
+    });
+    currentPlayer.send({ type: "REFUSE_INVITATION", inviterId: userId });
+    await wait;
+  }
+
+  @Mutation((returns) => Boolean)
+  async joinMatchmaking(
+    @Args() { gameMode }: GameModeArgs,
+    @CurrentUser() currentUserId: number
+  ) {
+    const currentPlayer = this.gameService.getPlayer(currentUserId);
+    if (!currentPlayer) throw new Error();
+    const wait = waitFor(
+      currentPlayer,
+      (state) => state.matches("_.waitingForMatchmaking"),
+      {
+        timeout: 10000,
+      }
+    ).catch(() => {
+      throw new Error();
+    });
+    currentPlayer.send({ type: "JOIN_MATCHMAKING", gameMode });
+    await wait;
+  }
+
+  @Mutation((returns) => Boolean)
+  async leaveMatchmaking(@CurrentUser() currentUserId: number) {
+    const currentPlayer = this.gameService.getPlayer(currentUserId);
+    if (!currentPlayer) throw new Error();
+    const wait = waitFor(currentPlayer, (state) => state.matches("_.idle"), {
+      timeout: 10000,
+    }).catch(() => {
+      throw new Error();
+    });
+    currentPlayer.send({ type: "LEAVE_MATCHMAKING" });
+    await wait;
   }
 }

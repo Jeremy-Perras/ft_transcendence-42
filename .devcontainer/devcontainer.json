@@ -36,6 +36,7 @@
     "Gruntfuggly.todo-tree",
     "pascalsenn.keyboard-quickfix",
     "GitHub.copilot",
-    "capaj.graphql-codegen-vscode"
+    "capaj.graphql-codegen-vscode",
+    "statelyai.stately-vscode"
   ]
 }

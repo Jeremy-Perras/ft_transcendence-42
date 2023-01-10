@@ -1,6 +1,6 @@
 import { Module } from "@nestjs/common";
 import { AuthModule } from "../auth/auth.module";
-import { ChannelModule } from "../channel/channel.module";
+import { GameModule } from "../game/game.module";
 import { PrismaModule } from "../prisma/prisma.module";
 import { SocketModule } from "../socket/socket.module";
 import {
@@ -18,7 +18,7 @@ import { DirectMessageResolver, UserResolver } from "./user.resolver";
 import { UserService } from "./user.service";
 
 @Module({
-  imports: [PrismaModule, AuthModule, SocketModule],
+  imports: [PrismaModule, AuthModule, SocketModule, GameModule],
   providers: [
     UserResolver,
     DirectMessageResolver,

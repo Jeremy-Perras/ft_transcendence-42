@@ -22,7 +22,6 @@ export class UserLoader implements NestDataLoader<number, User> {
         acc[index] = curr;
         return acc;
       }, new Array<User>());
-      const test = c.map((y) => y.id);
       return c;
     });
   }
