@@ -8,7 +8,6 @@ import {
 import { Server, Socket } from "socket.io";
 import { PrismaService } from "../prisma/prisma.service";
 import { GameMode } from "@prisma/client";
-import { OnModuleInit } from "@nestjs/common";
 
 type GameInvitation = {
   inviterId: number; // personne qui invite
@@ -24,16 +23,13 @@ enum UserState {
   IDLE,
 }
 
-type SavedInvitation = Omit<GameInvitation, "inviterName">;
-
 @WebSocketGateway({ cors: "*" })
 export class SocketGateway {
   constructor(private prismaService: PrismaService) {}
   @WebSocketServer()
   server: Server;
 
-  private saveInvitation: SavedInvitation[] = [];
-  private stateUser: UserState;
+  private saveInvitation: GameInvitation[] = [];
 
   private getUserState = async (id: number): Promise<UserState> => {
     const isInviting = this.saveInvitation.find((e) => e.inviterId == id);
@@ -73,6 +69,24 @@ export class SocketGateway {
     return UserState.IDLE;
   };
 
+  private cancelSentAndReceivedInvitations = (userId: number): void => {
+    this.saveInvitation = this.saveInvitation.filter((invitation) => {
+      if (invitation.inviterId === userId)
+        //cancel sent invitation
+        this.server
+          .to(invitation.inviteeId.toString())
+          .emit("cancelInvitation", invitation);
+      else if (invitation.inviteeId === userId)
+        //refuse received invitation
+        this.server
+          .to(invitation.inviterId.toString())
+          .emit("refuseInvitation", invitation);
+      return !(
+        invitation.inviterId === userId || invitation.inviteeId === userId
+      );
+    });
+  };
+
   handleConnection(client: Socket, ...args: any[]) {
     client.join("user_" + client.request.session.passport.user.toString());
   }
@@ -83,16 +97,39 @@ export class SocketGateway {
     gameMode: GameMode,
     @ConnectedSocket() client: Socket
   ) {
-    client.join(gameMode);
-    let size = this.server.sockets.adapter.rooms.get(gameMode)?.size;
     const currentUserId = client.request.session.passport.user;
+    const currentUserState = await this.getUserState(currentUserId);
 
-    this.saveInvitation = this.saveInvitation.filter((e) => {
-      if (e.inviterId == currentUserId) {
-        this.server.emit("cancelInvitation", {});
-      }
-      return e.inviterId != currentUserId;
-    });
+    switch (currentUserState) {
+      case UserState.PLAYING:
+        this.server
+          .to(currentUserId.toString())
+          .emit("error", "Action not allowed - You are already playing");
+        return;
+      case UserState.INVITING:
+        this.server
+          .to(currentUserId.toString())
+          .emit(
+            "error",
+            "Action not allowed - You are inviting someone. Cancel invitation first"
+          );
+        return;
+      case UserState.MATCHING:
+        this.server
+          .to(currentUserId.toString())
+          .emit(
+            "error",
+            "Action not allowed - You are already in queue for matchmaking"
+          );
+        return;
+      default:
+        break;
+    }
+
+    this.cancelSentAndReceivedInvitations(currentUserId);
+    client.join(gameMode);
+
+    let size = this.server.sockets.adapter.rooms.get(gameMode)?.size;
 
     while (size && size >= 2) {
       let ids: number[] = [];
@@ -113,7 +150,10 @@ export class SocketGateway {
             player2Score: 0,
           },
         });
-        this.server.to(gameMode).emit("startGame", game.id);
+        this.server
+          .to(ids[0].toString())
+          .to(ids[1].toString())
+          .emit("startGame", game.id);
         (await this.server.in(gameMode).fetchSockets()).forEach((socket) => {
           socket.rooms.forEach((room) => {
             if (room.substring(0, room.length) === "user_" + ids[0]) {
@@ -131,43 +171,86 @@ export class SocketGateway {
   @SubscribeMessage("gameInvitation")
   async onGameInvitation(
     @MessageBody()
-    { gameMode, inviteeId }: { gameMode: GameMode; inviteeId: number },
+    {
+      gameMode,
+      inviteeId,
+      inviterName,
+    }: { gameMode: GameMode; inviteeId: number; inviterName: string },
     @ConnectedSocket() client: Socket
   ) {
     const currentUserId = client.request.session.passport.user;
-    if ((await this.getUserState(inviteeId)) === UserState.IDLE) {
-      this.saveInvitation = this.saveInvitation.filter((e) => {
-        return e.inviterId != currentUserId && e.inviteeId != currentUserId;
-      });
-    } else {
-      const user = await this.prismaService.user.findUnique({
-        select: { name: true },
-        where: { id: currentUserId },
-      });
-      this.server
-        .to(currentUserId.toString())
-        .emit("error", user + "is already in game");
+    const currentUserState = await this.getUserState(currentUserId);
+    const userState = await this.getUserState(inviteeId);
+
+    switch (currentUserState) {
+      case UserState.PLAYING:
+        this.server
+          .to(currentUserId.toString())
+          .emit("error", "Action not allowed - You are already playing");
+        return;
+      case UserState.INVITING:
+        this.server
+          .to(currentUserId.toString())
+          .emit(
+            "error",
+            "Action not allowed - You are already inviting someone. Cancel invitation first"
+          );
+        return;
+      case UserState.MATCHING:
+        this.server
+          .to(currentUserId.toString())
+          .emit(
+            "error",
+            "Action not allowed - You are in matchmaking. Leave queue first"
+          );
+        return;
+      default:
+        break;
     }
+
+    switch (userState) {
+      case UserState.PLAYING:
+        this.server
+          .to(currentUserId.toString())
+          .emit("error", " User is already in game");
+        return;
+      case UserState.MATCHING:
+        this.server
+          .to(currentUserId.toString())
+          .emit(
+            "error",
+            " User is in queue for matchmaking. Send a direct message!"
+          );
+        return;
+      case UserState.INVITING:
+        this.server
+          .to(currentUserId.toString())
+          .emit("error", " User is already inviting someone");
+        return;
+
+      default:
+        break;
+    }
+
+    this.cancelSentAndReceivedInvitations(currentUserId);
 
     if (
       !this.saveInvitation.some(
-        (e) => e.inviteeId == inviteeId && e.inviterId == currentUserId
+        (e) => e.inviteeId == inviteeId && e.inviterId === currentUserId
       )
     )
       this.saveInvitation.push({
         inviterId: currentUserId,
         gameMode,
         inviteeId,
+        inviterName: inviterName,
       });
-    const user = await this.prismaService.user.findUnique({
-      select: { name: true },
-      where: { id: currentUserId },
-    });
+
     this.server.to(inviteeId.toString()).emit("newInvitation", {
-      inviteerId: currentUserId,
+      inviterId: currentUserId,
       inviteeId,
       gameMode,
-      inviterName: user?.name,
+      inviterName: inviterName,
     });
   }
 
@@ -178,15 +261,47 @@ export class SocketGateway {
     @ConnectedSocket() client: Socket
   ) {
     const currentUserId = client.request.session.passport.user;
-    const index = this.saveInvitation.findIndex(
-      (e) => e.inviterId === inviterId && e.inviteeId == inviteeId
-    );
+    const currentUserState = await this.getUserState(currentUserId);
+    const userState = await this.getUserState(inviterId);
 
-    this.saveInvitation = this.saveInvitation.filter((e) => {
-      return e.inviterId != currentUserId && e.inviteeId != currentUserId;
-    });
+    if (userState !== UserState.INVITING) {
+      this.server
+        .to(currentUserId.toString())
+        .emit("error", inviterName + " canceled invitation");
+      return;
+    }
 
-    this.saveInvitation.splice(index, 1);
+    if (currentUserState !== UserState.IDLE) {
+      this.server
+        .to(currentUserId.toString())
+        .emit(
+          "error",
+          `Action not allowed - ${
+            currentUserState === UserState.PLAYING
+              ? "You are already playing"
+              : currentUserState === UserState.INVITING
+              ? "You are already inviting someone. Cancel invitation first"
+              : "You are in matchmaking. Leave queue first"
+          }`
+        );
+      this.server
+        .to(inviterId.toString())
+        .emit(
+          "error",
+          `${
+            currentUserState === UserState.PLAYING
+              ? "User is already playing"
+              : currentUserState === UserState.INVITING
+              ? "User is already inviting someone"
+              : "User is in matchmaking"
+          }`
+        );
+      return;
+    }
+
+    this.cancelSentAndReceivedInvitations(inviteeId);
+    this.cancelSentAndReceivedInvitations(inviterId);
+
     const game = this.prismaService.game.create({
       data: {
         player1Id: inviterId,
@@ -208,34 +323,51 @@ export class SocketGateway {
     @MessageBody()
     { gameMode, inviteeId, inviterId, inviterName }: GameInvitation
   ) {
+    const userState = await this.getUserState(inviterId);
+    const currentUserState = await this.getUserState(inviteeId);
+
     const index = this.saveInvitation.findIndex(
-      (e) => e.inviterId === inviterId && e.inviteeId == inviteeId
+      (i) => i.inviterId === inviterId && i.inviteeId === inviteeId
     );
     this.saveInvitation.splice(index, 1);
-    this.server.to(inviterId.toString()).emit("refuseInvitation", {
-      gameMode,
-      inviteeId,
-      inviterId,
-      inviterName,
-    });
+
+    if (userState !== UserState.INVITING) {
+      this.server
+        .to(inviteeId.toString())
+        .emit("error", "User is not inviting you anymore");
+      return;
+    }
+
+    if (currentUserState === UserState.IDLE)
+      this.server.to(inviterId.toString()).emit("cancelInvitation", {
+        gameMode,
+        inviteeId,
+        inviterId,
+        inviterName,
+      });
   }
 
+  //TODO
   @SubscribeMessage("cancelInvitation")
-  async onCancelInvitation(
-    @MessageBody()
-    { gameMode, inviteeId, inviterId, inviterName }: GameInvitation
-  ) {
-    const index = this.saveInvitation.findIndex(
-      (e) => e.inviterId === inviterId && e.inviteeId == inviteeId
-    );
-    this.saveInvitation.splice(index, 1);
+  async onCancelInvitation(@ConnectedSocket() client: Socket) {
+    const currentUserId = client.request.session.passport.user;
+    const currentUserState = await this.getUserState(currentUserId);
 
-    this.server.to(inviteeId.toString()).emit("cancelInvitation", {
-      gameMode,
-      inviteeId,
-      inviterId,
-      inviterName,
-    });
+    if (currentUserState === UserState.INVITING) {
+      this.saveInvitation.filter((i) => {
+        if (i.inviterId === currentUserId) {
+          this.server
+            .to(i.inviteeId.toString())
+            .emit("error", `${i.inviterName} canceled invitation`);
+          return false;
+        }
+        return true;
+      });
+    } else {
+      this.server
+        .to(currentUserId.toString())
+        .emit("error", `Action not allowed `);
+    }
   }
 
   @SubscribeMessage("leaveMatchmaking")
@@ -245,13 +377,23 @@ export class SocketGateway {
     gameMode: GameMode
   ) {
     const currentUserId = client.request.session.passport.user;
-    (await this.server.in(gameMode).fetchSockets()).forEach((socket) => {
-      socket.rooms.forEach((room) => {
-        if (room.substring(0, room.length) === "user_" + currentUserId) {
-          socket.leave(gameMode);
+    const currentUserState = await this.getUserState(currentUserId);
+    if (currentUserState === UserState.MATCHING)
+      for (const mode in GameMode) {
+        const sockets = await this.server.in(mode).fetchSockets();
+        for (const socket of sockets) {
+          for (const room of socket.rooms) {
+            if (room === "user_" + `${currentUserId}`) {
+              socket.leave(gameMode);
+            }
+          }
         }
-      });
-    });
+      }
+    else {
+      this.server
+        .to(currentUserId.toString())
+        .emit("error", "You are not in queue for matchmaking");
+    }
   }
 
   afterInit(server: Server, ...args: any[]) {
@@ -269,7 +411,7 @@ export class SocketGateway {
           acc.push(curr);
         }
         return acc;
-      }, new Array<SavedInvitation>());
+      }, new Array<GameInvitation>());
 
       console.log("room destroyed", room);
       server.emit("offline", room);

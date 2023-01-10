@@ -162,7 +162,8 @@ const RenderState = ({
   setState: React.Dispatch<React.SetStateAction<State>>;
   isNarrow: boolean | undefined;
 }) => {
-  const { invitationState, invitationId, sendInvite } = useInvitationStore();
+  const { invitationState, invitationId, invitationName, sendInvite } =
+    useInvitationStore();
   const socket = useSocketStore().socket;
 
   const play = () => {
@@ -170,7 +171,11 @@ const RenderState = ({
   };
   const selectMode = (gameMode: GameMode) => {
     if (invitationState) {
-      socket.emit("gameInvitation", { gameMode, inviteeId: invitationId });
+      socket.emit("gameInvitation", {
+        gameMode,
+        inviteeId: invitationId,
+        inviterName: invitationName,
+      });
       sendInvite();
     } else {
       socket.emit("joinMatchmaking", gameMode);
