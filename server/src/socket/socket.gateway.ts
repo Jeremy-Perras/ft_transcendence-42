@@ -96,7 +96,6 @@ export class SocketGateway {
   };
 
   async handleConnection(client: Socket, ...args: any[]) {
-    //TODO
     const currentUserId = client.request.session.passport.user;
 
     client.join("user_" + client.request.session.passport.user.toString());
