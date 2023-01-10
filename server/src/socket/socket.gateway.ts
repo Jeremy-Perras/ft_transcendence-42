@@ -231,9 +231,11 @@ export class SocketGateway {
         break;
     }
 
+    this.cancelSentAndReceivedInvitations(currentUserId);
+
     if (
       !this.saveInvitation.some(
-        (e) => e.inviteeId == inviteeId && e.inviterId === currentUserId
+        (e) => e.inviteeId === inviteeId && e.inviterId === currentUserId
       )
     )
       this.saveInvitation.push({
@@ -249,7 +251,6 @@ export class SocketGateway {
       gameMode,
       inviterName: inviterName,
     });
-    this.cancelSentAndReceivedInvitations(currentUserId);
   }
 
   @SubscribeMessage("acceptInvitation")
