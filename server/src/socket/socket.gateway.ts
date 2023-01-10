@@ -8,6 +8,7 @@ import {
 import { Server, Socket } from "socket.io";
 import { PrismaService } from "../prisma/prisma.service";
 import { GameMode } from "@prisma/client";
+import { UserStatus } from "../user/user.model";
 
 type GameInvitation = {
   inviterId: number; // personne qui invite
@@ -80,15 +81,42 @@ export class SocketGateway {
         //refuse received invitation
         this.server
           .to("user_" + invitation.inviterId.toString())
-          .emit("refuseInvitation", invitation);
+          .emit("error", "Invitation refused");
       return !(
         invitation.inviterId === userId || invitation.inviteeId === userId
       );
     });
   };
 
-  handleConnection(client: Socket, ...args: any[]) {
+  private checkConnection = (userId: number): boolean => {
+    if (this.server.sockets.adapter.rooms.get("user_" + userId)) {
+      return true;
+    }
+    return false;
+  };
+
+  async handleConnection(client: Socket, ...args: any[]) {
+    //TODO
+    const currentUserId = client.request.session.passport.user;
+
     client.join("user_" + client.request.session.passport.user.toString());
+    const currentUserState = await this.getUserState(currentUserId);
+    const status =
+      currentUserState === UserState.PLAYING
+        ? "Playing"
+        : currentUserState === UserState.INVITING
+        ? "Inviting"
+        : currentUserState === UserState.MATCHING
+        ? "Matching"
+        : "Idle";
+    if (
+      this.server.sockets.adapter.rooms.get("user_" + currentUserId)?.size !== 1
+    ) {
+      client.emit("error", "You have a session opened in status : " + status);
+    } else
+      console.log(
+        this.server.sockets.adapter.rooms.get("user_" + currentUserId)
+      );
   }
 
   @SubscribeMessage("joinMatchmaking")
@@ -181,6 +209,12 @@ export class SocketGateway {
     const currentUserId = client.request.session.passport.user;
     const currentUserState = await this.getUserState(currentUserId);
     const userState = await this.getUserState(inviteeId);
+    if (!this.checkConnection(inviteeId)) {
+      this.server
+        .to("user_" + currentUserId)
+        .emit("error", "Player is disconnected");
+      return;
+    }
     switch (currentUserState) {
       case UserState.PLAYING:
         this.server
@@ -211,20 +245,20 @@ export class SocketGateway {
       case UserState.PLAYING:
         this.server
           .to("user_" + currentUserId.toString())
-          .emit("error", " User is already in game");
+          .emit("error", "User is already in game");
         return;
       case UserState.MATCHING:
         this.server
           .to("user_" + currentUserId.toString())
           .emit(
             "error",
-            " User is in queue for matchmaking. Send a direct message!"
+            "User is in queue for matchmaking. Send a direct message!"
           );
         return;
       case UserState.INVITING:
         this.server
           .to("user_" + currentUserId.toString())
-          .emit("error", " User is already inviting someone");
+          .emit("error", "User is already inviting someone");
         return;
 
       default:
@@ -348,6 +382,9 @@ export class SocketGateway {
         inviterId,
         inviterName,
       });
+    this.server
+      .to("user_" + inviterId.toString())
+      .emit("error", " invitation refused");
   }
 
   //TODO
@@ -374,11 +411,7 @@ export class SocketGateway {
   }
 
   @SubscribeMessage("leaveMatchmaking")
-  async onLeaveMatchMaking(
-    @ConnectedSocket() client: Socket,
-    @MessageBody()
-    gameMode: GameMode
-  ) {
+  async onLeaveMatchMaking(@ConnectedSocket() client: Socket) {
     const currentUserId = client.request.session.passport.user;
     const currentUserState = await this.getUserState(currentUserId);
     if (currentUserState === UserState.MATCHING)
@@ -387,7 +420,7 @@ export class SocketGateway {
         for (const socket of sockets) {
           for (const room of socket.rooms) {
             if (room === "user_" + `${currentUserId}`) {
-              socket.leave(gameMode);
+              socket.leave(mode);
             }
           }
         }

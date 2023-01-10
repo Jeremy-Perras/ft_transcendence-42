@@ -244,14 +244,17 @@ const RenderState = ({
 const Error = ({
   message,
   setDisplayInvitationError,
+  setState,
 }: {
   message: string | undefined;
   setDisplayInvitationError: React.Dispatch<React.SetStateAction<boolean>>;
+  setState: React.Dispatch<React.SetStateAction<State>>;
 }) => {
+  setState("idle");
   return (
     <div className="absolute top-0 z-10  w-1/3 justify-center ">
       <div className=" flex w-full flex-auto flex-row  bg-slate-100 ">
-        <span className="flex grow overflow-hidden text-ellipsis pl-2 pt-1 align-middle font-sans text-black">{`${message}`}</span>
+        <span className="flex grow truncate pl-2 pt-1 text-center align-middle font-sans text-black">{`${message}`}</span>
         <div className="flex w-1/3 basis-1/5 justify-end ">
           <RefuseIcon
             className="mx-2 w-5 bg-red-300 hover:cursor-pointer "
@@ -337,6 +340,7 @@ export const Home = () => {
         <Error
           message={message}
           setDisplayInvitationError={setDisplayInvitationError}
+          setState={setState}
         />
       ) : null}
       <GameInvitations />

@@ -40,6 +40,7 @@ import {
   FriendStatus,
   GameMode,
   UserProfileQuery,
+  UserStatus,
 } from "../../../src/gql/graphql";
 import request from "graphql-request";
 import queryClient from "../../../src/query";
@@ -583,14 +584,20 @@ const FriendButtons = ({
         queryClient.invalidateQueries(["UserProfile", data.user.id]),
     }
   );
-
+  console.log(data.user.status);
   return (
     <div className="flex h-24 select-none bg-slate-100 text-2xl font-bold text-slate-600">
       <div
         onClick={() => {
-          createInvite(data.user.name, data.user.id);
+          if (data.user.status === UserStatus.Online) {
+            createInvite(data.user.name, data.user.id);
+          }
         }}
-        className="flex h-24 basis-1/3 items-center justify-center border-2 p-4 text-center transition-all hover:cursor-pointer hover:bg-slate-200"
+        className={`flex h-24 basis-1/3 items-center justify-center border-2 p-4 text-center transition-all ${
+          data.user.status === UserStatus.Offline
+            ? "text-slate-300 hover:cursor-not-allowed"
+            : "hover:cursor-pointer hover:bg-slate-200"
+        } `}
       >
         <PlayIcon className="mr-2 w-10 self-center" />
         <span>Play !</span>
