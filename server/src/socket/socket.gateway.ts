@@ -16,6 +16,7 @@ type GameInvitation = {
   gameMode: string;
   inviterName: string;
 };
+
 enum UserState {
   MATCHING,
   PLAYING,
@@ -33,7 +34,42 @@ export class SocketGateway {
 
   private saveInvitation: SavedInvitation[] = [];
   private stateUser: UserState;
-  private getUserState = function (id: number): UserState {
+
+  private getUserState = async (id: number): Promise<UserState> => {
+    const isInviting = this.saveInvitation.find((e) => e.inviterId == id);
+    if (isInviting) {
+      return UserState.INVITING;
+    }
+
+    let isMatching = false;
+
+    for (const mode in GameMode) {
+      if (isMatching) break;
+      const sockets = await this.server.in(mode).fetchSockets();
+      for (const socket of sockets) {
+        if (isMatching) break;
+        for (const room of socket.rooms) {
+          if (room.substring(0, 5) === "user_") {
+            if (+room.substring(5) === id) {
+              isMatching = true;
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    if (isMatching) {
+      return UserState.MATCHING;
+    }
+
+    const isPlaying = await this.prismaService.game.findMany({
+      where: { OR: [{ player1Id: id }, { player2Id: id }], finishedAt: null },
+    });
+    if (isPlaying != undefined) {
+      return UserState.PLAYING;
+    }
+
     return UserState.IDLE;
   };
 
@@ -48,44 +84,49 @@ export class SocketGateway {
     @ConnectedSocket() client: Socket
   ) {
     client.join(gameMode);
-    // let size = this.server.sockets.adapter.rooms.get(gameMode)?.size;
+    let size = this.server.sockets.adapter.rooms.get(gameMode)?.size;
+    const currentUserId = client.request.session.passport.user;
 
-    // if (size) {
-    // while (size >= 2) {
-    // TODO
-    let ids: number[] = [];
-
-    (await this.server.in(gameMode).fetchSockets()).forEach((socket) => {
-      socket.rooms.forEach((room) => {
-        if (room.substring(0, 5) === "user_") {
-          ids = [...ids, +room.slice(5)];
-        }
-      });
+    this.saveInvitation = this.saveInvitation.filter((e) => {
+      if (e.inviterId == currentUserId) {
+        this.server.emit("cancelInvitation", {});
+      }
+      return e.inviterId != currentUserId;
     });
-    if (ids[0] && ids[1]) {
-      const game = await this.prismaService.game.create({
-        data: {
-          player1Id: ids[0],
-          player2Id: ids[1],
-          mode: gameMode,
-          player1Score: 0,
-          player2Score: 0,
-        },
-      });
-      this.server.to(gameMode).emit("startGame", game.id);
+
+    while (size && size >= 2) {
+      let ids: number[] = [];
       (await this.server.in(gameMode).fetchSockets()).forEach((socket) => {
         socket.rooms.forEach((room) => {
-          if (room.substring(0, room.length) === "user_" + ids[0]) {
-            socket.leave(gameMode);
-          } else if (room.substring(0, room.length) === "user_" + ids[1]) {
-            socket.leave(gameMode);
+          if (room.substring(0, 5) === "user_") {
+            ids = [...ids, +room.slice(5)];
           }
         });
       });
+      if (ids[0] && ids[1]) {
+        const game = await this.prismaService.game.create({
+          data: {
+            player1Id: ids[0],
+            player2Id: ids[1],
+            mode: gameMode,
+            player1Score: 0,
+            player2Score: 0,
+          },
+        });
+        this.server.to(gameMode).emit("startGame", game.id);
+        (await this.server.in(gameMode).fetchSockets()).forEach((socket) => {
+          socket.rooms.forEach((room) => {
+            if (room.substring(0, room.length) === "user_" + ids[0]) {
+              socket.leave(gameMode);
+            } else if (room.substring(0, room.length) === "user_" + ids[1]) {
+              socket.leave(gameMode);
+            }
+          });
+        });
+        size = this.server.sockets.adapter.rooms.get(gameMode)?.size;
+      }
     }
   }
-  //   }
-  // }
 
   @SubscribeMessage("gameInvitation")
   async onGameInvitation(
@@ -93,8 +134,21 @@ export class SocketGateway {
     { gameMode, inviteeId }: { gameMode: GameMode; inviteeId: number },
     @ConnectedSocket() client: Socket
   ) {
-    console.log(this.server);
     const currentUserId = client.request.session.passport.user;
+    if ((await this.getUserState(inviteeId)) === UserState.IDLE) {
+      this.saveInvitation = this.saveInvitation.filter((e) => {
+        return e.inviterId != currentUserId && e.inviteeId != currentUserId;
+      });
+    } else {
+      const user = await this.prismaService.user.findUnique({
+        select: { name: true },
+        where: { id: currentUserId },
+      });
+      this.server
+        .to(currentUserId.toString())
+        .emit("error", user + "is already in game");
+    }
+
     if (
       !this.saveInvitation.some(
         (e) => e.inviteeId == inviteeId && e.inviterId == currentUserId
@@ -120,11 +174,18 @@ export class SocketGateway {
   @SubscribeMessage("acceptInvitation")
   async onAcceptInvitation(
     @MessageBody()
-    { gameMode, inviteeId, inviterId, inviterName }: GameInvitation
+    { gameMode, inviteeId, inviterId, inviterName }: GameInvitation,
+    @ConnectedSocket() client: Socket
   ) {
+    const currentUserId = client.request.session.passport.user;
     const index = this.saveInvitation.findIndex(
       (e) => e.inviterId === inviterId && e.inviteeId == inviteeId
     );
+
+    this.saveInvitation = this.saveInvitation.filter((e) => {
+      return e.inviterId != currentUserId && e.inviteeId != currentUserId;
+    });
+
     this.saveInvitation.splice(index, 1);
     const game = this.prismaService.game.create({
       data: {
@@ -177,10 +238,21 @@ export class SocketGateway {
     });
   }
 
-  // @SubscribeMessage("leaveMatchmaking")
-  // async onLeaveMatchMaking(@MessageBody() body: GameInvitation) {
-  //   return;
-  // }
+  @SubscribeMessage("leaveMatchmaking")
+  async onLeaveMatchMaking(
+    @ConnectedSocket() client: Socket,
+    @MessageBody()
+    gameMode: GameMode
+  ) {
+    const currentUserId = client.request.session.passport.user;
+    (await this.server.in(gameMode).fetchSockets()).forEach((socket) => {
+      socket.rooms.forEach((room) => {
+        if (room.substring(0, room.length) === "user_" + currentUserId) {
+          socket.leave(gameMode);
+        }
+      });
+    });
+  }
 
   afterInit(server: Server, ...args: any[]) {
     server.of("/").adapter.on("delete-room", (room) => {
