@@ -9,6 +9,7 @@ import { Server, Socket } from "socket.io";
 import { PrismaService } from "../prisma/prisma.service";
 import { GameMode } from "@prisma/client";
 import { UserStatus } from "../user/user.model";
+import { GameService } from "../game/game.service";
 
 type GameInvitation = {
   inviterId: number; // personne qui invite
@@ -26,7 +27,10 @@ enum UserState {
 
 @WebSocketGateway({ cors: "*" })
 export class SocketGateway {
-  constructor(private prismaService: PrismaService) {}
+  constructor(
+    private prismaService: PrismaService,
+    private gameService: GameService
+  ) {}
   @WebSocketServer()
   server: Server;
 
@@ -359,7 +363,13 @@ export class SocketGateway {
           socket.join(inviteeId.toString() + "_" + inviterId.toString());
       }
     }
-    console.log(this.server.sockets.adapter.rooms);
+
+    this.server
+      .to(inviteeId.toString() + "_" + inviterId.toString())
+      .emit(
+        "initialState",
+        this.gameService.InitialState((await game).id, inviterId, inviteeId)
+      );
   }
 
   @SubscribeMessage("refuseInvitation")
@@ -437,6 +447,24 @@ export class SocketGateway {
         .to("user_" + currentUserId.toString())
         .emit("error", "You are not in queue for matchmaking");
     }
+  }
+
+  @SubscribeMessage("movePadUp")
+  async onMovePadUp(
+    @ConnectedSocket() client: Socket,
+    @MessageBody()
+    gameId: number
+  ) {
+    this.gameService.MovePadUp(gameId);
+  }
+
+  @SubscribeMessage("movePadDown")
+  async onMovePadDown(
+    @ConnectedSocket() client: Socket,
+    @MessageBody()
+    gameId: number
+  ) {
+    this.gameService.MovePadDown(gameId);
   }
 
   afterInit(server: Server, ...args: any[]) {
