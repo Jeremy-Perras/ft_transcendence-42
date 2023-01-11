@@ -112,10 +112,7 @@ export class SocketGateway {
       this.server.sockets.adapter.rooms.get("user_" + currentUserId)?.size !== 1
     ) {
       client.emit("error", "You have a session opened in status : " + status);
-    } else
-      console.log(
-        this.server.sockets.adapter.rooms.get("user_" + currentUserId)
-      );
+    }
   }
 
   @SubscribeMessage("joinMatchmaking")
@@ -352,6 +349,17 @@ export class SocketGateway {
     this.server
       .to("user_" + inviterId.toString())
       .emit("startGame", (await game).id);
+
+    const sockets = await this.server.fetchSockets();
+    for (const socket of sockets) {
+      for (const room of socket.rooms) {
+        if (room === "user_" + `${inviteeId}`) {
+          socket.join(inviteeId.toString() + "_" + inviterId.toString());
+        } else if (room === "user_" + `${inviterId}`)
+          socket.join(inviteeId.toString() + "_" + inviterId.toString());
+      }
+    }
+    console.log(this.server.sockets.adapter.rooms);
   }
 
   @SubscribeMessage("refuseInvitation")
