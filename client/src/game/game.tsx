@@ -159,14 +159,6 @@ export const Game = () => {
 
   const startTime = new Date().getSeconds();
 
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     setGameState("score");
-  //   }, GAME_DURATION * 1000);
-
-  //   return () => clearInterval(interval);
-  // }, []);
-
   return gameState === "playing" ? (
     <>
       <GameCanvas draw={draw} />
