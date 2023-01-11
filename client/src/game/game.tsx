@@ -1,9 +1,18 @@
 import { useRef, useEffect, useState } from "react";
+
+const GAME_DURATION = 20;
 const CANVAS_WIDTH = 300;
 const CANVAS_HEIGHT = 150;
 const PAD_HEIGHT = 30;
 const PAD_WIDTH = 5;
 const BALL_RADIUS = 4;
+
+const PAD_VELOCITY = Math.ceil(CANVAS_HEIGHT / PAD_HEIGHT);
+
+type Coord = {
+  x: number;
+  y: number;
+};
 
 const background = {
   x: 0,
@@ -81,7 +90,9 @@ const GameCanvas = ({
 }) => {
   const canvas = useRef(null);
   if (!canvas) return <>Error</>;
+
   const [yLeftPad, setYLeftPad] = useState(30);
+
   useEffect(() => {
     const context = canvas.current.getContext("2d");
     draw(context, yLeftPad);
@@ -94,10 +105,10 @@ const GameCanvas = ({
     (e) => {
       console.log(yLeftPad);
       if (e.key === "ArrowUp") {
-        setYLeftPad(yLeftPad - 5);
+        setYLeftPad(yLeftPad - PAD_VELOCITY);
       }
       if (e.key === "ArrowDown") {
-        setYLeftPad(yLeftPad + 5);
+        setYLeftPad(yLeftPad + PAD_VELOCITY);
       }
     },
     { once: true }
@@ -112,6 +123,56 @@ const GameCanvas = ({
   );
 };
 
+const Score = () => {
+  return <div>SCORE</div>;
+};
+
+//TODO : fix issue when long timer : rerender ? => reinit timer ?
+
+const GameTimer = ({
+  startTime,
+  setGameState,
+}: {
+  startTime: number;
+  setGameState: React.Dispatch<React.SetStateAction<string>>;
+}) => {
+  const [timer, setTimer] = useState(GAME_DURATION);
+  useEffect(() => {
+    if (timer < 0) setGameState("score");
+    const interval = setInterval(() => {
+      setTimer(startTime + GAME_DURATION - new Date().getSeconds());
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [timer]);
+  console.log(timer);
+  return (
+    <div className="my-2 flex w-20 justify-center">
+      <span>{Math.floor(timer / 60)} </span>
+      <span className="mx-1">:</span>
+      <span>{timer % 60 < 10 ? `0${timer % 60}` : `${timer % 60}`}</span>
+    </div>
+  );
+};
+
 export const Game = () => {
-  return <GameCanvas draw={draw} />;
+  const [gameState, setGameState] = useState("playing");
+
+  const startTime = new Date().getSeconds();
+
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     setGameState("score");
+  //   }, GAME_DURATION * 1000);
+
+  //   return () => clearInterval(interval);
+  // }, []);
+
+  return gameState === "playing" ? (
+    <>
+      <GameCanvas draw={draw} />
+      <GameTimer startTime={startTime} setGameState={setGameState} />
+    </>
+  ) : (
+    <Score />
+  );
 };
