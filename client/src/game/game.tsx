@@ -3,7 +3,10 @@ let x = 10;
 let y = 20;
 import { sleep } from "@tanstack/query-core/build/lib/utils";
 import React, { useRef, useEffect, useState } from "react";
-
+import { useSocketStore } from "../stores";
+type Player = { x: number; y: number };
+type Ball = { x: number; y: number };
+type GameData = { player1: Player; player2: Player; ball: Ball };
 const infoPlayers1 = { x: 600, y: 200 };
 const infoPlayers2 = { x: 0, y: 0 };
 const infoBall = {
@@ -19,7 +22,7 @@ export const Game = () => {
   const canvasRef = useRef(null);
   const ctxRef = useRef(null);
   const [seconds, setSeconds] = useState(0);
-
+  const socket = useSocketStore().socket;
   const test = (e: KeyboardEvent) => {
     setDrawing(e);
     if (e.key === "w") infoPlayers1.y += 10;
@@ -94,7 +97,9 @@ export const Game = () => {
     drawBall_1(ctx);
     return () => clearTimeout(timer);
   }, [drawing, seconds]);
-
+  socket.on("initialState", (initial) => {
+    console.log("init", initial);
+  });
   return (
     <canvas
       tabIndex={0}
