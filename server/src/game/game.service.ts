@@ -53,16 +53,39 @@ export class GameService {
     return this.saveGameData.get(id);
   }
 
+  PlayerState(state: PlayerState, playerId: number, gameId: number) {
+    const gameData = this.saveGameData.get(gameId);
+    if (gameData) {
+      switch (state) {
+        case PlayerState.UP:
+          if (playerId === this.saveGameData.get(gameId)?.player1.id) {
+            gameData.player1.playerState = PlayerState.UP;
+          } else gameData.player2.playerState = PlayerState.UP;
+          this.saveGameData.set(gameId, gameData);
+          break;
+        case PlayerState.DOWN:
+          if (playerId === this.saveGameData.get(gameId)?.player1.id)
+            gameData.player1.playerState = PlayerState.DOWN;
+          else gameData.player2.playerState = PlayerState.DOWN;
+          this.saveGameData.set(gameId, gameData);
+          break;
+        default:
+          if (playerId === this.saveGameData.get(gameId)?.player1.id)
+            gameData.player1.playerState = PlayerState.STILL;
+          else gameData.player2.playerState = PlayerState.STILL;
+          this.saveGameData.set(gameId, gameData);
+          break;
+      }
+    }
+  }
+
   MovePadUp(gameId: number, playerId: number) {
     const gameData = this.saveGameData.get(gameId);
-    console.log(gameData);
     if (gameData != undefined) {
       if (playerId === gameData.player1.id) {
         gameData.player1.coord.y += 5;
-        gameData.player1.playerState = PlayerState.UP;
       } else {
         gameData.player2.coord.y += 5;
-        gameData.player2.playerState = PlayerState.UP;
       }
       this.saveGameData.set(gameId, gameData);
     }
@@ -74,10 +97,8 @@ export class GameService {
     if (gameData != undefined) {
       if (playerId === gameData.player1.id) {
         gameData.player1.coord.y -= 5;
-        gameData.player1.playerState = PlayerState.DOWN;
       } else {
         gameData.player2.coord.y -= 5;
-        gameData.player2.playerState = PlayerState.DOWN;
       }
       {
         this.saveGameData.set(gameId, gameData);
@@ -86,16 +107,16 @@ export class GameService {
     return this.saveGameData.get(gameId);
   }
 
-  Still(gameId: number, playerId: number) {
-    const gameData = this.saveGameData.get(gameId);
-    if (gameData != undefined) {
-      if (playerId === gameData.player1.id) {
-        gameData.player1.playerState = PlayerState.STILL;
-      } else {
-        gameData.player2.playerState = PlayerState.STILL;
-      }
-      this.saveGameData.set(gameId, gameData);
-    }
-    return this.saveGameData.get(gameId);
-  }
+  // Still(gameId: number, playerId: number) {
+  //   const gameData = this.saveGameData.get(gameId);
+  //   if (gameData != undefined) {
+  //     if (playerId === gameData.player1.id) {
+  //       gameData.player1.playerState = PlayerState.STILL;
+  //     } else {
+  //       gameData.player2.playerState = PlayerState.STILL;
+  //     }
+  //     this.saveGameData.set(gameId, gameData);
+  //   }
+  //   return this.saveGameData.get(gameId);
+  // }
 }

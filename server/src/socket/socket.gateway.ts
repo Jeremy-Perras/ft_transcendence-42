@@ -103,18 +103,59 @@ export class SocketGateway {
   private playerState(gameId: number) {
     const callback = () => {
       const gameData = this.gameService.saveGameData.get(gameId);
-      if (gameData?.player1.playerState === PlayerState.DOWN)
-        this.gameService.MovePadDown(gameId, gameData.player1.id);
-      else if (gameData?.player1.playerState === PlayerState.UP)
-        this.gameService.MovePadUp(gameId, gameData.player1.id);
-      if (gameData?.player2.playerState === PlayerState.DOWN)
-        this.gameService.MovePadDown(gameId, gameData.player1.id);
-      else if (gameData?.player2.playerState === PlayerState.UP)
-        this.gameService.MovePadUp(gameId, gameData.player1.id);
+      if (gameData?.player1.playerState === PlayerState.DOWN) {
+        const gameState = this.gameService.MovePadDown(
+          gameId,
+          gameData.player1.id
+        );
+        this.server
+          .to(
+            gameData?.player2.id.toString() +
+              "_" +
+              gameData?.player1.id.toString()
+          )
+          .emit("updateCanvas", gameState);
+      } else if (gameData?.player1.playerState === PlayerState.UP) {
+        const gameState = this.gameService.MovePadUp(
+          gameId,
+          gameData.player2.id
+        );
+        this.server
+          .to(
+            gameData?.player2.id.toString() +
+              "_" +
+              gameData?.player1.id.toString()
+          )
+          .emit("updateCanvas", gameState);
+      }
+      if (gameData?.player2.playerState === PlayerState.DOWN) {
+        const gameState = this.gameService.MovePadDown(
+          gameId,
+          gameData.player2.id
+        );
+        this.server
+          .to(
+            gameData?.player2.id.toString() +
+              "_" +
+              gameData?.player1.id.toString()
+          )
+          .emit("updateCanvas", gameState);
+      } else if (gameData?.player2.playerState === PlayerState.UP) {
+        const gameState = this.gameService.MovePadUp(
+          gameId,
+          gameData.player1.id
+        );
+        this.server
+          .to(
+            gameData?.player2.id.toString() +
+              "_" +
+              gameData?.player1.id.toString()
+          )
+          .emit("updateCanvas", gameState);
+      }
     };
 
     this.gameInProgress.set(gameId, setInterval(callback, 100));
-    console.log(this.gameInProgress);
   }
 
   async handleConnection(client: Socket, ...args: any[]) {
@@ -215,21 +256,27 @@ export class SocketGateway {
         for (const socket of sockets) {
           for (const room of socket.rooms) {
             if (room === "user_" + ids[0].toString()) {
-              socket.join(ids[0].toString() + "_" + ids[1].toString());
+              socket.join(
+                game.player2Id.toString() + "_" + game.player1Id.toString()
+              );
             } else if (room === "user_" + ids[1].toString())
-              socket.join(ids[0].toString() + "_" + ids[1].toString());
+              socket.join(
+                game.player2Id.toString() + "_" + game.player1Id.toString()
+              );
           }
         }
-        console.log("Test");
-
+        this.playerState(game.id);
         this.server
-          .to(ids[0].toString() + "_" + ids[1].toString())
-          .emit("initialState", {
-            player1: { id: ids[0], coord: { x: 20, y: 75 }, score: 0 },
-            player2: { id: ids[1], coord: { x: 270, y: 75 }, score: 0 },
-            ball: { x: 150, y: 75 },
-            gameMode: GameMode.CLASSIC,
-          });
+          .to(game.player2Id.toString() + "_" + game.player1Id.toString())
+          .emit(
+            "initialState",
+            this.gameService.InitialState(
+              game.id,
+              game.player2Id,
+              game.player1Id,
+              game.mode
+            )
+          );
       }
     }
   }
@@ -384,7 +431,6 @@ export class SocketGateway {
       },
     });
 
-    // TODO create callback Timer
     this.server.to("user_" + inviteeId.toString()).emit("startGame", game.id);
     this.server.to("user_" + inviterId.toString()).emit("startGame", game.id);
     this.playerState(game.id);
@@ -400,12 +446,15 @@ export class SocketGateway {
 
     this.server
       .to(inviteeId.toString() + "_" + inviterId.toString())
-      .emit("initialState", {
-        player1: { id: inviteeId, coord: { x: 20, y: 75 }, score: 0 },
-        player2: { id: inviterId, coord: { x: 270, y: 75 }, score: 0 },
-        ball: { x: 150, y: 75 },
-        gameMode: GameMode.CLASSIC,
-      });
+      .emit(
+        "initialState",
+        this.gameService.InitialState(
+          game.id,
+          game.player2Id,
+          game.player1Id,
+          game.mode
+        )
+      );
   }
 
   @SubscribeMessage("refuseInvitation")
@@ -492,15 +541,7 @@ export class SocketGateway {
     gameId: number
   ) {
     const currentUserId = client.request.session.passport.user;
-    const gameState = this.gameService.MovePadUp(gameId, currentUserId);
-
-    this.server
-      .to(
-        gameState?.player2.id.toString() +
-          "_" +
-          gameState?.player1.id.toString()
-      )
-      .emit("updateCanvas", gameState);
+    this.gameService.PlayerState(PlayerState.UP, currentUserId, gameId);
   }
   //["gameId" : {player1 : {x, y, currentMove, score}, player2 : {x,y,currentMove,score}, }]
   @SubscribeMessage("movePadDown")
@@ -510,15 +551,7 @@ export class SocketGateway {
     gameId: number
   ) {
     const currentUserId = client.request.session.passport.user;
-
-    const gameState = this.gameService.MovePadDown(gameId, currentUserId);
-    this.server
-      .to(
-        gameState?.player2.id.toString() +
-          "_" +
-          gameState?.player1.id.toString()
-      )
-      .emit("updateCanvas", gameState);
+    this.gameService.PlayerState(PlayerState.DOWN, currentUserId, gameId);
   }
 
   @SubscribeMessage("stopPad")
@@ -528,7 +561,7 @@ export class SocketGateway {
     gameId: number
   ) {
     const currentUserId = client.request.session.passport.user;
-    this.gameService.Still(gameId, currentUserId);
+    this.gameService.PlayerState(PlayerState.STILL, currentUserId, gameId);
   }
 
   @SubscribeMessage("endGame")
@@ -541,9 +574,9 @@ export class SocketGateway {
     if (interval) {
       clearInterval(interval);
       this.gameInProgress.delete(gameId);
-      this.prismaService.game.update({
-        data: { finishedAt: new Date() },
+      await this.prismaService.game.update({
         where: { id: gameId },
+        data: { finishedAt: new Date() },
       });
     }
   }
