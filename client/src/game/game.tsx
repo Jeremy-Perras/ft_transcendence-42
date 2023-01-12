@@ -1,8 +1,10 @@
 import { useRef, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { Socket } from "socket.io-client";
+import { GameMode } from "../gql/graphql";
 import { useAuthStore, useSocketStore } from "../stores";
 
-const GAME_DURATION = 120;
+const GAME_DURATION = 1200;
 const CANVAS_WIDTH = 3000;
 const CANVAS_HEIGHT = 1500;
 const PAD_HEIGHT = 25;
@@ -13,6 +15,7 @@ type GameData = {
   player1: { id: number; coord: Coord; score: number };
   player2: { id: number; coord: Coord; score: number };
   ball: Coord;
+  gameMode: GameMode;
 };
 // dans back : keep state up / down / nothing for each player => every X ms check and send back to front
 
@@ -20,6 +23,12 @@ type Coord = {
   x: number;
   y: number;
 };
+
+enum PadMove {
+  STILL,
+  UP,
+  DOWN,
+}
 
 const background = {
   x: 0,
@@ -100,6 +109,102 @@ const draw = (context: CanvasRenderingContext2D, gameData: GameData) => {
   ball.draw(context, gameData.ball.x, gameData.ball.y);
 };
 
+const handleKeyDown = (
+  keycode: string,
+  socket: Socket,
+  gameId: number,
+  keyboardStatus: {
+    arrowUp: boolean;
+    arrowDown: boolean;
+  },
+  setKeyBoardStatus: React.Dispatch<
+    React.SetStateAction<{
+      arrowUp: boolean;
+      arrowDown: boolean;
+    }>
+  >,
+  setPlayerMove: React.Dispatch<React.SetStateAction<PadMove>>
+) => {
+  if (keycode === "ArrowUp") {
+    !keyboardStatus.arrowUp
+      ? setKeyBoardStatus((prev) => ({
+          arrowDown: prev.arrowDown,
+          arrowUp: true,
+        }))
+      : null;
+    if (!keyboardStatus.arrowDown) {
+      setPlayerMove(PadMove.UP);
+      socket.emit("movePadUp", gameId);
+    } else {
+      setPlayerMove(PadMove.STILL);
+      socket.emit("stopPad", gameId);
+    }
+  }
+  if (keycode === "ArrowDown") {
+    !keyboardStatus.arrowDown
+      ? setKeyBoardStatus((prev) => ({
+          arrowUp: prev.arrowUp,
+          arrowDown: true,
+        }))
+      : null;
+    if (!keyboardStatus.arrowUp) {
+      setPlayerMove(PadMove.DOWN);
+      socket.emit("movePadDown", gameId);
+    } else {
+      setPlayerMove(PadMove.STILL);
+      socket.emit("stopPad", gameId);
+    }
+  }
+};
+
+const handleKeyUp = (
+  keycode: string,
+  socket: Socket,
+  gameId: number,
+  keyboardStatus: {
+    arrowUp: boolean;
+    arrowDown: boolean;
+  },
+  setKeyBoardStatus: React.Dispatch<
+    React.SetStateAction<{
+      arrowUp: boolean;
+      arrowDown: boolean;
+    }>
+  >,
+  setPlayerMove: React.Dispatch<React.SetStateAction<PadMove>>
+) => {
+  if (keycode === "ArrowUp") {
+    keyboardStatus.arrowUp
+      ? setKeyBoardStatus((prev) => ({
+          arrowUp: false,
+          arrowDown: prev.arrowDown,
+        }))
+      : null;
+    if (!keyboardStatus.arrowDown) {
+      setPlayerMove(PadMove.STILL);
+      socket.emit("stopPad", gameId);
+    } else {
+      setPlayerMove(PadMove.DOWN);
+      socket.emit("movePadDown", gameId);
+    }
+  }
+  if (keycode === "ArrowDown") {
+    keyboardStatus.arrowDown
+      ? setKeyBoardStatus((prev) => ({
+          arrowDown: false,
+          arrowUp: prev.arrowUp,
+        }))
+      : null;
+    if (!keyboardStatus.arrowUp) {
+      setPlayerMove(PadMove.STILL);
+      socket.emit("stopPad", gameId);
+    } else {
+      setPlayerMove(PadMove.UP);
+      socket.emit("movePadUp", gameId);
+    }
+  }
+};
+
 const GameCanvas = ({
   draw,
   startTime,
@@ -109,48 +214,34 @@ const GameCanvas = ({
   startTime: number;
   setGameState: React.Dispatch<React.SetStateAction<string>>;
 }) => {
-  //TODO : state rien / haut / bas  => event envoye quand state change
   const canvas = useRef<HTMLCanvasElement>(null);
   if (!canvas) return <>Error</>;
   const { gameId } = useParams();
+  if (!gameId) return <div>Error</div>;
 
   const currentUserId = useAuthStore((state) => state.userId);
   const socket = useSocketStore().socket;
-  const [gameData, setGameData] = useState<GameData>({
-    player1: { id: 1, coord: { x: 20, y: 30 }, score: 0 },
-    player2: { id: 2, coord: { x: 280, y: 80 }, score: 0 },
-    ball: { x: 130, y: 50 },
-  }); //allows to rerender when gamedata is updated
+  const [gameData, setGameData] = useState<GameData>();
+  const [playerMove, setPlayerMove] = useState(PadMove.STILL);
+  const [keyboardStatus, setKeyBoardStatus] = useState({
+    arrowUp: false,
+    arrowDown: false,
+  });
 
   socket.on("initialState", (data: GameData) => {
     setGameData(data);
   });
+
   socket.on("updateCanvas", (data: GameData) => {
-    console.log("test");
     setGameData(data);
   });
 
-  const isPlayer = gameData //initial state received
+  const isPlayer = gameData
     ? currentUserId === gameData.player1.id ||
       currentUserId === gameData.player2.id
       ? true
       : false
     : false;
-
-  // isPlayer //adds event listeer only if current user is player
-  //   ? addEventListener(
-  //       "keydown",
-  //       (e) => {
-  //         if (e.key === "ArrowUp") {
-  //           socket.emit("movePadUp", gameId); //in back => check if currentuser is player 1 or 2 and change corresponding coordinates
-  //         }
-  //         if (e.key === "ArrowDown") {
-  //           socket.emit("movePadDown", gameId);
-  //         }
-  //       },
-  //       { once: true }
-  //     )
-  //   : null;
 
   useEffect(() => {
     const context = canvas.current?.getContext("2d");
@@ -158,6 +249,7 @@ const GameCanvas = ({
     if (!gameData) return;
     draw(context, gameData);
   }, [gameData]);
+  console.log(playerMove);
 
   return (
     <>
@@ -165,12 +257,26 @@ const GameCanvas = ({
         tabIndex={0}
         onKeyDown={(e) => {
           if (isPlayer) {
-            if (e.key === "ArrowUp") {
-              socket.emit("movePadUp", +gameId); //in back => check if currentuser is player 1 or 2 and change corresponding coordinates
-            }
-            if (e.key === "ArrowDown") {
-              socket.emit("movePadDown", +gameId);
-            }
+            handleKeyDown(
+              e.key,
+              socket,
+              +gameId,
+              keyboardStatus,
+              setKeyBoardStatus,
+              setPlayerMove
+            );
+          }
+        }}
+        onKeyUp={(e) => {
+          if (isPlayer) {
+            handleKeyUp(
+              e.key,
+              socket,
+              +gameId,
+              keyboardStatus,
+              setKeyBoardStatus,
+              setPlayerMove
+            );
           }
         }}
         className="w-full border-4  border-white"
@@ -178,9 +284,9 @@ const GameCanvas = ({
         id={"game"}
       />
       <div className="my-2 flex">
-        <div>{`Player 1 : id ${gameData.player1.id}`}</div>
+        <div>{`Player 1 : id ${gameData?.player1.id}`}</div>
         <div className="mx-4">VS</div>
-        <div>{`Player 2 : id ${gameData.player2.id}`}</div>
+        <div>{`Player 2 : id ${gameData?.player2.id}`}</div>
 
         {/* TODO : add here banner with player avatar, rank, name */}
       </div>
