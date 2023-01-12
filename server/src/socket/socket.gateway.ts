@@ -522,6 +522,16 @@ export class SocketGateway {
       .emit("updateCanvas", gameState);
   }
 
+  @SubscribeMessage("stopPad")
+  async onstopPad(
+    @ConnectedSocket() client: Socket,
+    @MessageBody()
+    gameId: number
+  ) {
+    const currentUserId = client.request.session.passport.user;
+    this.gameService.Still(gameId, currentUserId);
+  }
+
   @SubscribeMessage("endGame")
   async endGame(
     @ConnectedSocket() client: Socket,
@@ -531,17 +541,11 @@ export class SocketGateway {
     const interval = this.gameInProgress.get(gameId);
     if (interval) {
       clearInterval(interval);
+      this.prismaService.game.update({
+        data: { finishedAt: new Date() },
+        where: { id: gameId },
+      });
     }
-  }
-
-  @SubscribeMessage("stopPad")
-  async onstopPad(
-    @ConnectedSocket() client: Socket,
-    @MessageBody()
-    gameId: number
-  ) {
-    const currentUserId = client.request.session.passport.user;
-    this.gameService.Still(gameId, currentUserId);
   }
 
   afterInit(server: Server, ...args: any[]) {
