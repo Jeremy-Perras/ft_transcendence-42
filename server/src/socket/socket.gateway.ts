@@ -266,17 +266,12 @@ export class SocketGateway {
           }
         }
         this.playerState(game.id);
-        this.server
-          .to(game.player2Id.toString() + "_" + game.player1Id.toString())
-          .emit(
-            "initialState",
-            this.gameService.InitialState(
-              game.id,
-              game.player2Id,
-              game.player1Id,
-              game.mode
-            )
-          );
+        this.gameService.InitialState(
+          game.id,
+          game.player2Id,
+          game.player1Id,
+          game.mode
+        );
       }
     }
   }
@@ -444,17 +439,12 @@ export class SocketGateway {
       }
     }
 
-    this.server
-      .to(inviteeId.toString() + "_" + inviterId.toString())
-      .emit(
-        "initialState",
-        this.gameService.InitialState(
-          game.id,
-          game.player2Id,
-          game.player1Id,
-          game.mode
-        )
-      );
+    this.gameService.InitialState(
+      game.id,
+      game.player2Id,
+      game.player1Id,
+      game.mode
+    );
   }
 
   @SubscribeMessage("refuseInvitation")
@@ -532,6 +522,19 @@ export class SocketGateway {
         .to("user_" + currentUserId.toString())
         .emit("error", "You are not in queue for matchmaking");
     }
+  }
+  @SubscribeMessage("gameReady")
+  async onGameReady(
+    @ConnectedSocket() client: Socket,
+    @MessageBody()
+    gameId: number
+  ) {
+    const gameData = this.gameService.saveGameData.get(gameId);
+    this.server
+      .to(
+        gameData?.player2.id.toString() + "_" + gameData?.player1.id.toString()
+      )
+      .emit("updateCanvas", gameData);
   }
 
   @SubscribeMessage("movePadUp")

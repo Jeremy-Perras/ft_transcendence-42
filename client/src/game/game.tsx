@@ -18,7 +18,7 @@ enum gameScreenState {
   SCORE,
 }
 
-const GAME_DURATION = 120;
+const GAME_DURATION = 15;
 const CANVAS_WIDTH = 3000;
 const CANVAS_HEIGHT = 1500;
 const PAD_HEIGHT = 25;
@@ -285,20 +285,7 @@ const GameCanvas = ({
 
   const currentUserId = useAuthStore((state) => state.userId);
   const socket = useSocketStore().socket;
-  const [gameData, setGameData] = useState<GameData>({
-    player1: {
-      id: initData.game.players.player1.id,
-      coord: { x: 20, y: 50 },
-      score: 0,
-    },
-    player2: {
-      id: initData.game.players.player2.id,
-      coord: { x: 270, y: 50 },
-      score: 0,
-    },
-    gameMode: initData.game.gameMode,
-    ball: { x: 50, y: 50 },
-  });
+  const [gameData, setGameData] = useState<GameData>();
 
   //TODO: remove this and emit at first render to get an update on current game state
 
@@ -321,6 +308,10 @@ const GameCanvas = ({
     currentUserId === initData.game.players.player2.id
       ? true
       : false;
+
+  useEffect(() => {
+    socket.emit("gameReady", initData.game.id);
+  }, []);
 
   useEffect(() => {
     const context = canvas.current?.getContext("2d");
