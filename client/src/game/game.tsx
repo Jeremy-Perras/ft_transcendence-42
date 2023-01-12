@@ -23,7 +23,9 @@ const CANVAS_WIDTH = 3000;
 const CANVAS_HEIGHT = 1500;
 const PAD_HEIGHT = 25;
 const PAD_WIDTH = Math.ceil(PAD_HEIGHT / 5);
+const PAD_VELOCITY = 5;
 const BALL_RADIUS = 4;
+const BALL_VELOCITY = 10;
 
 type GameData = {
   player1: { id: number; coord: Coord; score: number };
@@ -364,18 +366,14 @@ const GameCanvas = ({
 
         {/* TODO : add here banner with player avatar, rank, name */}
       </div>
-      {isPlayer ? (
-        <GameTimer
-          gameId={initData.game.id}
-          socket={socket}
-          startTime={startTime}
-          duration={GAME_DURATION}
-          setGameState={setGameState}
-        />
-      ) : (
-        //TODO : add here game is ended or change timer to real timer with start from
-        <span className="my-2 text-lg">Live Stream</span>
-      )}
+      <GameTimer
+        gameId={initData.game.id}
+        socket={socket}
+        startTime={startTime}
+        duration={GAME_DURATION}
+        setGameState={setGameState}
+      />
+      {!isPlayer && <span className="my-2 text-lg">Live Stream</span>}
     </>
   );
 };
@@ -468,9 +466,22 @@ const Intro = ({
   startTime: number;
   setGameState: React.Dispatch<React.SetStateAction<gameScreenState>>;
 }) => {
+  const currentUserId = useAuthStore((state) => state.userId);
+  const socket = useSocketStore().socket;
+
   const [timer, setTimer] = useState(
     Math.floor(Math.floor(startTime + 5 * 1000 - new Date().getTime()) / 1000)
   );
+
+  const isPlayer =
+    currentUserId === data.game.players.player1.id ||
+    currentUserId === data.game.players.player2.id
+      ? true
+      : false;
+
+  useEffect(() => {
+    if (!isPlayer) socket.emit("joinRoomAsViewer", data.game.id);
+  }, []);
 
   useEffect(() => {
     if (timer < 0) {
