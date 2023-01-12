@@ -31,7 +31,6 @@ type GameData = {
   ball: Coord;
   gameMode: GameMode;
 };
-// dans back : keep state up / down / nothing for each player => every X ms check and send back to front
 
 type Coord = {
   x: number;
@@ -468,7 +467,9 @@ const Intro = ({
   startTime: number;
   setGameState: React.Dispatch<React.SetStateAction<gameScreenState>>;
 }) => {
-  const [timer, setTimer] = useState(5);
+  const [timer, setTimer] = useState(
+    Math.floor(Math.floor(startTime + 5 * 1000 - new Date().getTime()) / 1000)
+  );
 
   useEffect(() => {
     if (timer < 0) {
@@ -513,9 +514,9 @@ const Intro = ({
           </div>
         </div>
       </div>
-      <div className="my-2 flex w-20 justify-center">
+      <div className="my-10 flex w-20 justify-center text-5xl">
         <span>{Math.floor(timer / 60)} </span>
-        <span className="mx-1 pb-1 font-mono text-lg">:</span>
+        <span className="mx-1 pb-1 font-mono">:</span>
         <span>{timer % 60 < 10 ? `0${timer % 60}` : `${timer % 60}`}</span>
       </div>
     </>
