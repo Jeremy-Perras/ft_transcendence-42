@@ -1,31 +1,55 @@
 import { Injectable } from "@nestjs/common";
-
-type Player = { x: number; y: number; id: number };
-type Ball = { x: number; y: number };
-type GameData = { player1: Player; player2: Player; ball: Ball };
+import { GameMode } from "@prisma/client";
+type Coordinate = { x: number; y: number };
+type Player = { coordinate: Coordinate; id: number };
+type Ball = { coordinate: Coordinate };
+type GameData = {
+  player1: Player;
+  player2: Player;
+  ball: Ball;
+  gamemode: GameMode;
+  score: number;
+};
 
 @Injectable()
 export class GameService {
   private saveGameData = new Map<number, GameData>();
-  InitialState(id: number, inviterId: number, inviteeId: number) {
-    const ball = { x: 0, y: 0 };
-    const player1 = { x: 0, y: 0, id: inviterId };
-    const player2 = { x: 0, y: 0, id: inviteeId };
-    this.saveGameData.set(id, { ball, player1, player2 });
+  InitialState(
+    id: number,
+    inviterId: number,
+    inviteeId: number,
+    gameMode: GameMode
+  ) {
+    const ball = { coordinate: { x: 0, y: 0 } };
+    const player1 = { coordinate: { x: 0, y: 0 }, id: inviterId };
+    const player2 = { coordinate: { x: 0, y: 0 }, id: inviteeId };
+    this.saveGameData.set(id, {
+      ball,
+      player1,
+      player2,
+      gamemode: gameMode,
+      score: 0,
+    });
     return this.saveGameData.get(id);
   }
 
-  MovePadUp(id: number) {
-    const test = this.saveGameData.get(id);
-    if (test != undefined) {
-      test.player1.x += 5;
-
-      this.saveGameData.set(id, test);
+  MovePadUp(gameId: number, playerId: number) {
+    const gameData = this.saveGameData.get(gameId);
+    if (gameData != undefined) {
+      if (playerId === gameData.player1.id) gameData.player1.coordinate.y += 5;
+      else gameData.player2.coordinate.y += 5;
+      this.saveGameData.set(gameId, gameData);
     }
-    return;
+    return this.saveGameData.get(gameId);
   }
 
-  MovePadDown(id: number) {
-    return;
+  MovePadDown(gameId: number, playerId: number) {
+    const gameData = this.saveGameData.get(gameId);
+    if (gameData != undefined) {
+      if (playerId === gameData.player1.id) gameData.player1.coordinate.y -= 5;
+      else gameData.player2.coordinate.y -= 5;
+      this.saveGameData.set(gameId, gameData);
+    }
+    return this.saveGameData.get(gameId);
   }
 }
