@@ -9,7 +9,7 @@ import { Server, Socket } from "socket.io";
 import { PrismaService } from "../prisma/prisma.service";
 import { GameMode } from "@prisma/client";
 
-import { GameService } from "../game/game.service";
+import { GameService, PlayerState } from "../game/game.service";
 
 type GameInvitation = {
   inviterId: number; // personne qui invite
@@ -35,6 +35,7 @@ export class SocketGateway {
   server: Server;
 
   private saveInvitation: GameInvitation[] = [];
+  private gameInProgress = new Map<number, NodeJS.Timer>();
 
   private getUserState = async (id: number): Promise<UserState> => {
     const isInviting = this.saveInvitation.find((e) => e.inviterId == id);
@@ -98,6 +99,24 @@ export class SocketGateway {
     }
     return false;
   };
+
+  private playerState(gameId: number) {
+    const callback = () => {
+      const gameData = this.gameService.saveGameData.get(gameId);
+      if (gameData?.player1.playerState === PlayerState.DOWN)
+        this.gameService.MovePadDown(gameId, gameData.player1.id);
+      else if (gameData?.player1.playerState === PlayerState.UP)
+        this.gameService.MovePadUp(gameId, gameData.player1.id);
+      if (gameData?.player2.playerState === PlayerState.DOWN)
+        this.gameService.MovePadDown(gameId, gameData.player1.id);
+      else if (gameData?.player2.playerState === PlayerState.UP)
+        this.gameService.MovePadUp(gameId, gameData.player1.id);
+      console.log("test");
+    };
+
+    this.gameInProgress.set(gameId, setInterval(callback, 100));
+    console.log(this.gameInProgress);
+  }
 
   async handleConnection(client: Socket, ...args: any[]) {
     const currentUserId = client.request.session.passport.user;
@@ -369,7 +388,7 @@ export class SocketGateway {
     // TODO create callback Timer
     this.server.to("user_" + inviteeId.toString()).emit("startGame", game.id);
     this.server.to("user_" + inviterId.toString()).emit("startGame", game.id);
-
+    // this.playerState(game.id);
     const sockets = await this.server.fetchSockets();
     for (const socket of sockets) {
       for (const room of socket.rooms) {
@@ -492,8 +511,37 @@ export class SocketGateway {
     gameId: number
   ) {
     const currentUserId = client.request.session.passport.user;
-    this.gameService.MovePadDown(gameId, currentUserId);
-    //emit to room
+
+    const gameState = this.gameService.MovePadDown(gameId, currentUserId);
+    this.server
+      .to(
+        gameState?.player2.id.toString() +
+          "_" +
+          gameState?.player1.id.toString()
+      )
+      .emit("updateCanvas", gameState);
+  }
+
+  @SubscribeMessage("endGame")
+  async endGame(
+    @ConnectedSocket() client: Socket,
+    @MessageBody()
+    gameId: number
+  ) {
+    const interval = this.gameInProgress.get(gameId);
+    if (interval) {
+      clearInterval(interval);
+    }
+  }
+
+  @SubscribeMessage("stopPad")
+  async onstopPad(
+    @ConnectedSocket() client: Socket,
+    @MessageBody()
+    gameId: number
+  ) {
+    const currentUserId = client.request.session.passport.user;
+    this.gameService.Still(gameId, currentUserId);
   }
 
   afterInit(server: Server, ...args: any[]) {
