@@ -1,12 +1,15 @@
+import { QueryClient } from "@tanstack/react-query";
 import {
   createBrowserRouter,
+  LoaderFunctionArgs,
   Outlet,
   redirect,
   RouterProvider,
   useNavigate,
 } from "react-router-dom";
+import queryClient from "../query";
 import { useAuthStore, useSocketStore } from "../stores";
-import { Game } from "./game";
+import { Game, gameLoader } from "./game";
 import { Home } from "./home";
 
 const ErrorPage = () => {
@@ -19,7 +22,11 @@ const GameRoot = () => {
   socket.on("startGame", (gameId: number) => navigate(`game/${gameId}`));
   return <Outlet />;
 };
-
+const loaderFn = (
+  fn: (queryClient: QueryClient, args: LoaderFunctionArgs) => unknown
+) => {
+  return (args: LoaderFunctionArgs) => fn(queryClient, args);
+};
 const router = createBrowserRouter([
   {
     element: <GameRoot />,
@@ -32,11 +39,7 @@ const router = createBrowserRouter([
       {
         path: "/game/:gameId",
         element: <Game />,
-        // loader: () => {
-        //   if (!useAuthStore.getState().userId) {
-        //     return redirect("/");
-        //   }
-        // },
+        loader: loaderFn(gameLoader),
       },
     ],
   },

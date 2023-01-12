@@ -1,15 +1,24 @@
+import { QueryClient, UseQueryOptions, useQuery } from "@tanstack/react-query";
+import request from "graphql-request";
 import { useRef, useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import {
+  LoaderFunctionArgs,
+  useLoaderData,
+  useNavigate,
+  useParams,
+} from "react-router-dom";
 import { Socket } from "socket.io-client";
-import { GameMode } from "../gql/graphql";
+import { graphql } from "../gql/gql";
+import { GameMode, GameQuery } from "../gql/graphql";
 import { useAuthStore, useSocketStore } from "../stores";
 
 enum gameScreenState {
+  INTRO,
   PLAYING,
   SCORE,
 }
 
-const GAME_DURATION = 20;
+const GAME_DURATION = 120;
 const CANVAS_WIDTH = 3000;
 const CANVAS_HEIGHT = 1500;
 const PAD_HEIGHT = 25;
@@ -34,6 +43,55 @@ enum PadMove {
   UP,
   DOWN,
 }
+
+const GameQueryDocument = graphql(`
+  query Game($gameId: Int!) {
+    game(id: $gameId) {
+      gameMode
+      startAt
+      finishedAt
+      score {
+        player1Score
+        player2Score
+      }
+      id
+      players {
+        player1 {
+          id
+          name
+          rank
+        }
+        player2 {
+          id
+          name
+          rank
+        }
+      }
+    }
+  }
+`);
+
+const query = (
+  gameId: number
+): UseQueryOptions<GameQuery, unknown, GameQuery> => {
+  return {
+    queryKey: ["Game", gameId],
+    queryFn: async () =>
+      request("/graphql", GameQueryDocument, {
+        gameId: gameId,
+      }),
+  };
+};
+
+export const gameLoader = async (
+  queryClient: QueryClient,
+  { params }: LoaderFunctionArgs
+) => {
+  if (params.gameId) {
+    const gameId = +params.gameId;
+    return queryClient.fetchQuery(query(gameId));
+  }
+};
 
 const background = {
   x: 0,
@@ -213,22 +271,37 @@ const handleKeyUp = (
 const GameCanvas = ({
   draw,
   startTime,
-
   setGameState,
+  initData,
 }: {
   draw: (context: CanvasRenderingContext2D, gameData: GameData) => void;
   startTime: number;
 
   setGameState: React.Dispatch<React.SetStateAction<gameScreenState>>;
+  initData: GameQuery;
 }) => {
   const canvas = useRef<HTMLCanvasElement>(null);
   if (!canvas) return <>Error</>;
-  const { gameId } = useParams();
-  if (!gameId) return <div>Error</div>;
 
   const currentUserId = useAuthStore((state) => state.userId);
   const socket = useSocketStore().socket;
-  const [gameData, setGameData] = useState<GameData>();
+  const [gameData, setGameData] = useState<GameData>({
+    player1: {
+      id: initData.game.players.player1.id,
+      coord: { x: 20, y: 50 },
+      score: 0,
+    },
+    player2: {
+      id: initData.game.players.player2.id,
+      coord: { x: 270, y: 50 },
+      score: 0,
+    },
+    gameMode: initData.game.gameMode,
+    ball: { x: 50, y: 50 },
+  });
+
+  //TODO: remove this and emit at first render to get an update on current game state
+
   const [playerMove, setPlayerMove] = useState(PadMove.STILL);
   const [keyboardStatus, setKeyBoardStatus] = useState({
     arrowUp: false,
@@ -243,12 +316,11 @@ const GameCanvas = ({
     setGameData(data);
   });
 
-  const isPlayer = gameData
-    ? currentUserId === gameData.player1.id ||
-      currentUserId === gameData.player2.id
+  const isPlayer =
+    currentUserId === initData.game.players.player1.id ||
+    currentUserId === initData.game.players.player2.id
       ? true
-      : false
-    : false;
+      : false;
 
   useEffect(() => {
     const context = canvas.current?.getContext("2d");
@@ -256,8 +328,8 @@ const GameCanvas = ({
     if (!gameData) return;
     draw(context, gameData);
   }, [gameData]);
-  console.log(playerMove);
 
+  //TODO : pause game ? check subject
   return (
     <>
       <canvas
@@ -267,7 +339,7 @@ const GameCanvas = ({
             handleKeyDown(
               e.key,
               socket,
-              +gameId,
+              initData.game.id,
               keyboardStatus,
               setKeyBoardStatus,
               setPlayerMove
@@ -279,7 +351,7 @@ const GameCanvas = ({
             handleKeyUp(
               e.key,
               socket,
-              +gameId,
+              initData.game.id,
               keyboardStatus,
               setKeyBoardStatus,
               setPlayerMove
@@ -290,16 +362,20 @@ const GameCanvas = ({
         ref={canvas}
         id={"game"}
       />
-      <div className="my-2 flex">
-        <div>{`Player 1 : id ${gameData?.player1.id}`}</div>
-        <div className="mx-4">VS</div>
-        <div>{`Player 2 : id ${gameData?.player2.id}`}</div>
+      <div className="my-2 flex w-full items-center justify-center">
+        <div className="shrink-0 basis-2/5 truncate">
+          {initData.game.players.player1.name}
+        </div>
+        <div className="mx-4 shrink-0 basis-1/5 text-center">VS</div>
+        <div className="shrink-0 basis-2/5">
+          {initData.game.players.player2.name}
+        </div>
 
         {/* TODO : add here banner with player avatar, rank, name */}
       </div>
       {isPlayer ? (
         <GameTimer
-          gameId={+gameId}
+          gameId={initData.game.id}
           socket={socket}
           startTime={startTime}
           duration={GAME_DURATION}
@@ -313,11 +389,38 @@ const GameCanvas = ({
   );
 };
 
-const Score = () => {
+const Score = ({ data }: { data: GameQuery }) => {
   const navigate = useNavigate();
+
   return (
     <>
-      <div>SCORE</div>
+      <div className="mt-1 flex h-12 w-128 items-center pl-1">
+        <div className="relative flex w-full">
+          <img
+            className=" h-10 w-10 border border-black object-cover  "
+            src={`http://localhost:5173/upload/avatar/${data.game.players.player1.id}`}
+            alt="Player 1 avatar"
+          />
+
+          <div className="ml-2 w-32 self-center truncate text-left ">
+            {data.game.players.player1.name}
+          </div>
+          <div className="grow select-none self-center text-center text-lg font-bold ">
+            VS
+          </div>
+          <div className="ml-2 w-32 self-center truncate text-left ">
+            {data.game.players.player2?.name}
+          </div>
+          <div className="relative">
+            <img
+              className="h-10 w-10 justify-end border border-black object-cover "
+              src={`http://localhost:5173/upload/avatar/${data.game.players.player2.id}`}
+              alt="Player 2 avatar"
+            />
+          </div>
+        </div>
+      </div>
+      <div>{`${data.game.score.player1Score} - ${data.game.score.player2Score}`}</div>
       <button
         className="my-6 border-2 border-slate-300 bg-slate-100 p-4 text-slate-500 hover:bg-slate-300 hover:text-slate-600"
         onClick={() => navigate(`/`)}
@@ -365,19 +468,102 @@ const GameTimer = ({
   );
 };
 
-export const Game = () => {
-  const [gameState, setGameState] = useState<gameScreenState>(
-    gameScreenState.PLAYING
+const Intro = ({
+  data,
+  startTime,
+  setGameState,
+}: {
+  data: GameQuery;
+  startTime: number;
+  setGameState: React.Dispatch<React.SetStateAction<gameScreenState>>;
+}) => {
+  const [timer, setTimer] = useState(5);
+
+  useEffect(() => {
+    if (timer < 0) {
+      setGameState(gameScreenState.PLAYING);
+    }
+    const interval = setInterval(() => {
+      setTimer(
+        Math.floor((startTime + 5 * 1000 - new Date().getTime()) / 1000)
+      );
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [timer]);
+
+  return (
+    <>
+      <div className="mt-10 flex items-center">
+        <div className="relative flex w-full">
+          <div className="mx-4">
+            <img
+              className=" h-60 w-60 border border-black object-cover  "
+              src={`http://localhost:5173/upload/avatar/${data.game.players.player1.id}`}
+              alt="Player 1 avatar"
+            />
+            <div className="w-60 self-center truncate text-center">
+              {data.game.players.player1.name}
+            </div>
+          </div>
+          <div className="grow animate-pulse select-none self-center text-center text-3xl font-bold ">
+            VS
+          </div>
+          <div className="mx-4">
+            <div className="relative">
+              <img
+                className="h-60 w-60 justify-end border border-black object-cover "
+                src={`http://localhost:5173/upload/avatar/${data.game.players.player2.id}`}
+                alt="Player 2 avatar"
+              />
+            </div>
+            <div className="ml-2 w-60 self-center truncate text-center ">
+              {data.game.players.player2?.name}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="my-2 flex w-20 justify-center">
+        <span>{Math.floor(timer / 60)} </span>
+        <span className="mx-1 pb-1 font-mono text-lg">:</span>
+        <span>{timer % 60 < 10 ? `0${timer % 60}` : `${timer % 60}`}</span>
+      </div>
+    </>
   );
-  //TODO : query to get necessary game data : ids, names, rank, gamemode, startDate
-  const startTime = new Date().getTime(); //TODO : change with start time from back
+};
+
+export const Game = () => {
+  const params = useParams();
+  if (typeof params.gameId === "undefined") return <div>Error</div>;
+  const gameId = +params.gameId;
+  const initialData = useLoaderData() as Awaited<ReturnType<typeof gameLoader>>;
+  const { data } = useQuery({ ...query(gameId), initialData });
+  if (typeof data === "undefined") return <div>Error</div>;
+
+  // const [gameState, setGameState] = useState<gameScreenState>(
+  //   data.game.finishedAt ? gameScreenState.SCORE : gameScreenState.PLAYING
+  // );
+  // TODO : change with this when mutation OK
+
+  const startTime = new Date(data.game.startAt).getTime(); //TODO : change with start time from back
+  const currentTime = new Date().getTime();
+
+  const [gameState, setGameState] = useState<gameScreenState>(
+    currentTime > startTime + 5000
+      ? gameScreenState.PLAYING
+      : gameScreenState.INTRO
+  );
 
   switch (gameState) {
+    case gameScreenState.INTRO:
+      return (
+        <Intro startTime={startTime} setGameState={setGameState} data={data} />
+      );
     case gameScreenState.SCORE:
-      return <Score />;
+      return <Score data={data} />;
     case gameScreenState.PLAYING:
       return (
         <GameCanvas
+          initData={data}
           draw={draw}
           startTime={startTime + 5000}
           setGameState={setGameState}
