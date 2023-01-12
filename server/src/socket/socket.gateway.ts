@@ -111,7 +111,6 @@ export class SocketGateway {
         this.gameService.MovePadDown(gameId, gameData.player1.id);
       else if (gameData?.player2.playerState === PlayerState.UP)
         this.gameService.MovePadUp(gameId, gameData.player1.id);
-      console.log("test");
     };
 
     this.gameInProgress.set(gameId, setInterval(callback, 100));
