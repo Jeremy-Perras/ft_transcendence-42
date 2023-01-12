@@ -258,13 +258,9 @@ export class SocketGateway {
         for (const socket of sockets) {
           for (const room of socket.rooms) {
             if (room === "user_" + ids[0].toString()) {
-              socket.join(
-                game.player2Id.toString() + "_" + game.player1Id.toString()
-              );
+              socket.join(`game${game.id}`);
             } else if (room === "user_" + ids[1].toString())
-              socket.join(
-                game.player2Id.toString() + "_" + game.player1Id.toString()
-              );
+              socket.join(`game${game.id}`);
           }
         }
         this.playerState(game.id);
@@ -435,9 +431,9 @@ export class SocketGateway {
     for (const socket of sockets) {
       for (const room of socket.rooms) {
         if (room === "user_" + `${inviteeId}`) {
-          socket.join(inviteeId.toString() + "_" + inviterId.toString());
+          socket.join(`game${game.id}`);
         } else if (room === "user_" + `${inviterId}`)
-          socket.join(inviteeId.toString() + "_" + inviterId.toString());
+          socket.join(`game${game.id}`);
       }
     }
 
@@ -532,11 +528,7 @@ export class SocketGateway {
     gameId: number
   ) {
     const gameData = this.gameService.saveGameData.get(gameId);
-    this.server
-      .to(
-        gameData?.player2.id.toString() + "_" + gameData?.player1.id.toString()
-      )
-      .emit("updateCanvas", gameData);
+    this.server.to(`game${gameId}`).emit("updateCanvas", gameData);
   }
 
   @SubscribeMessage("movePadUp")
@@ -576,15 +568,8 @@ export class SocketGateway {
     gameId: number
   ) {
     const gameData = this.gameService.saveGameData.get(gameId);
-    client.join(
-      gameData?.player2.id.toString() + "_" + gameData?.player1.id.toString()
-    );
-    console.log(this.server.sockets.adapter.rooms);
-    this.server
-      .to(
-        gameData?.player2.id.toString() + "_" + gameData?.player1.id.toString()
-      )
-      .emit("updateCanvas", gameData);
+    client.join(`game${gameId}`);
+    this.server.to(`game${gameId}`).emit("updateCanvas", gameData);
   }
 
   @SubscribeMessage("endGame")
@@ -602,7 +587,7 @@ export class SocketGateway {
         data: { finishedAt: new Date() },
       });
 
-      // this.server.of('/').in(`${}_${}`).clients((error, socketIds)=>{socketIds.forEach(socketId => this.server.sockets[socketId].leave(`${}_${}`))})
+      this.server.socketsLeave(`game${gameId}`);
     }
   }
 
