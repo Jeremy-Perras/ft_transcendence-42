@@ -335,7 +335,7 @@ export class SocketGateway {
     this.cancelSentAndReceivedInvitations(inviteeId);
     this.cancelSentAndReceivedInvitations(inviterId);
 
-    const game = this.prismaService.game.create({
+    const game = await this.prismaService.game.create({
       data: {
         player1Id: inviterId,
         player2Id: inviteeId,
@@ -347,12 +347,8 @@ export class SocketGateway {
     });
 
     // TODO create callback Timer
-    this.server
-      .to("user_" + inviteeId.toString())
-      .emit("startGame", (await game).id);
-    this.server
-      .to("user_" + inviterId.toString())
-      .emit("startGame", (await game).id);
+    this.server.to("user_" + inviteeId.toString()).emit("startGame", game.id);
+    this.server.to("user_" + inviterId.toString()).emit("startGame", game.id);
 
     const sockets = await this.server.fetchSockets();
     for (const socket of sockets) {
@@ -368,7 +364,7 @@ export class SocketGateway {
       .to(inviteeId.toString() + "_" + inviterId.toString())
       .emit(
         "initialState",
-        this.gameService.InitialState((await game).id, inviterId, inviteeId)
+        this.gameService.InitialState(game.id, inviterId, inviteeId, game.mode)
       );
   }
 
@@ -455,7 +451,8 @@ export class SocketGateway {
     @MessageBody()
     gameId: number
   ) {
-    this.gameService.MovePadUp(gameId);
+    const currentUserId = client.request.session.passport.user;
+    this.gameService.MovePadUp(gameId, currentUserId);
   }
 
   @SubscribeMessage("movePadDown")
@@ -464,7 +461,8 @@ export class SocketGateway {
     @MessageBody()
     gameId: number
   ) {
-    this.gameService.MovePadDown(gameId);
+    const currentUserId = client.request.session.passport.user;
+    this.gameService.MovePadDown(gameId, currentUserId);
   }
 
   afterInit(server: Server, ...args: any[]) {
