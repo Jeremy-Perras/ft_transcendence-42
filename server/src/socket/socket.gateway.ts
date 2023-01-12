@@ -10,6 +10,8 @@ import { PrismaService } from "../prisma/prisma.service";
 import { GameMode } from "@prisma/client";
 
 import { GameService, PlayerState } from "../game/game.service";
+import { join } from "path";
+import { IoAdapter } from "@nestjs/platform-socket.io";
 
 type GameInvitation = {
   inviterId: number; // personne qui invite
@@ -118,7 +120,7 @@ export class SocketGateway {
       } else if (gameData?.player1.playerState === PlayerState.UP) {
         const gameState = this.gameService.MovePadUp(
           gameId,
-          gameData.player2.id
+          gameData.player1.id
         );
         this.server
           .to(
@@ -143,7 +145,7 @@ export class SocketGateway {
       } else if (gameData?.player2.playerState === PlayerState.UP) {
         const gameState = this.gameService.MovePadUp(
           gameId,
-          gameData.player1.id
+          gameData.player2.id
         );
         this.server
           .to(
@@ -567,6 +569,24 @@ export class SocketGateway {
     this.gameService.PlayerState(PlayerState.STILL, currentUserId, gameId);
   }
 
+  @SubscribeMessage("joinRoomAsViewer")
+  async onJoinRoomAsViewer(
+    @ConnectedSocket() client: Socket,
+    @MessageBody()
+    gameId: number
+  ) {
+    const gameData = this.gameService.saveGameData.get(gameId);
+    client.join(
+      gameData?.player2.id.toString() + "_" + gameData?.player1.id.toString()
+    );
+    console.log(this.server.sockets.adapter.rooms);
+    this.server
+      .to(
+        gameData?.player2.id.toString() + "_" + gameData?.player1.id.toString()
+      )
+      .emit("updateCanvas", gameData);
+  }
+
   @SubscribeMessage("endGame")
   async endGame(
     @ConnectedSocket() client: Socket,
@@ -581,6 +601,8 @@ export class SocketGateway {
         where: { id: gameId },
         data: { finishedAt: new Date() },
       });
+
+      // this.server.of('/').in(`${}_${}`).clients((error, socketIds)=>{socketIds.forEach(socketId => this.server.sockets[socketId].leave(`${}_${}`))})
     }
   }
 

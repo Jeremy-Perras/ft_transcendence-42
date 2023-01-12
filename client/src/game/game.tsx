@@ -310,6 +310,7 @@ const GameCanvas = ({
       : false;
 
   useEffect(() => {
+    if (!isPlayer) socket.emit("joinRoomAsViewer", initData.game.id);
     socket.emit("gameReady", initData.game.id);
   }, []);
 
