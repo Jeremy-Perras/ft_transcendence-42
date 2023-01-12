@@ -106,55 +106,16 @@ export class SocketGateway {
     const callback = () => {
       const gameData = this.gameService.saveGameData.get(gameId);
       if (gameData?.player1.playerState === PlayerState.DOWN) {
-        const gameState = this.gameService.MovePadDown(
-          gameId,
-          gameData.player1.id
-        );
-        this.server
-          .to(
-            gameData?.player2.id.toString() +
-              "_" +
-              gameData?.player1.id.toString()
-          )
-          .emit("updateCanvas", gameState);
+        this.gameService.MovePadDown(gameId, gameData.player1.id);
       } else if (gameData?.player1.playerState === PlayerState.UP) {
-        const gameState = this.gameService.MovePadUp(
-          gameId,
-          gameData.player1.id
-        );
-        this.server
-          .to(
-            gameData?.player2.id.toString() +
-              "_" +
-              gameData?.player1.id.toString()
-          )
-          .emit("updateCanvas", gameState);
+        this.gameService.MovePadUp(gameId, gameData.player1.id);
       }
       if (gameData?.player2.playerState === PlayerState.DOWN) {
-        const gameState = this.gameService.MovePadDown(
-          gameId,
-          gameData.player2.id
-        );
-        this.server
-          .to(
-            gameData?.player2.id.toString() +
-              "_" +
-              gameData?.player1.id.toString()
-          )
-          .emit("updateCanvas", gameState);
+        this.gameService.MovePadDown(gameId, gameData.player2.id);
       } else if (gameData?.player2.playerState === PlayerState.UP) {
-        const gameState = this.gameService.MovePadUp(
-          gameId,
-          gameData.player2.id
-        );
-        this.server
-          .to(
-            gameData?.player2.id.toString() +
-              "_" +
-              gameData?.player1.id.toString()
-          )
-          .emit("updateCanvas", gameState);
+        this.gameService.MovePadUp(gameId, gameData.player2.id);
       }
+      this.server.to("game" + gameId).emit("updateCanvas", gameData);
     };
 
     this.gameInProgress.set(gameId, setInterval(callback, 100));
@@ -586,7 +547,6 @@ export class SocketGateway {
         where: { id: gameId },
         data: { finishedAt: new Date() },
       });
-
       this.server.socketsLeave(`game${gameId}`);
     }
   }

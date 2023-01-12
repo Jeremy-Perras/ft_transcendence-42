@@ -89,7 +89,6 @@ export class GameService {
       }
       this.saveGameData.set(gameId, gameData);
     }
-    return this.saveGameData.get(gameId);
   }
 
   MovePadDown(gameId: number, playerId: number) {
@@ -104,19 +103,5 @@ export class GameService {
         this.saveGameData.set(gameId, gameData);
       }
     }
-    return this.saveGameData.get(gameId);
   }
-
-  // Still(gameId: number, playerId: number) {
-  //   const gameData = this.saveGameData.get(gameId);
-  //   if (gameData != undefined) {
-  //     if (playerId === gameData.player1.id) {
-  //       gameData.player1.playerState = PlayerState.STILL;
-  //     } else {
-  //       gameData.player2.playerState = PlayerState.STILL;
-  //     }
-  //     this.saveGameData.set(gameId, gameData);
-  //   }
-  //   return this.saveGameData.get(gameId);
-  // }
 }
