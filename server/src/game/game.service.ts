@@ -4,10 +4,7 @@ type Coord = {
   x: number;
   y: number;
 };
-<<<<<<< HEAD
-type Player = { coord: Coord; id: number; score: number };
-type Ball = { coord: Coord };
-=======
+
 type Player = {
   coord: Coord;
   id: number;
@@ -21,7 +18,6 @@ export enum PlayerState {
   STILL,
 }
 
->>>>>>> 6fc99e24 (back game)
 type GameData = {
   player1: Player;
   player2: Player;
@@ -31,27 +27,6 @@ type GameData = {
 
 @Injectable()
 export class GameService {
-<<<<<<< HEAD
-  private saveGameData = new Map<number, GameData>();
-  // InitialState(
-  //   id: number,
-  //   inviterId: number,
-  //   inviteeId: number,
-  //   gameMode: GameMode
-  // ) {
-  //   const ball = { coord: { x: 150, y: 75 } };
-  //   const player1 = { coord: { x: 20, y: 0 }, id: inviterId };
-  //   const player2 = { coord: { x: 270, y: 0 }, id: inviteeId };
-  //   this.saveGameData.set(id, {
-  //     ball,
-  //     player1,
-  //     player2,
-  //     gamemode: gameMode,
-  //     score: 0,
-  //   });
-  //   return this.saveGameData.get(id);
-  // }
-=======
   public saveGameData = new Map<number, GameData>();
   InitialState(
     id: number,
@@ -77,7 +52,6 @@ export class GameService {
     });
     return this.saveGameData.get(id);
   }
->>>>>>> 6fc99e24 (back game)
 
   MovePadUp(gameId: number, playerId: number) {
     const gameData = this.saveGameData.get(gameId);
