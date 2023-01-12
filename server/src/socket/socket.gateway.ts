@@ -8,7 +8,7 @@ import {
 import { Server, Socket } from "socket.io";
 import { PrismaService } from "../prisma/prisma.service";
 import { GameMode } from "@prisma/client";
-import { UserStatus } from "../user/user.model";
+
 import { GameService } from "../game/game.service";
 
 type GameInvitation = {
@@ -192,6 +192,26 @@ export class SocketGateway {
           });
         });
         size = this.server.sockets.adapter.rooms.get(gameMode)?.size;
+
+        const sockets = await this.server.fetchSockets();
+        for (const socket of sockets) {
+          for (const room of socket.rooms) {
+            if (room === "user_" + ids[0].toString()) {
+              socket.join(ids[0].toString() + "_" + ids[1].toString());
+            } else if (room === "user_" + ids[1].toString())
+              socket.join(ids[0].toString() + "_" + ids[1].toString());
+          }
+        }
+        console.log("Test");
+
+        this.server
+          .to(ids[0].toString() + "_" + ids[1].toString())
+          .emit("initialState", {
+            player1: { id: ids[0], coord: { x: 20, y: 75 }, score: 0 },
+            player2: { id: ids[1], coord: { x: 270, y: 75 }, score: 0 },
+            ball: { x: 150, y: 75 },
+            gameMode: GameMode.CLASSIC,
+          });
       }
     }
   }
@@ -359,12 +379,15 @@ export class SocketGateway {
           socket.join(inviteeId.toString() + "_" + inviterId.toString());
       }
     }
+
     this.server
       .to(inviteeId.toString() + "_" + inviterId.toString())
-      .emit(
-        "initialState",
-        this.gameService.InitialState(game.id, inviterId, inviteeId, game.mode)
-      );
+      .emit("initialState", {
+        player1: { id: inviteeId, coord: { x: 20, y: 75 }, score: 0 },
+        player2: { id: inviterId, coord: { x: 270, y: 75 }, score: 0 },
+        ball: { x: 150, y: 75 },
+        gameMode: GameMode.CLASSIC,
+      });
   }
 
   @SubscribeMessage("refuseInvitation")
@@ -461,7 +484,7 @@ export class SocketGateway {
       )
       .emit("updateCanvas", gameState);
   }
-
+  //["gameId" : {player1 : {x, y, currentMove, score}, player2 : {x,y,currentMove,score}, }]
   @SubscribeMessage("movePadDown")
   async onMovePadDown(
     @ConnectedSocket() client: Socket,
@@ -470,6 +493,7 @@ export class SocketGateway {
   ) {
     const currentUserId = client.request.session.passport.user;
     this.gameService.MovePadDown(gameId, currentUserId);
+    //emit to room
   }
 
   afterInit(server: Server, ...args: any[]) {
