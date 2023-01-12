@@ -4,7 +4,12 @@ import { Socket } from "socket.io-client";
 import { GameMode } from "../gql/graphql";
 import { useAuthStore, useSocketStore } from "../stores";
 
-const GAME_DURATION = 1200;
+enum gameScreenState {
+  PLAYING,
+  SCORE,
+}
+
+const GAME_DURATION = 20;
 const CANVAS_WIDTH = 3000;
 const CANVAS_HEIGHT = 1500;
 const PAD_HEIGHT = 25;
@@ -208,11 +213,13 @@ const handleKeyUp = (
 const GameCanvas = ({
   draw,
   startTime,
+
   setGameState,
 }: {
   draw: (context: CanvasRenderingContext2D, gameData: GameData) => void;
   startTime: number;
-  setGameState: React.Dispatch<React.SetStateAction<string>>;
+
+  setGameState: React.Dispatch<React.SetStateAction<gameScreenState>>;
 }) => {
   const canvas = useRef<HTMLCanvasElement>(null);
   if (!canvas) return <>Error</>;
@@ -291,7 +298,13 @@ const GameCanvas = ({
         {/* TODO : add here banner with player avatar, rank, name */}
       </div>
       {isPlayer ? (
-        <GameTimer startTime={startTime} setGameState={setGameState} />
+        <GameTimer
+          gameId={+gameId}
+          socket={socket}
+          startTime={startTime}
+          duration={GAME_DURATION}
+          setGameState={setGameState}
+        />
       ) : (
         //TODO : add here game is ended or change timer to real timer with start from
         <span className="my-2 text-lg">Live Stream</span>
@@ -316,21 +329,28 @@ const Score = () => {
 };
 
 const GameTimer = ({
+  gameId,
+  socket,
   startTime,
+  duration,
   setGameState,
 }: {
+  gameId: number;
+  socket: Socket;
   startTime: number;
-  setGameState: React.Dispatch<React.SetStateAction<string>>;
+  duration: number;
+  setGameState: React.Dispatch<React.SetStateAction<gameScreenState>>;
 }) => {
-  const [timer, setTimer] = useState(GAME_DURATION);
+  const [timer, setTimer] = useState(duration);
 
   useEffect(() => {
-    if (timer < 0) setGameState("score");
+    if (timer < 0) {
+      socket.emit("endGame", gameId);
+      setGameState(gameScreenState.SCORE);
+    }
     const interval = setInterval(() => {
       setTimer(
-        Math.floor(
-          (startTime + GAME_DURATION * 1000 - new Date().getTime()) / 1000
-        )
+        Math.floor((startTime + duration * 1000 - new Date().getTime()) / 1000)
       );
     }, 1000);
     return () => clearInterval(interval);
@@ -346,19 +366,25 @@ const GameTimer = ({
 };
 
 export const Game = () => {
-  const [gameState, setGameState] = useState("playing");
-
+  const [gameState, setGameState] = useState<gameScreenState>(
+    gameScreenState.PLAYING
+  );
+  //TODO : query to get necessary game data : ids, names, rank, gamemode, startDate
   const startTime = new Date().getTime(); //TODO : change with start time from back
 
-  return gameState === "playing" ? (
-    <>
-      <GameCanvas
-        draw={draw}
-        startTime={startTime}
-        setGameState={setGameState}
-      />
-    </>
-  ) : (
-    <Score />
-  );
+  switch (gameState) {
+    case gameScreenState.SCORE:
+      return <Score />;
+    case gameScreenState.PLAYING:
+      return (
+        <GameCanvas
+          draw={draw}
+          startTime={startTime + 5000}
+          setGameState={setGameState}
+        />
+      );
+
+    default:
+      return <div>Error</div>;
+  }
 };
