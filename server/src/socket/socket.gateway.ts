@@ -388,7 +388,7 @@ export class SocketGateway {
     // TODO create callback Timer
     this.server.to("user_" + inviteeId.toString()).emit("startGame", game.id);
     this.server.to("user_" + inviterId.toString()).emit("startGame", game.id);
-    // this.playerState(game.id);
+    this.playerState(game.id);
     const sockets = await this.server.fetchSockets();
     for (const socket of sockets) {
       for (const room of socket.rooms) {
@@ -541,6 +541,7 @@ export class SocketGateway {
     const interval = this.gameInProgress.get(gameId);
     if (interval) {
       clearInterval(interval);
+      this.gameInProgress.delete(gameId);
       this.prismaService.game.update({
         data: { finishedAt: new Date() },
         where: { id: gameId },
