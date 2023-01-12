@@ -112,7 +112,8 @@ const GameCanvas = ({
   //TODO : state rien / haut / bas  => event envoye quand state change
   const canvas = useRef<HTMLCanvasElement>(null);
   if (!canvas) return <>Error</>;
-  const gameId = useParams();
+  const { gameId } = useParams();
+
   const currentUserId = useAuthStore((state) => state.userId);
   const socket = useSocketStore().socket;
   const [gameData, setGameData] = useState<GameData>({
@@ -125,6 +126,7 @@ const GameCanvas = ({
     setGameData(data);
   });
   socket.on("updateCanvas", (data: GameData) => {
+    console.log("test");
     setGameData(data);
   });
 
@@ -135,20 +137,20 @@ const GameCanvas = ({
       : false
     : false;
 
-  isPlayer //adds event listeer only if current user is player
-    ? addEventListener(
-        "keydown",
-        (e) => {
-          if (e.key === "ArrowUp") {
-            socket.emit("movePadUp", gameId); //in back => check if currentuser is player 1 or 2 and change corresponding coordinates
-          }
-          if (e.key === "ArrowDown") {
-            socket.emit("movePadDown", gameId);
-          }
-        },
-        { once: true }
-      )
-    : null;
+  // isPlayer //adds event listeer only if current user is player
+  //   ? addEventListener(
+  //       "keydown",
+  //       (e) => {
+  //         if (e.key === "ArrowUp") {
+  //           socket.emit("movePadUp", gameId); //in back => check if currentuser is player 1 or 2 and change corresponding coordinates
+  //         }
+  //         if (e.key === "ArrowDown") {
+  //           socket.emit("movePadDown", gameId);
+  //         }
+  //       },
+  //       { once: true }
+  //     )
+  //   : null;
 
   useEffect(() => {
     const context = canvas.current?.getContext("2d");
@@ -160,6 +162,17 @@ const GameCanvas = ({
   return (
     <>
       <canvas
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (isPlayer) {
+            if (e.key === "ArrowUp") {
+              socket.emit("movePadUp", +gameId); //in back => check if currentuser is player 1 or 2 and change corresponding coordinates
+            }
+            if (e.key === "ArrowDown") {
+              socket.emit("movePadDown", +gameId);
+            }
+          }
+        }}
         className="w-full border-4  border-white"
         ref={canvas}
         id={"game"}

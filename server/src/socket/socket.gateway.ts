@@ -359,7 +359,6 @@ export class SocketGateway {
           socket.join(inviteeId.toString() + "_" + inviterId.toString());
       }
     }
-
     this.server
       .to(inviteeId.toString() + "_" + inviterId.toString())
       .emit(
@@ -452,7 +451,15 @@ export class SocketGateway {
     gameId: number
   ) {
     const currentUserId = client.request.session.passport.user;
-    this.gameService.MovePadUp(gameId, currentUserId);
+    const gameState = this.gameService.MovePadUp(gameId, currentUserId);
+
+    this.server
+      .to(
+        gameState?.player2.id.toString() +
+          "_" +
+          gameState?.player1.id.toString()
+      )
+      .emit("updateCanvas", gameState);
   }
 
   @SubscribeMessage("movePadDown")
