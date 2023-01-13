@@ -83,9 +83,9 @@ export class GameService {
     const gameData = this.saveGameData.get(gameId);
     if (gameData != undefined) {
       if (playerId === gameData.player1.id) {
-        gameData.player1.coord.y += 5;
+        gameData.player1.coord.y -= 5;
       } else {
-        gameData.player2.coord.y += 5;
+        gameData.player2.coord.y -= 5;
       }
       this.saveGameData.set(gameId, gameData);
     }
@@ -95,9 +95,9 @@ export class GameService {
     const gameData = this.saveGameData.get(gameId);
     if (gameData != undefined) {
       if (playerId === gameData.player1.id) {
-        gameData.player1.coord.y -= 5;
+        gameData.player1.coord.y += 5;
       } else {
-        gameData.player2.coord.y -= 5;
+        gameData.player2.coord.y += 5;
       }
       {
         this.saveGameData.set(gameId, gameData);
