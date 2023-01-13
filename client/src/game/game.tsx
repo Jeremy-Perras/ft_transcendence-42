@@ -18,18 +18,18 @@ enum gameScreenState {
   SCORE,
 }
 
-const GAME_DURATION = 15;
+const GAME_DURATION = 60;
 const CANVAS_WIDTH = 3000;
 const CANVAS_HEIGHT = 1500;
 const PAD_HEIGHT = 25;
 const PAD_WIDTH = Math.ceil(PAD_HEIGHT / 5);
-const PAD_VELOCITY = 5;
+
 const BALL_RADIUS = 4;
 const BALL_VELOCITY = 10;
 
 type GameData = {
-  player1: { id: number; coord: Coord; score: number };
-  player2: { id: number; coord: Coord; score: number };
+  player1: { id: number; coord: Coord; score: number; playerState: PadMove };
+  player2: { id: number; coord: Coord; score: number; playerState: PadMove };
   ball: Coord;
   gameMode: GameMode;
 };
@@ -39,10 +39,11 @@ type Coord = {
   y: number;
 };
 
+//TODO :  same enum as back
 enum PadMove {
-  STILL,
   UP,
   DOWN,
+  STILL,
 }
 
 const GameQueryDocument = graphql(`
@@ -111,31 +112,44 @@ const background = {
   },
 };
 
-const leftPad = {
-  width: PAD_WIDTH,
-  height: PAD_HEIGHT,
-  color: "white",
-  draw(context: CanvasRenderingContext2D, x: number, y: number) {
-    context.fillStyle = this.color;
-    context.beginPath();
-    context.fillRect(x, y, this.width, this.height);
-    context.closePath();
-    context.fill();
-  },
-};
+class Pad {
+  private y: number;
+  public color: string;
+  public constructor() {
+    this.color = "white";
+    this.y = 50;
+  }
+  public getY(): number {
+    return this.y;
+  }
+  public setY(y: number) {
+    this.y = y;
+  }
 
-const rightPad = {
-  width: PAD_WIDTH,
-  height: PAD_HEIGHT,
-  color: "white",
-  draw(context: CanvasRenderingContext2D, x: number, y: number) {
+  public draw(context: CanvasRenderingContext2D, x: number, y: number) {
     context.fillStyle = this.color;
     context.beginPath();
-    context.fillRect(x, y, this.width, this.height);
+    context.fillRect(x, y, PAD_WIDTH, PAD_HEIGHT);
     context.closePath();
     context.fill();
-  },
-};
+  }
+}
+
+class LeftPad extends Pad {
+  public x: number;
+  public constructor() {
+    super();
+    this.x = 20;
+  }
+}
+
+class RightPad extends Pad {
+  public x: number;
+  public constructor() {
+    super();
+    this.x = 270;
+  }
+}
 
 const ball = {
   radius: BALL_RADIUS,
@@ -158,18 +172,22 @@ const score = {
   ) {
     context.fillStyle = this.color;
     context.font = "24px serif";
-    console.log(`${player1Score}`);
     context.fillText(`${player1Score}`, 110, 20);
     context.fillText(`${player2Score}`, 180, 20);
   },
 };
 
-const draw = (context: CanvasRenderingContext2D, gameData: GameData) => {
+const draw = (
+  context: CanvasRenderingContext2D,
+  yLeft: number,
+  yRight: number,
+  gameData: GameData
+) => {
   context?.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
   background.draw(context);
   score.draw(context, gameData.player1.score, gameData.player2.score);
-  leftPad.draw(context, gameData.player1.coord.x, gameData.player1.coord.y);
-  rightPad.draw(context, gameData.player2.coord.x, gameData.player2.coord.y);
+  leftPad.draw(context, leftPad.x, yLeft);
+  rightPad.draw(context, rightPad.x, yRight);
   ball.draw(context, gameData.ball.x, gameData.ball.y);
 };
 
@@ -187,6 +205,7 @@ const handleKeyDown = (
       arrowDown: boolean;
     }>
   >,
+  playerMove: PadMove,
   setPlayerMove: React.Dispatch<React.SetStateAction<PadMove>>
 ) => {
   if (keycode === "ArrowUp") {
@@ -197,11 +216,15 @@ const handleKeyDown = (
         }))
       : null;
     if (!keyboardStatus.arrowDown) {
-      setPlayerMove(PadMove.UP);
-      socket.emit("movePadUp", gameId);
+      if (playerMove !== PadMove.UP) {
+        socket.emit("movePadUp", gameId);
+        setPlayerMove(PadMove.UP);
+      }
     } else {
-      setPlayerMove(PadMove.STILL);
-      socket.emit("stopPad", gameId);
+      if (playerMove !== PadMove.STILL) {
+        setPlayerMove(PadMove.STILL);
+        socket.emit("stopPad", gameId);
+      }
     }
   }
   if (keycode === "ArrowDown") {
@@ -212,11 +235,15 @@ const handleKeyDown = (
         }))
       : null;
     if (!keyboardStatus.arrowUp) {
-      setPlayerMove(PadMove.DOWN);
-      socket.emit("movePadDown", gameId);
+      if (playerMove !== PadMove.DOWN) {
+        setPlayerMove(PadMove.DOWN);
+        socket.emit("movePadDown", gameId);
+      }
     } else {
-      setPlayerMove(PadMove.STILL);
-      socket.emit("stopPad", gameId);
+      if (playerMove !== PadMove.STILL) {
+        setPlayerMove(PadMove.STILL);
+        socket.emit("stopPad", gameId);
+      }
     }
   }
 };
@@ -235,6 +262,7 @@ const handleKeyUp = (
       arrowDown: boolean;
     }>
   >,
+  playerMove: PadMove,
   setPlayerMove: React.Dispatch<React.SetStateAction<PadMove>>
 ) => {
   if (keycode === "ArrowUp") {
@@ -245,11 +273,15 @@ const handleKeyUp = (
         }))
       : null;
     if (!keyboardStatus.arrowDown) {
-      setPlayerMove(PadMove.STILL);
-      socket.emit("stopPad", gameId);
+      if (playerMove !== PadMove.STILL) {
+        setPlayerMove(PadMove.STILL);
+        socket.emit("stopPad", gameId);
+      }
     } else {
-      setPlayerMove(PadMove.DOWN);
-      socket.emit("movePadDown", gameId);
+      if (playerMove !== PadMove.DOWN) {
+        setPlayerMove(PadMove.DOWN);
+        socket.emit("movePadDown", gameId);
+      }
     }
   }
   if (keycode === "ArrowDown") {
@@ -260,22 +292,34 @@ const handleKeyUp = (
         }))
       : null;
     if (!keyboardStatus.arrowUp) {
-      setPlayerMove(PadMove.STILL);
-      socket.emit("stopPad", gameId);
+      if (playerMove !== PadMove.STILL) {
+        setPlayerMove(PadMove.STILL);
+        socket.emit("stopPad", gameId);
+      }
     } else {
-      setPlayerMove(PadMove.UP);
-      socket.emit("movePadUp", gameId);
+      if (playerMove !== PadMove.UP) {
+        setPlayerMove(PadMove.UP);
+        socket.emit("movePadUp", gameId);
+      }
     }
   }
 };
 
+const leftPad = new LeftPad();
+const rightPad = new RightPad();
+let init = -1;
 const GameCanvas = ({
   draw,
   startTime,
   setGameState,
   initData,
 }: {
-  draw: (context: CanvasRenderingContext2D, gameData: GameData) => void;
+  draw: (
+    context: CanvasRenderingContext2D,
+    leftY: number,
+    rightY: number,
+    gameData: GameData
+  ) => void;
   startTime: number;
 
   setGameState: React.Dispatch<React.SetStateAction<gameScreenState>>;
@@ -288,14 +332,13 @@ const GameCanvas = ({
   const socket = useSocketStore().socket;
   const [gameData, setGameData] = useState<GameData>();
 
-  //TODO: remove this and emit at first render to get an update on current game state
-
   const [playerMove, setPlayerMove] = useState(PadMove.STILL);
   const [keyboardStatus, setKeyBoardStatus] = useState({
     arrowUp: false,
     arrowDown: false,
   });
 
+  // let time = new Date().getTime();
   socket.on("initialState", (data: GameData) => {
     setGameData(data);
   });
@@ -305,21 +348,65 @@ const GameCanvas = ({
   });
 
   const isPlayer =
-    currentUserId === initData.game.players.player1.id ||
-    currentUserId === initData.game.players.player2.id
-      ? true
-      : false;
+    currentUserId === initData.game.players.player1.id
+      ? 1
+      : currentUserId === initData.game.players.player2.id
+      ? 2
+      : 0;
 
   useEffect(() => {
-    if (!isPlayer) socket.emit("joinRoomAsViewer", initData.game.id);
-    socket.emit("gameReady", initData.game.id);
+    if (init !== -1) {
+      if (!isPlayer) socket.emit("joinRoomAsViewer", initData.game.id);
+      console.log("gameready");
+      socket.emit("gameReady", initData.game.id);
+    }
+    init = 0;
   }, []);
 
   useEffect(() => {
     const context = canvas.current?.getContext("2d");
     if (!context) return;
     if (!gameData) return;
-    draw(context, gameData);
+
+    let y1 = gameData.player1.coord.y;
+    let y2 = gameData.player2.coord.y;
+    // const delta1 = y1 - leftPad.getY();
+    // const delta2 = y2 - rightPad.getY();
+
+    // leftPad.setY(y1);
+    // rightPad.setY(y2);
+
+    // const velocityCoeff1 = (y1 - leftPad.getY()) / 5;
+    // const currentTime = new Date().getTime();
+    // console.log(currentTime - time);
+    draw(context, gameData.player1.coord.y, gameData.player2.coord.y, gameData);
+    const interval = setInterval(() => {
+      if (gameData.player1.playerState === PadMove.UP && y1 >= 1) {
+        y1 -= 1;
+        leftPad.setY(leftPad.getY() - 1);
+      }
+      if (
+        gameData.player1.playerState === PadMove.DOWN &&
+        y1 < CANVAS_HEIGHT / 10 - PAD_HEIGHT
+      ) {
+        y1 += 1;
+        leftPad.setY(leftPad.getY() + 1);
+      }
+      if (gameData.player2.playerState === PadMove.UP && y2 >= 1) {
+        y2 -= 1;
+        rightPad.setY(rightPad.getY() - 1);
+      }
+      if (
+        gameData.player2.playerState === PadMove.DOWN &&
+        y2 < CANVAS_HEIGHT / 10 - PAD_HEIGHT
+      ) {
+        y2 += 1;
+        rightPad.setY(rightPad.getY() + 1);
+      }
+      draw(context, y1, y2, gameData);
+      // time = new Date().getTime();
+    }, 20);
+    return () => clearInterval(interval);
   }, [gameData]);
 
   //TODO : pause game ? check subject
@@ -335,6 +422,7 @@ const GameCanvas = ({
               initData.game.id,
               keyboardStatus,
               setKeyBoardStatus,
+              playerMove,
               setPlayerMove
             );
           }
@@ -347,6 +435,7 @@ const GameCanvas = ({
               initData.game.id,
               keyboardStatus,
               setKeyBoardStatus,
+              playerMove,
               setPlayerMove
             );
           }
@@ -374,6 +463,7 @@ const GameCanvas = ({
         setGameState={setGameState}
       />
       {!isPlayer && <span className="my-2 text-lg">Live Stream</span>}
+      {/* TODO : check if live is still working */}
     </>
   );
 };

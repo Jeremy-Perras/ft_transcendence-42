@@ -102,25 +102,6 @@ export class SocketGateway {
     return false;
   };
 
-  private playerState(gameId: number) {
-    const callback = () => {
-      const gameData = this.gameService.saveGameData.get(gameId);
-      if (gameData?.player1.playerState === PlayerState.DOWN) {
-        this.gameService.MovePadDown(gameId, gameData.player1.id);
-      } else if (gameData?.player1.playerState === PlayerState.UP) {
-        this.gameService.MovePadUp(gameId, gameData.player1.id);
-      }
-      if (gameData?.player2.playerState === PlayerState.DOWN) {
-        this.gameService.MovePadDown(gameId, gameData.player2.id);
-      } else if (gameData?.player2.playerState === PlayerState.UP) {
-        this.gameService.MovePadUp(gameId, gameData.player2.id);
-      }
-      this.server.to("game" + gameId).emit("updateCanvas", gameData);
-    };
-
-    this.gameInProgress.set(gameId, setInterval(callback, 100));
-  }
-
   async handleConnection(client: Socket, ...args: any[]) {
     const currentUserId = client.request.session.passport.user;
 
@@ -490,6 +471,25 @@ export class SocketGateway {
   ) {
     const gameData = this.gameService.saveGameData.get(gameId);
     this.server.to(`game${gameId}`).emit("updateCanvas", gameData);
+  }
+
+  private playerState(gameId: number) {
+    const callback = () => {
+      const gameData = this.gameService.saveGameData.get(gameId);
+      if (gameData?.player1.playerState === PlayerState.DOWN) {
+        this.gameService.MovePadDown(gameId, gameData.player1.id);
+      } else if (gameData?.player1.playerState === PlayerState.UP) {
+        this.gameService.MovePadUp(gameId, gameData.player1.id);
+      }
+      if (gameData?.player2.playerState === PlayerState.DOWN) {
+        this.gameService.MovePadDown(gameId, gameData.player2.id);
+      } else if (gameData?.player2.playerState === PlayerState.UP) {
+        this.gameService.MovePadUp(gameId, gameData.player2.id);
+      }
+      this.server.to("game" + gameId).emit("updateCanvas", gameData);
+    };
+
+    this.gameInProgress.set(gameId, setInterval(callback, 200));
   }
 
   @SubscribeMessage("movePadUp")

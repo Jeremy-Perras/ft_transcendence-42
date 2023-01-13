@@ -250,7 +250,7 @@ const Error = ({
   setDisplayInvitationError: React.Dispatch<React.SetStateAction<boolean>>;
   setState: React.Dispatch<React.SetStateAction<State>>;
 }) => {
-  setState("idle");
+  // setState("idle");
   return (
     <div className="absolute top-0 z-10  w-1/3 justify-center ">
       <div className=" flex w-full flex-auto flex-row  bg-slate-100 ">
@@ -336,13 +336,13 @@ export const Home = () => {
           </a>
         )}
       </div>
-      {displayInvitationError ? (
+      {/* {displayInvitationError ? (
         <Error
           message={message}
           setDisplayInvitationError={setDisplayInvitationError}
           setState={setState}
         />
-      ) : null}
+      ) : null} */}
       <GameInvitations />
     </>
   );
