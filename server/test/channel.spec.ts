@@ -170,7 +170,7 @@ declare global {
 const prisma = new PrismaClient();
 let currentUserId: number;
 
-describe("queries", () => {
+describe("channel", () => {
   let app: INestApplication;
 
   beforeAll(async () => {

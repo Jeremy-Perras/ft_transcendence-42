@@ -1,10 +1,12 @@
 import { GameMode } from "@prisma/client";
+import console from "console";
 import { assign, createMachine, StateValue, interpret } from "xstate";
+import { choose } from "xstate/lib/actions";
 import { waitFor } from "xstate/lib/waitFor";
 import { SocketGateway } from "../socket/socket.gateway";
 import { GameService } from "./game.service";
 
-export const playerService = (
+export const PlayerMachine = (
   userId: number,
   gameService: GameService,
   socket: SocketGateway
@@ -19,8 +21,11 @@ export const playerService = (
           userId: number;
           gameMode?: GameMode;
           inviteeId?: number;
+          invite?: {
+            inviterId?: number;
+            gameMode?: GameMode;
+          };
           invitations: Map<number, GameMode>;
-          history: StateValue[];
         },
         services: {} as {
           sendInvite: {
@@ -58,8 +63,8 @@ export const playerService = (
         userId,
         gameMode: undefined,
         inviteeId: undefined,
+        invite: undefined,
         invitations: new Map(),
-        history: [],
       },
       on: {
         DISCONNECT: {
@@ -72,10 +77,10 @@ export const playerService = (
           states: {
             idle: {
               entry: [
-                "updateHistory",
                 assign({
                   gameMode: undefined,
                   inviteeId: undefined,
+                  invite: undefined,
                 }),
               ],
               on: {
@@ -84,16 +89,17 @@ export const playerService = (
                   actions: ["updateInvitee", "updateGameMode"],
                 },
                 NEW_INVITATION: {
-                  actions: "addInvite",
+                  actions: ["addInvite", "notifyInvite"],
                 },
                 INVITATION_CANCELED: {
                   actions: "removeInvite",
                 },
                 ACCEPT_INVITATION: {
                   target: "acceptingInvite",
+                  actions: "selectInvite",
                 },
                 REFUSE_INVITATION: {
-                  actions: "refuseInvite",
+                  actions: ["refuseInvite", "notifyRefusal"],
                 },
                 JOIN_MATCHMAKING: {
                   target: "waitingForMatchmaking",
@@ -102,12 +108,10 @@ export const playerService = (
               },
             },
             sendingInvite: {
-              entry: "updateHistory",
               invoke: {
                 src: "sendInvite",
                 onDone: {
                   target: "waitingForInvitee",
-                  actions: "refuseAllInvites",
                 },
                 onError: {
                   target: "idle",
@@ -115,12 +119,19 @@ export const playerService = (
               },
             },
             acceptingInvite: {
-              entry: ["updateHistory", "removeInvite"],
+              entry: "removeInvite",
+              exit: choose([
+                {
+                  cond: (_, event) => event.type !== "DISCONNECT",
+                  actions: assign({
+                    invite: undefined,
+                  }),
+                },
+              ]),
               invoke: {
                 src: "acceptInvite",
                 onDone: {
                   target: "playing",
-                  actions: "refuseAllInvites",
                 },
                 onError: [
                   {
@@ -132,7 +143,7 @@ export const playerService = (
               },
             },
             waitingForInvitee: {
-              entry: "updateHistory",
+              entry: ["refuseInviteAll", "notifyRefusalAll"],
               on: {
                 CANCEL_INVITATION: {
                   target: "idle",
@@ -161,7 +172,6 @@ export const playerService = (
             },
             waitingForMatchmaking: {
               entry: [
-                "updateHistory",
                 (context) => {
                   gameService.joinMatchmakingRoom(
                     context.userId,
@@ -170,7 +180,6 @@ export const playerService = (
                 },
               ],
               exit: [
-                "updateHistory",
                 (context) => {
                   gameService.leaveMatchmakingRoom(
                     context.userId,
@@ -180,28 +189,28 @@ export const playerService = (
               ],
               on: {
                 NEW_INVITATION: {
-                  actions: "addInvite",
+                  actions: ["addInvite", "notifyInvite"],
                 },
                 INVITATION_CANCELED: {
                   actions: "removeInvite",
                 },
                 ACCEPT_INVITATION: {
                   target: "acceptingInvite",
+                  actions: "selectInvite",
                 },
                 REFUSE_INVITATION: {
-                  actions: "refuseInvite",
+                  actions: ["refuseInvite", "notifyRefusal"],
                 },
                 LEAVE_MATCHMAKING: {
                   target: "idle",
                 },
                 GAME_FOUND: {
                   target: "playing",
-                  actions: "refuseAllInvites",
                 },
               },
             },
             playing: {
-              entry: "updateHistory",
+              entry: ["notifyRefusalAll", "refuseInviteAll"],
               invoke: {
                 src: "gameStart",
                 onError: [
@@ -224,7 +233,6 @@ export const playerService = (
           },
         },
         disconnected: {
-          entry: "updateHistory",
           // TODO: if user is in game emit to room for pause
           after: [
             {
@@ -242,6 +250,10 @@ export const playerService = (
           type: "final",
           invoke: {
             src: (context) =>
+              // TODO: stop game
+              // TODO: remove from matchmaking
+              // TODO: cancel invite
+              // TODO: refuse invites
               new Promise<void>((resolve) => {
                 gameService.removePlayer(context.userId);
                 resolve();
@@ -252,10 +264,7 @@ export const playerService = (
     },
     {
       guards: {
-        wasInMatchmaking: (context) =>
-          context.history.length >= 2 &&
-          context.history[context.history.length - 2] ===
-            "waitingForMatchmaking",
+        wasInMatchmaking: (context) => !!context.gameMode && !context.inviteeId,
       },
       services: {
         sendInvite: (
@@ -283,26 +292,26 @@ export const playerService = (
                 reject();
                 return;
               }
-              try {
-                waitFor(
-                  invitee,
-                  (state) => {
-                    if (state.context.invitations.has(context.userId)) {
-                      resolve();
-                      return true;
-                    }
-                    return false;
-                  },
-                  { timeout: 1000 }
-                );
-                invitee.send({
-                  type: "NEW_INVITATION",
-                  gameMode,
-                  inviterId: context.userId,
-                });
-              } catch (_) {
-                reject();
-              }
+              waitFor(
+                invitee,
+                (state) => {
+                  if (state.context.invitations.has(context.userId)) {
+                    return true;
+                  }
+                  return false;
+                },
+                { timeout: 1000 }
+              )
+                .then(() => {
+                  gameService.players.set(inviteeId, invitee);
+                  resolve();
+                })
+                .catch(() => reject());
+              invitee.send({
+                type: "NEW_INVITATION",
+                gameMode,
+                inviterId: context.userId,
+              });
             }
           }),
         acceptInvite: (
@@ -320,21 +329,18 @@ export const playerService = (
               if (gameId) resolve();
               else reject();
             } else {
-              const gameMode = context.invitations.get(event.inviterId);
-              if (gameMode) {
+              if (context.invite) {
                 const inviter = gameService.getPlayer(event.inviterId);
                 if (!inviter) {
                   reject();
                   return;
                 }
-                try {
-                  waitFor(inviter, (state) => state.matches("_.playing"), {
-                    timeout: 1000,
-                  });
-                  inviter.send({ type: "INVITATION_ACCEPTED" });
-                } catch (_) {
-                  reject();
-                }
+                waitFor(inviter, (state) => state.matches("_.playing"), {
+                  timeout: 1000,
+                })
+                  .then(() => resolve())
+                  .catch(() => reject());
+                inviter.send({ type: "INVITATION_ACCEPTED" });
               } else reject();
             }
           }),
@@ -369,7 +375,10 @@ export const playerService = (
               }
               gameService
                 .createGame(gameMode, inviteeId, context.userId)
-                .then(() => resolve())
+                .then((game) => {
+                  gameService.games.set(game.id, game);
+                  resolve();
+                })
                 .catch(() => reject());
             }
           }),
@@ -381,21 +390,14 @@ export const playerService = (
         updateInvitee: assign({
           inviteeId: (_, event) => event.inviteeId,
         }),
-        updateHistory: assign({
-          history: (context, _, meta) => {
-            if (meta.state?.changed) {
-              context.history.push(meta.state.value);
-            }
-            return context.history;
+        addInvite: assign({
+          invitations: (context, event) => {
+            const invitations = new Map(context.invitations);
+            invitations.set(event.inviterId, event.gameMode);
+            return invitations;
           },
         }),
-        addInvite: (context, event) => {
-          assign({
-            invitations: () => {
-              context.invitations.set(event.inviterId, event.gameMode);
-              return context.invitations;
-            },
-          });
+        notifyInvite: (context) => {
           socket.sendToUser(context.userId, "newInvitation", {
             inviterId: context.userId,
             gameMode: context.gameMode,
@@ -411,28 +413,32 @@ export const playerService = (
               });
           }
         },
-        removeInvite: (context, event) => {
-          assign({
-            invitations: () => {
-              context.invitations.delete(event.inviterId);
-              return context.invitations;
-            },
-          });
-        },
-        refuseInvite: (context, event) => {
-          assign({
-            invitations: () => {
-              context.invitations.delete(event.inviterId);
-              return context.invitations;
-            },
-          });
+        selectInvite: assign({
+          invite: (context, event) => ({
+            inviterId: event.inviterId,
+            gameMode: context.invitations.get(event.inviterId),
+          }),
+        }),
+        removeInvite: assign({
+          invitations: (context, event) => {
+            context.invitations.delete(event.inviterId);
+            return context.invitations;
+          },
+        }),
+        refuseInvite: assign({
+          invitations: (context, event) => {
+            context.invitations.delete(event.inviterId);
+            return context.invitations;
+          },
+        }),
+        notifyRefusal: (_, event) => {
           const inviter = gameService.getPlayer(event.inviterId);
           if (inviter) inviter.send({ type: "INVITATION_REJECTED" });
         },
-        refuseAllInvites: (context) => {
-          assign({
-            invitations: () => new Set<number>(),
-          });
+        refuseInviteAll: assign({
+          invitations: () => new Map(),
+        }),
+        notifyRefusalAll: (context) => {
           for (const inviterId of context.invitations.keys()) {
             const inviter = gameService.getPlayer(inviterId);
             if (inviter) inviter.send({ type: "INVITATION_REJECTED" });

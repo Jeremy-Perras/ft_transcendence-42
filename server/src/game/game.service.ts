@@ -1,8 +1,8 @@
 import { Injectable } from "@nestjs/common";
-import { GameMode } from "@prisma/client";
+import { Game, GameMode } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { SocketGateway } from "../socket/socket.gateway";
-import { playerService } from "./player.machine";
+import { PlayerMachine } from "./player.machine";
 import { waitFor } from "xstate/lib/waitFor";
 import { OnEvent } from "@nestjs/event-emitter";
 
@@ -13,9 +13,10 @@ export class GameService {
     private readonly socketGateway: SocketGateway
   ) {}
 
-  private players: Map<number, ReturnType<typeof playerService>> = new Map();
-  private games: Map<number, string> = new Map();
-  private matchmakingRooms: Record<GameMode, Set<number>> = {
+  // TODO: private
+  players: Map<number, ReturnType<typeof PlayerMachine>> = new Map();
+  games: Map<number, Game> = new Map();
+  matchmakingRooms: Record<GameMode, Set<number>> = {
     CLASSIC: new Set(),
     RANDOM: new Set(),
     SPEED: new Set(),
@@ -138,7 +139,7 @@ export class GameService {
     let player = this.players.get(userId);
     if (player) return player;
     else if (this.socketGateway.isOnline(userId)) {
-      player = playerService(userId, this, this.socketGateway);
+      player = PlayerMachine(userId, this, this.socketGateway);
       this.players.set(userId, player);
       return player;
     }
@@ -153,13 +154,15 @@ export class GameService {
     }
   };
 
-  getGame = (userId: number) => this.games.get(userId);
+  getGame = (userId: number) => {
+    for (const game of this.games.values()) {
+      if (game.player1Id === userId || game.player2Id === userId) {
+        return game;
+      }
+    }
+  };
 
-  createGame = async (
-    gameMode: GameMode,
-    player1Id: number,
-    player2Id: number
-  ) => {
+  createGame = (gameMode: GameMode, player1Id: number, player2Id: number) => {
     return this.prismaService.game.create({
       data: {
         mode: gameMode,
@@ -173,13 +176,18 @@ export class GameService {
   joinMatchmakingRoom = async (userId: number, gameMode: GameMode) => {
     const matchmakingRoom = this.matchmakingRooms[gameMode];
     if (matchmakingRoom.has(userId)) return;
+    console.log(1);
     if (matchmakingRoom.size === 1) {
+      console.log(2);
       const player1 = this.getPlayer(matchmakingRoom.values().next().value);
       const player2 = this.getPlayer(userId);
       if (player1 && player2) {
+        console.log(3);
         const p1 = player1.getSnapshot();
         const p2 = player2.getSnapshot();
+        console.log(p1.can("GAME_FOUND"));
         if (p1.can("GAME_FOUND") && p2.can("GAME_FOUND")) {
+          console.log(4);
           await this.createGame(gameMode, p1.context.userId, p2.context.userId);
           player1.send({ type: "GAME_FOUND" });
           player2.send({ type: "GAME_FOUND" });

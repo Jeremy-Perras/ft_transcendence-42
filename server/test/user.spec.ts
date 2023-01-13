@@ -414,7 +414,7 @@ declare global {
 const prisma = new PrismaClient();
 let currentUserId: number;
 
-describe("queries", () => {
+describe("user", () => {
   let app: INestApplication;
 
   beforeAll(async () => {
