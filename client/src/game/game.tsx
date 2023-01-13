@@ -27,9 +27,22 @@ const PAD_VELOCITY = 5;
 const BALL_RADIUS = 4;
 const BALL_VELOCITY = 10;
 
+enum PlayerState {
+  UP,
+  DOWN,
+  STILL,
+}
+
+type Player = {
+  coord: Coord;
+  id: number;
+  score: number;
+  playerState: PlayerState;
+};
+
 type GameData = {
-  player1: { id: number; coord: Coord; score: number };
-  player2: { id: number; coord: Coord; score: number };
+  player1: Player;
+  player2: Player;
   ball: Coord;
   gameMode: GameMode;
 };
@@ -132,6 +145,7 @@ const rightPad = {
     context.fillStyle = this.color;
     context.beginPath();
     context.fillRect(x, y, this.width, this.height);
+    // context.translate(150, 150);
     context.closePath();
     context.fill();
   },
@@ -144,6 +158,7 @@ const ball = {
     context.fillStyle = this.color;
     context.beginPath();
     context.arc(x, y, this.radius, 0, 2 * Math.PI);
+
     context.closePath();
     context.fill();
   },
@@ -158,7 +173,6 @@ const score = {
   ) {
     context.fillStyle = this.color;
     context.font = "24px serif";
-    console.log(`${player1Score}`);
     context.fillText(`${player1Score}`, 110, 20);
     context.fillText(`${player2Score}`, 180, 20);
   },
@@ -270,12 +284,15 @@ const handleKeyUp = (
 };
 
 const GameCanvas = ({
-  draw,
+  // draw,
   startTime,
   setGameState,
   initData,
 }: {
-  draw: (context: CanvasRenderingContext2D, gameData: GameData) => void;
+  // draw: (
+  //   context: CanvasRenderingContext2D | null | undefined,
+  //   gameData: GameData
+  // ) => void;
   startTime: number;
 
   setGameState: React.Dispatch<React.SetStateAction<gameScreenState>>;
@@ -286,8 +303,25 @@ const GameCanvas = ({
 
   const currentUserId = useAuthStore((state) => state.userId);
   const socket = useSocketStore().socket;
-  const [gameData, setGameData] = useState<GameData>();
-
+  // const [gameData, setGameData] = useState<GameData>();
+  // const gameData = useRef<GameData>();
+  const test = useRef<GameData>({
+    player1: {
+      id: 1,
+      coord: { x: 20, y: 30 },
+      score: 0,
+      playerState: PlayerState.STILL,
+    },
+    player2: {
+      id: 2,
+      coord: { x: 280, y: 80 },
+      score: 0,
+      playerState: PlayerState.STILL,
+    },
+    ball: { x: 130, y: 50 },
+    gameMode: GameMode.Classic,
+  });
+  const oldTest = useRef<GameData>();
   //TODO: remove this and emit at first render to get an update on current game state
 
   const [playerMove, setPlayerMove] = useState(PadMove.STILL);
@@ -295,14 +329,15 @@ const GameCanvas = ({
     arrowUp: false,
     arrowDown: false,
   });
-
-  socket.on("initialState", (data: GameData) => {
-    setGameData(data);
-  });
-
-  socket.on("updateCanvas", (data: GameData) => {
-    setGameData(data);
-  });
+  const [count, setCount] = useState(0);
+  const [context, setContext] = useState<
+    CanvasRenderingContext2D | null | undefined
+  >();
+  const requestRef = useRef<number>();
+  const previousTimeRef = useRef<number>(1);
+  const previousTimePlayer1 = useRef<number>(1);
+  const previousTimePlayer2 = useRef<number>(1);
+  const previousTimeReset = useRef<number>(1);
 
   const isPlayer =
     currentUserId === initData.game.players.player1.id ||
@@ -310,17 +345,83 @@ const GameCanvas = ({
       ? true
       : false;
 
+  // const speed = (test: number, playerCoord: number) => {
+  //   if (gameData) {
+  //     const speed = (Math.abs(playerCoord) - Math.abs(test)) / 5;
+  //     return Math.round(speed);
+  //   }
+  // };
+
   useEffect(() => {
     if (!isPlayer) socket.emit("joinRoomAsViewer", initData.game.id);
     socket.emit("gameReady", initData.game.id);
   }, []);
 
   useEffect(() => {
-    const context = canvas.current?.getContext("2d");
-    if (!context) return;
-    if (!gameData) return;
-    draw(context, gameData);
-  }, [gameData]);
+    // socket.on("initialState", (data: GameData) => {
+    //   requestRef.current = requestAnimationFrame(animate);
+    // });
+    let gameData: any;
+    const cb = (data: GameData) => {
+      test.current.player1.coord.y = data?.player1.coord.y;
+      test.current.player2.coord.y = data?.player2.coord.y;
+      // cancelAnimationFrame(requestRef.current!);
+      // clearInterval(requestRef.current);
+      // console.log(data.player1.coord.y);
+      gameData = data;
+      // requestRef.current = setInterval(animate, 10);
+    };
+    const animate = (time: number) => {
+      let ctx;
+      console.log(gameData);
+      if (canvas.current) ctx = canvas.current.getContext("2d");
+      if (
+        ctx &&
+        previousTimeRef.current != undefined &&
+        gameData &&
+        test.current &&
+        currentUserId == test.current.player1.id &&
+        time - previousTimePlayer1.current > 10
+      ) {
+        if (gameData.player1.playerState === PlayerState.DOWN) {
+          test.current.player1.coord.y++;
+          console.log("d");
+        } else if (gameData.player1.playerState === PlayerState.UP) {
+          test.current.player1.coord.y--;
+          console.log("u");
+        }
+        draw(ctx, test.current);
+        previousTimePlayer1.current = time;
+      }
+      if (
+        ctx &&
+        previousTimeRef.current != undefined &&
+        gameData &&
+        test.current &&
+        currentUserId == test.current.player2.id
+      ) {
+        draw(ctx, gameData);
+      }
+      previousTimeRef.current = time;
+      requestRef.current = requestAnimationFrame(animate);
+    };
+    socket.off("updateCanvas", cb);
+    socket.on("updateCanvas", cb);
+    requestRef.current = requestAnimationFrame(animate);
+    // requestRef.current = requestAnimationFrame(animate);
+
+    // console.log("in", gameData?.player1.coord.y);
+    return () => {
+      // console.log("out", gameData?.player1.coord.y);
+      // if (gameData) {
+      //   test.current.player1.coord.y = gameData?.player1.coord.y;
+      //   test.current.player2.coord.y = gameData?.player2.coord.y;
+      // }
+      socket.off("updateCanvas", cb);
+      cancelAnimationFrame(requestRef.current!);
+      // clearInterval(requestRef.current);
+    };
+  }, []);
 
   //TODO : pause game ? check subject
   return (
@@ -566,15 +667,40 @@ export const Game = () => {
       return <Score data={data} />;
     case gameScreenState.PLAYING:
       return (
-        <GameCanvas
-          initData={data}
-          draw={draw}
-          startTime={startTime + 5000}
-          setGameState={setGameState}
-        />
+        <>
+          <GameCanvas
+            initData={data}
+            // draw={draw}
+            startTime={startTime + 5000}
+            setGameState={setGameState}
+          />
+        </>
       );
 
     default:
       return <div>Error</div>;
   }
+};
+
+const Counter = (context: CanvasRenderingContext2D, gameData: GameData) => {
+  const [count, setCount] = useState(0);
+
+  const requestRef = useRef<number>();
+  const previousTimeRef = useRef<number>();
+
+  const animate = (time: number) => {
+    if (previousTimeRef.current != undefined) {
+      const deltaTime = time - previousTimeRef.current;
+
+      setCount((prevCount) => (prevCount + deltaTime * 0.01) % 100);
+    }
+    previousTimeRef.current = time;
+    requestRef.current = requestAnimationFrame(animate);
+  };
+
+  useEffect(() => {
+    requestRef.current = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(requestRef.current!);
+  }, []);
+  return <div>{Math.round(count)}</div>;
 };

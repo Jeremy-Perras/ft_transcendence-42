@@ -115,6 +115,7 @@ export class SocketGateway {
       } else if (gameData?.player2.playerState === PlayerState.UP) {
         this.gameService.MovePadUp(gameId, gameData.player2.id);
       }
+      console.log(gameData?.player1.coord.y);
       this.server.to("game" + gameId).emit("updateCanvas", gameData);
     };
 
