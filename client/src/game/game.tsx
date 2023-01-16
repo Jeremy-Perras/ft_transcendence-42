@@ -18,19 +18,18 @@ enum gameScreenState {
   SCORE,
 }
 
-const GAME_DURATION = 60;
+const INTRO_DURATION = 2;
+const GAME_DURATION = 600;
 const CANVAS_WIDTH = 3000;
 const CANVAS_HEIGHT = 1500;
-const PAD_HEIGHT = 25;
+const PAD_HEIGHT = 30;
 const PAD_WIDTH = Math.ceil(PAD_HEIGHT / 5);
-
 const BALL_RADIUS = 4;
-const BALL_VELOCITY = 10;
 
 type GameData = {
   player1: { id: number; coord: Coord; score: number; playerState: PadMove };
   player2: { id: number; coord: Coord; score: number; playerState: PadMove };
-  ball: Coord;
+  ball: { coord: Coord; velocituy: { vx: number; vy: number } };
   gameMode: GameMode;
 };
 
@@ -113,17 +112,11 @@ const background = {
 };
 
 class Pad {
-  private y: number;
+  public y: number;
   public color: string;
   public constructor() {
     this.color = "white";
     this.y = 50;
-  }
-  public getY(): number {
-    return this.y;
-  }
-  public setY(y: number) {
-    this.y = y;
   }
 
   public draw(context: CanvasRenderingContext2D, x: number, y: number) {
@@ -188,7 +181,7 @@ const draw = (
   score.draw(context, gameData.player1.score, gameData.player2.score);
   leftPad.draw(context, leftPad.x, yLeft);
   rightPad.draw(context, rightPad.x, yRight);
-  ball.draw(context, gameData.ball.x, gameData.ball.y);
+  ball.draw(context, gameData.ball.coord.x, gameData.ball.coord.y);
 };
 
 const handleKeyDown = (
@@ -307,6 +300,7 @@ const handleKeyUp = (
 
 const leftPad = new LeftPad();
 const rightPad = new RightPad();
+
 let init = -1;
 const GameCanvas = ({
   draw,
@@ -338,7 +332,6 @@ const GameCanvas = ({
     arrowDown: false,
   });
 
-  // let time = new Date().getTime();
   socket.on("initialState", (data: GameData) => {
     setGameData(data);
   });
@@ -353,7 +346,6 @@ const GameCanvas = ({
       : currentUserId === initData.game.players.player2.id
       ? 2
       : 0;
-
   useEffect(() => {
     if (init !== -1) {
       if (!isPlayer) socket.emit("joinRoomAsViewer", initData.game.id);
@@ -362,49 +354,42 @@ const GameCanvas = ({
     }
     init = 0;
   }, []);
-
+  // let time = new Date().getTime();
   useEffect(() => {
     const context = canvas.current?.getContext("2d");
     if (!context) return;
     if (!gameData) return;
-
+    // console.log(gameData);
     let y1 = gameData.player1.coord.y;
     let y2 = gameData.player2.coord.y;
-    // const delta1 = y1 - leftPad.getY();
-    // const delta2 = y2 - rightPad.getY();
+    // const d1 = y1 - leftPad.y;
+    // const d2 = y2 - rightPad.y;
+    // console.log("Actual place : " + leftPad.y + " " + rightPad.y);
+    // console.log("Next place : " + y1 + " " + y2);
+    // console.log(new Date().getTime());
 
-    // leftPad.setY(y1);
-    // rightPad.setY(y2);
-
-    // const velocityCoeff1 = (y1 - leftPad.getY()) / 5;
-    // const currentTime = new Date().getTime();
-    // console.log(currentTime - time);
-    draw(context, gameData.player1.coord.y, gameData.player2.coord.y, gameData);
     const interval = setInterval(() => {
-      if (gameData.player1.playerState === PadMove.UP && y1 >= 1) {
-        y1 -= 1;
-        leftPad.setY(leftPad.getY() - 1);
+      if (gameData.player1.playerState === PadMove.UP && leftPad.y >= 1) {
+        // if (leftPad.y > y1) leftPad.y -= 1;
+        y1--;
       }
       if (
         gameData.player1.playerState === PadMove.DOWN &&
-        y1 < CANVAS_HEIGHT / 10 - PAD_HEIGHT
+        leftPad.y < CANVAS_HEIGHT / 10 - PAD_HEIGHT
       ) {
-        y1 += 1;
-        leftPad.setY(leftPad.getY() + 1);
+        y1++; // if (leftPad.y < y1) leftPad.y += 1;
       }
-      if (gameData.player2.playerState === PadMove.UP && y2 >= 1) {
-        y2 -= 1;
-        rightPad.setY(rightPad.getY() - 1);
+      if (gameData.player2.playerState === PadMove.UP && rightPad.y >= 1) {
+        y2--; // if (rightPad.y > y2) rightPad.y -= 1;
       }
       if (
         gameData.player2.playerState === PadMove.DOWN &&
-        y2 < CANVAS_HEIGHT / 10 - PAD_HEIGHT
+        rightPad.y < CANVAS_HEIGHT / 10 - PAD_HEIGHT
       ) {
-        y2 += 1;
-        rightPad.setY(rightPad.getY() + 1);
+        y2++;
+        // if (rightPad.y < y2) rightPad.y += 1;
       }
       draw(context, y1, y2, gameData);
-      // time = new Date().getTime();
     }, 20);
     return () => clearInterval(interval);
   }, [gameData]);
@@ -560,7 +545,10 @@ const Intro = ({
   const socket = useSocketStore().socket;
 
   const [timer, setTimer] = useState(
-    Math.floor(Math.floor(startTime + 5 * 1000 - new Date().getTime()) / 1000)
+    Math.floor(
+      Math.floor(startTime + INTRO_DURATION * 1000 - new Date().getTime()) /
+        1000
+    )
   );
 
   const isPlayer =
@@ -579,7 +567,9 @@ const Intro = ({
     }
     const interval = setInterval(() => {
       setTimer(
-        Math.floor((startTime + 5 * 1000 - new Date().getTime()) / 1000)
+        Math.floor(
+          (startTime + INTRO_DURATION * 1000 - new Date().getTime()) / 1000
+        )
       );
     }, 1000);
     return () => clearInterval(interval);

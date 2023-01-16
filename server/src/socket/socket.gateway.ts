@@ -486,10 +486,11 @@ export class SocketGateway {
       } else if (gameData?.player2.playerState === PlayerState.UP) {
         this.gameService.MovePadUp(gameId, gameData.player2.id);
       }
+      this.gameService.MoveBall(gameId);
       this.server.to("game" + gameId).emit("updateCanvas", gameData);
     };
 
-    this.gameInProgress.set(gameId, setInterval(callback, 200));
+    this.gameInProgress.set(gameId, setInterval(callback, 100));
   }
 
   @SubscribeMessage("movePadUp")
