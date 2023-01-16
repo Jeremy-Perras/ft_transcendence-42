@@ -48,13 +48,13 @@ export class GameService {
     this.saveGameData.set(id, {
       player1: {
         id: player1Id,
-        coord: { x: 20, y: 50 },
+        coord: { x: 20, y: (CANVAS_HEIGHT - PAD_HEIGHT) / 2 },
         score: 0,
         playerState: PlayerState.STILL,
       },
       player2: {
         id: player2Id,
-        coord: { x: 280, y: 50 },
+        coord: { x: 280, y: (CANVAS_HEIGHT - PAD_HEIGHT) / 2 },
         score: 0,
         playerState: PlayerState.STILL,
       },
@@ -141,18 +141,12 @@ export class GameService {
 
   MoveBall(gameId: number) {
     const gameData = this.saveGameData.get(gameId);
+
     const checkWallCollision = (gameData: GameData): boolean => {
       if (
         gameData.ball.coord.y + gameData.ball.velocity.vy >
         CANVAS_HEIGHT - BALL_RADIUS
       ) {
-        // gameData.ball.coord.x =
-        //   gameData.ball.coord.x +
-        //   gameData.ball.velocity.vx *
-        //     Math.abs(
-        //       (CANVAS_HEIGHT - BALL_RADIUS - gameData.ball.coord.y) /
-        //         gameData.ball.velocity.vy
-        //     );
         gameData.ball.coord.x += gameData.ball.velocity.vx;
         gameData.ball.coord.y =
           CANVAS_HEIGHT -
@@ -160,21 +154,13 @@ export class GameService {
           (gameData.ball.velocity.vy -
             (CANVAS_HEIGHT - BALL_RADIUS - gameData.ball.coord.y));
         gameData.ball.velocity.vy = -gameData.ball.velocity.vy;
-
         this.saveGameData.set(gameId, gameData);
         return true;
       } else if (
         gameData.ball.coord.y + gameData.ball.velocity.vy <
         BALL_RADIUS
       ) {
-        // gameData.ball.coord.x =
-        //   gameData.ball.coord.x +
-        //   gameData.ball.velocity.vx *
-        //     Math.abs(
-        //       (gameData.ball.coord.y - BALL_RADIUS) / gameData.ball.velocity.vy
-        //     );
         gameData.ball.coord.x += gameData.ball.velocity.vx;
-        // gameData.ball.coord.y = BALL_RADIUS; => move to front
         gameData.ball.coord.y =
           BALL_RADIUS +
           Math.abs(gameData.ball.velocity.vy) -
@@ -183,10 +169,16 @@ export class GameService {
         this.saveGameData.set(gameId, gameData);
         return true;
       }
-      // move all interm calc to front
       return false;
     };
 
+    // TODO : move all interm calc to front
+    // ex :gameData.ball.coord.x =
+    //   gameData.ball.coord.x +
+    //   gameData.ball.velocity.vx *
+    //     Math.abs(
+    //       (gameData.ball.coord.y - BALL_RADIUS) / gameData.ball.velocity.vy
+    //     );
     const leftPadCollision = (gameData: GameData): boolean => {
       if (
         gameData.ball.coord.x - BALL_RADIUS <=
@@ -227,9 +219,10 @@ export class GameService {
           gameData.player2.coord.x + PAD_WIDTH / 2 &&
         gameData.ball.coord.y > gameData.player2.coord.y &&
         gameData.ball.coord.y < gameData.player2.coord.y + PAD_HEIGHT
-        //TODO :  see walls
+        //TODO :  check intersection between lines
       ) {
-        gameData.ball.coord.x = gameData.player2.coord.x - BALL_RADIUS;
+        //TODO : see walls
+        // gameData.ball.coord.x = gameData.player2.coord.x - BALL_RADIUS;
         //set y
         const ratioPadPointCollision =
           (gameData.ball.coord.y - gameData.player2.coord.y - PAD_HEIGHT / 2) /
@@ -249,8 +242,33 @@ export class GameService {
       return false;
     };
 
+    const goal = (gameData: GameData): boolean => {
+      if (
+        gameData.ball.coord.x + gameData.ball.velocity.vx >
+        CANVAS_WIDTH + BALL_RADIUS
+      ) {
+        gameData.player2.score += 1;
+        gameData.ball.coord.x = 150;
+        gameData.ball.velocity.vx = -BALL_VELOCITY;
+        gameData.ball.velocity.vy = 0;
+        this.saveGameData.set(gameId, gameData);
+        return true;
+      } else if (
+        gameData.ball.coord.x + gameData.ball.velocity.vx <
+        -BALL_RADIUS
+      ) {
+        gameData.player1.score += 1;
+        gameData.ball.coord.x = 150;
+        gameData.ball.velocity.vx = BALL_VELOCITY;
+        gameData.ball.velocity.vy = 0;
+        this.saveGameData.set(gameId, gameData);
+        return true;
+      }
+      return false;
+    };
+
     if (gameData !== undefined) {
-      if (checkWallCollision(gameData)) return; //OK
+      if (checkWallCollision(gameData)) return;
       if (gameData.ball.velocity.vx < 0) {
         //TODO
         if (leftPadCollision(gameData)) return;
@@ -259,28 +277,10 @@ export class GameService {
         //TODO
         if (rightPadCollision(gameData)) return;
       }
+      if (goal(gameData)) return;
 
-      //goal
-      if (
-        gameData.ball.coord.x + gameData.ball.velocity.vx >
-        CANVAS_WIDTH + BALL_RADIUS
-      ) {
-        gameData.player2.score += 1;
-        gameData.ball.coord.x = 150;
-        gameData.ball.velocity.vx = -gameData.ball.velocity.vx; //launch ball to the other side at next try
-        gameData.ball.velocity.vy = 0;
-      } else if (
-        gameData.ball.coord.x + gameData.ball.velocity.vx <
-        -BALL_RADIUS
-      ) {
-        gameData.player1.score += 1;
-        gameData.ball.coord.x = 150;
-        gameData.ball.velocity.vx = -gameData.ball.velocity.vx; //launch ball to the other side at next try
-        gameData.ball.velocity.vy = Math.random() * 5;
-      } else {
-        gameData.ball.coord.x += gameData.ball.velocity.vx;
-        gameData.ball.coord.y += gameData.ball.velocity.vy;
-      }
+      gameData.ball.coord.x += gameData.ball.velocity.vx;
+      gameData.ball.coord.y += gameData.ball.velocity.vy;
       this.saveGameData.set(gameId, gameData);
     }
   }

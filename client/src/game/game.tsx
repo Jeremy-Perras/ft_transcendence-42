@@ -21,7 +21,7 @@ const INTRO_DURATION = 1;
 const GAME_DURATION = 1500;
 const CANVAS_WIDTH = 3000;
 const CANVAS_HEIGHT = 1500;
-const PAD_HEIGHT = 25;
+const PAD_HEIGHT = 30;
 const PAD_WIDTH = Math.ceil(PAD_HEIGHT / 5);
 const PAD_VELOCITY = 5;
 const BALL_RADIUS = 4;
@@ -316,18 +316,18 @@ const GameCanvas = ({
   const socket = useSocketStore().socket;
   const frontGameData = useRef<GameData>({
     player1: {
-      id: 1,
-      coord: { x: 20, y: 30 },
+      id: initData.game.players.player1.id,
+      coord: { x: 20, y: (CANVAS_HEIGHT / 10 - PAD_HEIGHT) / 2 },
       score: 0,
       playerState: PlayerState.STILL,
     },
     player2: {
-      id: 2,
-      coord: { x: 280, y: 80 },
+      id: initData.game.players.player2.id,
+      coord: { x: 280, y: (CANVAS_HEIGHT / 10 - PAD_HEIGHT) / 2 },
       score: 0,
       playerState: PlayerState.STILL,
     },
-    ball: { coord: { x: 130, y: 50 }, velocity: { vx: 0, vy: 0 } },
+    ball: { coord: { x: 150, y: 75 }, velocity: { vx: 0, vy: 0 } },
     gameMode: GameMode.Classic,
   });
 
@@ -364,6 +364,9 @@ const GameCanvas = ({
         draw(ctx, frontGameData.current);
       }
       frontGameData.current.ball = data.ball;
+      frontGameData.current.player1.score = data.player1.score;
+      frontGameData.current.player2.score = data.player2.score;
+
       console.log(frontGameData);
       gameData = data;
     };
