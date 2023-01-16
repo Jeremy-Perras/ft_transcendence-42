@@ -18,7 +18,7 @@ type SocketStore = {
   socket: Socket;
 };
 const useSocketStore = create<SocketStore>(() => ({
-  socket: io(),
+  socket: io({ transports: ["websocket"] }),
 }));
 
 type InvitationStore = {

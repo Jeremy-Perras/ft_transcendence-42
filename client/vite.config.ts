@@ -9,7 +9,10 @@ export default defineConfig({
       "/graphql": "http://localhost:3000",
       "^/auth/.*": "http://localhost:3000",
       "^/upload/.*": "http://localhost:3000",
-      "^/socket.io/.*": "http://localhost:3000",
+      "/socket.io": {
+        target: "ws://localhost:3000",
+        ws: true,
+      },
     },
   },
   plugins: [

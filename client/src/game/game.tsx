@@ -17,8 +17,8 @@ enum gameScreenState {
   PLAYING,
   SCORE,
 }
-
-const GAME_DURATION = 15;
+const INTRO_DURATION = 1;
+const GAME_DURATION = 1500;
 const CANVAS_WIDTH = 3000;
 const CANVAS_HEIGHT = 1500;
 const PAD_HEIGHT = 25;
@@ -201,7 +201,7 @@ const handleKeyDown = (
       arrowDown: boolean;
     }>
   >,
-  setPlayerMove: React.Dispatch<React.SetStateAction<PadMove>>
+  playerMove: React.MutableRefObject<PadMove>
 ) => {
   if (keycode === "ArrowUp") {
     !keyboardStatus.arrowUp
@@ -211,11 +211,15 @@ const handleKeyDown = (
         }))
       : null;
     if (!keyboardStatus.arrowDown) {
-      setPlayerMove(PadMove.UP);
-      socket.emit("movePadUp", gameId);
+      if (playerMove.current !== PadMove.UP) {
+        socket.emit("movePadUp", gameId);
+        playerMove.current = PadMove.UP;
+      }
     } else {
-      setPlayerMove(PadMove.STILL);
-      socket.emit("stopPad", gameId);
+      if (playerMove.current !== PadMove.STILL) {
+        playerMove.current = PadMove.STILL;
+        socket.emit("stopPad", gameId);
+      }
     }
   }
   if (keycode === "ArrowDown") {
@@ -226,11 +230,15 @@ const handleKeyDown = (
         }))
       : null;
     if (!keyboardStatus.arrowUp) {
-      setPlayerMove(PadMove.DOWN);
-      socket.emit("movePadDown", gameId);
+      if (playerMove.current !== PadMove.DOWN) {
+        playerMove.current = PadMove.DOWN;
+        socket.emit("movePadDown", gameId);
+      }
     } else {
-      setPlayerMove(PadMove.STILL);
-      socket.emit("stopPad", gameId);
+      if (playerMove.current !== PadMove.STILL) {
+        playerMove.current = PadMove.STILL;
+        socket.emit("stopPad", gameId);
+      }
     }
   }
 };
@@ -249,7 +257,7 @@ const handleKeyUp = (
       arrowDown: boolean;
     }>
   >,
-  setPlayerMove: React.Dispatch<React.SetStateAction<PadMove>>
+  playerMove: React.MutableRefObject<PadMove>
 ) => {
   if (keycode === "ArrowUp") {
     keyboardStatus.arrowUp
@@ -259,11 +267,15 @@ const handleKeyUp = (
         }))
       : null;
     if (!keyboardStatus.arrowDown) {
-      setPlayerMove(PadMove.STILL);
-      socket.emit("stopPad", gameId);
+      if (playerMove.current !== PadMove.STILL) {
+        playerMove.current = PadMove.STILL;
+        socket.emit("stopPad", gameId);
+      }
     } else {
-      setPlayerMove(PadMove.DOWN);
-      socket.emit("movePadDown", gameId);
+      if (playerMove.current !== PadMove.DOWN) {
+        playerMove.current = PadMove.DOWN;
+        socket.emit("movePadDown", gameId);
+      }
     }
   }
   if (keycode === "ArrowDown") {
@@ -274,38 +286,35 @@ const handleKeyUp = (
         }))
       : null;
     if (!keyboardStatus.arrowUp) {
-      setPlayerMove(PadMove.STILL);
-      socket.emit("stopPad", gameId);
+      if (playerMove.current !== PadMove.STILL) {
+        playerMove.current = PadMove.STILL;
+        socket.emit("stopPad", gameId);
+      }
     } else {
-      setPlayerMove(PadMove.UP);
-      socket.emit("movePadUp", gameId);
+      if (playerMove.current !== PadMove.UP) {
+        playerMove.current = PadMove.UP;
+        socket.emit("movePadUp", gameId);
+      }
     }
   }
 };
 
 const GameCanvas = ({
-  // draw,
   startTime,
   setGameState,
   initData,
 }: {
-  // draw: (
-  //   context: CanvasRenderingContext2D | null | undefined,
-  //   gameData: GameData
-  // ) => void;
   startTime: number;
-
   setGameState: React.Dispatch<React.SetStateAction<gameScreenState>>;
   initData: GameQuery;
 }) => {
   const canvas = useRef<HTMLCanvasElement>(null);
   if (!canvas) return <>Error</>;
-
+  const requestRef = useRef<number>();
+  const playerMove = useRef(PadMove.STILL);
   const currentUserId = useAuthStore((state) => state.userId);
   const socket = useSocketStore().socket;
-  // const [gameData, setGameData] = useState<GameData>();
-  // const gameData = useRef<GameData>();
-  const test = useRef<GameData>({
+  const frontGameData = useRef<GameData>({
     player1: {
       id: 1,
       coord: { x: 20, y: 30 },
@@ -321,23 +330,13 @@ const GameCanvas = ({
     ball: { x: 130, y: 50 },
     gameMode: GameMode.Classic,
   });
-  const oldTest = useRef<GameData>();
+
   //TODO: remove this and emit at first render to get an update on current game state
 
-  const [playerMove, setPlayerMove] = useState(PadMove.STILL);
   const [keyboardStatus, setKeyBoardStatus] = useState({
     arrowUp: false,
     arrowDown: false,
   });
-  const [count, setCount] = useState(0);
-  const [context, setContext] = useState<
-    CanvasRenderingContext2D | null | undefined
-  >();
-  const requestRef = useRef<number>();
-  const previousTimeRef = useRef<number>(1);
-  const previousTimePlayer1 = useRef<number>(1);
-  const previousTimePlayer2 = useRef<number>(1);
-  const previousTimeReset = useRef<number>(1);
 
   const isPlayer =
     currentUserId === initData.game.players.player1.id ||
@@ -345,81 +344,54 @@ const GameCanvas = ({
       ? true
       : false;
 
-  // const speed = (test: number, playerCoord: number) => {
-  //   if (gameData) {
-  //     const speed = (Math.abs(playerCoord) - Math.abs(test)) / 5;
-  //     return Math.round(speed);
-  //   }
-  // };
-
   useEffect(() => {
     if (!isPlayer) socket.emit("joinRoomAsViewer", initData.game.id);
     socket.emit("gameReady", initData.game.id);
   }, []);
 
   useEffect(() => {
-    // socket.on("initialState", (data: GameData) => {
-    //   requestRef.current = requestAnimationFrame(animate);
-    // });
-    let gameData: any;
+    let gameData: GameData;
     const cb = (data: GameData) => {
-      test.current.player1.coord.y = data?.player1.coord.y;
-      test.current.player2.coord.y = data?.player2.coord.y;
-      // cancelAnimationFrame(requestRef.current!);
-      // clearInterval(requestRef.current);
-      // console.log(data.player1.coord.y);
-      gameData = data;
-      // requestRef.current = setInterval(animate, 10);
-    };
-    const animate = (time: number) => {
       let ctx;
-      console.log(gameData);
       if (canvas.current) ctx = canvas.current.getContext("2d");
       if (
-        ctx &&
-        previousTimeRef.current != undefined &&
-        gameData &&
-        test.current &&
-        currentUserId == test.current.player1.id &&
-        time - previousTimePlayer1.current > 10
+        frontGameData.current.player1.coord.y != data.player1.coord.y &&
+        ctx
       ) {
-        if (gameData.player1.playerState === PlayerState.DOWN) {
-          test.current.player1.coord.y++;
-          console.log("d");
-        } else if (gameData.player1.playerState === PlayerState.UP) {
-          test.current.player1.coord.y--;
-          console.log("u");
-        }
-        draw(ctx, test.current);
-        previousTimePlayer1.current = time;
+        if (frontGameData.current.player1.coord.y <= data.player1.coord.y)
+          frontGameData.current.player1.coord.y++;
+        else frontGameData.current.player1.coord.y--;
+        draw(ctx, frontGameData.current);
       }
-      if (
-        ctx &&
-        previousTimeRef.current != undefined &&
-        gameData &&
-        test.current &&
-        currentUserId == test.current.player2.id
-      ) {
-        draw(ctx, gameData);
-      }
-      previousTimeRef.current = time;
-      requestRef.current = requestAnimationFrame(animate);
-    };
-    socket.off("updateCanvas", cb);
-    socket.on("updateCanvas", cb);
-    requestRef.current = requestAnimationFrame(animate);
-    // requestRef.current = requestAnimationFrame(animate);
 
-    // console.log("in", gameData?.player1.coord.y);
+      gameData = data;
+    };
+    const animate = () => {
+      let ctx;
+      if (canvas.current) ctx = canvas.current.getContext("2d");
+      if (ctx && gameData) {
+        if (frontGameData.current) {
+          if (gameData.player1.playerState === PlayerState.DOWN) {
+            frontGameData.current.player1.coord.y++;
+          } else if (gameData.player1.playerState === PlayerState.UP) {
+            frontGameData.current.player1.coord.y--;
+          }
+          if (gameData.player2.playerState === PlayerState.DOWN) {
+            frontGameData.current.player2.coord.y++;
+          } else if (gameData.player2.playerState === PlayerState.UP) {
+            frontGameData.current.player2.coord.y--;
+          }
+
+          draw(ctx, frontGameData.current);
+        }
+      }
+    };
+    socket.off("updateCanvas");
+    socket.on("updateCanvas", cb);
+    requestRef.current = setInterval(animate, 25);
     return () => {
-      // console.log("out", gameData?.player1.coord.y);
-      // if (gameData) {
-      //   test.current.player1.coord.y = gameData?.player1.coord.y;
-      //   test.current.player2.coord.y = gameData?.player2.coord.y;
-      // }
       socket.off("updateCanvas", cb);
-      cancelAnimationFrame(requestRef.current!);
-      // clearInterval(requestRef.current);
+      clearInterval(requestRef.current);
     };
   }, []);
 
@@ -436,7 +408,7 @@ const GameCanvas = ({
               initData.game.id,
               keyboardStatus,
               setKeyBoardStatus,
-              setPlayerMove
+              playerMove
             );
           }
         }}
@@ -448,7 +420,7 @@ const GameCanvas = ({
               initData.game.id,
               keyboardStatus,
               setKeyBoardStatus,
-              setPlayerMove
+              playerMove
             );
           }
         }}
@@ -571,7 +543,10 @@ const Intro = ({
   const socket = useSocketStore().socket;
 
   const [timer, setTimer] = useState(
-    Math.floor(Math.floor(startTime + 5 * 1000 - new Date().getTime()) / 1000)
+    Math.floor(
+      Math.floor(startTime + INTRO_DURATION * 1000 - new Date().getTime()) /
+        1000
+    )
   );
 
   const isPlayer =
@@ -590,7 +565,9 @@ const Intro = ({
     }
     const interval = setInterval(() => {
       setTimer(
-        Math.floor((startTime + 5 * 1000 - new Date().getTime()) / 1000)
+        Math.floor(
+          (startTime + INTRO_DURATION * 1000 - new Date().getTime()) / 1000
+        )
       );
     }, 1000);
     return () => clearInterval(interval);

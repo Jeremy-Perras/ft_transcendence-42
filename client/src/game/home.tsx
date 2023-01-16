@@ -178,6 +178,7 @@ const RenderState = ({
       });
       sendInvite();
     } else {
+      console.log("join");
       socket.emit("joinMatchmaking", gameMode);
     }
     setState("waiting");

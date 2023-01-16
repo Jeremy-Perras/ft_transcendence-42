@@ -27,7 +27,7 @@ enum UserState {
   IDLE,
 }
 
-@WebSocketGateway({ cors: "*" })
+@WebSocketGateway({ cors: "*", transports: ["websocket"] })
 export class SocketGateway {
   constructor(
     private prismaService: PrismaService,
@@ -115,10 +115,12 @@ export class SocketGateway {
       } else if (gameData?.player2.playerState === PlayerState.UP) {
         this.gameService.MovePadUp(gameId, gameData.player2.id);
       }
-      console.log(gameData?.player1.coord.y);
-      this.server.to("game" + gameId).emit("updateCanvas", gameData);
+      // this.server.to("game" + gameId).emit("updateCanvas", gameData);
+      this.server.sockets.adapter.rooms.get(`game${gameId}`)?.forEach((s) => {
+        console.log(s);
+        this.server.to(s).emit("updateCanvas", gameData);
+      });
     };
-
     this.gameInProgress.set(gameId, setInterval(callback, 100));
   }
 
