@@ -1,6 +1,5 @@
 import { GameMode } from "@prisma/client";
-import console from "console";
-import { assign, createMachine, StateValue, interpret } from "xstate";
+import { assign, createMachine, interpret } from "xstate";
 import { choose } from "xstate/lib/actions";
 import { waitFor } from "xstate/lib/waitFor";
 import { SocketGateway } from "../socket/socket.gateway";
@@ -144,6 +143,16 @@ export const PlayerMachine = (
             },
             waitingForInvitee: {
               entry: ["refuseInviteAll", "notifyRefusalAll"],
+              invoke: {
+                src: (context) =>
+                  new Promise<void>((resolve, reject) => {
+                    if (context.inviteeId && context.gameMode) resolve();
+                    else reject();
+                  }),
+                onError: {
+                  target: "idle",
+                },
+              },
               on: {
                 CANCEL_INVITATION: {
                   target: "idle",
@@ -171,22 +180,58 @@ export const PlayerMachine = (
               },
             },
             waitingForMatchmaking: {
-              entry: [
-                (context) => {
-                  gameService.joinMatchmakingRoom(
-                    context.userId,
-                    context.gameMode as GameMode
-                  );
+              invoke: {
+                src: (context) =>
+                  new Promise<void>((resolve, reject) => {
+                    const matchmakingRoom = gameService.getMatchmakingRoom(
+                      context.gameMode as GameMode
+                    );
+
+                    if (matchmakingRoom.has(context.userId)) {
+                      resolve();
+                      return;
+                    }
+
+                    if (matchmakingRoom.size === 1) {
+                      const player1 = gameService.getPlayer(
+                        matchmakingRoom.values().next().value
+                      );
+                      if (player1 && player1.getSnapshot().can("GAME_FOUND")) {
+                        gameService
+                          .createGame(
+                            context.gameMode as GameMode,
+                            player1.getSnapshot().context.userId,
+                            context.userId
+                          )
+                          .then(() => {
+                            player1.send({ type: "GAME_FOUND" });
+                            resolve();
+                          })
+                          .catch(() => {
+                            reject();
+                          });
+                      } else {
+                        if (player1)
+                          player1.send({ type: "LEAVE_MATCHMAKING" });
+                        matchmakingRoom.add(context.userId);
+                        resolve();
+                      }
+                    } else {
+                      matchmakingRoom.add(context.userId);
+                      resolve();
+                    }
+                  }),
+                onDone: [
+                  {
+                    target: "playing",
+                    cond: "isPlaying",
+                  },
+                ],
+                onError: {
+                  target: "idle",
                 },
-              ],
-              exit: [
-                (context) => {
-                  gameService.leaveMatchmakingRoom(
-                    context.userId,
-                    context.gameMode as GameMode
-                  );
-                },
-              ],
+              },
+              exit: "leaveMatchmaking",
               on: {
                 NEW_INVITATION: {
                   actions: ["addInvite", "notifyInvite"],
@@ -211,6 +256,7 @@ export const PlayerMachine = (
             },
             playing: {
               entry: ["notifyRefusalAll", "refuseInviteAll"],
+              exit: assign({ gameMode: undefined }),
               invoke: {
                 src: "gameStart",
                 onError: [
@@ -244,27 +290,31 @@ export const PlayerMachine = (
             CONNECT: {
               target: "_.prev",
             },
+            INVITATION_REJECTED: {
+              actions: assign({
+                inviteeId: (context) => undefined,
+                gameMode: (context) => undefined,
+              }),
+            },
           },
         },
         offline: {
-          type: "final",
-          invoke: {
-            src: (context) =>
-              // TODO: stop game
-              // TODO: remove from matchmaking
-              // TODO: cancel invite
-              // TODO: refuse invites
-              new Promise<void>((resolve) => {
-                gameService.removePlayer(context.userId);
-                resolve();
-              }),
-          },
+          entry: [
+            "cancelInvite",
+            "notifyRefusalAll",
+            "leaveMatchmaking",
+            async (context) => {
+              await gameService.forfeitGame(context.userId);
+              gameService.removePlayer(context.userId);
+            },
+          ],
         },
       },
     },
     {
       guards: {
         wasInMatchmaking: (context) => !!context.gameMode && !context.inviteeId,
+        isPlaying: (context) => !!gameService.getGame(context.userId),
       },
       services: {
         sendInvite: (
@@ -302,10 +352,7 @@ export const PlayerMachine = (
                 },
                 { timeout: 1000 }
               )
-                .then(() => {
-                  gameService.players.set(inviteeId, invitee);
-                  resolve();
-                })
+                .then(() => resolve())
                 .catch(() => reject());
               invitee.send({
                 type: "NEW_INVITATION",
@@ -339,7 +386,10 @@ export const PlayerMachine = (
                   timeout: 1000,
                 })
                   .then(() => resolve())
-                  .catch(() => reject());
+                  .catch(() => {
+                    inviter.send({ type: "INVITATION_REJECTED" });
+                    reject();
+                  });
                 inviter.send({ type: "INVITATION_ACCEPTED" });
               } else reject();
             }
@@ -375,10 +425,7 @@ export const PlayerMachine = (
               }
               gameService
                 .createGame(gameMode, inviteeId, context.userId)
-                .then((game) => {
-                  gameService.games.set(game.id, game);
-                  resolve();
-                })
+                .then(() => resolve())
                 .catch(() => reject());
             }
           }),
@@ -443,6 +490,9 @@ export const PlayerMachine = (
             const inviter = gameService.getPlayer(inviterId);
             if (inviter) inviter.send({ type: "INVITATION_REJECTED" });
           }
+        },
+        leaveMatchmaking: (context) => {
+          gameService.leaveMatchmaking(context.userId);
         },
       },
     }
