@@ -43,7 +43,7 @@ type Player = {
 type GameData = {
   player1: Player;
   player2: Player;
-  ball: Coord;
+  ball: { coord: Coord; velocity: { vx: number; vy: number } };
   gameMode: GameMode;
 };
 
@@ -184,7 +184,7 @@ const draw = (context: CanvasRenderingContext2D, gameData: GameData) => {
   score.draw(context, gameData.player1.score, gameData.player2.score);
   leftPad.draw(context, gameData.player1.coord.x, gameData.player1.coord.y);
   rightPad.draw(context, gameData.player2.coord.x, gameData.player2.coord.y);
-  ball.draw(context, gameData.ball.x, gameData.ball.y);
+  ball.draw(context, gameData.ball.coord.x, gameData.ball.coord.y);
 };
 
 const handleKeyDown = (
@@ -327,7 +327,7 @@ const GameCanvas = ({
       score: 0,
       playerState: PlayerState.STILL,
     },
-    ball: { x: 130, y: 50 },
+    ball: { coord: { x: 130, y: 50 }, velocity: { vx: 0, vy: 0 } },
     gameMode: GameMode.Classic,
   });
 
@@ -363,7 +363,8 @@ const GameCanvas = ({
         else frontGameData.current.player1.coord.y--;
         draw(ctx, frontGameData.current);
       }
-
+      frontGameData.current.ball = data.ball;
+      console.log(frontGameData);
       gameData = data;
     };
     const animate = () => {
