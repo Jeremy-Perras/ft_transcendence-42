@@ -188,8 +188,6 @@ export class GameService {
       return false;
     };
 
-    // TODO : move all interm calc to front
-
     const leftPadCollision = (gameData: GameData): boolean => {
       //VERTICAL COLLISION
       if (
@@ -200,21 +198,18 @@ export class GameService {
         gameData.ball.coord.x -
           BALL_RADIUS -
           (gameData.player1.coord.x + PAD_WIDTH) <=
-          Math.abs(gameData.ball.velocity.vx) //pad x is between current coordinate and next
+          Math.abs(gameData.ball.velocity.vx)
       ) {
-        console.log("Ball crosses pad1 line");
         const coeff =
           (gameData.ball.coord.x -
             BALL_RADIUS -
             (gameData.player1.coord.x + PAD_WIDTH)) /
           Math.abs(gameData.ball.velocity.vx);
         const yColl = gameData.ball.coord.y + gameData.ball.velocity.vy * coeff;
-        //PAD CORE COLLISIOM
         if (
           yColl >= gameData.player1.coord.y &&
           yColl <= gameData.player1.coord.y + PAD_HEIGHT
         ) {
-          console.log("Pad1 - core collision");
           //collision
           const padCollisionRatio =
             (yColl - gameData.player1.coord.y - PAD_HEIGHT / 2) /
@@ -238,7 +233,6 @@ export class GameService {
           //new velocity
           // BALL_VELOCITY += 0.02 * BALL_VELOCITY; //increase velocity by 2% each pad collision
           gameData.ball.velocity.vy = BALL_VELOCITY * 2 * Math.sin(angle);
-          // gameData.ball.velocity.vx = BALL_VELOCITY * Math.cos(angle);
           gameData.ball.velocity.vx = -gameData.ball.velocity.vx;
 
           //next coordinate
@@ -262,12 +256,9 @@ export class GameService {
           yColl > gameData.player1.coord.y - BALL_RADIUS &&
           yColl < gameData.player1.coord.y
         ) {
-          console.log("Pad1 - upper corner collision");
-
           // BALL_VELOCITY += 0.02 * BALL_VELOCITY; //increase velocity by 2% each pad collision
           gameData.ball.velocity.vy =
             BALL_VELOCITY * 2 * Math.sin(-Math.PI / 4);
-          // gameData.ball.velocity.vx = BALL_VELOCITY * Math.cos(-Math.PI / 4);
           gameData.ball.velocity.vx = -gameData.ball.velocity.vx;
 
           //next coordinate
@@ -288,12 +279,10 @@ export class GameService {
           yColl > gameData.player1.coord.y + PAD_HEIGHT &&
           yColl < gameData.player1.coord.y + PAD_HEIGHT + BALL_RADIUS
         ) {
-          console.log("Pad1 - lower corner collision");
-
           // BALL_VELOCITY += 0.02 * BALL_VELOCITY; //increase velocity by 2% each pad collision
           gameData.ball.velocity.vy = BALL_VELOCITY * 2 * Math.sin(Math.PI / 4);
-          // gameData.ball.velocity.vx = BALL_VELOCITY * Math.cos(Math.PI / 4);
           gameData.ball.velocity.vx = -gameData.ball.velocity.vx;
+
           //next coordinate
           gameData.ball.coord.x =
             gameData.player1.coord.x +
@@ -320,7 +309,6 @@ export class GameService {
           (gameData.player1.coord.y + PAD_HEIGHT) <=
           Math.abs(gameData.ball.velocity.vy)
       ) {
-        console.log("pad 1 - Crosses lower h line");
         const coeff =
           (gameData.ball.coord.y -
             BALL_RADIUS -
@@ -332,8 +320,6 @@ export class GameService {
           xColl > gameData.player1.coord.x &&
           xColl <= gameData.player1.coord.x + PAD_WIDTH
         ) {
-          console.log("2 - Horizontal lower collision");
-
           gameData.ball.velocity.vy = -gameData.ball.velocity.vy;
 
           gameData.ball.coord.x += gameData.ball.velocity.vx;
@@ -360,13 +346,10 @@ export class GameService {
           Math.abs(gameData.ball.velocity.vy);
         const xColl = gameData.ball.coord.x + gameData.ball.velocity.vx * coeff;
 
-        console.log("pad 1 - crosses upper h line");
-        console.log(xColl);
         if (
           xColl > gameData.player1.coord.x &&
           xColl <= gameData.player1.coord.x + PAD_WIDTH
         ) {
-          console.log("2 - Horizontal upper collision");
           gameData.ball.velocity.vy = -gameData.ball.velocity.vy;
 
           gameData.ball.coord.x += gameData.ball.velocity.vx;
@@ -389,7 +372,6 @@ export class GameService {
         gameData.player2.coord.x - (gameData.ball.coord.x + BALL_RADIUS) <=
           Math.abs(gameData.ball.velocity.vx)
       ) {
-        console.log("Ball crosses pad2 line");
         const coeff =
           (gameData.player2.coord.x - (gameData.ball.coord.x + BALL_RADIUS)) /
           Math.abs(gameData.ball.velocity.vx);
@@ -401,8 +383,6 @@ export class GameService {
           yColl >= gameData.player2.coord.y &&
           yColl <= gameData.player2.coord.y + PAD_HEIGHT
         ) {
-          //collision
-          console.log("2 - Core collision");
           const padCollisionRatio =
             (yColl - gameData.player2.coord.y - PAD_HEIGHT / 2) /
             (PAD_HEIGHT / 2);
@@ -425,8 +405,8 @@ export class GameService {
           //new velocity
           // BALL_VELOCITY += 0.02 * BALL_VELOCITY; //increase velocity by 2% each pad collision
           gameData.ball.velocity.vy = BALL_VELOCITY * 2 * Math.sin(angle);
-          // gameData.ball.velocity.vx = BALL_VELOCITY * Math.cos(angle);
           gameData.ball.velocity.vx = -gameData.ball.velocity.vx;
+
           //next coordinate
           gameData.ball.coord.x =
             gameData.player2.coord.x -
@@ -442,13 +422,10 @@ export class GameService {
           yColl > gameData.player2.coord.y - BALL_RADIUS &&
           yColl < gameData.player2.coord.y
         ) {
-          console.log("2 - Upper corner collision");
           //new velocity
           // BALL_VELOCITY += 0.02 * BALL_VELOCITY; //increase velocity by 2% each pad collision
           gameData.ball.velocity.vy =
             BALL_VELOCITY * 2 * Math.sin((5 * Math.PI) / 4);
-          // gameData.ball.velocity.vx =
-          //   BALL_VELOCITY * Math.cos((5 * Math.PI) / 4);
           gameData.ball.velocity.vx = -gameData.ball.velocity.vx;
 
           //next coordinate
@@ -466,14 +443,12 @@ export class GameService {
           yColl > gameData.player2.coord.y + PAD_HEIGHT &&
           yColl < gameData.player2.coord.y + PAD_HEIGHT - BALL_RADIUS
         ) {
-          console.log("2 - Lower corner collision");
           //new velocity
           // BALL_VELOCITY += 0.02 * BALL_VELOCITY; //increase velocity by 2% each pad collision
           gameData.ball.velocity.vy =
             BALL_VELOCITY * 2 * Math.sin((3 * Math.PI) / 4);
-          // gameData.ball.velocity.vx =
-          //   BALL_VELOCITY * Math.cos((3 * Math.PI) / 4);
           gameData.ball.velocity.vx = -gameData.ball.velocity.vx;
+
           //next coordinate
           gameData.ball.coord.x =
             gameData.player2.coord.x -
@@ -486,7 +461,7 @@ export class GameService {
           return true;
         }
       }
-      //TODO : add x test
+
       // horizontal collision - inferior border
       if (
         gameData.ball.velocity.vy < 0 &&
@@ -508,8 +483,6 @@ export class GameService {
           xColl > gameData.player2.coord.x &&
           xColl <= gameData.player2.coord.x + PAD_WIDTH
         ) {
-          console.log("2 - Horizontal lower collision");
-
           gameData.ball.velocity.vy = -gameData.ball.velocity.vy;
 
           gameData.ball.coord.x += gameData.ball.velocity.vx;
@@ -539,7 +512,6 @@ export class GameService {
           xColl > gameData.player2.coord.x &&
           xColl <= gameData.player2.coord.x + PAD_WIDTH
         ) {
-          console.log("2 - Horizontal upper collision");
           gameData.ball.velocity.vy = -gameData.ball.velocity.vy;
 
           gameData.ball.coord.x += gameData.ball.velocity.vx;
