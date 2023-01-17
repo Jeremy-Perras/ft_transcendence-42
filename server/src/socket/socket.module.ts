@@ -5,5 +5,6 @@ import { SocketGateway } from "./socket.gateway";
 @Module({
   imports: [PrismaModule],
   providers: [SocketGateway],
+  exports: [SocketGateway],
 })
 export class SocketModule {}

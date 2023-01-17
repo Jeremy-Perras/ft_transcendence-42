@@ -62,9 +62,6 @@ export class Invitation {
 }
 
 @ObjectType()
-export class IdleState {}
-
-@ObjectType()
 export class WaitingForInviteeState {
   @Field((type) => User)
   invitee: User;
@@ -88,10 +85,5 @@ export class PlayingState {
 export const StatesUnion = createUnionType({
   name: "StatesUnion",
   types: () =>
-    [
-      IdleState,
-      WaitingForInviteeState,
-      MatchmakingState,
-      PlayingState,
-    ] as const,
+    [WaitingForInviteeState, MatchmakingState, PlayingState] as const,
 });

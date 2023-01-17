@@ -16,7 +16,7 @@ import { GqlAuthenticatedGuard } from "../auth/authenticated.guard";
 import { CurrentUser } from "../auth/currentUser.decorator";
 import { PrismaService } from "../prisma/prisma.service";
 import { GetUserArgs, GraphqlUser } from "../user/user.resolver";
-import { Game, IdleState, Invitation, StatesUnion } from "./game.model";
+import { Game, Invitation, StatesUnion } from "./game.model";
 import { GameService } from "./game.service";
 import { waitFor } from "xstate/lib/waitFor";
 
@@ -30,6 +30,11 @@ type GraphqlPlayers = {
 export type GraphqlInvitation = Omit<Invitation, "sender"> & {
   sender: GraphqlUser;
 };
+
+type GraphqlStatesUnion =
+  | { invitee: GraphqlUser; gameMode: GameMode }
+  | { gameMode: GameMode }
+  | { game: GraphqlGame };
 
 @ArgsType()
 class GameModeArgs {
@@ -210,18 +215,30 @@ export class GameResolver {
     }));
   }
 
-  @Query((returns) => StatesUnion)
+  @Query((returns) => StatesUnion, { nullable: true })
   async state(
     @CurrentUser() currentUserId: number
-  ): Promise<typeof StatesUnion> {
+  ): Promise<GraphqlStatesUnion | null> {
     const player = this.gameService.getPlayer(currentUserId);
 
-    if (!player) return new IdleState();
+    if (!player) return null;
 
     type states = import("./player.machine.typegen").Typegen0["matchesStates"];
     switch (player.getSnapshot().value as states) {
-      case "_.playing":
-        return { game: this.gameService.getGame(currentUserId)! };
+      case "_.playing": {
+        const game = this.gameService.getGame(currentUserId)!;
+        return {
+          game: {
+            gameMode: game.mode,
+            id: game.id,
+            score: {
+              player1Score: game.player1Score,
+              player2Score: game.player2Score,
+            },
+            startAt: game.startedAt,
+          },
+        };
+      }
       case "_.waitingForInvitee": {
         const user = await this.prisma.user.findUnique({
           where: { id: player.getSnapshot().context.inviteeId },
@@ -232,15 +249,15 @@ export class GameResolver {
             name: user!.name,
             rank: user!.rank,
           },
-          gameMode: player.getSnapshot().context.gameMode,
+          gameMode: player.getSnapshot().context.gameMode!,
         };
       }
       case "_.waitingForMatchmaking":
         return {
-          gameMode: player.getSnapshot().context.gameMode,
+          gameMode: player.getSnapshot().context.gameMode!,
         };
       default:
-        return new IdleState();
+        return null;
     }
   }
 

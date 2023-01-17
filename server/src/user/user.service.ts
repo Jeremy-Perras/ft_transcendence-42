@@ -8,7 +8,6 @@ import {
   Channel,
   DirectMessage,
   User,
-  Avatar,
   ImageFileType,
 } from "@prisma/client";
 import DataLoader from "dataloader";
