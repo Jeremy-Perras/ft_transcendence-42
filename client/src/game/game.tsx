@@ -12,7 +12,10 @@ import { graphql } from "../gql/gql";
 import { GameMode, GameQuery } from "../gql/graphql";
 import { useAuthStore, useSocketStore } from "../stores";
 
-//TODO : animate ball : effet trainee ? (cf doc mdn)
+//TODO : animate ball :
+// - effet trainee ? (cf doc mdn)
+// - collision
+
 enum gameScreenState {
   INTRO,
   PLAYING,

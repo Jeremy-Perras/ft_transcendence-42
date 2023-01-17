@@ -12,7 +12,6 @@ const RIGHT_PAD_X = CANVAS_WIDTH - 3 * PAD_WIDTH;
 const BALL_VELOCITY = 10;
 const PAD_VELOCITY = 5;
 
-//TODO :  manage canvas size if necessary. back : front / 10
 type Coord = {
   x: number;
   y: number;
