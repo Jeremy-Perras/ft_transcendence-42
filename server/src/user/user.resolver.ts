@@ -12,10 +12,10 @@ import {
 } from "@nestjs/graphql";
 import {
   User as PrismaUser,
-  Avatar as PrismaAvatar,
   UserAchievement as PrismaAchievement,
   DirectMessage as PrismaDirectMessage,
   Channel as PrismaChannel,
+  GameMode,
 } from "@prisma/client";
 import { IsByteLength, Length, Min } from "class-validator";
 import DataLoader from "dataloader";
@@ -45,6 +45,8 @@ import {
   User,
   Chat,
   UserStatus,
+  Invitation,
+  StatesUnion,
 } from "./user.model";
 import { UserService } from "./user.service";
 
@@ -65,7 +67,18 @@ export type GraphqlUser = Omit<
   | "pendingFriends"
   | "chats"
   | "status"
+  | "state"
+  | "invitations"
 >;
+
+type GraphqlInvitation = Omit<Invitation, "sender"> & {
+  sender: GraphqlUser;
+};
+
+type GraphqlStatesUnion =
+  | { invitee: GraphqlUser; gameMode: GameMode }
+  | { gameMode: GameMode }
+  | { game: GraphqlGame };
 
 @ArgsType()
 export class GetUserArgs {
@@ -114,6 +127,28 @@ export class UserResolver {
     @Args("name", { type: () => String }) name: string
   ): Promise<GraphqlUser[]> {
     return await this.userService.searchUsersByName(userLoader, name);
+  }
+
+  @ResolveField((returns) => [Invitation])
+  async invitations(
+    @Root() user: User,
+    @CurrentUser() currentUserId: number
+  ): Promise<GraphqlInvitation[]> {
+    if (currentUserId !== user.id) {
+      return [];
+    }
+    return await this.userService.getInvitations(currentUserId);
+  }
+
+  @ResolveField((returns) => StatesUnion, { nullable: true })
+  async state(
+    @Root() user: User,
+    @CurrentUser() currentUserId: number
+  ): Promise<GraphqlStatesUnion | null> {
+    if (currentUserId !== user.id) {
+      return null;
+    }
+    return await this.userService.getState(currentUserId);
   }
 
   @ResolveField()

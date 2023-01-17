@@ -17,12 +17,14 @@ import { ChannelService } from "../channel/channel.service";
 import { GraphqlUser } from "./user.resolver";
 import { GraphqlChannel } from "../channel/channel.resolver";
 import { SocketGateway } from "../socket/socket.gateway";
+import { GameService } from "../game/game.service";
 
 @Injectable()
 export class UserService {
   constructor(
     private prismaService: PrismaService,
-    private socketGateway: SocketGateway
+    private socketGateway: SocketGateway,
+    private gameService: GameService
   ) {}
 
   static formatGraphqlUser(user: User): GraphqlUser {
@@ -518,6 +520,68 @@ export class UserService {
       });
     } catch (error) {
       throw new NotFoundException("User not found");
+    }
+  }
+
+  async getInvitations(currentUserId: number) {
+    const player = this.gameService.getPlayer(currentUserId);
+    if (!player) return [];
+    const users = await this.prismaService.user.findMany({
+      where: {
+        id: {
+          in: [...player.getSnapshot().context.invitations.keys()],
+        },
+      },
+    });
+    return users.map((user) => ({
+      gameMode: player.getSnapshot().context.invitations.get(user.id)!,
+      sender: {
+        id: user.id,
+        name: user.name,
+        rank: user.rank,
+      },
+    }));
+  }
+
+  async getState(currentUserId: number) {
+    const player = this.gameService.getPlayer(currentUserId);
+    if (!player) return null;
+    type states =
+      import("../game/player.machine.typegen").Typegen0["matchesStates"];
+    switch (player.getSnapshot().value as states) {
+      case "_.playing": {
+        const game = this.gameService.getGame(currentUserId)!;
+        return {
+          game: {
+            gameMode: game.mode,
+            id: game.id,
+            score: {
+              player1Score: game.player1Score,
+              player2Score: game.player2Score,
+            },
+            startAt: game.startedAt,
+          },
+        };
+      }
+      case "_.waitingForInvitee": {
+        const user = await this.prismaService.user.findUnique({
+          where: { id: player.getSnapshot().context.inviteeId },
+        });
+        return {
+          invitee: {
+            id: user!.id,
+            name: user!.name,
+            rank: user!.rank,
+          },
+          gameMode: player.getSnapshot().context.gameMode!,
+        };
+      }
+      case "_.waitingForMatchmaking":
+        return {
+          gameMode: player.getSnapshot().context.gameMode!,
+        };
+      default:
+        return null;
     }
   }
 }

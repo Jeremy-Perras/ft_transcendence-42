@@ -16,7 +16,7 @@ import { GqlAuthenticatedGuard } from "../auth/authenticated.guard";
 import { CurrentUser } from "../auth/currentUser.decorator";
 import { PrismaService } from "../prisma/prisma.service";
 import { GetUserArgs, GraphqlUser } from "../user/user.resolver";
-import { Game, Invitation, StatesUnion } from "./game.model";
+import { Game } from "./game.model";
 import { GameService } from "./game.service";
 import { waitFor } from "xstate/lib/waitFor";
 
@@ -26,15 +26,6 @@ type GraphqlPlayers = {
   player1: GraphqlUser;
   player2: GraphqlUser;
 };
-
-export type GraphqlInvitation = Omit<Invitation, "sender"> & {
-  sender: GraphqlUser;
-};
-
-type GraphqlStatesUnion =
-  | { invitee: GraphqlUser; gameMode: GameMode }
-  | { gameMode: GameMode }
-  | { game: GraphqlGame };
 
 @ArgsType()
 class GameModeArgs {
@@ -192,77 +183,8 @@ export class GameResolver {
     };
   }
 
-  @Query((returns) => [Invitation])
-  async invitations(
-    @CurrentUser() currentUserId: number
-  ): Promise<GraphqlInvitation[]> {
-    const player = this.gameService.getPlayer(currentUserId);
-    if (!player) return [];
-    const users = await this.prisma.user.findMany({
-      where: {
-        id: {
-          in: [...player.getSnapshot().context.invitations.keys()],
-        },
-      },
-    });
-    return users.map((user) => ({
-      gameMode: player.getSnapshot().context.invitations.get(user.id)!,
-      sender: {
-        id: user.id,
-        name: user.name,
-        rank: user.rank,
-      },
-    }));
-  }
-
-  @Query((returns) => StatesUnion, { nullable: true })
-  async state(
-    @CurrentUser() currentUserId: number
-  ): Promise<GraphqlStatesUnion | null> {
-    const player = this.gameService.getPlayer(currentUserId);
-
-    if (!player) return null;
-
-    type states = import("./player.machine.typegen").Typegen0["matchesStates"];
-    switch (player.getSnapshot().value as states) {
-      case "_.playing": {
-        const game = this.gameService.getGame(currentUserId)!;
-        return {
-          game: {
-            gameMode: game.mode,
-            id: game.id,
-            score: {
-              player1Score: game.player1Score,
-              player2Score: game.player2Score,
-            },
-            startAt: game.startedAt,
-          },
-        };
-      }
-      case "_.waitingForInvitee": {
-        const user = await this.prisma.user.findUnique({
-          where: { id: player.getSnapshot().context.inviteeId },
-        });
-        return {
-          invitee: {
-            id: user!.id,
-            name: user!.name,
-            rank: user!.rank,
-          },
-          gameMode: player.getSnapshot().context.gameMode!,
-        };
-      }
-      case "_.waitingForMatchmaking":
-        return {
-          gameMode: player.getSnapshot().context.gameMode!,
-        };
-      default:
-        return null;
-    }
-  }
-
   @Mutation((returns) => Boolean)
-  async inviteUserToPlay(
+  async sendGameInvite(
     @Args() { userId, gameMode }: InviteArgs,
     @CurrentUser() currentUserId: number
   ) {
@@ -283,7 +205,7 @@ export class GameResolver {
   }
 
   @Mutation((returns) => Boolean)
-  async cancelInvitation(@CurrentUser() currentUserId: number) {
+  async cancelGameInvite(@CurrentUser() currentUserId: number) {
     const currentPlayer = this.gameService.getPlayer(currentUserId);
     if (!currentPlayer) throw new Error();
     const wait = waitFor(currentPlayer, (state) => state.matches("_.idle"), {
@@ -297,7 +219,7 @@ export class GameResolver {
   }
 
   @Mutation((returns) => Boolean)
-  async acceptInvitation(
+  async acceptGameInvite(
     @Args() { userId }: GetUserArgs,
     @CurrentUser() currentUserId: number
   ) {
@@ -313,7 +235,7 @@ export class GameResolver {
   }
 
   @Mutation((returns) => Boolean)
-  async refuseInvitation(
+  async refuseGameInvite(
     @Args() { userId }: GetUserArgs,
     @CurrentUser() currentUserId: number
   ) {
