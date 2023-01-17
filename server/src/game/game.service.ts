@@ -2,14 +2,16 @@ import { Injectable } from "@nestjs/common";
 import { GameMode } from "@prisma/client";
 import { randomBytes } from "crypto";
 
-const CANVAS_WIDTH = 300;
-const CANVAS_HEIGHT = 150;
-const PAD_HEIGHT = 30; //CANVAS / 5
-// const PAD_WIDTH = Math.ceil(PAD_HEIGHT / 5);
-const PAD_WIDTH = 30;
+const CANVAS_WIDTH = 500;
+const CANVAS_HEIGHT = 500;
+const PAD_HEIGHT = Math.ceil(CANVAS_HEIGHT / 10);
+const PAD_WIDTH = Math.ceil(PAD_HEIGHT / 10);
 const BALL_RADIUS = 4;
-let BALL_VELOCITY = 4;
-//PADDLE SPEED : 1/4 V BALL
+const LEFT_PAD_X = 2 * PAD_WIDTH;
+const RIGHT_PAD_X = CANVAS_WIDTH - 3 * PAD_WIDTH;
+const BALL_VELOCITY = 5;
+const PAD_VELOCITY = 5;
+//PADDLE SPEED : 1/4 V INITIALE BALL
 
 //TODO :  manage canvas size if necessary. back : front / 10
 type Coord = {
@@ -49,18 +51,21 @@ export class GameService {
     this.saveGameData.set(id, {
       player1: {
         id: player1Id,
-        coord: { x: 20, y: (CANVAS_HEIGHT - PAD_HEIGHT) / 2 },
+        coord: { x: LEFT_PAD_X, y: (CANVAS_HEIGHT - PAD_HEIGHT) / 2 },
         score: 0,
         playerState: PlayerState.STILL,
       },
       player2: {
         id: player2Id,
-        coord: { x: 280, y: (CANVAS_HEIGHT - PAD_HEIGHT) / 2 },
+        coord: { x: RIGHT_PAD_X, y: (CANVAS_HEIGHT - PAD_HEIGHT) / 2 },
         score: 0,
         playerState: PlayerState.STILL,
       },
       ball: {
-        coord: { x: 150, y: 75 },
+        coord: {
+          x: (CANVAS_WIDTH + 2 * BALL_RADIUS) / 2,
+          y: (CANVAS_HEIGHT + 2 * BALL_RADIUS) / 2,
+        },
         velocity: {
           vx: BALL_VELOCITY,
           vy: 0,
@@ -77,11 +82,11 @@ export class GameService {
       switch (state) {
         case PlayerState.UP:
           if (playerId === this.saveGameData.get(gameId)?.player1.id) {
-            if (gameData.player1.coord.y >= 5)
+            if (gameData.player1.coord.y >= PAD_VELOCITY)
               gameData.player1.playerState = PlayerState.UP;
             else gameData.player1.playerState = PlayerState.STILL;
           } else if (playerId === this.saveGameData.get(gameId)?.player2.id) {
-            if (gameData.player2.coord.y >= 5)
+            if (gameData.player2.coord.y >= PAD_VELOCITY)
               gameData.player2.playerState = PlayerState.UP;
             else gameData.player2.playerState = PlayerState.STILL;
           }
@@ -89,11 +94,17 @@ export class GameService {
           break;
         case PlayerState.DOWN:
           if (playerId === this.saveGameData.get(gameId)?.player1.id) {
-            if (gameData.player1.coord.y <= CANVAS_HEIGHT - PAD_HEIGHT - 5)
+            if (
+              gameData.player1.coord.y <=
+              CANVAS_HEIGHT - PAD_HEIGHT - PAD_VELOCITY
+            )
               gameData.player1.playerState = PlayerState.DOWN;
             else gameData.player1.playerState = PlayerState.STILL;
           } else if (playerId === this.saveGameData.get(gameId)?.player2.id) {
-            if (gameData.player2.coord.y <= CANVAS_HEIGHT - PAD_HEIGHT - 5)
+            if (
+              gameData.player2.coord.y <=
+              CANVAS_HEIGHT - PAD_HEIGHT - PAD_VELOCITY
+            )
               gameData.player2.playerState = PlayerState.DOWN;
             else gameData.player2.playerState = PlayerState.STILL;
           }
@@ -115,9 +126,11 @@ export class GameService {
     const gameData = this.saveGameData.get(gameId);
     if (gameData !== undefined) {
       if (playerId === gameData.player1.id) {
-        if (gameData.player1.coord.y >= 5) gameData.player1.coord.y -= 5;
+        if (gameData.player1.coord.y >= PAD_VELOCITY)
+          gameData.player1.coord.y -= PAD_VELOCITY;
       } else if (playerId === gameData.player2.id) {
-        if (gameData.player2.coord.y >= 5) gameData.player2.coord.y -= 5;
+        if (gameData.player2.coord.y >= PAD_VELOCITY)
+          gameData.player2.coord.y -= PAD_VELOCITY;
       }
       this.saveGameData.set(gameId, gameData);
     }
@@ -128,11 +141,17 @@ export class GameService {
 
     if (gameData !== undefined) {
       if (playerId === gameData.player1.id) {
-        if (gameData.player1.coord.y <= CANVAS_HEIGHT - PAD_HEIGHT - 5)
-          gameData.player1.coord.y += 5;
+        if (
+          gameData.player1.coord.y <=
+          CANVAS_HEIGHT - PAD_HEIGHT - PAD_VELOCITY
+        )
+          gameData.player1.coord.y += PAD_VELOCITY;
       } else if (playerId === gameData.player2.id) {
-        if (gameData.player2.coord.y <= CANVAS_HEIGHT - PAD_HEIGHT - 5)
-          gameData.player2.coord.y += 5;
+        if (
+          gameData.player2.coord.y <=
+          CANVAS_HEIGHT - PAD_HEIGHT - PAD_VELOCITY
+        )
+          gameData.player2.coord.y += PAD_VELOCITY;
       }
       this.saveGameData.set(gameId, gameData);
     }
@@ -172,12 +191,6 @@ export class GameService {
     };
 
     // TODO : move all interm calc to front
-    // ex :gameData.ball.coord.x =
-    //   gameData.ball.coord.x +
-    //   gameData.ball.velocity.vx *
-    //     Math.abs(
-    //       (gameData.ball.coord.y - BALL_RADIUS) / gameData.ball.velocity.vy
-    //     );
 
     const leftPadCollision = (gameData: GameData): boolean => {
       //VERTICAL COLLISION
@@ -225,9 +238,10 @@ export class GameService {
               : Math.PI / 4;
 
           //new velocity
-          BALL_VELOCITY += 0.02 * BALL_VELOCITY; //increase velocity by 2% each pad collision
+          // BALL_VELOCITY += 0.02 * BALL_VELOCITY; //increase velocity by 2% each pad collision
           gameData.ball.velocity.vy = BALL_VELOCITY * Math.sin(angle);
-          gameData.ball.velocity.vx = BALL_VELOCITY * Math.cos(angle);
+          // gameData.ball.velocity.vx = BALL_VELOCITY * Math.cos(angle);
+          gameData.ball.velocity.vx = -gameData.ball.velocity.vx;
 
           //next coordinate
           gameData.ball.coord.x =
@@ -252,9 +266,10 @@ export class GameService {
         ) {
           console.log("Pad1 - upper corner collision");
 
-          BALL_VELOCITY += 0.02 * BALL_VELOCITY; //increase velocity by 2% each pad collision
+          // BALL_VELOCITY += 0.02 * BALL_VELOCITY; //increase velocity by 2% each pad collision
           gameData.ball.velocity.vy = BALL_VELOCITY * Math.sin(-Math.PI / 4);
-          gameData.ball.velocity.vx = BALL_VELOCITY * Math.cos(-Math.PI / 4);
+          // gameData.ball.velocity.vx = BALL_VELOCITY * Math.cos(-Math.PI / 4);
+          gameData.ball.velocity.vx = -gameData.ball.velocity.vx;
 
           //next coordinate
           gameData.ball.coord.x =
@@ -276,10 +291,10 @@ export class GameService {
         ) {
           console.log("Pad1 - lower corner collision");
 
-          BALL_VELOCITY += 0.02 * BALL_VELOCITY; //increase velocity by 2% each pad collision
+          // BALL_VELOCITY += 0.02 * BALL_VELOCITY; //increase velocity by 2% each pad collision
           gameData.ball.velocity.vy = BALL_VELOCITY * Math.sin(Math.PI / 4);
-          gameData.ball.velocity.vx = BALL_VELOCITY * Math.cos(Math.PI / 4);
-
+          // gameData.ball.velocity.vx = BALL_VELOCITY * Math.cos(Math.PI / 4);
+          gameData.ball.velocity.vx = -gameData.ball.velocity.vx;
           //next coordinate
           gameData.ball.coord.x =
             gameData.player1.coord.x +
@@ -333,6 +348,7 @@ export class GameService {
           return true;
         }
       }
+
       //horizontal - superior
       if (
         gameData.ball.velocity.vy > 0 &&
@@ -408,10 +424,10 @@ export class GameService {
               : (3 * Math.PI) / 4;
 
           //new velocity
-          BALL_VELOCITY += 0.02 * BALL_VELOCITY; //increase velocity by 2% each pad collision
+          // BALL_VELOCITY += 0.02 * BALL_VELOCITY; //increase velocity by 2% each pad collision
           gameData.ball.velocity.vy = BALL_VELOCITY * Math.sin(angle);
-          gameData.ball.velocity.vx = BALL_VELOCITY * Math.cos(angle);
-
+          // gameData.ball.velocity.vx = BALL_VELOCITY * Math.cos(angle);
+          gameData.ball.velocity.vx = -gameData.ball.velocity.vx;
           //next coordinate
           gameData.ball.coord.x =
             gameData.player2.coord.x -
@@ -429,11 +445,12 @@ export class GameService {
         ) {
           console.log("2 - Upper corner collision");
           //new velocity
-          BALL_VELOCITY += 0.02 * BALL_VELOCITY; //increase velocity by 2% each pad collision
+          // BALL_VELOCITY += 0.02 * BALL_VELOCITY; //increase velocity by 2% each pad collision
           gameData.ball.velocity.vy =
             BALL_VELOCITY * Math.sin((5 * Math.PI) / 4);
-          gameData.ball.velocity.vx =
-            BALL_VELOCITY * Math.cos((5 * Math.PI) / 4);
+          // gameData.ball.velocity.vx =
+          //   BALL_VELOCITY * Math.cos((5 * Math.PI) / 4);
+          gameData.ball.velocity.vx = -gameData.ball.velocity.vx;
 
           //next coordinate
           gameData.ball.coord.x =
@@ -452,12 +469,12 @@ export class GameService {
         ) {
           console.log("2 - Lower corner collision");
           //new velocity
-          BALL_VELOCITY += 0.02 * BALL_VELOCITY; //increase velocity by 2% each pad collision
+          // BALL_VELOCITY += 0.02 * BALL_VELOCITY; //increase velocity by 2% each pad collision
           gameData.ball.velocity.vy =
             BALL_VELOCITY * Math.sin((3 * Math.PI) / 4);
-          gameData.ball.velocity.vx =
-            BALL_VELOCITY * Math.cos((3 * Math.PI) / 4);
-
+          // gameData.ball.velocity.vx =
+          //   BALL_VELOCITY * Math.cos((3 * Math.PI) / 4);
+          gameData.ball.velocity.vx = -gameData.ball.velocity.vx;
           //next coordinate
           gameData.ball.coord.x =
             gameData.player2.coord.x -
@@ -546,8 +563,8 @@ export class GameService {
         CANVAS_WIDTH + BALL_RADIUS
       ) {
         gameData.player2.score += 1;
-        gameData.ball.coord.x = 150;
-        BALL_VELOCITY = 4; // TODO : replace with initial bv
+        gameData.ball.coord.x = CANVAS_WIDTH / 2 + BALL_RADIUS;
+
         gameData.ball.velocity.vx = -BALL_VELOCITY;
         gameData.ball.velocity.vy = 0;
         this.saveGameData.set(gameId, gameData);
@@ -558,8 +575,8 @@ export class GameService {
         -BALL_RADIUS
       ) {
         gameData.player1.score += 1;
-        gameData.ball.coord.x = 150;
-        BALL_VELOCITY = 4; // TODO : replace with initial bv
+        gameData.ball.coord.x = CANVAS_WIDTH / 2 + BALL_RADIUS;
+
         gameData.ball.velocity.vx = BALL_VELOCITY;
         gameData.ball.velocity.vy = 0;
         this.saveGameData.set(gameId, gameData);

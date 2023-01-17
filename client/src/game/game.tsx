@@ -12,20 +12,24 @@ import { graphql } from "../gql/gql";
 import { GameMode, GameQuery } from "../gql/graphql";
 import { useAuthStore, useSocketStore } from "../stores";
 
+//TODO : animate ball
 enum gameScreenState {
   INTRO,
   PLAYING,
   SCORE,
 }
 const INTRO_DURATION = 1; //INITIAL COUNTDOWN
-const CANVAS_WIDTH = 3000;
-const CANVAS_HEIGHT = 1500;
-const PAD_HEIGHT = 30;
-// const PAD_WIDTH = Math.ceil(PAD_HEIGHT / 5);
-const PAD_WIDTH = 30;
+// modify canvas size with clientValue
+const CANVAS_WIDTH = 500;
+const CANVAS_HEIGHT = 500;
+const PAD_HEIGHT = Math.ceil(CANVAS_HEIGHT / 10);
+const PAD_WIDTH = Math.ceil(PAD_HEIGHT / 10);
+//TODO : adapt code to differents pad velocity
 const PAD_VELOCITY = 5;
 const BALL_RADIUS = 4;
-//let BALL_VELOCITY = 4;
+const LEFT_PAD_X = 2 * PAD_WIDTH;
+const RIGHT_PAD_X = CANVAS_WIDTH - 3 * PAD_WIDTH;
+const BALL_VELOCITY = 5;
 
 enum PlayerState {
   UP,
@@ -110,15 +114,15 @@ export const gameLoader = async (
 const background = {
   x: 0,
   y: 0,
-  width: 300,
-  height: 150,
+  width: CANVAS_WIDTH,
+  height: CANVAS_HEIGHT,
   draw(context: CanvasRenderingContext2D) {
     context.fillStyle = "black";
     context.beginPath();
     context.fillRect(this.x, this.y, this.width, this.height);
     context.fillStyle = "white";
-    for (let y = 0; y <= 140; y += 20) {
-      context.fillRect(149, y, 2, 10);
+    for (let y = 0; y <= CANVAS_HEIGHT; y += CANVAS_HEIGHT / 40) {
+      context.fillRect(CANVAS_WIDTH / 2 - 1, y, 2, CANVAS_HEIGHT / 80);
     }
     context.closePath();
   },
@@ -145,7 +149,6 @@ const rightPad = {
     context.fillStyle = this.color;
     context.beginPath();
     context.fillRect(x, y, this.width, this.height);
-    // context.translate(150, 150);
     context.closePath();
     context.fill();
   },
@@ -171,9 +174,17 @@ const score = {
     player2Score: number
   ) {
     context.fillStyle = this.color;
-    context.font = "24px serif";
-    context.fillText(`${player1Score}`, 110, 20);
-    context.fillText(`${player2Score}`, 180, 20);
+    context.font = "32px serif";
+    context.fillText(
+      `${player1Score}`,
+      (CANVAS_WIDTH * 2) / 5,
+      CANVAS_HEIGHT / 10
+    );
+    context.fillText(
+      `${player2Score}`,
+      (CANVAS_WIDTH * 3) / 5,
+      CANVAS_HEIGHT / 10
+    );
   },
 };
 
@@ -316,17 +327,23 @@ const GameCanvas = ({
   const frontGameData = useRef<GameData>({
     player1: {
       id: initData.game.players.player1.id,
-      coord: { x: 20, y: (CANVAS_HEIGHT / 10 - PAD_HEIGHT) / 2 },
+      coord: { x: LEFT_PAD_X, y: (CANVAS_HEIGHT - PAD_HEIGHT) / 2 },
       score: 0,
       playerState: PlayerState.STILL,
     },
     player2: {
       id: initData.game.players.player2.id,
-      coord: { x: 280, y: (CANVAS_HEIGHT / 10 - PAD_HEIGHT) / 2 },
+      coord: { x: RIGHT_PAD_X, y: (CANVAS_HEIGHT - PAD_HEIGHT) / 2 },
       score: 0,
       playerState: PlayerState.STILL,
     },
-    ball: { coord: { x: 150, y: 75 }, velocity: { vx: 0, vy: 0 } },
+    ball: {
+      coord: {
+        x: (CANVAS_WIDTH + 2 * BALL_RADIUS) / 2,
+        y: (CANVAS_HEIGHT + 2 * BALL_RADIUS) / 2,
+      },
+      velocity: { vx: BALL_VELOCITY, vy: 0 },
+    },
     gameMode: GameMode.Classic,
   });
 
@@ -348,7 +365,12 @@ const GameCanvas = ({
 
   useEffect(() => {
     let gameData: GameData;
-
+    if (canvas.current) {
+      // canvas.current.width = canvas.current.clientWidth;
+      // canvas.current.height = canvas.current.clientHeight;
+      canvas.current.width = 500;
+      canvas.current.height = 500;
+    }
     const cb = (data: GameData) => {
       if (data.player1.score >= 11 || data.player2.score >= 11) {
         socket.emit("endGame", initData.game.id);
@@ -356,6 +378,7 @@ const GameCanvas = ({
       }
 
       let ctx;
+
       if (canvas.current) ctx = canvas.current.getContext("2d");
       if (
         frontGameData.current.player1.coord.y !== data.player1.coord.y &&
@@ -377,6 +400,19 @@ const GameCanvas = ({
       }
 
       frontGameData.current.ball = data.ball;
+      // if (frontGameData.current.ball.coord !== data.ball.coord && ctx) {
+      //   if (frontGameData.current.ball.coord.y !== data.ball.coord.y && ctx) {
+      //     if (frontGameData.current.ball.coord.y <= data.ball.coord.y)
+      //       frontGameData.current.ball.coord.y++;
+      //     else frontGameData.current.player2.coord.y--;
+      //   }
+      //   if (frontGameData.current.ball.coord.x !== data.ball.coord.x && ctx) {
+      //     if (frontGameData.current.ball.coord.x <= data.ball.coord.x)
+      //       frontGameData.current.ball.coord.x++;
+      //     else frontGameData.current.ball.coord.x--;
+      //     draw(ctx, frontGameData.current);
+      //   }
+      // }
       frontGameData.current.player1.score = data.player1.score;
       frontGameData.current.player2.score = data.player2.score;
 
@@ -389,8 +425,7 @@ const GameCanvas = ({
         if (frontGameData.current) {
           if (
             gameData.player1.playerState === PlayerState.DOWN &&
-            frontGameData.current.player1.coord.y <
-              CANVAS_HEIGHT / 10 - PAD_HEIGHT
+            frontGameData.current.player1.coord.y < CANVAS_HEIGHT - PAD_HEIGHT
           ) {
             frontGameData.current.player1.coord.y++;
           } else if (
@@ -401,8 +436,7 @@ const GameCanvas = ({
           }
           if (
             gameData.player2.playerState === PlayerState.DOWN &&
-            frontGameData.current.player2.coord.y <
-              CANVAS_HEIGHT / 10 - PAD_HEIGHT
+            frontGameData.current.player2.coord.y < CANVAS_HEIGHT - PAD_HEIGHT
           ) {
             frontGameData.current.player2.coord.y++;
           } else if (
@@ -454,7 +488,7 @@ const GameCanvas = ({
             );
           }
         }}
-        className="w-full border-4  border-white"
+        className="border-4 border-white"
         ref={canvas}
         id={"game"}
       />
@@ -656,7 +690,6 @@ export const Game = () => {
         <>
           <GameCanvas
             initData={data}
-            // draw={draw}
             startTime={startTime + INTRO_DURATION * 1000}
             setGameState={setGameState}
           />
