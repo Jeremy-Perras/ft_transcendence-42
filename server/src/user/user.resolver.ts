@@ -25,7 +25,7 @@ import { ChannelLoader } from "../channel/channel.loaders";
 import { GraphqlChannel } from "../channel/channel.resolver";
 import { Loader } from "../dataloader";
 import { GraphqlGame } from "../game/game.resolver";
-import { SocketService } from "../socket/socket.service";
+import { SocketGateway } from "../socket/socket.gateway";
 import { BlockGuard, FriendGuard, SelfGuard } from "./user.guards";
 import {
   AchivementsLoader,
@@ -68,7 +68,7 @@ export type GraphqlUser = Omit<
 >;
 
 @ArgsType()
-class GetUserArgs {
+export class GetUserArgs {
   @Field((type) => Int)
   @Min(0)
   userId: number;
@@ -93,7 +93,7 @@ class SendDirectMessage extends GetUserArgs {
 export class UserResolver {
   constructor(
     private userService: UserService,
-    private socketService: SocketService
+    private socketGateway: SocketGateway
   ) {}
 
   @Query((returns) => User)
@@ -176,7 +176,7 @@ export class UserResolver {
 
   @ResolveField()
   async status(@Root() user: User): Promise<UserStatus> {
-    return this.socketService.isUserConnected(user.id)
+    return this.socketGateway.isOnline(user.id)
       ? UserStatus.ONLINE
       : UserStatus.OFFLINE;
   }
@@ -439,7 +439,7 @@ export class UserResolver {
 export class DirectMessageResolver {
   constructor(
     private userService: UserService,
-    private socketService: SocketService
+    private socketGateway: SocketGateway
   ) {}
 
   @UseGuards(FriendGuard)
@@ -456,9 +456,10 @@ export class DirectMessageResolver {
       args.message
     );
 
-    this.socketService.invalidateDirectMessagesCache(
-      currentUserId,
-      args.userId
+    this.socketGateway.sendToUser(
+      args.userId,
+      "invalidateDirectMessageCache",
+      currentUserId
     );
 
     return true;

@@ -7,15 +7,20 @@ export class SocketGateway {
   constructor(private eventEmitter: EventEmitter2) {}
 
   @WebSocketServer()
-  server: Server;
+  private server: Server;
 
   private connectedUsers: Map<number, string> = new Map();
 
   handleConnection(client: Socket, ...args: any[]) {
     const userId = client.request.session.passport.user;
     const user = this.connectedUsers.get(userId);
-    if (user) client.disconnect();
-    else this.connectedUsers.set(userId, client.id);
+    if (user) {
+      client.emit("error", "You are already connected on another device");
+      client.disconnect();
+    } else {
+      this.connectedUsers.set(userId, client.id);
+      this.eventEmitter.emit("user.connection", userId);
+    }
   }
 
   handleDisconnect(client: Socket) {
@@ -23,17 +28,8 @@ export class SocketGateway {
     const user = this.connectedUsers.get(userId);
     if (user) {
       this.connectedUsers.delete(userId);
-      this.eventEmitter.emit("user.offline", { userId });
-
-      // if (user.length === 1) {
-      // } else {
-      //   const index = user.indexOf(client.id);
-      //   if (index > -1) {
-      //     user.splice(index, 1);
-      //     this.connectedUsers.set(userId, user);
-      //   }
-      // }
     }
+    this.eventEmitter.emit("user.disconnect", userId);
   }
 
   sendToUser(userId: number, event: string, data: unknown) {

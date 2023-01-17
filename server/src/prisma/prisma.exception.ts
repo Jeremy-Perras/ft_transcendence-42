@@ -5,12 +5,5 @@ import { PrismaClientKnownRequestError } from "@prisma/client/runtime";
 export class PrismaExceptionFilter implements ExceptionFilter {
   catch(e: PrismaClientKnownRequestError) {
     throw new BadRequestException("Invalid input");
-    // throw new BadRequestException("Invalid input", JSON{
-    //   exception: {
-    //     message: e.message,
-    //     stacktrace: e.stack,
-    //     prisma: e,
-    //   },
-    // });
   }
 }

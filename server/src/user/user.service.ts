@@ -13,17 +13,17 @@ import {
 } from "@prisma/client";
 import DataLoader from "dataloader";
 import { PrismaService } from "../prisma/prisma.service";
-import { SocketService } from "../socket/socket.service";
 import { Chat, ChatType, UserStatus } from "./user.model";
 import { ChannelService } from "../channel/channel.service";
 import { GraphqlUser } from "./user.resolver";
 import { GraphqlChannel } from "../channel/channel.resolver";
+import { SocketGateway } from "../socket/socket.gateway";
 
 @Injectable()
 export class UserService {
   constructor(
     private prismaService: PrismaService,
-    private socketService: SocketService
+    private socketGateway: SocketGateway
   ) {}
 
   static formatGraphqlUser(user: User): GraphqlUser {
@@ -475,7 +475,7 @@ export class UserService {
           : false,
         lastMessageContent: lastMessage?.content,
         lastMessageDate: lastMessage?.sentAt,
-        status: this.socketService.isUserConnected(f.receiver.id)
+        status: this.socketGateway.isOnline(f.receiver.id)
           ? UserStatus.ONLINE
           : UserStatus.OFFLINE,
       });

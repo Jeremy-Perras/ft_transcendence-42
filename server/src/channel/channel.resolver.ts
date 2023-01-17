@@ -48,9 +48,9 @@ import {
 } from "../user/user.loaders";
 import { UserService } from "../user/user.service";
 import { PrismaService } from "../prisma/prisma.service";
-import { SocketService } from "../socket/socket.service";
 import { GraphqlUser } from "../user/user.resolver";
 import { IsByteLength, IsOptional, Length, Min } from "class-validator";
+import { SocketGateway } from "../socket/socket.gateway";
 
 export type GraphqlChannel = Omit<
   Channel,
@@ -435,7 +435,7 @@ export class ChannelResolver {
 export class ChannelMessageResolver {
   constructor(
     private prismaService: PrismaService,
-    private socketService: SocketService
+    private socketGateway: SocketGateway
   ) {}
 
   @ResolveField()
@@ -532,10 +532,18 @@ export class ChannelMessageResolver {
         },
       });
 
-      this.socketService.invalidateChannelMessagesCache(id, [
-        ...channel.members.map((member) => member.userId),
+      channel.members.forEach((member) => {
+        this.socketGateway.sendToUser(
+          member.userId,
+          "invalidateChannelMessageCache",
+          undefined
+        );
+      });
+      this.socketGateway.sendToUser(
         channel.ownerId,
-      ]);
+        "invalidateChannelMessageCache",
+        undefined
+      );
 
       return true;
     } catch (error) {

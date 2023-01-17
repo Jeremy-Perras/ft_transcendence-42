@@ -39,6 +39,9 @@ export const PlayerMachine = (
           createGame: {
             data: void;
           };
+          joinMatchmaking: {
+            data: void;
+          };
         },
         events: {} as
           | { type: "INVITE"; inviteeId: number; gameMode: GameMode }
@@ -181,46 +184,7 @@ export const PlayerMachine = (
             },
             waitingForMatchmaking: {
               invoke: {
-                src: (context) =>
-                  new Promise<void>((resolve, reject) => {
-                    const matchmakingRoom = gameService.getMatchmakingRoom(
-                      context.gameMode as GameMode
-                    );
-
-                    if (matchmakingRoom.has(context.userId)) {
-                      resolve();
-                      return;
-                    }
-
-                    if (matchmakingRoom.size === 1) {
-                      const player1 = gameService.getPlayer(
-                        matchmakingRoom.values().next().value
-                      );
-                      if (player1 && player1.getSnapshot().can("GAME_FOUND")) {
-                        gameService
-                          .createGame(
-                            context.gameMode as GameMode,
-                            player1.getSnapshot().context.userId,
-                            context.userId
-                          )
-                          .then(() => {
-                            player1.send({ type: "GAME_FOUND" });
-                            resolve();
-                          })
-                          .catch(() => {
-                            reject();
-                          });
-                      } else {
-                        if (player1)
-                          player1.send({ type: "LEAVE_MATCHMAKING" });
-                        matchmakingRoom.add(context.userId);
-                        resolve();
-                      }
-                    } else {
-                      matchmakingRoom.add(context.userId);
-                      resolve();
-                    }
-                  }),
+                src: "joinMatchmaking",
                 onDone: [
                   {
                     target: "playing",
@@ -279,7 +243,10 @@ export const PlayerMachine = (
           },
         },
         disconnected: {
-          // TODO: if user is in game emit to room for pause
+          entry: (context) => {
+            gameService.pauseGame(context.userId);
+            gameService.removeFromMatchmaking(context.userId);
+          },
           after: [
             {
               delay: 3000,
@@ -429,6 +396,45 @@ export const PlayerMachine = (
                 .catch(() => reject());
             }
           }),
+        joinMatchmaking: (context) =>
+          new Promise<void>((resolve, reject) => {
+            const matchmakingRoom = gameService.getMatchmakingRoom(
+              context.gameMode as GameMode
+            );
+
+            if (matchmakingRoom.has(context.userId)) {
+              resolve();
+              return;
+            }
+
+            if (matchmakingRoom.size === 1) {
+              const player1 = gameService.getPlayer(
+                matchmakingRoom.values().next().value
+              );
+              if (player1 && player1.getSnapshot().can("GAME_FOUND")) {
+                gameService
+                  .createGame(
+                    context.gameMode as GameMode,
+                    player1.getSnapshot().context.userId,
+                    context.userId
+                  )
+                  .then(() => {
+                    player1.send({ type: "GAME_FOUND" });
+                    resolve();
+                  })
+                  .catch(() => {
+                    reject();
+                  });
+              } else {
+                if (player1) player1.send({ type: "LEAVE_MATCHMAKING" });
+                matchmakingRoom.add(context.userId);
+                resolve();
+              }
+            } else {
+              matchmakingRoom.add(context.userId);
+              resolve();
+            }
+          }),
       },
       actions: {
         updateGameMode: assign({
@@ -492,7 +498,7 @@ export const PlayerMachine = (
           }
         },
         leaveMatchmaking: (context) => {
-          gameService.leaveMatchmaking(context.userId);
+          gameService.removeFromMatchmaking(context.userId);
         },
       },
     }

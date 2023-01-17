@@ -1,5 +1,4 @@
 import { EventEmitter2 } from "@nestjs/event-emitter";
-import { GameMode } from "@prisma/client";
 import { waitFor } from "xstate/lib/waitFor";
 import { GameService } from "../src/game/game.service";
 import { PrismaService } from "../src/prisma/prisma.service";
@@ -12,7 +11,7 @@ describe("player", () => {
 
   beforeEach(() => {
     socketGateway = new SocketGateway(new EventEmitter2());
-    gameService = new GameService(prismaService, socketGateway);
+    gameService = new GameService(socketGateway, prismaService);
   });
 
   it("should send invite to idle user", async () => {

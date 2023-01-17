@@ -9,8 +9,8 @@ import { OnEvent } from "@nestjs/event-emitter";
 @Injectable()
 export class GameService {
   constructor(
-    private readonly prismaService: PrismaService,
-    private readonly socketGateway: SocketGateway
+    private readonly socketGateway: SocketGateway,
+    private readonly prismaService: PrismaService
   ) {}
 
   private players: Map<number, ReturnType<typeof PlayerMachine>> = new Map();
@@ -21,116 +21,31 @@ export class GameService {
     SPEED: new Set(),
   };
 
-  @OnEvent("user.offline")
-  handleOffline({ userId }: { userId: number }) {
+  @OnEvent("user.disconnection")
+  disconnect(userId: number) {
     const player = this.players.get(userId);
     if (player) {
       player.send({ type: "DISCONNECT" });
     }
-    for (const mode in this.matchmakingRooms) {
-      this.matchmakingRooms[mode as GameMode].delete(userId);
-    }
   }
 
-  async inviteUserToGame(
-    currentUserId: number,
-    inviteeId: number,
-    gameMode: GameMode
-  ) {
-    const currentPlayer = this.getPlayer(currentUserId);
-    if (!currentPlayer) return; // TODO
-    try {
-      const wait = waitFor(
-        currentPlayer,
-        (state) => state.matches("_.waitingForInvitee"),
+  @OnEvent("user.connection")
+  tryReconnect(userId: number) {
+    const player = this.players.get(userId);
+    if (player && player.getSnapshot().matches("disconnected")) {
+      player.send({ type: "CONNECT" });
+      waitFor(
+        player,
+        (state) => state.matches("disconnected") && state.matches("offline"),
         { timeout: 1000 }
-      );
-      currentPlayer.send({ type: "INVITE", inviteeId, gameMode });
-      await wait;
-    } catch (error) {
-      // TODO: handle error
-    }
-  }
-
-  async cancelInvitation(currentUserId: number) {
-    const currentPlayer = this.getPlayer(currentUserId);
-    if (!currentPlayer) return; // TODO
-    try {
-      const wait = waitFor(currentPlayer, (state) => state.matches("_.idle"), {
-        timeout: 10000,
+      ).catch(() => {
+        this.socketGateway.sendToUser(
+          userId,
+          "error",
+          "Connection error, please refresh the page"
+        );
+        this.removePlayer(userId);
       });
-      currentPlayer.send({ type: "CANCEL_INVITATION" });
-      await wait;
-    } catch (error) {
-      // TODO: handle error
-    }
-  }
-
-  async acceptInvitation(currentUserId: number, inviterId: number) {
-    const currentPlayer = this.getPlayer(currentUserId);
-    if (!currentPlayer) return; // TODO
-    try {
-      const wait = waitFor(
-        currentPlayer,
-        (state) => state.matches("_.playing"),
-        {
-          timeout: 10000,
-        }
-      );
-      currentPlayer.send({ type: "ACCEPT_INVITATION", inviterId });
-      await wait;
-    } catch (error) {
-      // TODO: handle error
-    }
-  }
-
-  async refuseInvitation(currentUserId: number, inviterId: number) {
-    const currentPlayer = this.getPlayer(currentUserId);
-    if (!currentPlayer) return; // TODO
-    try {
-      const wait = waitFor(
-        currentPlayer,
-        (state) => !state.context.invitations.has(inviterId),
-        {
-          timeout: 10000,
-        }
-      );
-      currentPlayer.send({ type: "REFUSE_INVITATION", inviterId });
-      await wait;
-    } catch (error) {
-      // TODO: handle error
-    }
-  }
-
-  async joinMatchMaking(currentUserId: number, gameMode: GameMode) {
-    const currentPlayer = this.getPlayer(currentUserId);
-    if (!currentPlayer) return; // TODO
-    try {
-      const wait = waitFor(
-        currentPlayer,
-        (state) => state.matches("_.waitingForMatchmaking"),
-        {
-          timeout: 10000,
-        }
-      );
-      currentPlayer.send({ type: "JOIN_MATCHMAKING", gameMode });
-      await wait;
-    } catch (error) {
-      // TODO: handle error
-    }
-  }
-
-  async leaveMatchMaking(currentUserId: number) {
-    const currentPlayer = this.getPlayer(currentUserId);
-    if (!currentPlayer) return; // TODO
-    try {
-      const wait = waitFor(currentPlayer, (state) => state.matches("_.idle"), {
-        timeout: 10000,
-      });
-      currentPlayer.send({ type: "LEAVE_MATCHMAKING" });
-      await wait;
-    } catch (error) {
-      // TODO: handle error
     }
   }
 
@@ -144,7 +59,7 @@ export class GameService {
     return null;
   };
 
-  leaveMatchmaking = (userId: number) => {
+  removeFromMatchmaking = (userId: number) => {
     for (const mode in this.matchmakingRooms) {
       this.matchmakingRooms[mode as GameMode].delete(userId);
     }
@@ -252,6 +167,14 @@ export class GameService {
       if (p2) p2.send({ type: "GAME_ENDED" });
 
       this.games.delete(game.id);
+    }
+  };
+
+  pauseGame = async (userId: number) => {
+    const game = this.getGame(userId);
+
+    if (game) {
+      // TODO: send pause event to room
     }
   };
 }
