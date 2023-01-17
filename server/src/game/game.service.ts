@@ -9,9 +9,8 @@ const PAD_WIDTH = Math.ceil(PAD_HEIGHT / 10);
 const BALL_RADIUS = 4;
 const LEFT_PAD_X = 2 * PAD_WIDTH;
 const RIGHT_PAD_X = CANVAS_WIDTH - 3 * PAD_WIDTH;
-const BALL_VELOCITY = 5;
+const BALL_VELOCITY = 10;
 const PAD_VELOCITY = 5;
-//PADDLE SPEED : 1/4 V INITIALE BALL
 
 //TODO :  manage canvas size if necessary. back : front / 10
 type Coord = {
@@ -239,7 +238,7 @@ export class GameService {
 
           //new velocity
           // BALL_VELOCITY += 0.02 * BALL_VELOCITY; //increase velocity by 2% each pad collision
-          gameData.ball.velocity.vy = BALL_VELOCITY * Math.sin(angle);
+          gameData.ball.velocity.vy = BALL_VELOCITY * 2 * Math.sin(angle);
           // gameData.ball.velocity.vx = BALL_VELOCITY * Math.cos(angle);
           gameData.ball.velocity.vx = -gameData.ball.velocity.vx;
 
@@ -267,7 +266,8 @@ export class GameService {
           console.log("Pad1 - upper corner collision");
 
           // BALL_VELOCITY += 0.02 * BALL_VELOCITY; //increase velocity by 2% each pad collision
-          gameData.ball.velocity.vy = BALL_VELOCITY * Math.sin(-Math.PI / 4);
+          gameData.ball.velocity.vy =
+            BALL_VELOCITY * 2 * Math.sin(-Math.PI / 4);
           // gameData.ball.velocity.vx = BALL_VELOCITY * Math.cos(-Math.PI / 4);
           gameData.ball.velocity.vx = -gameData.ball.velocity.vx;
 
@@ -292,7 +292,7 @@ export class GameService {
           console.log("Pad1 - lower corner collision");
 
           // BALL_VELOCITY += 0.02 * BALL_VELOCITY; //increase velocity by 2% each pad collision
-          gameData.ball.velocity.vy = BALL_VELOCITY * Math.sin(Math.PI / 4);
+          gameData.ball.velocity.vy = BALL_VELOCITY * 2 * Math.sin(Math.PI / 4);
           // gameData.ball.velocity.vx = BALL_VELOCITY * Math.cos(Math.PI / 4);
           gameData.ball.velocity.vx = -gameData.ball.velocity.vx;
           //next coordinate
@@ -425,7 +425,7 @@ export class GameService {
 
           //new velocity
           // BALL_VELOCITY += 0.02 * BALL_VELOCITY; //increase velocity by 2% each pad collision
-          gameData.ball.velocity.vy = BALL_VELOCITY * Math.sin(angle);
+          gameData.ball.velocity.vy = BALL_VELOCITY * 2 * Math.sin(angle);
           // gameData.ball.velocity.vx = BALL_VELOCITY * Math.cos(angle);
           gameData.ball.velocity.vx = -gameData.ball.velocity.vx;
           //next coordinate
@@ -447,7 +447,7 @@ export class GameService {
           //new velocity
           // BALL_VELOCITY += 0.02 * BALL_VELOCITY; //increase velocity by 2% each pad collision
           gameData.ball.velocity.vy =
-            BALL_VELOCITY * Math.sin((5 * Math.PI) / 4);
+            BALL_VELOCITY * 2 * Math.sin((5 * Math.PI) / 4);
           // gameData.ball.velocity.vx =
           //   BALL_VELOCITY * Math.cos((5 * Math.PI) / 4);
           gameData.ball.velocity.vx = -gameData.ball.velocity.vx;
@@ -471,7 +471,7 @@ export class GameService {
           //new velocity
           // BALL_VELOCITY += 0.02 * BALL_VELOCITY; //increase velocity by 2% each pad collision
           gameData.ball.velocity.vy =
-            BALL_VELOCITY * Math.sin((3 * Math.PI) / 4);
+            BALL_VELOCITY * 2 * Math.sin((3 * Math.PI) / 4);
           // gameData.ball.velocity.vx =
           //   BALL_VELOCITY * Math.cos((3 * Math.PI) / 4);
           gameData.ball.velocity.vx = -gameData.ball.velocity.vx;
@@ -566,7 +566,10 @@ export class GameService {
         gameData.ball.coord.x = CANVAS_WIDTH / 2 + BALL_RADIUS;
 
         gameData.ball.velocity.vx = -BALL_VELOCITY;
-        gameData.ball.velocity.vy = 0;
+
+        const rand = Math.random();
+        gameData.ball.velocity.vy =
+          rand <= 0.5 ? -BALL_VELOCITY * rand : BALL_VELOCITY * rand;
         this.saveGameData.set(gameId, gameData);
 
         return true;
@@ -578,7 +581,10 @@ export class GameService {
         gameData.ball.coord.x = CANVAS_WIDTH / 2 + BALL_RADIUS;
 
         gameData.ball.velocity.vx = BALL_VELOCITY;
-        gameData.ball.velocity.vy = 0;
+
+        const rand = Math.random();
+        gameData.ball.velocity.vy =
+          rand <= 0.5 ? -BALL_VELOCITY * rand : BALL_VELOCITY * rand;
         this.saveGameData.set(gameId, gameData);
         return true;
       }

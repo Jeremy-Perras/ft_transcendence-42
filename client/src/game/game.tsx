@@ -12,7 +12,7 @@ import { graphql } from "../gql/gql";
 import { GameMode, GameQuery } from "../gql/graphql";
 import { useAuthStore, useSocketStore } from "../stores";
 
-//TODO : animate ball
+//TODO : animate ball : effet trainee ? (cf doc mdn)
 enum gameScreenState {
   INTRO,
   PLAYING,
@@ -24,12 +24,13 @@ const CANVAS_WIDTH = 500;
 const CANVAS_HEIGHT = 500;
 const PAD_HEIGHT = Math.ceil(CANVAS_HEIGHT / 10);
 const PAD_WIDTH = Math.ceil(PAD_HEIGHT / 10);
+
 //TODO : adapt code to differents pad velocity
 const PAD_VELOCITY = 5;
 const BALL_RADIUS = 4;
 const LEFT_PAD_X = 2 * PAD_WIDTH;
 const RIGHT_PAD_X = CANVAS_WIDTH - 3 * PAD_WIDTH;
-const BALL_VELOCITY = 5;
+const BALL_VELOCITY = 10;
 
 enum PlayerState {
   UP,
@@ -400,19 +401,6 @@ const GameCanvas = ({
       }
 
       frontGameData.current.ball = data.ball;
-      // if (frontGameData.current.ball.coord !== data.ball.coord && ctx) {
-      //   if (frontGameData.current.ball.coord.y !== data.ball.coord.y && ctx) {
-      //     if (frontGameData.current.ball.coord.y <= data.ball.coord.y)
-      //       frontGameData.current.ball.coord.y++;
-      //     else frontGameData.current.player2.coord.y--;
-      //   }
-      //   if (frontGameData.current.ball.coord.x !== data.ball.coord.x && ctx) {
-      //     if (frontGameData.current.ball.coord.x <= data.ball.coord.x)
-      //       frontGameData.current.ball.coord.x++;
-      //     else frontGameData.current.ball.coord.x--;
-      //     draw(ctx, frontGameData.current);
-      //   }
-      // }
       frontGameData.current.player1.score = data.player1.score;
       frontGameData.current.player2.score = data.player2.score;
 
@@ -667,7 +655,7 @@ export const Game = () => {
   // const [gameState, setGameState] = useState<gameScreenState>(
   //   data.game.finishedAt ? gameScreenState.SCORE : gameScreenState.PLAYING
   // );
-  // TODO : change with this when mutation OK ?
+  // TODO : go to score if game is already finished
 
   const startTime = new Date(data.game.startAt).getTime();
   const currentTime = new Date().getTime();
