@@ -19,6 +19,7 @@ import { GqlAuthenticatedGuard } from "../src/auth/authenticated.guard";
 import { Prisma, PrismaClient } from "@prisma/client";
 import { SocketModule } from "../src/socket/socket.module";
 import { execSync } from "child_process";
+import { EventEmitterModule } from "@nestjs/event-emitter";
 
 const prismaUserArgs = {
   select: {
@@ -428,6 +429,7 @@ describe("user", () => {
         },
       ],
       imports: [
+        EventEmitterModule.forRoot(),
         SocketModule,
         AuthModule,
         UserModule,

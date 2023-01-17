@@ -20,6 +20,7 @@ import { SocketModule } from "../src/socket/socket.module";
 import { UploadModule } from "../src/upload/upload.module";
 import { UserModule } from "../src/user/user.module";
 import supertest from "supertest";
+import { EventEmitterModule } from "@nestjs/event-emitter";
 
 const prismaChannelArgs = {
   select: {
@@ -184,6 +185,7 @@ describe("channel", () => {
         },
       ],
       imports: [
+        EventEmitterModule.forRoot(),
         SocketModule,
         AuthModule,
         UserModule,
