@@ -1,16 +1,8 @@
-import {
-  ConnectedSocket,
-  MessageBody,
-  SubscribeMessage,
-  WebSocketGateway,
-  WebSocketServer,
-} from "@nestjs/websockets";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
-import { PrismaService } from "../prisma/prisma.service";
-import { GameMode } from "@prisma/client";
 
+<<<<<<< HEAD
 import { GameService, playerMove } from "../game/game.service";
 
 type GameInvitation = {
@@ -28,11 +20,10 @@ enum UserState {
 }
 
 @WebSocketGateway({ cors: "*", transports: ["websocket"] })
+=======
+@WebSocketGateway({ cors: "*" })
+>>>>>>> 04706343 (Handle front with new back)
 export class SocketGateway {
-  constructor(
-    private prismaService: PrismaService,
-    private gameService: GameService
-  ) {}
   constructor(private eventEmitter: EventEmitter2) {}
 
   @WebSocketServer()
@@ -40,6 +31,7 @@ export class SocketGateway {
 
   private connectedUsers: Map<number, string> = new Map();
 
+<<<<<<< HEAD
   private saveInvitation: GameInvitation[] = [];
   private gameInProgress = new Map<number, NodeJS.Timer>();
 
@@ -597,6 +589,8 @@ export class SocketGateway {
       console.log("room destroyed", room);
       server.emit("offline", room);
     });
+=======
+>>>>>>> 04706343 (Handle front with new back)
   handleConnection(client: Socket, ...args: any[]) {
     const userId = client.request.session.passport.user;
     const user = this.connectedUsers.get(userId);

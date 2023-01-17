@@ -57,6 +57,26 @@ const DiscussionsAndInvitationsQueryDocument = graphql(`
   }
 `);
 
+const GetUserStatus = graphql(`
+  query Query {
+    user {
+      state {
+        ... on WaitingForInviteeState {
+          gameMode
+        }
+        ... on MatchmakingState {
+          gameMode
+        }
+        ... on PlayingState {
+          game {
+            id
+          }
+        }
+      }
+    }
+  }
+`);
+
 const query = (): UseQueryOptions<
   DiscussionsAndInvitationsQuery,
   unknown,
