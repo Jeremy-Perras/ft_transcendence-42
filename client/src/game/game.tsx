@@ -494,8 +494,11 @@ const GameTimer = ({ startTime }: { startTime: number }) => {
   );
 };
 
-const Score = ({ data }: { data: GameQuery }) => {
+const Score = ({ gameId }: { gameId: number }) => {
   const navigate = useNavigate();
+  const initialData = useLoaderData() as Awaited<ReturnType<typeof gameLoader>>;
+  const { data } = useQuery({ ...query(gameId), initialData });
+  if (typeof data === "undefined") return <div>Error</div>;
 
   return (
     <>
@@ -647,7 +650,7 @@ export const Game = () => {
         <Intro startTime={startTime} setGameState={setGameState} data={data} />
       );
     case gameScreenState.SCORE:
-      return <Score data={data} />;
+      return <Score gameId={gameId} />;
     case gameScreenState.PLAYING:
       return (
         <>

@@ -62,7 +62,7 @@ export class GameService {
       ball: {
         coord: { x: 150, y: 75 },
         velocity: {
-          vx: Math.random() - 0.5 < 0 ? BALL_VELOCITY : -BALL_VELOCITY,
+          vx: BALL_VELOCITY,
           vy: 0,
         }, //TODO : check inital angle
       },
@@ -296,6 +296,74 @@ export class GameService {
       }
 
       //horizontal collision
+      //horizontal collision - inferior border
+      if (
+        gameData.ball.velocity.vy < 0 &&
+        gameData.ball.coord.y - BALL_RADIUS >=
+          gameData.player1.coord.y + PAD_HEIGHT &&
+        gameData.ball.coord.y -
+          BALL_RADIUS -
+          (gameData.player1.coord.y + PAD_HEIGHT) <=
+          Math.abs(gameData.ball.velocity.vy)
+      ) {
+        console.log("pad 1 - Crosses lower h line");
+        const coeff =
+          (gameData.ball.coord.y -
+            BALL_RADIUS -
+            (gameData.player1.coord.y + PAD_HEIGHT)) /
+          Math.abs(gameData.ball.velocity.vy);
+        const xColl = gameData.ball.coord.x + gameData.ball.velocity.vx * coeff;
+
+        if (
+          xColl > gameData.player1.coord.x &&
+          xColl <= gameData.player1.coord.x + PAD_WIDTH
+        ) {
+          console.log("2 - Horizontal lower collision");
+
+          gameData.ball.velocity.vy = -gameData.ball.velocity.vy;
+
+          gameData.ball.coord.x += gameData.ball.velocity.vx;
+          gameData.ball.coord.y =
+            gameData.player1.coord.y +
+            PAD_HEIGHT +
+            BALL_RADIUS +
+            (1 - coeff) * gameData.ball.velocity.vy;
+
+          this.saveGameData.set(gameId, gameData);
+          return true;
+        }
+      }
+      //horizontal - superior
+      if (
+        gameData.ball.velocity.vy > 0 &&
+        gameData.ball.coord.y + BALL_RADIUS <= gameData.player1.coord.y &&
+        gameData.player1.coord.y - (gameData.ball.coord.y + BALL_RADIUS) <=
+          Math.abs(gameData.ball.velocity.vy)
+      ) {
+        const coeff =
+          (gameData.player1.coord.y - (gameData.ball.coord.y + BALL_RADIUS)) /
+          Math.abs(gameData.ball.velocity.vy);
+        const xColl = gameData.ball.coord.x + gameData.ball.velocity.vx * coeff;
+
+        console.log("pad 1 - crosses upper h line");
+        console.log(xColl);
+        if (
+          xColl > gameData.player1.coord.x &&
+          xColl <= gameData.player1.coord.x + PAD_WIDTH
+        ) {
+          console.log("2 - Horizontal upper collision");
+          gameData.ball.velocity.vy = -gameData.ball.velocity.vy;
+
+          gameData.ball.coord.x += gameData.ball.velocity.vx;
+          gameData.ball.coord.y =
+            gameData.player1.coord.y -
+            BALL_RADIUS +
+            (1 - coeff) * gameData.ball.velocity.vy;
+
+          this.saveGameData.set(gameId, gameData);
+          return true;
+        }
+      }
       return false;
     };
 
@@ -402,14 +470,15 @@ export class GameService {
           return true;
         }
       }
-
-      //TODO: horizontal collision - inferior border
+      //TODO : add x test
+      // horizontal collision - inferior border
       if (
         gameData.ball.velocity.vy < 0 &&
-        gameData.ball.coord.y > gameData.player2.coord.y + PAD_HEIGHT &&
+        gameData.ball.coord.y - BALL_RADIUS >=
+          gameData.player2.coord.y + PAD_HEIGHT &&
         gameData.ball.coord.y -
           BALL_RADIUS -
-          (gameData.player2.coord.y + PAD_HEIGHT) <
+          (gameData.player2.coord.y + PAD_HEIGHT) <=
           Math.abs(gameData.ball.velocity.vy)
       ) {
         const coeff =
@@ -441,12 +510,12 @@ export class GameService {
       //horizontal collision - superior border
       if (
         gameData.ball.velocity.vy > 0 &&
-        gameData.ball.coord.y < gameData.player2.coord.y &&
-        gameData.player2.coord.y - gameData.ball.coord.y + BALL_RADIUS <
+        gameData.ball.coord.y + BALL_RADIUS <= gameData.player2.coord.y &&
+        gameData.player2.coord.y - (gameData.ball.coord.y + BALL_RADIUS) <=
           Math.abs(gameData.ball.velocity.vy)
       ) {
         const coeff =
-          (gameData.player2.coord.y - gameData.ball.coord.y + BALL_RADIUS) /
+          (gameData.player2.coord.y - (gameData.ball.coord.y + BALL_RADIUS)) /
           Math.abs(gameData.ball.velocity.vy);
         const xColl = gameData.ball.coord.x + gameData.ball.velocity.vx * coeff;
 
