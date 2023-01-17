@@ -3,13 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import {
-  UserAchievement,
-  Channel,
-  DirectMessage,
-  User,
-  ImageFileType,
-} from "@prisma/client";
+import { UserAchievement, Channel, DirectMessage, User } from "@prisma/client";
 import DataLoader from "dataloader";
 import { PrismaService } from "../prisma/prisma.service";
 import { Chat, ChatType, UserStatus } from "./user.model";
@@ -502,21 +496,6 @@ export class UserService {
           recipientId: userId,
           sentAt: new Date(),
         },
-      });
-    } catch (error) {
-      throw new NotFoundException("User not found");
-    }
-  }
-
-  async updateAvatar(
-    userId: number,
-    fileType: ImageFileType | undefined,
-    image: any
-  ) {
-    try {
-      await this.prismaService.avatar.update({
-        where: { userId: userId },
-        data: { fileType: fileType, image: image },
       });
     } catch (error) {
       throw new NotFoundException("User not found");
