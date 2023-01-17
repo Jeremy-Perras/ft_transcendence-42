@@ -17,15 +17,15 @@ enum gameScreenState {
   PLAYING,
   SCORE,
 }
-const INTRO_DURATION = 1;
-const GAME_DURATION = 1500;
+const INTRO_DURATION = 1; //INITIAL COUNTDOWN
 const CANVAS_WIDTH = 3000;
 const CANVAS_HEIGHT = 1500;
 const PAD_HEIGHT = 30;
-const PAD_WIDTH = Math.ceil(PAD_HEIGHT / 5);
+// const PAD_WIDTH = Math.ceil(PAD_HEIGHT / 5);
+const PAD_WIDTH = 30;
 const PAD_VELOCITY = 5;
 const BALL_RADIUS = 4;
-const BALL_VELOCITY = 10;
+//let BALL_VELOCITY = 4;
 
 enum PlayerState {
   UP,
@@ -348,11 +348,17 @@ const GameCanvas = ({
 
   useEffect(() => {
     let gameData: GameData;
+
     const cb = (data: GameData) => {
+      if (data.player1.score >= 11 || data.player2.score >= 11) {
+        socket.emit("endGame", initData.game.id);
+        setGameState(gameScreenState.SCORE);
+      }
+
       let ctx;
       if (canvas.current) ctx = canvas.current.getContext("2d");
       if (
-        frontGameData.current.player1.coord.y != data.player1.coord.y &&
+        frontGameData.current.player1.coord.y !== data.player1.coord.y &&
         ctx
       ) {
         if (frontGameData.current.player1.coord.y <= data.player1.coord.y)
@@ -361,7 +367,7 @@ const GameCanvas = ({
         draw(ctx, frontGameData.current);
       }
       if (
-        frontGameData.current.player2.coord.y != data.player2.coord.y &&
+        frontGameData.current.player2.coord.y !== data.player2.coord.y &&
         ctx
       ) {
         if (frontGameData.current.player2.coord.y <= data.player2.coord.y)
@@ -374,7 +380,6 @@ const GameCanvas = ({
       frontGameData.current.player1.score = data.player1.score;
       frontGameData.current.player2.score = data.player2.score;
 
-      console.log(frontGameData);
       gameData = data;
     };
     const animate = () => {
@@ -384,7 +389,8 @@ const GameCanvas = ({
         if (frontGameData.current) {
           if (
             gameData.player1.playerState === PlayerState.DOWN &&
-            frontGameData.current.player1.coord.y < CANVAS_HEIGHT - PAD_HEIGHT
+            frontGameData.current.player1.coord.y <
+              CANVAS_HEIGHT / 10 - PAD_HEIGHT
           ) {
             frontGameData.current.player1.coord.y++;
           } else if (
@@ -395,7 +401,8 @@ const GameCanvas = ({
           }
           if (
             gameData.player2.playerState === PlayerState.DOWN &&
-            frontGameData.current.player2.coord.y < CANVAS_HEIGHT - PAD_HEIGHT
+            frontGameData.current.player2.coord.y <
+              CANVAS_HEIGHT / 10 - PAD_HEIGHT
           ) {
             frontGameData.current.player2.coord.y++;
           } else if (
@@ -462,15 +469,28 @@ const GameCanvas = ({
 
         {/* TODO : add here banner with player avatar, rank, name */}
       </div>
-      <GameTimer
-        gameId={initData.game.id}
-        socket={socket}
-        startTime={startTime}
-        duration={GAME_DURATION}
-        setGameState={setGameState}
-      />
+      <GameTimer startTime={startTime} />
       {!isPlayer && <span className="my-2 text-lg">Live Stream</span>}
     </>
+  );
+};
+
+const GameTimer = ({ startTime }: { startTime: number }) => {
+  const [timer, setTimer] = useState(startTime);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTimer(Math.floor((new Date().getTime() - startTime) / 1000));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [timer]);
+
+  return (
+    <div className="my-2 flex w-20 justify-center">
+      <span>{Math.floor(timer / 60)} </span>
+      <span className="mx-1 pb-1 font-mono text-lg">:</span>
+      <span>{timer % 60 < 10 ? `0${timer % 60}` : `${timer % 60}`}</span>
+    </div>
   );
 };
 
@@ -513,43 +533,6 @@ const Score = ({ data }: { data: GameQuery }) => {
         Home
       </button>
     </>
-  );
-};
-
-const GameTimer = ({
-  gameId,
-  socket,
-  startTime,
-  duration,
-  setGameState,
-}: {
-  gameId: number;
-  socket: Socket;
-  startTime: number;
-  duration: number;
-  setGameState: React.Dispatch<React.SetStateAction<gameScreenState>>;
-}) => {
-  const [timer, setTimer] = useState(duration);
-
-  useEffect(() => {
-    if (timer < 0) {
-      socket.emit("endGame", gameId);
-      setGameState(gameScreenState.SCORE);
-    }
-    const interval = setInterval(() => {
-      setTimer(
-        Math.floor((startTime + duration * 1000 - new Date().getTime()) / 1000)
-      );
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [timer]);
-
-  return (
-    <div className="my-2 flex w-20 justify-center">
-      <span>{Math.floor(timer / 60)} </span>
-      <span className="mx-1 pb-1 font-mono text-lg">:</span>
-      <span>{timer % 60 < 10 ? `0${timer % 60}` : `${timer % 60}`}</span>
-    </div>
   );
 };
 
@@ -647,13 +630,13 @@ export const Game = () => {
   // const [gameState, setGameState] = useState<gameScreenState>(
   //   data.game.finishedAt ? gameScreenState.SCORE : gameScreenState.PLAYING
   // );
-  // TODO : change with this when mutation OK
+  // TODO : change with this when mutation OK ?
 
-  const startTime = new Date(data.game.startAt).getTime(); //TODO : change with start time from back
+  const startTime = new Date(data.game.startAt).getTime();
   const currentTime = new Date().getTime();
 
   const [gameState, setGameState] = useState<gameScreenState>(
-    currentTime > startTime + 5000
+    currentTime > startTime + INTRO_DURATION * 1000
       ? gameScreenState.PLAYING
       : gameScreenState.INTRO
   );
@@ -671,7 +654,7 @@ export const Game = () => {
           <GameCanvas
             initData={data}
             // draw={draw}
-            startTime={startTime + 5000}
+            startTime={startTime + INTRO_DURATION * 1000}
             setGameState={setGameState}
           />
         </>

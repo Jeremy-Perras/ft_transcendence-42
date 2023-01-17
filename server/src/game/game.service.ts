@@ -5,9 +5,10 @@ import { randomBytes } from "crypto";
 const CANVAS_WIDTH = 300;
 const CANVAS_HEIGHT = 150;
 const PAD_HEIGHT = 30; //CANVAS / 5
-const PAD_WIDTH = Math.ceil(PAD_HEIGHT / 5);
+// const PAD_WIDTH = Math.ceil(PAD_HEIGHT / 5);
+const PAD_WIDTH = 30;
 const BALL_RADIUS = 4;
-let BALL_VELOCITY = 2;
+let BALL_VELOCITY = 4;
 //PADDLE SPEED : 1/4 V BALL
 
 //TODO :  manage canvas size if necessary. back : front / 10
@@ -129,8 +130,6 @@ export class GameService {
       if (playerId === gameData.player1.id) {
         if (gameData.player1.coord.y <= CANVAS_HEIGHT - PAD_HEIGHT - 5)
           gameData.player1.coord.y += 5;
-
-        console.log(gameData?.player1.coord.y);
       } else if (playerId === gameData.player2.id) {
         if (gameData.player2.coord.y <= CANVAS_HEIGHT - PAD_HEIGHT - 5)
           gameData.player2.coord.y += 5;
@@ -179,23 +178,32 @@ export class GameService {
     //     Math.abs(
     //       (gameData.ball.coord.y - BALL_RADIUS) / gameData.ball.velocity.vy
     //     );
+
     const leftPadCollision = (gameData: GameData): boolean => {
+      //VERTICAL COLLISION
       if (
         gameData.ball.coord.x -
           BALL_RADIUS -
-          (gameData.player1.coord.x + PAD_WIDTH) <
-        Math.abs(gameData.ball.velocity.vx) //pad x is between current coordinate and next
+          (gameData.player1.coord.x + PAD_WIDTH) >=
+          0 &&
+        gameData.ball.coord.x -
+          BALL_RADIUS -
+          (gameData.player1.coord.x + PAD_WIDTH) <=
+          Math.abs(gameData.ball.velocity.vx) //pad x is between current coordinate and next
       ) {
+        console.log("Ball crosses pad1 line");
         const coeff =
           (gameData.ball.coord.x -
             BALL_RADIUS -
             (gameData.player1.coord.x + PAD_WIDTH)) /
           Math.abs(gameData.ball.velocity.vx);
-        const yColl = gameData.ball.coord.y + gameData.ball.velocity.vy * coeff; //TODO
+        const yColl = gameData.ball.coord.y + gameData.ball.velocity.vy * coeff;
+        //PAD CORE COLLISIOM
         if (
-          yColl > gameData.player1.coord.y &&
+          yColl >= gameData.player1.coord.y &&
           yColl <= gameData.player1.coord.y + PAD_HEIGHT
         ) {
+          console.log("Pad1 - core collision");
           //collision
           const padCollisionRatio =
             (yColl - gameData.player1.coord.y - PAD_HEIGHT / 2) /
@@ -235,26 +243,83 @@ export class GameService {
 
           return true;
         }
+
+        //SIMPLE CORNER COLLISION : CHANGE TO OTHER FORMULA IF NOT SATISFYING
+        //upper corner
+        if (
+          yColl > gameData.player1.coord.y - BALL_RADIUS &&
+          yColl < gameData.player1.coord.y
+        ) {
+          console.log("Pad1 - upper corner collision");
+
+          BALL_VELOCITY += 0.02 * BALL_VELOCITY; //increase velocity by 2% each pad collision
+          gameData.ball.velocity.vy = BALL_VELOCITY * Math.sin(-Math.PI / 4);
+          gameData.ball.velocity.vx = BALL_VELOCITY * Math.cos(-Math.PI / 4);
+
+          //next coordinate
+          gameData.ball.coord.x =
+            gameData.player1.coord.x +
+            PAD_WIDTH +
+            BALL_RADIUS +
+            (1 - coeff) * gameData.ball.velocity.vx;
+
+          gameData.ball.coord.y =
+            yColl + (1 - coeff) * gameData.ball.velocity.vy;
+
+          this.saveGameData.set(gameId, gameData);
+          return true;
+        }
+        //lower corner
+        if (
+          yColl > gameData.player1.coord.y + PAD_HEIGHT &&
+          yColl < gameData.player1.coord.y + PAD_HEIGHT + BALL_RADIUS
+        ) {
+          console.log("Pad1 - lower corner collision");
+
+          BALL_VELOCITY += 0.02 * BALL_VELOCITY; //increase velocity by 2% each pad collision
+          gameData.ball.velocity.vy = BALL_VELOCITY * Math.sin(Math.PI / 4);
+          gameData.ball.velocity.vx = BALL_VELOCITY * Math.cos(Math.PI / 4);
+
+          //next coordinate
+          gameData.ball.coord.x =
+            gameData.player1.coord.x +
+            PAD_WIDTH +
+            BALL_RADIUS +
+            (1 - coeff) * gameData.ball.velocity.vx;
+
+          gameData.ball.coord.y =
+            yColl + (1 - coeff) * gameData.ball.velocity.vy;
+
+          this.saveGameData.set(gameId, gameData);
+          return true;
+        }
       }
+
+      //horizontal collision
       return false;
     };
 
     const rightPadCollision = (gameData: GameData): boolean => {
-      //pad core collision
+      //vertical collision
       if (
-        gameData.player2.coord.x - (gameData.ball.coord.x + BALL_RADIUS) <
-        Math.abs(gameData.ball.velocity.vx) //pad x is between current coordinate and next
+        gameData.player2.coord.x - (gameData.ball.coord.x + BALL_RADIUS) >= 0 &&
+        gameData.player2.coord.x - (gameData.ball.coord.x + BALL_RADIUS) <=
+          Math.abs(gameData.ball.velocity.vx)
       ) {
+        console.log("Ball crosses pad2 line");
         const coeff =
           (gameData.player2.coord.x - (gameData.ball.coord.x + BALL_RADIUS)) /
           Math.abs(gameData.ball.velocity.vx);
 
-        const yColl = gameData.ball.coord.y + gameData.ball.velocity.vy * coeff; //TODO
+        const yColl = gameData.ball.coord.y + gameData.ball.velocity.vy * coeff;
+
+        //pad core collision
         if (
-          yColl > gameData.player2.coord.y &&
+          yColl >= gameData.player2.coord.y &&
           yColl <= gameData.player2.coord.y + PAD_HEIGHT
         ) {
           //collision
+          console.log("2 - Core collision");
           const padCollisionRatio =
             (yColl - gameData.player2.coord.y - PAD_HEIGHT / 2) /
             (PAD_HEIGHT / 2);
@@ -284,16 +349,61 @@ export class GameService {
             gameData.player2.coord.x -
             BALL_RADIUS +
             (1 - coeff) * gameData.ball.velocity.vx;
-
           gameData.ball.coord.y =
             yColl + (1 - coeff) * gameData.ball.velocity.vy;
 
           this.saveGameData.set(gameId, gameData);
-
           return true;
         }
-      } //
-      // if(){} // corner collision
+        if (
+          yColl > gameData.player2.coord.y - BALL_RADIUS &&
+          yColl < gameData.player2.coord.y
+        ) {
+          console.log("2 - Upper corner collision");
+          //new velocity
+          BALL_VELOCITY += 0.02 * BALL_VELOCITY; //increase velocity by 2% each pad collision
+          gameData.ball.velocity.vy =
+            BALL_VELOCITY * Math.sin((5 * Math.PI) / 4);
+          gameData.ball.velocity.vx =
+            BALL_VELOCITY * Math.cos((5 * Math.PI) / 4);
+
+          //next coordinate
+          gameData.ball.coord.x =
+            gameData.player2.coord.x -
+            BALL_RADIUS +
+            (1 - coeff) * gameData.ball.velocity.vx;
+          gameData.ball.coord.y =
+            yColl + (1 - coeff) * gameData.ball.velocity.vy;
+
+          this.saveGameData.set(gameId, gameData);
+          return true;
+        }
+        if (
+          yColl > gameData.player2.coord.y + PAD_HEIGHT &&
+          yColl < gameData.player2.coord.y + PAD_HEIGHT - BALL_RADIUS
+        ) {
+          console.log("2 - Lower corner collision");
+          //new velocity
+          BALL_VELOCITY += 0.02 * BALL_VELOCITY; //increase velocity by 2% each pad collision
+          gameData.ball.velocity.vy =
+            BALL_VELOCITY * Math.sin((3 * Math.PI) / 4);
+          gameData.ball.velocity.vx =
+            BALL_VELOCITY * Math.cos((3 * Math.PI) / 4);
+
+          //next coordinate
+          gameData.ball.coord.x =
+            gameData.player2.coord.x -
+            BALL_RADIUS +
+            (1 - coeff) * gameData.ball.velocity.vx;
+          gameData.ball.coord.y =
+            yColl + (1 - coeff) * gameData.ball.velocity.vy;
+
+          this.saveGameData.set(gameId, gameData);
+          return true;
+        }
+      }
+
+      //TODO: horizontal collision - inferior border
       if (
         gameData.ball.velocity.vy < 0 &&
         gameData.ball.coord.y > gameData.player2.coord.y + PAD_HEIGHT &&
@@ -307,24 +417,56 @@ export class GameService {
             BALL_RADIUS -
             (gameData.player2.coord.y + PAD_HEIGHT)) /
           Math.abs(gameData.ball.velocity.vy);
-
         const xColl = gameData.ball.coord.x + gameData.ball.velocity.vx * coeff;
 
         if (
           xColl > gameData.player2.coord.x &&
-          xColl < gameData.player2.coord.x + PAD_WIDTH
+          xColl <= gameData.player2.coord.x + PAD_WIDTH
         ) {
+          console.log("2 - Horizontal lower collision");
+
+          gameData.ball.velocity.vy = -gameData.ball.velocity.vy;
+
           gameData.ball.coord.x += gameData.ball.velocity.vx;
           gameData.ball.coord.y =
             gameData.player2.coord.y +
             PAD_HEIGHT +
+            BALL_RADIUS +
             (1 - coeff) * gameData.ball.velocity.vy;
-          gameData.ball.velocity.vy = -gameData.ball.velocity.vy;
+
           this.saveGameData.set(gameId, gameData);
           return true;
         }
-      } // horizontal collision - inferior border
-      // if(){} // horizontal collision - superior border
+      }
+      //horizontal collision - superior border
+      if (
+        gameData.ball.velocity.vy > 0 &&
+        gameData.ball.coord.y < gameData.player2.coord.y &&
+        gameData.player2.coord.y - gameData.ball.coord.y + BALL_RADIUS <
+          Math.abs(gameData.ball.velocity.vy)
+      ) {
+        const coeff =
+          (gameData.player2.coord.y - gameData.ball.coord.y + BALL_RADIUS) /
+          Math.abs(gameData.ball.velocity.vy);
+        const xColl = gameData.ball.coord.x + gameData.ball.velocity.vx * coeff;
+
+        if (
+          xColl > gameData.player2.coord.x &&
+          xColl <= gameData.player2.coord.x + PAD_WIDTH
+        ) {
+          console.log("2 - Horizontal upper collision");
+          gameData.ball.velocity.vy = -gameData.ball.velocity.vy;
+
+          gameData.ball.coord.x += gameData.ball.velocity.vx;
+          gameData.ball.coord.y =
+            gameData.player2.coord.y -
+            BALL_RADIUS +
+            (1 - coeff) * gameData.ball.velocity.vy;
+
+          this.saveGameData.set(gameId, gameData);
+          return true;
+        }
+      }
 
       return false;
     };
@@ -336,9 +478,11 @@ export class GameService {
       ) {
         gameData.player2.score += 1;
         gameData.ball.coord.x = 150;
+        BALL_VELOCITY = 4; // TODO : replace with initial bv
         gameData.ball.velocity.vx = -BALL_VELOCITY;
         gameData.ball.velocity.vy = 0;
         this.saveGameData.set(gameId, gameData);
+
         return true;
       } else if (
         gameData.ball.coord.x + gameData.ball.velocity.vx <
@@ -346,6 +490,7 @@ export class GameService {
       ) {
         gameData.player1.score += 1;
         gameData.ball.coord.x = 150;
+        BALL_VELOCITY = 4; // TODO : replace with initial bv
         gameData.ball.velocity.vx = BALL_VELOCITY;
         gameData.ball.velocity.vy = 0;
         this.saveGameData.set(gameId, gameData);

@@ -66,7 +66,6 @@ export const GameInvitations = () => {
   const socket = useSocketStore().socket;
 
   socket.on("newInvitation", (gameInvite: GameInvitation) => {
-    console.log("test");
     const newInvitation: GameInvitation = {
       inviterId: gameInvite.inviterId,
       inviteeId: gameInvite.inviteeId,

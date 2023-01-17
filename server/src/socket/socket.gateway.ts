@@ -545,11 +545,16 @@ export class SocketGateway {
     const interval = this.gameInProgress.get(gameId);
     if (interval) {
       clearInterval(interval);
-      this.gameInProgress.delete(gameId);
+      const gameData = this.gameService.saveGameData.get(gameId);
       await this.prismaService.game.update({
         where: { id: gameId },
-        data: { finishedAt: new Date() },
+        data: {
+          finishedAt: new Date(),
+          player1Score: gameData?.player1.score,
+          player2Score: gameData?.player2.score,
+        },
       });
+      this.gameInProgress.delete(gameId);
       this.server.socketsLeave(`game${gameId}`);
     }
   }

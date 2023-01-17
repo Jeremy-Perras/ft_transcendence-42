@@ -584,7 +584,6 @@ const FriendButtons = ({
         queryClient.invalidateQueries(["UserProfile", data.user.id]),
     }
   );
-  console.log(data.user.status);
   return (
     <div className="flex h-24 select-none bg-slate-100 text-2xl font-bold text-slate-600">
       <div
