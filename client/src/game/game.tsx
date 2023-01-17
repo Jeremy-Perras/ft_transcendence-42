@@ -158,7 +158,6 @@ const ball = {
     context.fillStyle = this.color;
     context.beginPath();
     context.arc(x, y, this.radius, 0, 2 * Math.PI);
-
     context.closePath();
     context.fill();
   },
@@ -331,8 +330,6 @@ const GameCanvas = ({
     gameMode: GameMode.Classic,
   });
 
-  //TODO: remove this and emit at first render to get an update on current game state
-
   const [keyboardStatus, setKeyBoardStatus] = useState({
     arrowUp: false,
     arrowDown: false,
@@ -363,6 +360,16 @@ const GameCanvas = ({
         else frontGameData.current.player1.coord.y--;
         draw(ctx, frontGameData.current);
       }
+      if (
+        frontGameData.current.player2.coord.y != data.player2.coord.y &&
+        ctx
+      ) {
+        if (frontGameData.current.player2.coord.y <= data.player2.coord.y)
+          frontGameData.current.player2.coord.y++;
+        else frontGameData.current.player2.coord.y--;
+        draw(ctx, frontGameData.current);
+      }
+
       frontGameData.current.ball = data.ball;
       frontGameData.current.player1.score = data.player1.score;
       frontGameData.current.player2.score = data.player2.score;
@@ -375,14 +382,26 @@ const GameCanvas = ({
       if (canvas.current) ctx = canvas.current.getContext("2d");
       if (ctx && gameData) {
         if (frontGameData.current) {
-          if (gameData.player1.playerState === PlayerState.DOWN) {
+          if (
+            gameData.player1.playerState === PlayerState.DOWN &&
+            frontGameData.current.player1.coord.y < CANVAS_HEIGHT - PAD_HEIGHT
+          ) {
             frontGameData.current.player1.coord.y++;
-          } else if (gameData.player1.playerState === PlayerState.UP) {
+          } else if (
+            gameData.player1.playerState === PlayerState.UP &&
+            frontGameData.current.player1.coord.y > 0
+          ) {
             frontGameData.current.player1.coord.y--;
           }
-          if (gameData.player2.playerState === PlayerState.DOWN) {
+          if (
+            gameData.player2.playerState === PlayerState.DOWN &&
+            frontGameData.current.player2.coord.y < CANVAS_HEIGHT - PAD_HEIGHT
+          ) {
             frontGameData.current.player2.coord.y++;
-          } else if (gameData.player2.playerState === PlayerState.UP) {
+          } else if (
+            gameData.player2.playerState === PlayerState.UP &&
+            frontGameData.current.player2.coord.y > 0
+          ) {
             frontGameData.current.player2.coord.y--;
           }
 

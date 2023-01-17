@@ -181,64 +181,151 @@ export class GameService {
     //     );
     const leftPadCollision = (gameData: GameData): boolean => {
       if (
-        gameData.ball.coord.x - BALL_RADIUS <=
-          gameData.player1.coord.x + PAD_WIDTH &&
-        gameData.ball.coord.x - BALL_RADIUS > gameData.player1.coord.x &&
-        gameData.ball.coord.y > gameData.player1.coord.y &&
-        gameData.ball.coord.y < gameData.player1.coord.y + PAD_HEIGHT
+        gameData.ball.coord.x -
+          BALL_RADIUS -
+          (gameData.player1.coord.x + PAD_WIDTH) <
+        Math.abs(gameData.ball.velocity.vx) //pad x is between current coordinate and next
       ) {
-        gameData.ball.coord;
-        gameData.ball.coord.x =
-          gameData.player1.coord.x + BALL_RADIUS + PAD_WIDTH;
-        //set x and y
-        const ratioPadPointCollision =
-          (gameData.ball.coord.y - gameData.player1.coord.y - PAD_HEIGHT / 2) /
-          (PAD_HEIGHT / 2);
-        //TODO : adapt vx and vy depending on original pong game
-        if (ratioPadPointCollision > -0.2 && ratioPadPointCollision < 0.2) {
-          gameData.ball.velocity.vy = 0;
-          gameData.ball.velocity.vx = BALL_VELOCITY;
-        } else {
-          //TO DO : adapt angle
-          //increase speed by 2% each time ball hits paddle
-          gameData.ball.velocity.vy = 4 * ratioPadPointCollision;
-          gameData.ball.velocity.vx = -gameData.ball.velocity.vx;
+        const coeff =
+          (gameData.ball.coord.x -
+            BALL_RADIUS -
+            (gameData.player1.coord.x + PAD_WIDTH)) /
+          Math.abs(gameData.ball.velocity.vx);
+        const yColl = gameData.ball.coord.y + gameData.ball.velocity.vy * coeff; //TODO
+        if (
+          yColl > gameData.player1.coord.y &&
+          yColl <= gameData.player1.coord.y + PAD_HEIGHT
+        ) {
+          //collision
+          const padCollisionRatio =
+            (yColl - gameData.player1.coord.y - PAD_HEIGHT / 2) /
+            (PAD_HEIGHT / 2);
+
+          const angle =
+            padCollisionRatio < -0.75
+              ? -Math.PI / 4
+              : padCollisionRatio < -0.5
+              ? -Math.PI / 6
+              : padCollisionRatio < -0.25
+              ? -Math.PI / 12
+              : padCollisionRatio <= 0.25
+              ? 0
+              : padCollisionRatio < 0.5
+              ? Math.PI / 12
+              : padCollisionRatio < 0.75
+              ? Math.PI / 6
+              : Math.PI / 4;
+
+          //new velocity
+          BALL_VELOCITY += 0.02 * BALL_VELOCITY; //increase velocity by 2% each pad collision
+          gameData.ball.velocity.vy = BALL_VELOCITY * Math.sin(angle);
+          gameData.ball.velocity.vx = BALL_VELOCITY * Math.cos(angle);
+
+          //next coordinate
+          gameData.ball.coord.x =
+            gameData.player1.coord.x +
+            PAD_WIDTH +
+            BALL_RADIUS +
+            (1 - coeff) * gameData.ball.velocity.vx;
+
+          gameData.ball.coord.y =
+            yColl + (1 - coeff) * gameData.ball.velocity.vy;
+
+          this.saveGameData.set(gameId, gameData);
+
+          return true;
         }
-        this.saveGameData.set(gameId, gameData);
-        return true;
-        //ADD collision with angles
       }
       return false;
     };
 
     const rightPadCollision = (gameData: GameData): boolean => {
+      //pad core collision
       if (
-        gameData.ball.coord.x + BALL_RADIUS + gameData.ball.velocity.vx >=
-          gameData.player2.coord.x &&
-        gameData.ball.coord.x + BALL_RADIUS <
-          gameData.player2.coord.x + PAD_WIDTH / 2 &&
-        gameData.ball.coord.y > gameData.player2.coord.y &&
-        gameData.ball.coord.y < gameData.player2.coord.y + PAD_HEIGHT
-        //TODO :  check intersection between lines
+        gameData.player2.coord.x - (gameData.ball.coord.x + BALL_RADIUS) <
+        Math.abs(gameData.ball.velocity.vx) //pad x is between current coordinate and next
       ) {
-        //TODO : see walls
-        // gameData.ball.coord.x = gameData.player2.coord.x - BALL_RADIUS;
-        //set y
-        const ratioPadPointCollision =
-          (gameData.ball.coord.y - gameData.player2.coord.y - PAD_HEIGHT / 2) /
-          (PAD_HEIGHT / 2);
-        if (ratioPadPointCollision > -0.2 && ratioPadPointCollision < 0.2) {
-          gameData.ball.velocity.vy = 0;
-          gameData.ball.velocity.vx = -BALL_VELOCITY;
-        } else {
-          //TODO : adapt vx and vy depending on original pong game
-          gameData.ball.velocity.vy = 4 * ratioPadPointCollision;
-          gameData.ball.velocity.vx = -gameData.ball.velocity.vx;
+        const coeff =
+          (gameData.player2.coord.x - (gameData.ball.coord.x + BALL_RADIUS)) /
+          Math.abs(gameData.ball.velocity.vx);
+
+        const yColl = gameData.ball.coord.y + gameData.ball.velocity.vy * coeff; //TODO
+        if (
+          yColl > gameData.player2.coord.y &&
+          yColl <= gameData.player2.coord.y + PAD_HEIGHT
+        ) {
+          //collision
+          const padCollisionRatio =
+            (yColl - gameData.player2.coord.y - PAD_HEIGHT / 2) /
+            (PAD_HEIGHT / 2);
+
+          const angle =
+            padCollisionRatio < -0.75
+              ? (5 * Math.PI) / 4
+              : padCollisionRatio < -0.5
+              ? (7 * Math.PI) / 6
+              : padCollisionRatio < -0.25
+              ? (13 * Math.PI) / 12
+              : padCollisionRatio <= 0.25
+              ? Math.PI
+              : padCollisionRatio < 0.5
+              ? (11 * Math.PI) / 12
+              : padCollisionRatio < 0.75
+              ? (5 * Math.PI) / 6
+              : (3 * Math.PI) / 4;
+
+          //new velocity
+          BALL_VELOCITY += 0.02 * BALL_VELOCITY; //increase velocity by 2% each pad collision
+          gameData.ball.velocity.vy = BALL_VELOCITY * Math.sin(angle);
+          gameData.ball.velocity.vx = BALL_VELOCITY * Math.cos(angle);
+
+          //next coordinate
+          gameData.ball.coord.x =
+            gameData.player2.coord.x -
+            BALL_RADIUS +
+            (1 - coeff) * gameData.ball.velocity.vx;
+
+          gameData.ball.coord.y =
+            yColl + (1 - coeff) * gameData.ball.velocity.vy;
+
+          this.saveGameData.set(gameId, gameData);
+
+          return true;
         }
-        this.saveGameData.set(gameId, gameData);
-        return true;
-        //ADD collision with pad angles
-      }
+      } //
+      // if(){} // corner collision
+      if (
+        gameData.ball.velocity.vy < 0 &&
+        gameData.ball.coord.y > gameData.player2.coord.y + PAD_HEIGHT &&
+        gameData.ball.coord.y -
+          BALL_RADIUS -
+          (gameData.player2.coord.y + PAD_HEIGHT) <
+          Math.abs(gameData.ball.velocity.vy)
+      ) {
+        const coeff =
+          (gameData.ball.coord.y -
+            BALL_RADIUS -
+            (gameData.player2.coord.y + PAD_HEIGHT)) /
+          Math.abs(gameData.ball.velocity.vy);
+
+        const xColl = gameData.ball.coord.x + gameData.ball.velocity.vx * coeff;
+
+        if (
+          xColl > gameData.player2.coord.x &&
+          xColl < gameData.player2.coord.x + PAD_WIDTH
+        ) {
+          gameData.ball.coord.x += gameData.ball.velocity.vx;
+          gameData.ball.coord.y =
+            gameData.player2.coord.y +
+            PAD_HEIGHT +
+            (1 - coeff) * gameData.ball.velocity.vy;
+          gameData.ball.velocity.vy = -gameData.ball.velocity.vy;
+          this.saveGameData.set(gameId, gameData);
+          return true;
+        }
+      } // horizontal collision - inferior border
+      // if(){} // horizontal collision - superior border
+
       return false;
     };
 
@@ -270,11 +357,9 @@ export class GameService {
     if (gameData !== undefined) {
       if (checkWallCollision(gameData)) return;
       if (gameData.ball.velocity.vx < 0) {
-        //TODO
         if (leftPadCollision(gameData)) return;
       }
       if (gameData.ball.velocity.vx > 0) {
-        //TODO
         if (rightPadCollision(gameData)) return;
       }
       if (goal(gameData)) return;
