@@ -11,7 +11,7 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 let init = false;
 const App = () => {
   const isLoggedIn = !!useAuthStore((state) => state.userId);
-
+  const socket = useSocketStore().socket;
   useEffect(() => {
     if (!init) {
       init = true;
@@ -29,8 +29,6 @@ const App = () => {
 
   useEffect(() => {
     if (isLoggedIn) {
-      const socket = useSocketStore().socket;
-
       socket.emit("getstatus", (response: { status: string }) => {
         if (response.status === "You are already connected on another device") {
           console.log("test");

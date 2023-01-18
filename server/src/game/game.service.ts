@@ -96,6 +96,13 @@ export class GameService {
     private readonly prismaService: PrismaService
   ) {}
   public saveGameData = new Map<number, GameData>();
+  private players: Map<number, ReturnType<typeof PlayerMachine>> = new Map();
+  private games: Map<number, Game> = new Map();
+  private matchmakingRooms: Record<GameMode, Set<number>> = {
+    CLASSIC: new Set(),
+    GIFT: new Set(),
+    BOOST: new Set(),
+  };
 
   InitialState(
     id: number,
@@ -778,16 +785,7 @@ export class GameService {
       gameData.ball.coord.y += gameData.ball.velocity.vy;
       this.saveGameData.set(gameId, gameData);
     }
-
-  
-
-  private players: Map<number, ReturnType<typeof PlayerMachine>> = new Map();
-  private games: Map<number, Game> = new Map();
-  private matchmakingRooms: Record<GameMode, Set<number>> = {
-    CLASSIC: new Set(),
-    RANDOM: new Set(),
-    SPEED: new Set(),
-  };
+  }
 
   @OnEvent("user.disconnection")
   disconnect(userId: number) {

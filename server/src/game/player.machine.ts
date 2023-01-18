@@ -451,6 +451,7 @@ export const PlayerMachine = (
           },
         }),
         notifyInvite: (context) => {
+          console.log(context);
           socket.sendToUser(context.userId, "newInvitation", {
             inviterId: context.userId,
             gameMode: context.gameMode,

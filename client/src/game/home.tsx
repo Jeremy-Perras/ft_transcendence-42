@@ -12,6 +12,9 @@ import LogoImage from "../assets/images/logo.svg";
 import { GameInvitations } from "./components/gameInvitation";
 import { GameMode } from "../gql/graphql";
 import { ReactComponent as RefuseIcon } from "pixelarticons/svg/close.svg";
+import { graphql } from "../gql";
+import { useMutation } from "@tanstack/react-query";
+import request from "graphql-request";
 type State = "idle" | "selecting" | "waiting";
 
 const Idle = ({ play }: { play: () => void }) => {
@@ -26,6 +29,30 @@ const Idle = ({ play }: { play: () => void }) => {
 };
 
 const gameModeIntervalId = [-1, -1, -1];
+
+const JoinMatchMackingMutationDocument = graphql(`
+  mutation joinMatchmaking($gameMode: GameMode!) {
+    joinMatchmaking(gameMode: $gameMode)
+  }
+`);
+
+const GameInvitationMutationDocument = graphql(`
+  mutation gameInvitation($userId: Int!, $gameMode: GameMode!) {
+    sendGameInvite(userId: $userId, gameMode: $gameMode)
+  }
+`);
+
+const CancelInvitationMutationDocument = graphql(`
+  mutation cancelGameInvitation {
+    cancelGameInvite
+  }
+`);
+
+const LeaveMatchMackingMutationDocument = graphql(`
+  mutation leaveMatchmacking {
+    leaveMatchmaking
+  }
+`);
 
 const Mode = ({
   name,
@@ -162,23 +189,45 @@ const RenderState = ({
   setState: React.Dispatch<React.SetStateAction<State>>;
   isNarrow: boolean | undefined;
 }) => {
-  const { invitationState, invitationId, invitationName, sendInvite } =
-    useInvitationStore();
-  const socket = useSocketStore().socket;
+  const { invitationState, invitationId, sendInvite } = useInvitationStore();
+
+  const gameInvitation = useMutation(
+    async ({
+      gameMode,
+      inviteeId,
+    }: {
+      gameMode: GameMode;
+      inviteeId: number;
+    }) =>
+      request("/graphql", GameInvitationMutationDocument, {
+        gameMode: gameMode,
+        userId: inviteeId,
+      })
+  );
+  const joinMatchMacking = useMutation(
+    async ({ gameMode }: { gameMode: GameMode }) =>
+      request("/graphql", JoinMatchMackingMutationDocument, {
+        gameMode: gameMode,
+      })
+  );
 
   const play = () => {
     setState("selecting");
   };
   const selectMode = (gameMode: GameMode) => {
     if (invitationState) {
-      socket.emit("gameInvitation", {
-        gameMode,
-        inviteeId: invitationId,
-        inviterName: invitationName,
-      });
-      sendInvite();
+      if (invitationId) {
+        gameInvitation.mutate({ gameMode: gameMode, inviteeId: invitationId });
+        sendInvite();
+      }
     } else {
+<<<<<<< HEAD
       socket.emit("joinMatchmaking", gameMode);
+=======
+      joinMatchMacking.mutate({
+        gameMode: gameMode,
+      });
+>>>>>>> 4a8741a7 (Merge dataloader and Jeremy_12_01)
     }
     setState("waiting");
   };
@@ -279,6 +328,14 @@ export const Home = () => {
   const socket = useSocketStore().socket;
   const [message, setMessage] = useState<string>();
 
+  const cancelInvitation = useMutation(async () =>
+    request("/graphql", CancelInvitationMutationDocument)
+  );
+
+  const leaveMatchMacking = useMutation(async () =>
+    request("/graphql", LeaveMatchMackingMutationDocument)
+  );
+
   socket.on("error", (message) => {
     const info = message;
     setMessage(info);
@@ -315,10 +372,13 @@ export const Home = () => {
         <CloseBox
           onClick={() => {
             if (invitationState) {
-              if (invitationState === "waiting")
-                socket.emit("cancelInvitation");
+              if (invitationState === "waiting") {
+                cancelInvitation.mutate();
+              }
               clearInvite();
-            } else if (state === "waiting") socket.emit("leaveMatchmaking");
+            } else if (state === "waiting") {
+              leaveMatchMacking.mutate();
+            }
             setState("idle");
           }}
           className="crt turn absolute left-2 top-1 w-8 cursor-pointer text-red-600 sm:w-9"
@@ -336,13 +396,13 @@ export const Home = () => {
           </a>
         )}
       </div>
-      {displayInvitationError ? (
+      {/* {displayInvitationError ? (
         <Error
           message={message}
           setDisplayInvitationError={setDisplayInvitationError}
           setState={setState}
         />
-      ) : null}
+      ) : null} */}
       <GameInvitations />
     </>
   );
