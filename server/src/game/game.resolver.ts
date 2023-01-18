@@ -201,6 +201,7 @@ export class GameResolver {
     });
     currentPlayer.send({ type: "INVITE", inviteeId: userId, gameMode });
     await wait;
+
     return true;
   }
 
@@ -232,6 +233,7 @@ export class GameResolver {
     });
     currentPlayer.send({ type: "ACCEPT_INVITATION", inviterId: userId });
     await wait;
+    return true;
   }
 
   @Mutation((returns) => Boolean)
@@ -252,6 +254,7 @@ export class GameResolver {
     });
     currentPlayer.send({ type: "REFUSE_INVITATION", inviterId: userId });
     await wait;
+    return true;
   }
 
   @Mutation((returns) => Boolean)
@@ -272,6 +275,7 @@ export class GameResolver {
     });
     currentPlayer.send({ type: "JOIN_MATCHMAKING", gameMode });
     await wait;
+    return true;
   }
 
   @Mutation((returns) => Boolean)
@@ -285,5 +289,6 @@ export class GameResolver {
     });
     currentPlayer.send({ type: "LEAVE_MATCHMAKING" });
     await wait;
+    return true;
   }
 }

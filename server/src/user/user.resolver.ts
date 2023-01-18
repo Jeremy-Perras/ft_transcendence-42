@@ -9,6 +9,7 @@ import {
   Mutation,
   ArgsType,
   Field,
+  InputType,
 } from "@nestjs/graphql";
 import {
   User as PrismaUser,
@@ -19,6 +20,7 @@ import {
 } from "@prisma/client";
 import { IsByteLength, Length, Min } from "class-validator";
 import DataLoader from "dataloader";
+import { Type } from "typescript";
 import { GqlAuthenticatedGuard } from "../auth/authenticated.guard";
 import { CurrentUser } from "../auth/currentUser.decorator";
 import { ChannelLoader } from "../channel/channel.loaders";
@@ -148,6 +150,7 @@ export class UserResolver {
     if (currentUserId !== user.id) {
       return null;
     }
+
     return await this.userService.getState(currentUserId);
   }
 
@@ -385,7 +388,6 @@ export class UserResolver {
       directMessagesReceivedLoader,
       directMessagesSentLoader
     );
-    // this.socketService.invalidateDirectMessagesCache(currentUserId, user.id) ; // infinite loop
 
     return messages;
   }
