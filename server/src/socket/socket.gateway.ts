@@ -513,6 +513,26 @@ export class SocketGateway {
     this.gameService.playerMove(playerMove.DOWN, currentUserId, gameId);
   }
 
+  @SubscribeMessage("boostActivated")
+  async onBoostActivated(
+    @ConnectedSocket() client: Socket,
+    @MessageBody()
+    gameId: number
+  ) {
+    const currentUserId = client.request.session.passport.user;
+    this.gameService.handleBoostOn(gameId, currentUserId);
+  }
+
+  @SubscribeMessage("boostDeactivated")
+  async onBoostDeactivated(
+    @ConnectedSocket() client: Socket,
+    @MessageBody()
+    gameId: number
+  ) {
+    const currentUserId = client.request.session.passport.user;
+    this.gameService.handleBoostOff(gameId, currentUserId);
+  }
+
   @SubscribeMessage("stopPad")
   async onstopPad(
     @ConnectedSocket() client: Socket,

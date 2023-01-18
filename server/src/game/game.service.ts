@@ -6,8 +6,8 @@ const CANVAS_HEIGHT = 500;
 const PAD_HEIGHT = Math.ceil(CANVAS_HEIGHT / 10);
 const PAD_WIDTH = Math.ceil(PAD_HEIGHT / 10);
 const BALL_RADIUS = 4;
-const LEFT_PAD_X = 2 * PAD_WIDTH;
-const RIGHT_PAD_X = CANVAS_WIDTH - 3 * PAD_WIDTH;
+export const LEFT_PAD_X = CANVAS_WIDTH / 8;
+export const RIGHT_PAD_X = CANVAS_WIDTH - CANVAS_WIDTH / 8 - PAD_WIDTH;
 const BALL_VELOCITY = 10;
 const PAD_VELOCITY = 5;
 
@@ -115,7 +115,7 @@ export class GameService {
               players: { player1: player1Id, player2: player2Id },
               type: "CLASSIC",
             }
-          : gameMode === GameMode.RANDOM
+          : gameMode === GameMode.SPEED
           ? {
               id: id,
               score: { player1: 0, player2: 0 },
@@ -223,6 +223,78 @@ export class GameService {
           CANVAS_HEIGHT - PAD_HEIGHT - PAD_VELOCITY
         )
           gameData.player2.coord.y += PAD_VELOCITY;
+      }
+      this.saveGameData.set(gameId, gameData);
+    }
+  }
+
+  handleBoostOn(gameId: number, playerId: number) {
+    const gameData = this.saveGameData.get(gameId);
+    if (gameData?.game.type !== "BOOST") return;
+    if (gameData !== undefined) {
+      if (playerId === gameData.game.players.player1) {
+        if (
+          gameData.game.player1Boost.remaining > 0 &&
+          !gameData.game.player2Boost.activated
+        ) {
+          gameData.game.player1Boost.activated = true;
+          gameData.game.player1Boost.remaining--;
+          if (Math.abs(gameData.ball.velocity.vx) < 3 * BALL_VELOCITY) {
+            gameData.ball.velocity.vx *= 1.05;
+            gameData.ball.velocity.vy *= 1.05;
+          }
+        }
+        if (gameData.game.player1Boost.remaining <= 0) {
+          gameData.game.player1Boost.activated = false;
+          gameData.ball.velocity.vy =
+            gameData.ball.velocity.vy /
+            Math.abs(gameData.ball.velocity.vx / BALL_VELOCITY);
+          gameData.ball.velocity.vx =
+            gameData.ball.velocity.vx > 0 ? BALL_VELOCITY : -BALL_VELOCITY;
+        }
+      } else if (playerId === gameData.game.players.player2) {
+        if (
+          gameData.game.player2Boost.remaining > 0 &&
+          !gameData.game.player1Boost.activated
+        ) {
+          gameData.game.player2Boost.activated = true;
+          gameData.game.player2Boost.remaining--;
+          if (Math.abs(gameData.ball.velocity.vx) < 3 * BALL_VELOCITY) {
+            gameData.ball.velocity.vx *= 1.05;
+            gameData.ball.velocity.vy *= 1.05;
+          }
+        }
+        if (gameData.game.player2Boost.remaining <= 0) {
+          gameData.game.player2Boost.activated = false;
+          gameData.ball.velocity.vy =
+            gameData.ball.velocity.vy /
+            Math.abs(gameData.ball.velocity.vx / BALL_VELOCITY);
+          gameData.ball.velocity.vx =
+            gameData.ball.velocity.vx > 0 ? BALL_VELOCITY : -BALL_VELOCITY;
+        }
+      }
+      this.saveGameData.set(gameId, gameData);
+    }
+  }
+
+  handleBoostOff(gameId: number, playerId: number) {
+    const gameData = this.saveGameData.get(gameId);
+    if (gameData?.game.type !== "BOOST") return;
+    if (gameData !== undefined) {
+      if (playerId === gameData.game.players.player1) {
+        gameData.game.player1Boost.activated = false;
+        gameData.ball.velocity.vy =
+          gameData.ball.velocity.vy /
+          Math.abs(gameData.ball.velocity.vx / BALL_VELOCITY);
+        gameData.ball.velocity.vx =
+          gameData.ball.velocity.vx > 0 ? BALL_VELOCITY : -BALL_VELOCITY;
+      } else if (playerId === gameData.game.players.player2) {
+        gameData.game.player2Boost.activated = false;
+        gameData.ball.velocity.vy =
+          gameData.ball.velocity.vy /
+          Math.abs(gameData.ball.velocity.vx / BALL_VELOCITY);
+        gameData.ball.velocity.vx =
+          gameData.ball.velocity.vx > 0 ? BALL_VELOCITY : -BALL_VELOCITY;
       }
       this.saveGameData.set(gameId, gameData);
     }
@@ -590,14 +662,22 @@ export class GameService {
         CANVAS_WIDTH + BALL_RADIUS
       ) {
         gameData.game.score.player1 += 1;
+        if (gameData.game.type === "BOOST") {
+          if (gameData.game.player1Boost.remaining < 90)
+            gameData.game.player1Boost.remaining += 10;
+          else gameData.game.player1Boost.remaining = 100;
+        }
         isScoring = true;
-
-        return true;
       } else if (
         gameData.ball.coord.x + gameData.ball.velocity.vx <
         -BALL_RADIUS
       ) {
         gameData.game.score.player2 += 1;
+        if (gameData.game.type === "BOOST") {
+          if (gameData.game.player2Boost.remaining < 90)
+            gameData.game.player2Boost.remaining += 10;
+          else gameData.game.player2Boost.remaining = 100;
+        }
         isScoring = true;
       }
       if (isScoring) {
@@ -607,10 +687,10 @@ export class GameService {
         gameData.ball.coord.y =
           CANVAS_HEIGHT * rand * 0.8 + 0.1 * CANVAS_HEIGHT;
 
-        gameData.ball.velocity.vx = -gameData.ball.velocity.vx;
+        gameData.ball.velocity.vx =
+          gameData.ball.velocity.vx > 0 ? -BALL_VELOCITY : BALL_VELOCITY;
         gameData.ball.velocity.vy =
           rand <= 0.5 ? -BALL_VELOCITY * rand : BALL_VELOCITY * rand;
-
         this.saveGameData.set(gameId, gameData);
       }
       return isScoring;
@@ -618,7 +698,6 @@ export class GameService {
 
     if (gameData !== undefined) {
       //TODO : gift pop
-      //TODO : boost checker
       if (checkWallCollision(gameData)) return;
       if (gameData.ball.velocity.vx < 0) {
         if (leftPadCollision(gameData)) return;

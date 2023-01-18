@@ -22,15 +22,13 @@ import {
   draw,
   handleKeyDown,
   handleKeyUp,
+  boostOff,
+  boostOn,
 } from "./functions/game";
 import { GameData, padMove } from "./types/gameData";
 
-//TODO : animate ball :
-// - effet trainee ? (cf doc mdn)
-// - collision
-
-//SPEED MODE : boost bar triggered by SPACE => fires the ball + accelerate
-// boost recharged when player scores points ?
+//TODO : animate ball - check coordinates etc
+//TODO : bonus mode
 
 enum gameScreenState {
   INTRO,
@@ -132,7 +130,7 @@ const GameCanvas = ({
             },
             type: "CLASSIC",
           }
-        : initData.game.gameMode === GameMode.Random
+        : initData.game.gameMode === GameMode.Speed
         ? {
             id: initData.game.id,
             score: { player1: 0, player2: 0 },
@@ -161,6 +159,9 @@ const GameCanvas = ({
     arrowUp: false,
     arrowDown: false,
   });
+
+  const boost = useRef(false);
+  const remainingBoost = useRef(100);
 
   const isPlayer =
     currentUserId === initData.game.players.player1.id ||
@@ -208,10 +209,22 @@ const GameCanvas = ({
         else frontGameData.current.player2.coord.y--;
         draw(ctx, frontGameData.current);
       }
-
-      frontGameData.current.ball = data.ball;
-      frontGameData.current.game.score.player1 = data.game.score.player1;
-      frontGameData.current.game.score.player2 = data.game.score.player2;
+      if (frontGameData.current.ball.coord.x < data.ball.coord.x)
+        frontGameData.current.ball.coord.x +=
+          frontGameData.current.ball.velocity.vx / BALL_VELOCITY;
+      if (frontGameData.current.ball.coord.x > data.ball.coord.x)
+        frontGameData.current.ball.coord.x -=
+          frontGameData.current.ball.velocity.vx / BALL_VELOCITY;
+      if (frontGameData.current.ball.coord.y < data.ball.coord.y)
+        frontGameData.current.ball.coord.y +=
+          frontGameData.current.ball.velocity.vy / BALL_VELOCITY;
+      if (frontGameData.current.ball.coord.y < data.ball.coord.y)
+        frontGameData.current.ball.coord.y -=
+          frontGameData.current.ball.velocity.vy / BALL_VELOCITY;
+      frontGameData.current = data;
+      // frontGameData.current.ball = data.ball;
+      // frontGameData.current.game.score.player1 = data.game.score.player1;
+      // frontGameData.current.game.score.player2 = data.game.score.player2;
 
       gameData = data;
     };
@@ -242,6 +255,10 @@ const GameCanvas = ({
           ) {
             frontGameData.current.player2.coord.y--;
           }
+          frontGameData.current.ball.coord.x +=
+            frontGameData.current.ball.velocity.vx / BALL_VELOCITY;
+          frontGameData.current.ball.coord.y +=
+            frontGameData.current.ball.velocity.vy / BALL_VELOCITY;
           draw(ctx, frontGameData.current);
         }
       }
@@ -261,6 +278,7 @@ const GameCanvas = ({
       <canvas
         tabIndex={0}
         onKeyDown={(e) => {
+          console.log(e.code);
           if (isPlayer) {
             handleKeyDown(
               e.key,
@@ -270,6 +288,13 @@ const GameCanvas = ({
               setKeyBoardStatus,
               playerMove
             );
+          }
+          if (
+            isPlayer &&
+            initData.game.gameMode === GameMode.Speed &&
+            e.code === "Space"
+          ) {
+            boostOn(socket, initData.game.id, remainingBoost, boost);
           }
         }}
         onKeyUp={(e) => {
@@ -282,6 +307,13 @@ const GameCanvas = ({
               setKeyBoardStatus,
               playerMove
             );
+          }
+          if (
+            isPlayer &&
+            initData.game.gameMode === GameMode.Speed &&
+            e.code === "Space"
+          ) {
+            boostOff(socket, initData.game.id, boost);
           }
         }}
         className="border-4 border-white"
@@ -448,6 +480,11 @@ const Intro = ({
         <span className="mx-1 pb-1 font-mono">:</span>
         <span>{timer % 60 < 10 ? `0${timer % 60}` : `${timer % 60}`}</span>
       </div>
+      {data.game.gameMode === GameMode.Speed && (
+        <div className="my-10 flex w-full justify-center text-xl">
+          Press SPACE to fire the ball!
+        </div>
+      )}
     </>
   );
 };

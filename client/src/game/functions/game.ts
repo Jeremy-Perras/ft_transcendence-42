@@ -1,4 +1,3 @@
-import { GameMode } from "client/src/gql/graphql";
 import { Socket } from "socket.io-client";
 import { GameData, padMove } from "../types/gameData";
 
@@ -10,8 +9,8 @@ export const PAD_HEIGHT = Math.ceil(CANVAS_HEIGHT / 10);
 export const PAD_WIDTH = Math.ceil(PAD_HEIGHT / 10);
 
 export const BALL_RADIUS = 4;
-export const LEFT_PAD_X = 2 * PAD_WIDTH;
-export const RIGHT_PAD_X = CANVAS_WIDTH - 3 * PAD_WIDTH;
+export const LEFT_PAD_X = CANVAS_WIDTH / 8;
+export const RIGHT_PAD_X = CANVAS_WIDTH - CANVAS_WIDTH / 8 - PAD_WIDTH;
 
 //TODO : adapt code to differents pad velocity
 export const PAD_VELOCITY = 5;
@@ -56,24 +55,121 @@ const rightPad = {
 
 const ball = {
   classicColor: "white",
-  speedColor: "red",
-  bonusColor: "blue",
-  draw(
-    context: CanvasRenderingContext2D,
-    x: number,
-    y: number,
-    mode: "CLASSIC" | "BOOST" | "GIFT"
-  ) {
-    context.fillStyle =
-      mode === "CLASSIC"
-        ? this.classicColor
-        : mode === "BOOST"
-        ? this.speedColor
-        : this.bonusColor;
+
+  draw(context: CanvasRenderingContext2D, x: number, y: number) {
+    context.fillStyle = this.classicColor;
     context.beginPath();
     context.arc(x, y, BALL_RADIUS, 0, 2 * Math.PI);
     context.closePath();
     context.fill();
+  },
+};
+//TODO : fix display bug when vy <= 0 and vx < 0
+const fireball = {
+  draw(
+    context: CanvasRenderingContext2D,
+    coord: { x: number; y: number },
+    velocity: { vx: number; vy: number },
+    activated: boolean
+  ) {
+    const gradient = context.createRadialGradient(
+      coord.x,
+      coord.y,
+      BALL_RADIUS / 2,
+      coord.x,
+      coord.y,
+      BALL_RADIUS
+    );
+    gradient.addColorStop(0, "yellow");
+    gradient.addColorStop(1, "red");
+    context.fillStyle = gradient;
+    if (activated) {
+      if (velocity.vy === 0) {
+        context.beginPath();
+        context.moveTo(coord.x, coord.y - BALL_RADIUS);
+        context.lineTo(
+          velocity.vx > 0
+            ? coord.x - BALL_RADIUS * 3
+            : coord.x + BALL_RADIUS * 3,
+          coord.y
+        );
+        context.lineTo(coord.x, coord.y + BALL_RADIUS);
+        context.lineTo(coord.x, coord.y - BALL_RADIUS);
+        context.closePath();
+        context.fill();
+      } else {
+        const angle = Math.atan(Math.abs(velocity.vy) / Math.abs(velocity.vx));
+        context.beginPath();
+        context.moveTo(
+          velocity.vx > 0
+            ? coord.x + Math.sin(angle) * BALL_RADIUS
+            : coord.x - Math.sin(angle) * BALL_RADIUS,
+          velocity.vy > 0
+            ? coord.y - Math.cos(angle) * BALL_RADIUS
+            : coord.y + Math.cos(angle) * BALL_RADIUS
+        );
+        context.lineTo(
+          velocity.vx > 0
+            ? coord.x - BALL_RADIUS * 3 * Math.cos(angle)
+            : coord.x + BALL_RADIUS * 3 * Math.cos(angle),
+          velocity.vy > 0
+            ? coord.y - BALL_RADIUS * 3 * Math.sin(angle)
+            : coord.y + BALL_RADIUS * 3 * Math.sin(angle)
+        );
+        context.lineTo(
+          velocity.vx > 0
+            ? coord.x - Math.cos(angle) * BALL_RADIUS
+            : coord.x + Math.cos(angle) * BALL_RADIUS,
+          velocity.vy > 0
+            ? coord.y + Math.sin(angle) * BALL_RADIUS
+            : coord.y - Math.sin(angle) * BALL_RADIUS
+        );
+        context.lineTo(
+          velocity.vx > 0
+            ? coord.x + Math.sin(angle) * BALL_RADIUS
+            : coord.x - Math.sin(angle) * BALL_RADIUS,
+          velocity.vy > 0
+            ? coord.y - Math.cos(angle) * BALL_RADIUS
+            : coord.y + Math.cos(angle) * BALL_RADIUS
+        );
+        context.closePath();
+        context.fill();
+      }
+    }
+    context.beginPath();
+    context.arc(coord.x, coord.y, BALL_RADIUS, 0, 2 * Math.PI);
+    context.fill();
+  },
+};
+
+const boostBar = {
+  draw(
+    context: CanvasRenderingContext2D,
+    fillPlayer1: number,
+    fillPlayer2: number
+  ) {
+    const gradient1 = context.createLinearGradient(
+      0,
+      CANVAS_HEIGHT / 100,
+      0,
+      CANVAS_HEIGHT / 5
+    );
+    gradient1.addColorStop(0, "yellow");
+    gradient1.addColorStop(1, "red");
+    context.fillStyle = gradient1;
+    context.fillRect(
+      CANVAS_WIDTH / 50,
+      CANVAS_HEIGHT / 50 + ((CANVAS_HEIGHT / 5) * (100 - fillPlayer1)) / 100,
+      CANVAS_WIDTH / 50,
+      ((CANVAS_HEIGHT / 5) * fillPlayer1) / 100
+    );
+
+    context.fillRect(
+      (48 * CANVAS_WIDTH) / 50,
+      CANVAS_HEIGHT / 50 + ((CANVAS_HEIGHT / 5) * (100 - fillPlayer2)) / 100,
+      CANVAS_WIDTH / 50,
+      ((CANVAS_HEIGHT / 5) * fillPlayer2) / 100
+    );
   },
 };
 
@@ -88,12 +184,12 @@ const score = {
     context.font = "32px serif";
     context.fillText(
       `${player1Score}`,
-      (CANVAS_WIDTH * 2) / 5,
+      (CANVAS_WIDTH * 2) / 6,
       CANVAS_HEIGHT / 10
     );
     context.fillText(
       `${player2Score}`,
-      (CANVAS_WIDTH * 3) / 5,
+      (CANVAS_WIDTH * 4) / 6,
       CANVAS_HEIGHT / 10
     );
   },
@@ -105,7 +201,24 @@ export const draw = (context: CanvasRenderingContext2D, data: GameData) => {
   score.draw(context, data.game.score.player1, data.game.score.player2);
   leftPad.draw(context, data.player1.coord.y);
   rightPad.draw(context, data.player2.coord.y);
-  ball.draw(context, data.ball.coord.x, data.ball.coord.y, data.game.type);
+  if (data.game.type === "CLASSIC" || data.game.type === "GIFT")
+    ball.draw(context, data.ball.coord.x, data.ball.coord.y);
+
+  if (data.game.type === "BOOST") {
+    console.log(
+      data.game.player1Boost.remaining,
+      data.game.player2Boost.remaining
+    );
+    const boostActivated =
+      data.game.player1Boost.activated || data.game.player2Boost.activated;
+    fireball.draw(context, data.ball.coord, data.ball.velocity, boostActivated);
+    fireball.draw(context, data.ball.coord, data.ball.velocity, boostActivated);
+    boostBar.draw(
+      context,
+      data.game.player1Boost.remaining,
+      data.game.player2Boost.remaining
+    );
+  }
 };
 
 export const handleKeyDown = (
@@ -218,4 +331,23 @@ export const handleKeyUp = (
       }
     }
   }
+};
+
+export const boostOn = (
+  socket: Socket,
+  gameId: number,
+  remainingBoost: React.MutableRefObject<number>,
+  boost: React.MutableRefObject<boolean>
+) => {
+  boost.current = true;
+  socket.emit("boostActivated", gameId);
+};
+
+export const boostOff = (
+  socket: Socket,
+  gameId: number,
+  boost: React.MutableRefObject<boolean>
+) => {
+  boost.current = false;
+  socket.emit("boostDeactivated", gameId);
 };
