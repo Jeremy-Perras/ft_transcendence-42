@@ -46,7 +46,7 @@ const Mode = ({
 }) => {
   const [isSelected, setIsSelected] = useState(false);
   const [animationIndex, setanimationIndex] = useState(0);
-  const i = name === "classic" ? 0 : name === "fireball" ? 1 : 1;
+  const i = name === "classic" ? 0 : name === "fireball" ? 1 : 2;
   useEffect(() => {
     if (gameModeIntervalId[i] == -1) {
       gameModeIntervalId[i] = setInterval(
@@ -178,7 +178,6 @@ const RenderState = ({
       });
       sendInvite();
     } else {
-      console.log("join");
       socket.emit("joinMatchmaking", gameMode);
     }
     setState("waiting");

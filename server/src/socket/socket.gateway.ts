@@ -9,9 +9,7 @@ import { Server, Socket } from "socket.io";
 import { PrismaService } from "../prisma/prisma.service";
 import { GameMode } from "@prisma/client";
 
-import { GameService, PlayerState } from "../game/game.service";
-import { join } from "path";
-import { IoAdapter } from "@nestjs/platform-socket.io";
+import { GameService, playerMove } from "../game/game.service";
 
 type GameInvitation = {
   inviterId: number; // personne qui invite
@@ -102,18 +100,18 @@ export class SocketGateway {
     return false;
   };
 
-  private playerState(gameId: number) {
+  private playerMove(gameId: number) {
     const callback = () => {
       const gameData = this.gameService.saveGameData.get(gameId);
-      if (gameData?.player1.playerState === PlayerState.DOWN) {
-        this.gameService.MovePadDown(gameId, gameData.player1.id);
-      } else if (gameData?.player1.playerState === PlayerState.UP) {
-        this.gameService.MovePadUp(gameId, gameData.player1.id);
+      if (gameData?.player1.playerMove === playerMove.DOWN) {
+        this.gameService.MovePadDown(gameId, gameData.game.players.player1);
+      } else if (gameData?.player1.playerMove === playerMove.UP) {
+        this.gameService.MovePadUp(gameId, gameData.game.players.player1);
       }
-      if (gameData?.player2.playerState === PlayerState.DOWN) {
-        this.gameService.MovePadDown(gameId, gameData.player2.id);
-      } else if (gameData?.player2.playerState === PlayerState.UP) {
-        this.gameService.MovePadUp(gameId, gameData.player2.id);
+      if (gameData?.player2.playerMove === playerMove.DOWN) {
+        this.gameService.MovePadDown(gameId, gameData.game.players.player2);
+      } else if (gameData?.player2.playerMove === playerMove.UP) {
+        this.gameService.MovePadUp(gameId, gameData.game.players.player2);
       }
       this.gameService.MoveBall(gameId);
       // this.server.to("game" + gameId).emit("updateCanvas", gameData);
@@ -227,7 +225,7 @@ export class SocketGateway {
               socket.join(`game${game.id}`);
           }
         }
-        this.playerState(game.id);
+        this.playerMove(game.id);
         this.gameService.InitialState(
           game.id,
           game.player2Id,
@@ -390,7 +388,7 @@ export class SocketGateway {
 
     this.server.to("user_" + inviteeId.toString()).emit("startGame", game.id);
     this.server.to("user_" + inviterId.toString()).emit("startGame", game.id);
-    this.playerState(game.id);
+    this.playerMove(game.id);
     const sockets = await this.server.fetchSockets();
     for (const socket of sockets) {
       for (const room of socket.rooms) {
@@ -502,7 +500,7 @@ export class SocketGateway {
     gameId: number
   ) {
     const currentUserId = client.request.session.passport.user;
-    this.gameService.PlayerState(PlayerState.UP, currentUserId, gameId);
+    this.gameService.playerMove(playerMove.UP, currentUserId, gameId);
   }
   //["gameId" : {player1 : {x, y, currentMove, score}, player2 : {x,y,currentMove,score}, }]
   @SubscribeMessage("movePadDown")
@@ -512,7 +510,7 @@ export class SocketGateway {
     gameId: number
   ) {
     const currentUserId = client.request.session.passport.user;
-    this.gameService.PlayerState(PlayerState.DOWN, currentUserId, gameId);
+    this.gameService.playerMove(playerMove.DOWN, currentUserId, gameId);
   }
 
   @SubscribeMessage("stopPad")
@@ -522,7 +520,7 @@ export class SocketGateway {
     gameId: number
   ) {
     const currentUserId = client.request.session.passport.user;
-    this.gameService.PlayerState(PlayerState.STILL, currentUserId, gameId);
+    this.gameService.playerMove(playerMove.STILL, currentUserId, gameId);
   }
 
   @SubscribeMessage("joinRoomAsViewer")
@@ -550,8 +548,8 @@ export class SocketGateway {
         where: { id: gameId },
         data: {
           finishedAt: new Date(),
-          player1Score: gameData?.player1.score,
-          player2Score: gameData?.player2.score,
+          player1Score: gameData?.game.score.player1,
+          player2Score: gameData?.game.score.player2,
         },
       });
       this.gameInProgress.delete(gameId);
