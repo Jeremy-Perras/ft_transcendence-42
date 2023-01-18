@@ -9,6 +9,8 @@ import {
 import { Channel } from "../channel/channel.model";
 import { Game } from "../game/game.model";
 import { GameMode } from "@prisma/client";
+import { GraphqlUser } from "./user.resolver";
+import { GraphqlGame } from "../game/game.resolver";
 
 export enum FriendStatus {
   NOT_FRIEND,
@@ -100,7 +102,7 @@ export class Invitation {
 @ObjectType()
 export class WaitingForInviteeState {
   @Field((type) => User)
-  invitee: User;
+  invitee: GraphqlUser;
 
   @Field((type) => GameMode)
   gameMode: GameMode;
@@ -115,7 +117,7 @@ export class MatchmakingState {
 @ObjectType()
 export class PlayingState {
   @Field((type) => Game)
-  game: Game;
+  game: GraphqlGame;
 }
 
 export const StatesUnion = createUnionType({

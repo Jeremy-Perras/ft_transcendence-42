@@ -2,8 +2,18 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import { ReactComponent as AcceptIcon } from "pixelarticons/svg/check.svg";
 import { ReactComponent as RefuseIcon } from "pixelarticons/svg/close.svg";
-import { useSocketStore } from "../../stores";
+import { useAuthStore, useSocketStore } from "../../stores";
 import { GameInvitation } from "../types/gameInvitation";
+import { graphql } from "../../gql";
+import request from "graphql-request";
+import { useMutation } from "@tanstack/react-query";
+import { GameMode } from "client/src/gql/graphql";
+
+const AcceptInvitationMutationDocument = graphql(`
+  mutation AcceptGameInvite($userId: Int!) {
+    acceptGameInvite(userId: $userId)
+  }
+`);
 
 const Invitation = ({
   invitation,
@@ -12,6 +22,13 @@ const Invitation = ({
   invitation: GameInvitation;
   setInvitationList: React.Dispatch<React.SetStateAction<GameInvitation[]>>;
 }) => {
+  const acceptGameInvitation = useMutation(
+    async ({ userId }: { userId: number }) =>
+      request("/graphql", AcceptInvitationMutationDocument, {
+        userId: userId,
+      })
+  );
+  const userId = useAuthStore().userId;
   const [display, setDisplay] = useState(true);
   const socket = useSocketStore().socket;
 
@@ -42,6 +59,8 @@ const Invitation = ({
           <AcceptIcon
             className="h-8 w-8 animate-none border border-slate-300 bg-slate-200 hover:cursor-pointer hover:bg-slate-300"
             onClick={() => {
+              console.log(invitation.inviterId);
+              acceptGameInvitation.mutate({ userId: invitation.inviterId });
               socket.emit("acceptInvitation", invitation);
               setInvitationList([]);
             }}
@@ -64,16 +83,22 @@ const Invitation = ({
 export const GameInvitations = () => {
   const [invitationList, setInvitationList] = useState<GameInvitation[]>([]);
   const socket = useSocketStore().socket;
+  const userId = useAuthStore().userId;
+  if (!userId) return <></>;
 
-  socket.on("newInvitation", (gameInvite: GameInvitation) => {
-    const newInvitation: GameInvitation = {
-      inviterId: gameInvite.inviterId,
-      inviteeId: gameInvite.inviteeId,
-      gameMode: gameInvite.gameMode,
-      inviterName: gameInvite.inviterName,
-    };
-    setInvitationList([newInvitation, ...invitationList]);
-  });
+  socket.on(
+    "newInvitation",
+    ({ inviterId, gameMode }: { inviterId: number; gameMode: GameMode }) => {
+      console.log(inviterId);
+      const newInvitation: GameInvitation = {
+        inviterId: inviterId,
+        inviteeId: userId,
+        gameMode: gameMode,
+        inviterName: "test",
+      };
+      setInvitationList([newInvitation, ...invitationList]);
+    }
+  );
 
   socket.on("cancelInvitation", (gameInvitation: GameInvitation) => {
     setInvitationList((list) =>

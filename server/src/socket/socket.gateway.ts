@@ -2,12 +2,12 @@ import { EventEmitter2 } from "@nestjs/event-emitter";
 import { WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
 
-@WebSocketGateway({ cors: "*" })
-export class SocketGateway {
+@WebSocketGateway({ cors: "*", transports: ["websocket"] })
+export class SocketGateway implements OnModuleInit {
   constructor(private eventEmitter: EventEmitter2) {}
 
   @WebSocketServer()
-  private server: Server;
+  server: Server;
 
   private connectedUsers: Map<number, string> = new Map();
 
