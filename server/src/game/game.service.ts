@@ -376,7 +376,10 @@ export class GameService {
               : Math.PI / 4;
 
           //new velocity
-          gameData.ball.velocity.vy = BALL_VELOCITY * 2 * Math.sin(angle);
+
+          let sinus = Math.sin(angle);
+          if (Math.abs(sinus) < Number.EPSILON) sinus = 0;
+          gameData.ball.velocity.vy = BALL_VELOCITY * 2 * sinus;
           gameData.ball.velocity.vx = -gameData.ball.velocity.vx;
 
           //next coordinate
@@ -535,8 +538,9 @@ export class GameService {
               : padCollisionRatio < 0.75
               ? (5 * Math.PI) / 6
               : (3 * Math.PI) / 4;
-
-          gameData.ball.velocity.vy = BALL_VELOCITY * 2 * Math.sin(angle);
+          let sinus = Math.sin(angle);
+          if (Math.abs(sinus) < Number.EPSILON) sinus = 0;
+          gameData.ball.velocity.vy = BALL_VELOCITY * 2 * sinus;
           gameData.ball.velocity.vx = -gameData.ball.velocity.vx;
 
           gameData.ball.coord.x =

@@ -22,8 +22,6 @@ import {
   draw,
   handleKeyDown,
   handleKeyUp,
-  boostOff,
-  boostOn,
 } from "./functions/game";
 import { GameData, padMove } from "./types/gameData";
 
@@ -88,6 +86,7 @@ export const gameLoader = async (
   }
 };
 
+let init = -1;
 const GameCanvas = ({
   startTime,
   setGameState,
@@ -101,6 +100,11 @@ const GameCanvas = ({
   if (!canvas) return <>Error</>;
   const requestRef = useRef<number>();
   const playerMove = useRef(padMove.STILL);
+  const keyboardStatus = useRef({
+    arrowUp: false,
+    arrowDown: false,
+  });
+
   const currentUserId = useAuthStore((state) => state.userId);
   const socket = useSocketStore().socket;
   const frontGameData = useRef<GameData>({
@@ -155,19 +159,40 @@ const GameCanvas = ({
           },
   });
 
-  const [keyboardStatus, setKeyBoardStatus] = useState({
-    arrowUp: false,
-    arrowDown: false,
-  });
-
-  const boost = useRef(false);
-  const remainingBoost = useRef(100);
-
   const isPlayer =
     currentUserId === initData.game.players.player1.id ||
     currentUserId === initData.game.players.player2.id
       ? true
       : false;
+
+  useEffect(() => {
+    if (init === -1) {
+      if (isPlayer) {
+        window.addEventListener("keydown", (e) =>
+          handleKeyDown(
+            e.code,
+            socket,
+            initData.game.id,
+            initData.game.gameMode,
+            keyboardStatus,
+
+            playerMove
+          )
+        );
+        window.addEventListener("keyup", (e) =>
+          handleKeyUp(
+            e.code,
+            socket,
+            initData.game.id,
+            initData.game.gameMode,
+            keyboardStatus,
+            playerMove
+          )
+        );
+      }
+    }
+    init = 1;
+  }, []);
 
   useEffect(() => {
     if (!isPlayer) socket.emit("joinRoomAsViewer", initData.game.id);
@@ -184,6 +209,29 @@ const GameCanvas = ({
     }
     const cb = (data: GameData) => {
       if (data.game.score.player1 >= 11 || data.game.score.player2 >= 11) {
+        //TODO : add remove event listener if game is stopped for another reason
+        // const game = document.getElementById("game");
+        window.removeEventListener("keydown", (e) =>
+          handleKeyDown(
+            e.code,
+            socket,
+            initData.game.id,
+            initData.game.gameMode,
+            keyboardStatus,
+            playerMove
+          )
+        );
+        window.removeEventListener("keyup", (e) =>
+          handleKeyUp(
+            e.code,
+            socket,
+            initData.game.id,
+            initData.game.gameMode,
+            keyboardStatus,
+            playerMove
+          )
+        );
+
         socket.emit("endGame", initData.game.id);
         setGameState(gameScreenState.SCORE);
       }
@@ -274,48 +322,9 @@ const GameCanvas = ({
 
   //TODO : pause game ? check subject
   return (
-    <>
+    <div>
       <canvas
         tabIndex={0}
-        onKeyDown={(e) => {
-          console.log(e.code);
-          if (isPlayer) {
-            handleKeyDown(
-              e.key,
-              socket,
-              initData.game.id,
-              keyboardStatus,
-              setKeyBoardStatus,
-              playerMove
-            );
-          }
-          if (
-            isPlayer &&
-            initData.game.gameMode === GameMode.Speed &&
-            e.code === "Space"
-          ) {
-            boostOn(socket, initData.game.id, remainingBoost, boost);
-          }
-        }}
-        onKeyUp={(e) => {
-          if (isPlayer) {
-            handleKeyUp(
-              e.key,
-              socket,
-              initData.game.id,
-              keyboardStatus,
-              setKeyBoardStatus,
-              playerMove
-            );
-          }
-          if (
-            isPlayer &&
-            initData.game.gameMode === GameMode.Speed &&
-            e.code === "Space"
-          ) {
-            boostOff(socket, initData.game.id, boost);
-          }
-        }}
         className="border-4 border-white"
         ref={canvas}
         id={"game"}
@@ -333,7 +342,7 @@ const GameCanvas = ({
       </div>
       <GameTimer startTime={startTime} />
       {!isPlayer && <span className="my-2 text-lg">Live Stream</span>}
-    </>
+    </div>
   );
 };
 
@@ -520,13 +529,13 @@ export const Game = () => {
       return <Score gameId={gameId} />;
     case gameScreenState.PLAYING:
       return (
-        <>
+        <div id="game">
           <GameCanvas
             initData={data}
             startTime={startTime + INTRO_DURATION * 1000}
             setGameState={setGameState}
           />
-        </>
+        </div>
       );
 
     default:

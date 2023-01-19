@@ -1,3 +1,4 @@
+import { GameMode } from "../../gql/graphql";
 import { Socket } from "socket.io-client";
 import { GameData, padMove } from "../types/gameData";
 
@@ -64,7 +65,7 @@ const ball = {
     context.fill();
   },
 };
-//TODO : fix display bug when vy <= 0 and vx < 0
+
 const fireball = {
   draw(
     context: CanvasRenderingContext2D,
@@ -84,57 +85,35 @@ const fireball = {
     gradient.addColorStop(1, "red");
     context.fillStyle = gradient;
     if (activated) {
-      if (velocity.vy === 0) {
-        context.beginPath();
-        context.moveTo(coord.x, coord.y - BALL_RADIUS);
-        context.lineTo(
-          velocity.vx > 0
-            ? coord.x - BALL_RADIUS * 3
-            : coord.x + BALL_RADIUS * 3,
-          coord.y
-        );
-        context.lineTo(coord.x, coord.y + BALL_RADIUS);
-        context.lineTo(coord.x, coord.y - BALL_RADIUS);
-        context.closePath();
-        context.fill();
-      } else {
-        const angle = Math.atan(Math.abs(velocity.vy) / Math.abs(velocity.vx));
-        context.beginPath();
-        context.moveTo(
-          velocity.vx > 0
-            ? coord.x + Math.sin(angle) * BALL_RADIUS
-            : coord.x - Math.sin(angle) * BALL_RADIUS,
-          velocity.vy > 0
-            ? coord.y - Math.cos(angle) * BALL_RADIUS
-            : coord.y + Math.cos(angle) * BALL_RADIUS
-        );
-        context.lineTo(
-          velocity.vx > 0
-            ? coord.x - BALL_RADIUS * 3 * Math.cos(angle)
-            : coord.x + BALL_RADIUS * 3 * Math.cos(angle),
-          velocity.vy > 0
-            ? coord.y - BALL_RADIUS * 3 * Math.sin(angle)
-            : coord.y + BALL_RADIUS * 3 * Math.sin(angle)
-        );
-        context.lineTo(
-          velocity.vx > 0
-            ? coord.x - Math.cos(angle) * BALL_RADIUS
-            : coord.x + Math.cos(angle) * BALL_RADIUS,
-          velocity.vy > 0
-            ? coord.y + Math.sin(angle) * BALL_RADIUS
-            : coord.y - Math.sin(angle) * BALL_RADIUS
-        );
-        context.lineTo(
-          velocity.vx > 0
-            ? coord.x + Math.sin(angle) * BALL_RADIUS
-            : coord.x - Math.sin(angle) * BALL_RADIUS,
-          velocity.vy > 0
-            ? coord.y - Math.cos(angle) * BALL_RADIUS
-            : coord.y + Math.cos(angle) * BALL_RADIUS
-        );
-        context.closePath();
-        context.fill();
-      }
+      const angle = Math.atan(Math.abs(velocity.vy) / Math.abs(velocity.vx));
+
+      context.moveTo(
+        velocity.vx > 0
+          ? coord.x + Math.sin(angle) * BALL_RADIUS
+          : coord.x - Math.sin(angle) * BALL_RADIUS,
+        velocity.vy > 0
+          ? coord.y - Math.cos(angle) * BALL_RADIUS
+          : coord.y + Math.cos(angle) * BALL_RADIUS
+      );
+
+      context.lineTo(
+        velocity.vx > 0
+          ? coord.x - BALL_RADIUS * 3 * Math.cos(angle)
+          : coord.x + BALL_RADIUS * 3 * Math.cos(angle),
+        velocity.vy > 0
+          ? coord.y - BALL_RADIUS * 3 * Math.sin(angle)
+          : coord.y + BALL_RADIUS * 3 * Math.sin(angle)
+      );
+
+      context.lineTo(
+        velocity.vx > 0
+          ? coord.x - Math.sin(angle) * BALL_RADIUS
+          : coord.x + Math.sin(angle) * BALL_RADIUS,
+        velocity.vy > 0
+          ? coord.y + Math.cos(angle) * BALL_RADIUS
+          : coord.y - Math.cos(angle) * BALL_RADIUS
+      );
+      context.fill();
     }
     context.beginPath();
     context.arc(coord.x, coord.y, BALL_RADIUS, 0, 2 * Math.PI);
@@ -201,14 +180,11 @@ export const draw = (context: CanvasRenderingContext2D, data: GameData) => {
   score.draw(context, data.game.score.player1, data.game.score.player2);
   leftPad.draw(context, data.player1.coord.y);
   rightPad.draw(context, data.player2.coord.y);
+
   if (data.game.type === "CLASSIC" || data.game.type === "GIFT")
     ball.draw(context, data.ball.coord.x, data.ball.coord.y);
 
   if (data.game.type === "BOOST") {
-    console.log(
-      data.game.player1Boost.remaining,
-      data.game.player2Boost.remaining
-    );
     const boostActivated =
       data.game.player1Boost.activated || data.game.player2Boost.activated;
     fireball.draw(context, data.ball.coord, data.ball.velocity, boostActivated);
@@ -225,26 +201,18 @@ export const handleKeyDown = (
   keycode: string,
   socket: Socket,
   gameId: number,
-  keyboardStatus: {
+  gameMode: GameMode,
+  keyboardStatus: React.MutableRefObject<{
     arrowUp: boolean;
     arrowDown: boolean;
-  },
-  setKeyBoardStatus: React.Dispatch<
-    React.SetStateAction<{
-      arrowUp: boolean;
-      arrowDown: boolean;
-    }>
-  >,
+  }>,
+
   playerMove: React.MutableRefObject<padMove>
 ) => {
   if (keycode === "ArrowUp") {
-    !keyboardStatus.arrowUp
-      ? setKeyBoardStatus((prev) => ({
-          arrowDown: prev.arrowDown,
-          arrowUp: true,
-        }))
-      : null;
-    if (!keyboardStatus.arrowDown) {
+    keyboardStatus.current.arrowUp = true;
+
+    if (!keyboardStatus.current.arrowDown) {
       if (playerMove.current !== padMove.UP) {
         socket.emit("movePadUp", gameId);
         playerMove.current = padMove.UP;
@@ -257,13 +225,9 @@ export const handleKeyDown = (
     }
   }
   if (keycode === "ArrowDown") {
-    !keyboardStatus.arrowDown
-      ? setKeyBoardStatus((prev) => ({
-          arrowUp: prev.arrowUp,
-          arrowDown: true,
-        }))
-      : null;
-    if (!keyboardStatus.arrowUp) {
+    keyboardStatus.current.arrowDown = true;
+
+    if (!keyboardStatus.current.arrowUp) {
       if (playerMove.current !== padMove.DOWN) {
         playerMove.current = padMove.DOWN;
         socket.emit("movePadDown", gameId);
@@ -274,6 +238,9 @@ export const handleKeyDown = (
         socket.emit("stopPad", gameId);
       }
     }
+  }
+  if (keycode === "Space" && gameMode === GameMode.Speed) {
+    socket.emit("boostActivated", gameId);
   }
 };
 
@@ -281,26 +248,16 @@ export const handleKeyUp = (
   keycode: string,
   socket: Socket,
   gameId: number,
-  keyboardStatus: {
+  gameMode: GameMode,
+  keyboardStatus: React.MutableRefObject<{
     arrowUp: boolean;
     arrowDown: boolean;
-  },
-  setKeyBoardStatus: React.Dispatch<
-    React.SetStateAction<{
-      arrowUp: boolean;
-      arrowDown: boolean;
-    }>
-  >,
+  }>,
   playerMove: React.MutableRefObject<padMove>
 ) => {
   if (keycode === "ArrowUp") {
-    keyboardStatus.arrowUp
-      ? setKeyBoardStatus((prev) => ({
-          arrowUp: false,
-          arrowDown: prev.arrowDown,
-        }))
-      : null;
-    if (!keyboardStatus.arrowDown) {
+    keyboardStatus.current.arrowUp = false;
+    if (!keyboardStatus.current.arrowDown) {
       if (playerMove.current !== padMove.STILL) {
         playerMove.current = padMove.STILL;
         socket.emit("stopPad", gameId);
@@ -313,13 +270,8 @@ export const handleKeyUp = (
     }
   }
   if (keycode === "ArrowDown") {
-    keyboardStatus.arrowDown
-      ? setKeyBoardStatus((prev) => ({
-          arrowDown: false,
-          arrowUp: prev.arrowUp,
-        }))
-      : null;
-    if (!keyboardStatus.arrowUp) {
+    keyboardStatus.current.arrowDown = false;
+    if (!keyboardStatus.current.arrowUp) {
       if (playerMove.current !== padMove.STILL) {
         playerMove.current = padMove.STILL;
         socket.emit("stopPad", gameId);
@@ -331,23 +283,8 @@ export const handleKeyUp = (
       }
     }
   }
-};
 
-export const boostOn = (
-  socket: Socket,
-  gameId: number,
-  remainingBoost: React.MutableRefObject<number>,
-  boost: React.MutableRefObject<boolean>
-) => {
-  boost.current = true;
-  socket.emit("boostActivated", gameId);
-};
-
-export const boostOff = (
-  socket: Socket,
-  gameId: number,
-  boost: React.MutableRefObject<boolean>
-) => {
-  boost.current = false;
-  socket.emit("boostDeactivated", gameId);
+  if (keycode === "Space" && gameMode === GameMode.Speed) {
+    socket.emit("boostDeactivated", gameId);
+  }
 };
