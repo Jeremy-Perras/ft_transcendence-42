@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom/client";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { GameRouter } from "./game/router";
@@ -11,6 +11,7 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 let init = false;
 const App = () => {
   const isLoggedIn = !!useAuthStore((state) => state.userId);
+  const [isConnected, setIsConnected] = useState<boolean>(false);
   const socket = useSocketStore().socket;
   useEffect(() => {
     if (!init) {
@@ -31,10 +32,10 @@ const App = () => {
     if (isLoggedIn) {
       socket.emit("getstatus", (response: { status: string }) => {
         if (response.status === "You are already connected on another device") {
-          console.log("test");
+          setIsConnected(true);
         }
         if (response.status === "ok") {
-          console.log("ok");
+          setIsConnected(false);
         }
       });
 
@@ -61,8 +62,8 @@ const App = () => {
       });
     }
   }, [isLoggedIn]);
-
-  return (
+  console.log(isConnected);
+  return !isConnected ? (
     <div className="relative flex h-screen w-screen overflow-hidden">
       <QueryClientProvider client={queryClient}>
         <GameRouter />
@@ -70,6 +71,8 @@ const App = () => {
         <ReactQueryDevtools initialIsOpen={false} panelPosition="left" />
       </QueryClientProvider>
     </div>
+  ) : (
+    <span>You are already connected on another device</span>
   );
 };
 

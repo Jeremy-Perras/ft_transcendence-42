@@ -8,9 +8,8 @@ import {
   ConnectedSocket,
   MessageBody,
 } from "@nestjs/websockets";
+import { GameService, playerMove } from "../game/game.service";
 import { Server, Socket } from "socket.io";
-import { GameService } from "../game/game.service";
-
 @WebSocketGateway({ cors: "*", transports: ["websocket"] })
 export class SocketGateway implements OnModuleInit {
   constructor(

@@ -239,7 +239,7 @@ const UserProfileHeader = ({
       <div className="flex w-full items-center">
         <div className="relative my-2 ml-3 mr-2 flex shrink-0">
           <img
-            src={`http://localhost:5173/upload/avatar/${data.user.id}`}
+            src={`/upload/avatar/${data.user.id}`}
             alt="Player avatar"
             className="h-28 w-28 border border-black"
           />
@@ -330,7 +330,7 @@ const GameHistory = ({
               <img
                 onClick={() => navigate(`/profile/${game.players.player1.id}`)}
                 className=" h-10 w-10 border border-black object-cover hover:cursor-pointer "
-                src={`http://localhost:5173/upload/avatar/${game.players.player1.id}`}
+                src={`/upload/avatar/${game.players.player1.id}`}
                 alt="Player 1 avatar"
               />
               <IsOnline userStatus={game.players.player1.status} />
@@ -349,7 +349,7 @@ const GameHistory = ({
                     navigate(`/profile/${game.players.player2.id}`)
                   }
                   className="h-10 w-10 justify-end border border-black object-cover hover:cursor-pointer"
-                  src={`http://localhost:5173/upload/avatar/${game.players.player2.id}`}
+                  src={`/upload/avatar/${game.players.player2.id}`}
                   alt="Player 2 avatar"
                 />
                 <IsOnline userStatus={game.players.player2.status} />
@@ -749,7 +749,7 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
                   <div className="relative mr-4 h-8 w-8 shrink-0 ">
                     <img
                       className="h-8 w-8 border border-black"
-                      src={`http://localhost:5173/upload/avatar/${data.user.id}`}
+                      src={`/upload/avatar/${data.user.id}`}
                     />
                     <IsOnline userStatus={data?.user.status} />
                     <img
