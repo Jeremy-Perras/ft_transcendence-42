@@ -144,7 +144,7 @@ const DirectMessage = ({
           <div className="relative">
             <img
               className="flex h-6 w-6 border border-black hover:h-7 hover:w-7 hover:cursor-pointer"
-              src={`http://localhost:5173/upload/avatar/${author.id}`}
+              src={`/upload/avatar/${author.id}`}
               alt="Message author avatar"
               onClick={() => navigate(`/profile/${author.id}`)}
             />
@@ -219,7 +219,7 @@ export default function Chat() {
               <div className="relative mr-4 h-8 w-8 shrink-0">
                 <img
                   className="h-8 w-8 border border-black"
-                  src={`http://localhost:5173/upload/avatar/${userId}`}
+                  src={`/upload/avatar/${userId}`}
                 />
                 <IsOnline userStatus={data.status} />
                 <img

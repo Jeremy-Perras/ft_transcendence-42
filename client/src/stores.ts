@@ -61,4 +61,26 @@ const useAuthStore = create<AuthStore>((set) => ({
   },
 }));
 
-export { useSidebarStore, useAuthStore, useSocketStore, useInvitationStore };
+type State =
+  | "MatchmakingState"
+  | "PlayingState"
+  | "WaitingForInviteeState"
+  | undefined;
+type StateStore = {
+  state: State;
+  setState: (state: State) => void;
+};
+const useStateStore = create<StateStore>((set) => ({
+  state: undefined,
+  setState: (state: State) => {
+    set({ state });
+  },
+}));
+
+export {
+  useSidebarStore,
+  useAuthStore,
+  useSocketStore,
+  useInvitationStore,
+  useStateStore,
+};

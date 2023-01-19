@@ -1,4 +1,9 @@
-import { QueryClient, UseQueryOptions, useQuery } from "@tanstack/react-query";
+import {
+  QueryClient,
+  UseQueryOptions,
+  useQuery,
+  useMutation,
+} from "@tanstack/react-query";
 import request from "graphql-request";
 import { useRef, useEffect, useState } from "react";
 import {
@@ -221,12 +226,14 @@ const GameCanvas = ({
 
   useEffect(() => {
     let gameData: GameData;
+
     if (canvas.current) {
       // canvas.current.width = canvas.current.clientWidth;
       // canvas.current.height = canvas.current.clientHeight;
       canvas.current.width = 500;
       canvas.current.height = 500;
     }
+
     const cb = (data: GameData) => {
       if (data.game.score.player1 >= 11 || data.game.score.player2 >= 11) {
         socket.emit("endGame", initData.game.id);
@@ -374,7 +381,7 @@ const Score = ({ gameId }: { gameId: number }) => {
         <div className="relative flex w-full">
           <img
             className=" h-10 w-10 border border-black object-cover  "
-            src={`http://localhost:5173/upload/avatar/${data.game.players.player1.id}`}
+            src={`/upload/avatar/${data.game.players.player1.id}`}
             alt="Player 1 avatar"
           />
 
@@ -390,7 +397,7 @@ const Score = ({ gameId }: { gameId: number }) => {
           <div className="relative">
             <img
               className="h-10 w-10 justify-end border border-black object-cover "
-              src={`http://localhost:5173/upload/avatar/${data.game.players.player2.id}`}
+              src={`/upload/avatar/${data.game.players.player2.id}`}
               alt="Player 2 avatar"
             />
           </div>
@@ -457,7 +464,7 @@ const Intro = ({
           <div className="mx-4">
             <img
               className=" h-60 w-60 border border-black object-cover  "
-              src={`http://localhost:5173/upload/avatar/${data.game.players.player1.id}`}
+              src={`/upload/avatar/${data.game.players.player1.id}`}
               alt="Player 1 avatar"
             />
             <div className="w-60 self-center truncate text-center">
@@ -471,7 +478,7 @@ const Intro = ({
             <div className="relative">
               <img
                 className="h-60 w-60 justify-end border border-black object-cover "
-                src={`http://localhost:5173/upload/avatar/${data.game.players.player2.id}`}
+                src={`/upload/avatar/${data.game.players.player2.id}`}
                 alt="Player 2 avatar"
               />
             </div>

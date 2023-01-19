@@ -11,6 +11,7 @@ export const PlayerMachine = (
   socket: SocketGateway
 ) => {
   /** @xstate-layout N4IgpgJg5mDOIC5QAcA2BDAnmATgYgBEBJAZQGEB5AOSoFEyAVAbQAYBdRFAe1gEsAXXlwB2nEAA9EAFgBMAGhCZEARhZSAdFICcLAGwstygBxHtAdmVaAvlYVosudQH11vCKjB4iVAGpEGtKwcSCDIPAJCoiGSCMoAzFJxmiwpulpxRizKAKzZUgpKsVJmZur6Wroy5UYW2TZ2GNg4zq7unnQA6k7efgwAggxE1EFiYXyCImIxyqoaRtmpWhZxunHyiioyyjLqM3HxMglxcdlGcfWhjY4ubh5evv4DQ1ROZH1UZLQAMrQEIyFjCKTaIqFhGZRldKZKQsLY5AoqGbZdRmLSJFjZXQw3JGGQXexNFq3Tx9MifAAKDG6D36g2G7FG4QmUVA0yOyUWGSyuXyG1iWxY6hYqLWUik2zMLHOtkuDmaNzaeAASrQAGIAVRItGpvSe9OC3HGkSmoPSKOyaOUkthUkqZgRsSyWk0ZkxOMMuhqeJlBOurTuACkKN4nABZAZkAAS4YA0t4AOL-Q1AlkSFTsmGczI5PIO+LHdTgi16GrKT11H1XeXqWBgYQQXjCKBEYQANwEnggIjArjbXAA1j3fdXa-XG822x2EI3W1wAMboZlBJOhJnGkFFT1CmQyWF5O0Le18q2GFFmM4Y1FaNFLfFVlqjhtNlvt-ieXA4LjNez8ABmX4AW3UYcHzrJ8J1fMBpz7Bcl3YFdAWZE1N2dFYqgMaEZFtPN0V2BJcl0SoMUxb0GjlFp0DnOcwGQQRn0nN88C7YQexnAch3vFxKOo2jxxfKc2NgyJlwZAE12BVkVHmZ0zE9cEzkIjJeUKM4khqeSLS0Q8VjvciuKomi6Igjs8A-L9gIwP9AIsvT1G4wy+IYqDBMXYT4NE5MkI3YwLRROTjBWVZTDzYxShSWFjgxXRXQMXTCX0nijP4xizO-Sz-xwICQIShz6Mg6DZyEkRl2UA1VyNCS01iDNwrSLkc2UxFKjKNRElkMtwSkIw4r9AB3dAIibVUv2SsBPDeD5vh1R46SoBDxNTGIxSMdR0ldY5sjiNF9GOPMsIhUw9DFXRjDLYUeurfrBqgYacFGzwehm54nBVAN6ACP4PPKlNkOW1a4nWk4tttKU4jzY4VpyLQZDRFZJX2axK1sq6jNu+77l1WanFJCkPvmirFukLr-sBzbttBkKd23YxdEPTF5l0C6WjnHAwFcpt43QADO27XtZ0HGz4vUFm2aMznuYK+dXOK9yysQ9dJIQIxofUGQLEMbZsiwqQtYdPIklkXEcjMXcjFWZQmZcEX2agcX3xwT80sXDKss44XWZtu3JaK4QRLlhbkOVnY1csGYZC1sVdePeJSlks2sR3JYljMS31BR8dbtDRc5wACwA9B+3HPBOmm2lnnxn6Nx3LXVsOU5MjiMFxRCrdosPHX0gw6UyKF9Ohq-LP+Fz-PC6bDGnuoV53k+H5Pv9gnkJ3GG-LMFZlYxYwqjzYUdhOBOurFHczCkVO+5ugfs7zgui5x2hKVLvU5q++XKuma9kW0PRLB1mYSz2lYhQpBzLuGY0lT4DVRhfIeV9R5QGVGqTU2pHpl31IyBeVd9qFjWOkTalhoqHAdEsXQQoAYWk6soWQFhwHXUzpfEeRcfh9B8NqcMDAoyxgTBXLyitLAlELDTCou4tj6GyA6c8BspQyBMKvLCBgU5I17hAjOUDh7XzHvGPooZtSqgoOqKgc80GV0VlhWmqsdwGAWHuIwe1VjqFOCRQi2w1Bq1TgSIuqUbJWUyoLP0bimze2lr7WWhjuFVRMciJeFiUjh2sceE4zodCR2OBQ0w3dZRCz8XAjxP4XY+OrJkgJcE2BMFKiEhWYTsjGFWtsaKW1YStUarEfBdiYQlFUPoGoahXGNCLhorRThaD6N+Fw8pMQqhbX4WrRuGJwoEL5IRHYhFsgxQ7micOTMGywDnCIFic43wQDwJQGg70Rmv0QFHQoFCMgr3FOefMVppQymEFwCAcBRhVjKWchAABaXQDpfmW0+YTWIJtdhSIlOCFYciHQ62RGiEsciZi01pqnYkQLkKqB0GUWQUi1BqFyMocG8RND7HPLuaGidSLpL9I+RykF0XeSxIKLSWlLzH2MFKHCfCtJdROuhM4qd7K8Tyh2BlPCmWrQtAsZZ7KG4hQmeFbYOtVhVHSNQyBd0nJgDFWE3cYLwRq0heUI8lzjg7C1teXcJRlmkNTtbMWXNtViXQYrcshZJFHV5VrP5x4DDOiyGbZZ0Mrk1HVconAg9VGwJ1WMw4EIA1FlBhQxpNSEnpB0NsLSyt5jdKwOOGNiApE600MYQwFoAbqxNSoctQpcSmFhqvChrjWatgLQgau+qIXxGNTha5WRthrASJ6NE3UFGOE2ds4Quz9ltrhNucEEUdYwnWCpCEXVj62jVlMqRFYe6OC4L+X8qBGxOs8qM6QK6VBYlWrTC02hwUxIrDYIAA */
+
   const machine = createMachine(
     {
       predictableActionArguments: true,
@@ -44,8 +45,18 @@ export const PlayerMachine = (
           };
         },
         events: {} as
-          | { type: "INVITE"; inviteeId: number; gameMode: GameMode }
-          | { type: "NEW_INVITATION"; inviterId: number; gameMode: GameMode }
+          | {
+              type: "INVITE";
+              inviteeId: number;
+              gameMode: GameMode;
+              name: string;
+            }
+          | {
+              type: "NEW_INVITATION";
+              inviterId: number;
+              gameMode: GameMode;
+              name: string;
+            }
           | { type: "ACCEPT_INVITATION"; inviterId: number }
           | { type: "REFUSE_INVITATION"; inviterId: number }
           | { type: "CANCEL_INVITATION" }
@@ -79,6 +90,7 @@ export const PlayerMachine = (
           states: {
             idle: {
               entry: [
+                "notifyStateChange",
                 assign({
                   gameMode: undefined,
                   inviteeId: undefined,
@@ -145,7 +157,11 @@ export const PlayerMachine = (
               },
             },
             waitingForInvitee: {
-              entry: ["refuseInviteAll", "notifyRefusalAll"],
+              entry: [
+                "notifyStateChange",
+                "refuseInviteAll",
+                "notifyRefusalAll",
+              ],
               invoke: {
                 src: (context) =>
                   new Promise<void>((resolve, reject) => {
@@ -183,6 +199,7 @@ export const PlayerMachine = (
               },
             },
             waitingForMatchmaking: {
+              entry: "notifyStateChange",
               invoke: {
                 src: "joinMatchmaking",
                 onDone: [
@@ -219,7 +236,11 @@ export const PlayerMachine = (
               },
             },
             playing: {
-              entry: ["notifyRefusalAll", "refuseInviteAll"],
+              entry: [
+                "notifyStateChange",
+                "notifyRefusalAll",
+                "refuseInviteAll",
+              ],
               exit: assign({ gameMode: undefined }),
               invoke: {
                 src: "gameStart",
@@ -243,10 +264,13 @@ export const PlayerMachine = (
           },
         },
         disconnected: {
-          entry: (context) => {
-            gameService.pauseGame(context.userId);
-            gameService.removeFromMatchmaking(context.userId);
-          },
+          entry: [
+            "notifyStateChange",
+            (context) => {
+              gameService.pauseGame(context.userId);
+              gameService.removeFromMatchmaking(context.userId);
+            },
+          ],
           after: [
             {
               delay: 3000,
@@ -267,6 +291,7 @@ export const PlayerMachine = (
         },
         offline: {
           entry: [
+            "notifyStateChange",
             "cancelInvite",
             "notifyRefusalAll",
             "leaveMatchmaking",
@@ -291,6 +316,7 @@ export const PlayerMachine = (
                 type: "INVITE";
                 inviteeId: number;
                 gameMode: GameMode;
+                name: string;
               }
             | { type: "CONNECT" }
         ) =>
@@ -325,6 +351,7 @@ export const PlayerMachine = (
                 type: "NEW_INVITATION",
                 gameMode,
                 inviterId: context.userId,
+                name: event.name,
               });
             }
           }),
@@ -363,7 +390,9 @@ export const PlayerMachine = (
           }),
         gameStart: (context) =>
           new Promise((resolve, reject) => {
-            const gameId = gameService.getGame(context.userId);
+            const game = gameService.getGame(context.userId);
+            const gameId = game?.id;
+
             if (gameId) {
               socket.sendToUser(context.userId, "gameStarting", { gameId });
               resolve();
@@ -450,11 +479,11 @@ export const PlayerMachine = (
             return invitations;
           },
         }),
-        notifyInvite: (context) => {
-          console.log(context);
+        notifyInvite: (context, event) => {
           socket.sendToUser(context.userId, "newInvitation", {
-            inviterId: context.userId,
+            inviterId: event.inviterId,
             gameMode: context.gameMode,
+            name: event.name,
           });
         },
         cancelInvite: (context) => {
@@ -500,6 +529,9 @@ export const PlayerMachine = (
         },
         leaveMatchmaking: (context) => {
           gameService.removeFromMatchmaking(context.userId);
+        },
+        notifyStateChange: (context) => {
+          socket.sendToUser(context.userId, "stateChanged", null);
         },
       },
     }
