@@ -7,6 +7,7 @@ import {
   useNavigate,
   useParams,
 } from "react-router-dom";
+import { Socket } from "socket.io-client";
 
 import { graphql } from "../gql/gql";
 import { GameMode, GameQuery } from "../gql/graphql";
@@ -86,7 +87,8 @@ export const gameLoader = async (
   }
 };
 
-let init = -1;
+let eventSetup = false;
+//event listeners removed when window is reloaded
 const GameCanvas = ({
   startTime,
   setGameState,
@@ -159,45 +161,55 @@ const GameCanvas = ({
           },
   });
 
-  const isPlayer =
-    currentUserId === initData.game.players.player1.id ||
-    currentUserId === initData.game.players.player2.id
-      ? true
-      : false;
-
   useEffect(() => {
-    if (init === -1) {
+    const handleKey = (
+      e: KeyboardEvent,
+      cb: (
+        keycode: string,
+        socket: Socket,
+        gameId: number,
+        gameMode: GameMode,
+        keyboardStatus: React.MutableRefObject<{
+          arrowUp: boolean;
+          arrowDown: boolean;
+        }>,
+        playerMove: React.MutableRefObject<padMove>
+      ) => void
+    ) => {
+      cb(
+        e.code,
+        socket,
+        initData.game.id,
+        initData.game.gameMode,
+        keyboardStatus,
+        playerMove
+      );
+    };
+    const keyDownCb = (e: KeyboardEvent) => handleKey(e, handleKeyDown);
+    const keyUpCb = (e: KeyboardEvent) => handleKey(e, handleKeyUp);
+
+    if (currentUserId && !eventSetup) {
+      eventSetup = true;
+      const isPlayer =
+        currentUserId === initData.game.players.player1.id ||
+        currentUserId === initData.game.players.player2.id
+          ? true
+          : false;
       if (isPlayer) {
-        window.addEventListener("keydown", (e) =>
-          handleKeyDown(
-            e.code,
-            socket,
-            initData.game.id,
-            initData.game.gameMode,
-            keyboardStatus,
-
-            playerMove
-          )
-        );
-        window.addEventListener("keyup", (e) =>
-          handleKeyUp(
-            e.code,
-            socket,
-            initData.game.id,
-            initData.game.gameMode,
-            keyboardStatus,
-            playerMove
-          )
-        );
+        window.addEventListener("keydown", keyDownCb);
+        window.addEventListener("keyup", keyUpCb);
+      } else {
+        socket.emit("joinRoomAsViewer", initData.game.id);
       }
+      socket.emit("gameReady", initData.game.id);
     }
-    init = 1;
-  }, []);
 
-  useEffect(() => {
-    if (!isPlayer) socket.emit("joinRoomAsViewer", initData.game.id);
-    socket.emit("gameReady", initData.game.id);
-  }, []);
+    return () => {
+      eventSetup = false;
+      window.removeEventListener("keydown", keyDownCb);
+      window.removeEventListener("keydown", keyUpCb);
+    };
+  }, [initData, currentUserId]);
 
   useEffect(() => {
     let gameData: GameData;
@@ -211,26 +223,26 @@ const GameCanvas = ({
       if (data.game.score.player1 >= 11 || data.game.score.player2 >= 11) {
         //TODO : add remove event listener if game is stopped for another reason
         // const game = document.getElementById("game");
-        window.removeEventListener("keydown", (e) =>
-          handleKeyDown(
-            e.code,
-            socket,
-            initData.game.id,
-            initData.game.gameMode,
-            keyboardStatus,
-            playerMove
-          )
-        );
-        window.removeEventListener("keyup", (e) =>
-          handleKeyUp(
-            e.code,
-            socket,
-            initData.game.id,
-            initData.game.gameMode,
-            keyboardStatus,
-            playerMove
-          )
-        );
+        // window.removeEventListener("keydown", (e) =>
+        //   handleKeyDown(
+        //     e.code,
+        //     socket,
+        //     initData.game.id,
+        //     initData.game.gameMode,
+        //     keyboardStatus,
+        //     playerMove
+        //   )
+        // );
+        // window.removeEventListener("keyup", (e) =>
+        //   handleKeyUp(
+        //     e.code,
+        //     socket,
+        //     initData.game.id,
+        //     initData.game.gameMode,
+        //     keyboardStatus,
+        //     playerMove
+        //   )
+        // );
 
         socket.emit("endGame", initData.game.id);
         setGameState(gameScreenState.SCORE);
@@ -341,7 +353,7 @@ const GameCanvas = ({
         {/* TODO : add here banner with player avatar, rank, name */}
       </div>
       <GameTimer startTime={startTime} />
-      {!isPlayer && <span className="my-2 text-lg">Live Stream</span>}
+      {/* {!isPlayer && <span className="my-2 text-lg">Live Stream</span>} */}
     </div>
   );
 };

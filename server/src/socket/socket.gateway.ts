@@ -490,7 +490,8 @@ export class SocketGateway {
     gameId: number
   ) {
     const gameData = this.gameService.saveGameData.get(gameId);
-    this.server.to(`game${gameId}`).emit("updateCanvas", gameData);
+    client.join(`game${gameId}`);
+    client.emit("updateCanvas", gameData);
   }
 
   @SubscribeMessage("movePadUp")
