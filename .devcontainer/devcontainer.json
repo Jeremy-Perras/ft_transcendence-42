@@ -7,7 +7,7 @@
 
   "workspaceFolder": "/workspace",
 
-  "forwardPorts": [3000, 5173, 5555],
+  "forwardPorts": [5555],
 
   "runServices": ["postgres"],
 

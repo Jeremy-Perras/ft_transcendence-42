@@ -5,7 +5,7 @@
   "scripts": {
     "generate:codegen": "graphql-codegen",
     "dev:codegen": "graphql-codegen --watch",
-    "dev:client": "vite",
+    "dev:client": "vite --host",
     "build:client": "rm -rf dist && tsc && vite build"
   },
   "dependencies": {

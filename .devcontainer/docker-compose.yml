@@ -6,6 +6,9 @@ services:
       - .:/workspace:cached
       - vscode_extensions:/root/.vscode-server/extensions
     command: /bin/sh -c "while sleep 1000; do :; done"
+    ports: 
+      - 3000:3000
+      - 5173:5173
     environment:
       NODE_ENV: development
 

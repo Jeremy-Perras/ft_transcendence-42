@@ -197,8 +197,13 @@ export const draw = (context: CanvasRenderingContext2D, data: GameData) => {
   }
 };
 
+//handle if against wall
+//get player coordinate to check collision
+// push events in array with num, timestamp, type of event
+//
 export const handleKeyDown = (
   keycode: string,
+  playerY: number,
   socket: Socket,
   gameId: number,
   gameMode: GameMode,
@@ -209,16 +214,29 @@ export const handleKeyDown = (
 
   playerMove: React.MutableRefObject<padMove>
 ) => {
+  console.log(keycode);
+
+  if (keycode === "Space" && gameMode === GameMode.Speed) {
+    socket.emit("boostActivated", gameId);
+  }
   if (keycode === "ArrowUp") {
     keyboardStatus.current.arrowUp = true;
 
     if (!keyboardStatus.current.arrowDown) {
       if (playerMove.current !== padMove.UP) {
-        socket.emit("movePadUp", gameId);
-        playerMove.current = padMove.UP;
+        if (playerY > 0) {
+          console.log("up");
+          socket.emit("movePadUp", gameId);
+          playerMove.current = padMove.UP;
+        } else {
+          console.log("stop");
+          playerMove.current = padMove.STILL;
+          socket.emit("stopPad", gameId);
+        }
       }
     } else {
       if (playerMove.current !== padMove.STILL) {
+        console.log("none");
         playerMove.current = padMove.STILL;
         socket.emit("stopPad", gameId);
       }
@@ -229,23 +247,29 @@ export const handleKeyDown = (
 
     if (!keyboardStatus.current.arrowUp) {
       if (playerMove.current !== padMove.DOWN) {
-        playerMove.current = padMove.DOWN;
-        socket.emit("movePadDown", gameId);
+        if (playerY < CANVAS_HEIGHT - PAD_HEIGHT) {
+          console.log("down");
+          playerMove.current = padMove.DOWN;
+          socket.emit("movePadDown", gameId);
+        } else {
+          console.log("stop");
+          playerMove.current = padMove.STILL;
+          socket.emit("stopPad", gameId);
+        }
       }
     } else {
       if (playerMove.current !== padMove.STILL) {
+        console.log("stop");
         playerMove.current = padMove.STILL;
         socket.emit("stopPad", gameId);
       }
     }
   }
-  if (keycode === "Space" && gameMode === GameMode.Speed) {
-    socket.emit("boostActivated", gameId);
-  }
 };
 
 export const handleKeyUp = (
   keycode: string,
+  playerY: number,
   socket: Socket,
   gameId: number,
   gameMode: GameMode,
@@ -259,13 +283,21 @@ export const handleKeyUp = (
     keyboardStatus.current.arrowUp = false;
     if (!keyboardStatus.current.arrowDown) {
       if (playerMove.current !== padMove.STILL) {
+        console.log("stop");
         playerMove.current = padMove.STILL;
         socket.emit("stopPad", gameId);
       }
     } else {
       if (playerMove.current !== padMove.DOWN) {
-        playerMove.current = padMove.DOWN;
-        socket.emit("movePadDown", gameId);
+        if (playerY < CANVAS_HEIGHT - PAD_HEIGHT) {
+          playerMove.current = padMove.DOWN;
+          console.log("down");
+          socket.emit("movePadDown", gameId);
+        } else {
+          console.log("stop");
+          playerMove.current = padMove.STILL;
+          socket.emit("stopPad", gameId);
+        }
       }
     }
   }
@@ -274,16 +306,26 @@ export const handleKeyUp = (
     if (!keyboardStatus.current.arrowUp) {
       if (playerMove.current !== padMove.STILL) {
         playerMove.current = padMove.STILL;
+        console.log("stop");
         socket.emit("stopPad", gameId);
       }
     } else {
       if (playerMove.current !== padMove.UP) {
-        playerMove.current = padMove.UP;
-        socket.emit("movePadUp", gameId);
+        if (playerY > 0) {
+          playerMove.current = padMove.UP;
+          console.log("up");
+          socket.emit("movePadUp", gameId);
+        } else {
+          playerMove.current = padMove.STILL;
+          console.log("stop");
+          socket.emit("stopPad", gameId);
+        }
       }
     }
   }
 
+  //fix boost issue
+  console.log(keycode);
   if (keycode === "Space" && gameMode === GameMode.Speed) {
     socket.emit("boostDeactivated", gameId);
   }

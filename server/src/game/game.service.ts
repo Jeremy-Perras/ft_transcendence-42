@@ -105,7 +105,7 @@ export class GameService {
         velocity: {
           vx: BALL_VELOCITY,
           vy: 0,
-        }, //TODO : check inital angle
+        },
       },
       game:
         gameMode === GameMode.CLASSIC

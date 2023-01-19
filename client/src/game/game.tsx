@@ -109,6 +109,7 @@ const GameCanvas = ({
 
   const currentUserId = useAuthStore((state) => state.userId);
   const socket = useSocketStore().socket;
+
   const frontGameData = useRef<GameData>({
     player1: {
       coord: { x: LEFT_PAD_X, y: (CANVAS_HEIGHT - PAD_HEIGHT) / 2 },
@@ -166,6 +167,7 @@ const GameCanvas = ({
       e: KeyboardEvent,
       cb: (
         keycode: string,
+        playerY: number,
         socket: Socket,
         gameId: number,
         gameMode: GameMode,
@@ -178,6 +180,12 @@ const GameCanvas = ({
     ) => {
       cb(
         e.code,
+        //TODO : restart from here
+        currentUserId === initData.game.players.player1.id
+          ? frontGameData.current.player1.coord.y
+          : currentUserId === initData.game.players.player2.id
+          ? frontGameData.current.player2.coord.y
+          : 0,
         socket,
         initData.game.id,
         initData.game.gameMode,
@@ -221,29 +229,6 @@ const GameCanvas = ({
     }
     const cb = (data: GameData) => {
       if (data.game.score.player1 >= 11 || data.game.score.player2 >= 11) {
-        //TODO : add remove event listener if game is stopped for another reason
-        // const game = document.getElementById("game");
-        // window.removeEventListener("keydown", (e) =>
-        //   handleKeyDown(
-        //     e.code,
-        //     socket,
-        //     initData.game.id,
-        //     initData.game.gameMode,
-        //     keyboardStatus,
-        //     playerMove
-        //   )
-        // );
-        // window.removeEventListener("keyup", (e) =>
-        //   handleKeyUp(
-        //     e.code,
-        //     socket,
-        //     initData.game.id,
-        //     initData.game.gameMode,
-        //     keyboardStatus,
-        //     playerMove
-        //   )
-        // );
-
         socket.emit("endGame", initData.game.id);
         setGameState(gameScreenState.SCORE);
       }
@@ -281,10 +266,10 @@ const GameCanvas = ({
       if (frontGameData.current.ball.coord.y < data.ball.coord.y)
         frontGameData.current.ball.coord.y -=
           frontGameData.current.ball.velocity.vy / BALL_VELOCITY;
-      frontGameData.current = data;
-      // frontGameData.current.ball = data.ball;
-      // frontGameData.current.game.score.player1 = data.game.score.player1;
-      // frontGameData.current.game.score.player2 = data.game.score.player2;
+      // frontGameData.current = data;
+      frontGameData.current.ball = data.ball;
+      frontGameData.current.game.score.player1 = data.game.score.player1;
+      frontGameData.current.game.score.player2 = data.game.score.player2;
 
       gameData = data;
     };

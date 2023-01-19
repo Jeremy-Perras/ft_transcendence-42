@@ -439,7 +439,6 @@ export class SocketGateway {
       .emit("error", " invitation refused");
   }
 
-  //TODO
   @SubscribeMessage("cancelInvitation")
   async onCancelInvitation(@ConnectedSocket() client: Socket) {
     const currentUserId = client.request.session.passport.user;
