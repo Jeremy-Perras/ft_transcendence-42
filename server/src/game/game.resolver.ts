@@ -11,7 +11,7 @@ import {
   Resolver,
   Root,
 } from "@nestjs/graphql";
-import { Prisma, GameMode } from "@prisma/client";
+import { Prisma, GameMode, prisma } from "@prisma/client";
 import { GqlAuthenticatedGuard } from "../auth/authenticated.guard";
 import { CurrentUser } from "../auth/currentUser.decorator";
 import { PrismaService } from "../prisma/prisma.service";
@@ -199,7 +199,18 @@ export class GameResolver {
     ).catch(() => {
       throw new Error();
     });
-    currentPlayer.send({ type: "INVITE", inviteeId: userId, gameMode });
+
+    const name = await this.prisma.user.findFirst({
+      select: { name: true },
+      where: { id: currentUserId },
+    });
+
+    currentPlayer.send({
+      type: "INVITE",
+      inviteeId: userId,
+      gameMode,
+      name: name?.name ? name.name : "undifined",
+    });
     await wait;
 
     return true;

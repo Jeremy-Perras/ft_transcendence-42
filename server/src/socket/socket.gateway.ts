@@ -1,7 +1,14 @@
 import { OnModuleInit } from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
-import { WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
+import {
+  ConnectedSocket,
+  MessageBody,
+  SubscribeMessage,
+  WebSocketGateway,
+  WebSocketServer,
+} from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
+import { GameService, PlayerState } from "../game/game.service";
 
 @WebSocketGateway({ cors: "*", transports: ["websocket"] })
 export class SocketGateway implements OnModuleInit {
@@ -35,7 +42,7 @@ export class SocketGateway implements OnModuleInit {
   handleDisconnect(client: Socket) {
     const userId = client.request.session.passport.user;
     const user = this.connectedUsers.get(userId);
-    if (user) {
+    if (user && user === client.id) {
       this.connectedUsers.delete(userId);
     }
     this.eventEmitter.emit("user.disconnect", userId);

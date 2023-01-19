@@ -15,6 +15,12 @@ const AcceptInvitationMutationDocument = graphql(`
   }
 `);
 
+const RefuseInvitationMutationDocument = graphql(`
+  mutation RefuseGameInvite($userId: Int!) {
+    refuseGameInvite(userId: $userId)
+  }
+`);
+
 const Invitation = ({
   invitation,
   setInvitationList,
@@ -28,9 +34,14 @@ const Invitation = ({
         userId: userId,
       })
   );
-  const userId = useAuthStore().userId;
+
+  const refuseGameInvitation = useMutation(
+    async ({ userId }: { userId: number }) =>
+      request("/graphql", RefuseInvitationMutationDocument, {
+        userId: userId,
+      })
+  );
   const [display, setDisplay] = useState(true);
-  const socket = useSocketStore().socket;
 
   return display ? (
     <div className="absolute bottom-0 z-10 flex w-screen justify-center">
@@ -47,7 +58,7 @@ const Invitation = ({
         <span className="mx-4 flex max-w-[80%] shrink grow-0 items-center whitespace-nowrap text-base tracking-wide">
           <img
             className="mx-2 h-8 w-8 shrink-0 border border-black"
-            src={`http://localhost:5173/upload/avatar/${invitation.inviterId}`}
+            src={`/upload/avatar/${invitation.inviterId}`}
           />
           <span
             className={`shrink grow-0 truncate`}
@@ -59,9 +70,7 @@ const Invitation = ({
           <AcceptIcon
             className="h-8 w-8 animate-none border border-slate-300 bg-slate-200 hover:cursor-pointer hover:bg-slate-300"
             onClick={() => {
-              console.log(invitation.inviterId);
               acceptGameInvitation.mutate({ userId: invitation.inviterId });
-              socket.emit("acceptInvitation", invitation);
               setInvitationList([]);
             }}
           />
@@ -71,7 +80,8 @@ const Invitation = ({
               setInvitationList((list) =>
                 list.filter((invite) => invite !== invitation)
               );
-              socket.emit("refuseInvitation", invitation);
+
+              refuseGameInvitation.mutate({ userId: invitation.inviterId });
             }}
           />
         </div>
@@ -88,13 +98,20 @@ export const GameInvitations = () => {
 
   socket.on(
     "newInvitation",
-    ({ inviterId, gameMode }: { inviterId: number; gameMode: GameMode }) => {
-      console.log(inviterId);
+    ({
+      inviterId,
+      gameMode,
+      name,
+    }: {
+      inviterId: number;
+      gameMode: GameMode;
+      name: string;
+    }) => {
       const newInvitation: GameInvitation = {
         inviterId: inviterId,
         inviteeId: userId,
         gameMode: gameMode,
-        inviterName: "test",
+        inviterName: name,
       };
       setInvitationList([newInvitation, ...invitationList]);
     }

@@ -592,7 +592,7 @@ const UserHeader = ({
       onClick={() => navigate(`/profile/${user.id}`)}
     >
       <img
-        src={`http://localhost:5173/upload/avatar/${user.id}`}
+        src={`/upload/avatar/${user.id}`}
         alt="Player avatar"
         className="my-1 ml-1 h-12 w-12 border border-black"
       />
@@ -792,7 +792,7 @@ const SearchResults = ({
               <Avatar.Root>
                 <Avatar.Image
                   className="h-10 w-10 border border-black object-cover"
-                  src={`http://localhost:5173/upload/avatar/${result.id}`}
+                  src={`/upload/avatar/${result.id}`}
                 />
                 <Avatar.Fallback>
                   <UserIcon className="h-10 w-10" />

@@ -147,7 +147,7 @@ export const SearchResults = ({
                 <Avatar.Root>
                   <Avatar.Image
                     className="h-10 w-10 border border-black object-cover"
-                    src={`http://localhost:5173/upload/avatar/${result.id}`}
+                    src={`/upload/avatar/${result.id}`}
                   />
                   <Avatar.Fallback>
                     <UserIcon className="h-10 w-10" />

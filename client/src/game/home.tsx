@@ -338,6 +338,10 @@ export const Home = () => {
     setDisplayInvitationError(true);
   });
   useEffect(() => {
+    const cb = () => {
+      clearInvite();
+      setState("idle");
+    };
     switch (invitationState) {
       case "selecting":
         setState("selecting");
@@ -348,11 +352,11 @@ export const Home = () => {
     }
 
     if (invitationState) {
-      socket.on("cancelInvitation", (_) => {
-        clearInvite();
-        setState("idle");
-      });
+      socket.on("cancelInvitation", cb);
     }
+    return () => {
+      socket.off("cancelInvitation", cb);
+    };
   }, [invitationState]);
 
   return (
@@ -385,7 +389,7 @@ export const Home = () => {
           <RenderState state={state} setState={setState} isNarrow={isNarrow} />
         ) : (
           <a
-            href="http://localhost:3000/auth/login"
+            href={`${window.location.protocol}//${window.location.host}/auth/login`}
             className="animate-pulse cursor-pointer select-none text-center text-4xl sm:text-5xl md:text-6xl lg:text-7xl"
           >
             Click To Login
