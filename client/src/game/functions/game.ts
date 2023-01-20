@@ -13,10 +13,8 @@ export const BALL_RADIUS = 4;
 export const LEFT_PAD_X = CANVAS_WIDTH / 8;
 export const RIGHT_PAD_X = CANVAS_WIDTH - CANVAS_WIDTH / 8 - PAD_WIDTH;
 
-//TODO : adapt code to differents pad velocity
-export const PAD_VELOCITY = 5;
 export const BALL_VELOCITY = 10;
-// export let moves = [];
+export const PAD_SPEED = 1;
 
 const background = {
   x: 0,
@@ -197,13 +195,42 @@ export const draw = (context: CanvasRenderingContext2D, data: GameData) => {
   }
 };
 
-//handle if against wall
-//get player coordinate to check collision
-// push events in array with num, timestamp, type of event
-//
+export const setY = (
+  playerY: React.MutableRefObject<number>,
+  moves: React.MutableRefObject<
+    {
+      event: number;
+      timestamp: number;
+      move: padMove;
+      y: number;
+    }[]
+  >,
+  origin: string
+) => {
+  console.log(playerY.current);
+  console.log(moves.current[moves.current.length - 1], origin);
+  const len = moves.current.length;
+  if (playerY.current <= 0 || playerY.current >= CANVAS_HEIGHT - PAD_HEIGHT)
+    return;
+  const now = new Date().getTime();
+
+  const lastMove = moves.current[len - 1];
+
+  // if (lastMove && lastMove.move === padMove.UP)
+  //   playerY.current = PAD_SPEED * (lastMove.timestamp - now);
+};
+
 export const handleKeyDown = (
   keycode: string,
-  playerY: number,
+  playerY: React.MutableRefObject<number>,
+  moves: React.MutableRefObject<
+    {
+      event: number;
+      timestamp: number;
+      move: padMove;
+      y: number;
+    }[]
+  >,
   socket: Socket,
   gameId: number,
   gameMode: GameMode,
@@ -211,7 +238,6 @@ export const handleKeyDown = (
     arrowUp: boolean;
     arrowDown: boolean;
   }>,
-
   playerMove: React.MutableRefObject<padMove>
 ) => {
   if (keycode === "Space" && gameMode === GameMode.Speed) {
@@ -221,13 +247,25 @@ export const handleKeyDown = (
     keyboardStatus.current.arrowUp = true;
     if (!keyboardStatus.current.arrowDown) {
       if (playerMove.current !== padMove.UP) {
-        console.log(new Date().getTime(), "UP");
+        moves.current.push({
+          event: moves.current.length,
+          timestamp: new Date().getTime(),
+          move: padMove.UP,
+          y: playerY.current,
+        });
+        setY(playerY, moves, "emit");
         playerMove.current = padMove.UP;
         socket.emit("movePadUp", gameId);
       }
     } else {
       if (playerMove.current !== padMove.STILL) {
-        console.log(new Date().getTime(), "NONE");
+        moves.current.push({
+          event: moves.current.length,
+          timestamp: new Date().getTime(),
+          move: padMove.STILL,
+          y: playerY.current,
+        });
+        setY(playerY, moves, "emit");
         playerMove.current = padMove.STILL;
         socket.emit("stopPad", gameId);
       }
@@ -237,13 +275,25 @@ export const handleKeyDown = (
     keyboardStatus.current.arrowDown = true;
     if (!keyboardStatus.current.arrowUp) {
       if (playerMove.current !== padMove.DOWN) {
-        console.log(new Date().getTime(), "DOWN");
+        moves.current.push({
+          event: moves.current.length,
+          timestamp: new Date().getTime(),
+          move: padMove.DOWN,
+          y: playerY.current,
+        });
+        setY(playerY, moves, "emit");
         playerMove.current = padMove.DOWN;
         socket.emit("movePadDown", gameId);
       }
     } else {
       if (playerMove.current !== padMove.STILL) {
-        console.log(new Date().getTime(), "NONE");
+        moves.current.push({
+          event: moves.current.length,
+          timestamp: new Date().getTime(),
+          move: padMove.STILL,
+          y: playerY.current,
+        });
+        setY(playerY, moves, "emit");
         playerMove.current = padMove.STILL;
         socket.emit("stopPad", gameId);
       }
@@ -253,7 +303,15 @@ export const handleKeyDown = (
 
 export const handleKeyUp = (
   keycode: string,
-  playerY: number,
+  playerY: React.MutableRefObject<number>,
+  moves: React.MutableRefObject<
+    {
+      event: number;
+      timestamp: number;
+      move: padMove;
+      y: number;
+    }[]
+  >,
   socket: Socket,
   gameId: number,
   gameMode: GameMode,
@@ -267,14 +325,26 @@ export const handleKeyUp = (
     keyboardStatus.current.arrowUp = false;
     if (!keyboardStatus.current.arrowDown) {
       if (playerMove.current !== padMove.STILL) {
-        console.log(new Date().getTime(), "NONE");
+        moves.current.push({
+          event: moves.current.length,
+          timestamp: new Date().getTime(),
+          move: padMove.STILL,
+          y: playerY.current,
+        });
+        setY(playerY, moves, "emit");
         playerMove.current = padMove.STILL;
         socket.emit("stopPad", gameId);
       }
     } else {
       if (playerMove.current !== padMove.DOWN) {
+        moves.current.push({
+          event: moves.current.length,
+          timestamp: new Date().getTime(),
+          move: padMove.DOWN,
+          y: playerY.current,
+        });
+        setY(playerY, moves, "emit");
         playerMove.current = padMove.DOWN;
-        console.log(new Date().getTime(), "DOWN");
         socket.emit("movePadDown", gameId);
       }
     }
@@ -283,14 +353,26 @@ export const handleKeyUp = (
     keyboardStatus.current.arrowDown = false;
     if (!keyboardStatus.current.arrowUp) {
       if (playerMove.current !== padMove.STILL) {
+        moves.current.push({
+          event: moves.current.length,
+          timestamp: new Date().getTime(),
+          move: padMove.STILL,
+          y: playerY.current,
+        });
+        setY(playerY, moves, "emit");
         playerMove.current = padMove.STILL;
-        console.log(new Date().getTime(), "NONE");
         socket.emit("stopPad", gameId);
       }
     } else {
       if (playerMove.current !== padMove.UP) {
+        moves.current.push({
+          event: moves.current.length,
+          timestamp: new Date().getTime(),
+          move: padMove.UP,
+          y: playerY.current,
+        });
+        setY(playerY, moves, "emit");
         playerMove.current = padMove.UP;
-        console.log(new Date().getTime(), "UP");
         socket.emit("movePadUp", gameId);
       }
     }

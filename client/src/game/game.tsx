@@ -23,6 +23,7 @@ import {
   draw,
   handleKeyDown,
   handleKeyUp,
+  setY,
 } from "./functions/game";
 import { GameData, padMove } from "./types/gameData";
 
@@ -64,6 +65,60 @@ const canvas = document.getElementById("canvas");
 // }
 
 // new ResizeObserver(() => redraw()).observe(canvas);
+
+// let loop = null;
+// let pos = 0;
+// let events = [];
+// let lastEvent = "none";
+// const keys = {
+//   up: false,
+//   down: false,
+// };
+
+// const SPEED = 1;
+
+// const start = () => {
+//   startStopBtn.textContent = "stop";
+//   events = [];
+//   loop = setInterval(() => {
+//     events.forEach((val, i) => {
+//       if (!val.done) {
+//         if (val.dir === "up") {
+//           if (i < events.length - 1) {
+//             pos += SPEED * (events[i + 1].time - val.time);
+//           } else {
+//             pos += SPEED * (Date.now() - val.time);
+//           }
+//         } else if (val.dir === "down") {
+//           if (i < events.length - 1) {
+//             pos -= SPEED * (events[i + 1].time - val.time);
+//           } else {
+//             pos -= SPEED * (Date.now() - val.time);
+//           }
+//         }
+
+//         if (pos > 2000) {
+//           pos = 2000;
+//         } else if (pos < -2000) {
+//           pos = -2000;
+//         }
+
+//         if (val.dir !== "none" && i === events.length - 1) {
+//           events.splice(i + 1, 0, {
+//             time: Date.now(),
+//             dir: val.dir,
+//             done: false,
+//             sent: false,
+//           });
+//         }
+//         val.done = true;
+//       }
+//     });
+
+//     printEvents();
+//     posDisplay.textContent = `pos: ${pos}`;
+//   }, 10);
+// };
 
 enum gameScreenState {
   INTRO,
@@ -142,6 +197,10 @@ const GameCanvas = ({
     arrowUp: false,
     arrowDown: false,
   });
+  const yPlayer = useRef<number>((CANVAS_HEIGHT - PAD_HEIGHT) / 2);
+  const moves = useRef<
+    { event: number; timestamp: number; move: padMove; y: number }[]
+  >([]);
 
   const currentUserId = useAuthStore((state) => state.userId);
   const socket = useSocketStore().socket;
@@ -203,7 +262,15 @@ const GameCanvas = ({
       e: KeyboardEvent,
       cb: (
         keycode: string,
-        playerY: number,
+        playerY: React.MutableRefObject<number>,
+        moves: React.MutableRefObject<
+          {
+            event: number;
+            timestamp: number;
+            move: padMove;
+            y: number;
+          }[]
+        >,
         socket: Socket,
         gameId: number,
         gameMode: GameMode,
@@ -216,12 +283,8 @@ const GameCanvas = ({
     ) => {
       cb(
         e.code,
-        //TODO : restart from here
-        currentUserId === initData.game.players.player1.id
-          ? frontGameData.current.player1.coord.y
-          : currentUserId === initData.game.players.player2.id
-          ? frontGameData.current.player2.coord.y
-          : 0,
+        yPlayer,
+        moves,
         socket,
         initData.game.id,
         initData.game.gameMode,
@@ -251,29 +314,63 @@ const GameCanvas = ({
     return () => {
       eventSetup = false;
       window.removeEventListener("keydown", keyDownCb);
-      window.removeEventListener("keydown", keyUpCb);
+      window.removeEventListener("keyup", keyUpCb);
     };
   }, [initData, currentUserId]);
 
   /////////// EVENT MANAGER
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (playerMove.current === padMove.DOWN)
-        console.log(new Date().getTime(), "down");
-      // else if (playerMove.current === padMove.STILL)
-      //   console.log(new Date().getTime(), "none");
-      else if (playerMove.current === padMove.UP)
-        console.log(new Date().getTime(), "up");
-    }, 10);
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     setY(yPlayer, moves, "");
+  //     // if (playerMove.current === padMove.DOWN) {
+  //     //   // moves.current.push({
+  //     //   //   event: moves.current.length,
+  //     //   //   timestamp: new Date().getTime(),
+  //     //   //   move: padMove.DOWN,
+  //     //   // });
 
-    return () => clearInterval(interval);
-  }, [playerMove]);
+  //     //   console.log(moves.current[moves.current.length - 1]);
+  //     // } else if (playerMove.current === padMove.UP) {
+  //     //   // moves.current.push({
+  //     //   //   event: moves.current.length,
+  //     //   //   timestamp: new Date().getTime(),
+  //     //   //   move: padMove.UP,
+  //     //   // });
+
+  //     //   // console.log(moves.current[moves.current.length - 1]);
+  //     // }
+  //   }, 10);
+
+  //   return () => clearInterval(interval);
+  // }, [playerMove]);
+
+  // useEffect(() => {
+  //   let gameData: GameData;
+  //   if (canvas.current) {
+  //     canvas.current.width = 500;
+  //     canvas.current.height = 500;
+  //   }
+
+  //   const animate = () => {
+  //     let ctx;
+  //     if (canvas.current) ctx = canvas.current.getContext("2d");
+  //     if (ctx && gameData) {
+  //       setY(yPlayer, moves, "");
+  //       gameData.player1.coord.y = yPlayer.current;
+  //       draw(ctx, gameData);
+  //     }
+  //   };
+  //   // socket.off("updateCanvas");
+
+  //   requestRef.current = setInterval(animate, 10);
+  //   return () => {
+  //     clearInterval(requestRef.current);
+  //   };
+  // }, [playerMove]);
 
   useEffect(() => {
     let gameData: GameData;
     if (canvas.current) {
-      // canvas.current.width = canvas.current.clientWidth;
-      // canvas.current.height = canvas.current.clientHeight;
       canvas.current.width = 500;
       canvas.current.height = 500;
     }
@@ -282,42 +379,14 @@ const GameCanvas = ({
         socket.emit("endGame", initData.game.id);
         setGameState(gameScreenState.SCORE);
       }
-
       let ctx;
-
       if (canvas.current) ctx = canvas.current.getContext("2d");
-      if (
-        frontGameData.current.player1.coord.y !== data.player1.coord.y &&
-        ctx
-      ) {
-        if (frontGameData.current.player1.coord.y <= data.player1.coord.y)
-          frontGameData.current.player1.coord.y++;
-        else frontGameData.current.player1.coord.y--;
-        draw(ctx, frontGameData.current);
-      }
-      if (
-        frontGameData.current.player2.coord.y !== data.player2.coord.y &&
-        ctx
-      ) {
-        if (frontGameData.current.player2.coord.y <= data.player2.coord.y)
-          frontGameData.current.player2.coord.y++;
-        else frontGameData.current.player2.coord.y--;
-        draw(ctx, frontGameData.current);
-      }
-      if (frontGameData.current.ball.coord.x < data.ball.coord.x)
-        frontGameData.current.ball.coord.x +=
-          frontGameData.current.ball.velocity.vx / BALL_VELOCITY;
-      if (frontGameData.current.ball.coord.x > data.ball.coord.x)
-        frontGameData.current.ball.coord.x -=
-          frontGameData.current.ball.velocity.vx / BALL_VELOCITY;
-      if (frontGameData.current.ball.coord.y < data.ball.coord.y)
-        frontGameData.current.ball.coord.y +=
-          frontGameData.current.ball.velocity.vy / BALL_VELOCITY;
-      if (frontGameData.current.ball.coord.y < data.ball.coord.y)
-        frontGameData.current.ball.coord.y -=
-          frontGameData.current.ball.velocity.vy / BALL_VELOCITY;
+      if (ctx) draw(ctx, frontGameData.current);
       frontGameData.current = data;
-
+      if (currentUserId === frontGameData.current.game.players.player1)
+        frontGameData.current.player1.coord.y = yPlayer.current;
+      if (currentUserId === frontGameData.current.game.players.player2)
+        frontGameData.current.player2.coord.y = yPlayer.current;
       gameData = data;
     };
     const animate = () => {
@@ -325,39 +394,18 @@ const GameCanvas = ({
       if (canvas.current) ctx = canvas.current.getContext("2d");
       if (ctx && gameData) {
         if (frontGameData.current) {
-          if (
-            gameData.player1.playerMove === padMove.DOWN &&
-            frontGameData.current.player1.coord.y < CANVAS_HEIGHT - PAD_HEIGHT
-          ) {
-            frontGameData.current.player1.coord.y++;
-          } else if (
-            gameData.player1.playerMove === padMove.UP &&
-            frontGameData.current.player1.coord.y > 0
-          ) {
-            frontGameData.current.player1.coord.y--;
-          }
-          if (
-            gameData.player2.playerMove === padMove.DOWN &&
-            frontGameData.current.player2.coord.y < CANVAS_HEIGHT - PAD_HEIGHT
-          ) {
-            frontGameData.current.player2.coord.y++;
-          } else if (
-            gameData.player2.playerMove === padMove.UP &&
-            frontGameData.current.player2.coord.y > 0
-          ) {
-            frontGameData.current.player2.coord.y--;
-          }
-          frontGameData.current.ball.coord.x +=
-            frontGameData.current.ball.velocity.vx / BALL_VELOCITY;
-          frontGameData.current.ball.coord.y +=
-            frontGameData.current.ball.velocity.vy / BALL_VELOCITY;
+          setY(playerMove, moves, "");
+          if (currentUserId === frontGameData.current.game.players.player1)
+            frontGameData.current.player1.coord.y = yPlayer.current;
+          if (currentUserId === frontGameData.current.game.players.player2)
+            frontGameData.current.player2.coord.y = yPlayer.current;
           draw(ctx, frontGameData.current);
         }
       }
     };
     socket.off("updateCanvas");
     socket.on("updateCanvas", cb);
-    requestRef.current = setInterval(animate, 25);
+    requestRef.current = setInterval(animate, 10);
     return () => {
       socket.off("updateCanvas", cb);
       clearInterval(requestRef.current);
