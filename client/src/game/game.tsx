@@ -29,6 +29,42 @@ import { GameData, padMove } from "./types/gameData";
 //TODO : animate ball - check coordinates etc
 //TODO : bonus mode
 
+const wrap = document.getElementById("wrap");
+const canvas = document.getElementById("canvas");
+
+// function plotImage(ctx, width, height) {
+//   ctx.fillStyle = "red";
+//   ctx.fillRect(0, 0, width, height);
+
+//   ctx.fillStyle = "white";
+//   let min = 0;
+//   if (wrap.clientHeight > wrap.clientWidth) {
+//     min = wrap.clientWidth / 2;
+//   } else {
+//     min = wrap.clientHeight / 2;
+//   }
+//   const offsetx = wrap.clientWidth / 2 - min / 2;
+//   const offsety = wrap.clientHeight / 2 - min / 2;
+//   ctx.fillRect(offsetx, offsety, min, min);
+// }
+
+// function redraw() {
+//   const dpr = window.devicePixelRatio;
+//   const cssWidth = canvas.clientWidth;
+//   const cssHeight = canvas.clientHeight;
+//   const pxWidth = Math.round(dpr * cssWidth);
+//   const pxHeight = Math.round(dpr * cssHeight);
+
+//   canvas.width = pxWidth;
+//   canvas.height = pxHeight;
+
+//   const ctx = canvas.getContext("2d");
+//   ctx.scale(dpr, dpr);
+//   plotImage(ctx, cssWidth, cssHeight);
+// }
+
+// new ResizeObserver(() => redraw()).observe(canvas);
+
 enum gameScreenState {
   INTRO,
   PLAYING,
@@ -88,7 +124,7 @@ export const gameLoader = async (
 };
 
 let eventSetup = false;
-//event listeners removed when window is reloaded
+
 const GameCanvas = ({
   startTime,
   setGameState,
