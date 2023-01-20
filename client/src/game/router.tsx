@@ -1,6 +1,6 @@
 import { QueryClient, useQuery } from "@tanstack/react-query";
 import request from "graphql-request";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import {
   createBrowserRouter,
   LoaderFunctionArgs,
@@ -8,7 +8,6 @@ import {
   RouterProvider,
   useNavigate,
 } from "react-router-dom";
-import { Socket } from "socket.io-client";
 import { graphql } from "../gql";
 import queryClient from "../query";
 import { useAuthStore, useSocketStore, useStateStore } from "../stores";
@@ -30,6 +29,7 @@ const GetStateQueryDocument = graphql(`
           gameMode
         }
         ... on PlayingState {
+          __typename
           game {
             id
           }
@@ -51,6 +51,7 @@ const GameRoot = () => {
   );
   return <Outlet />;
 };
+
 const loaderFn = (
   fn: (queryClient: QueryClient, args: LoaderFunctionArgs) => unknown
 ) => {
@@ -75,7 +76,6 @@ const router = createBrowserRouter([
 ]);
 
 export const GameRouter = () => {
-  //TODO
   const socket = useSocketStore().socket;
   const userId = useAuthStore().userId;
   const setState = useStateStore().setState;
@@ -86,7 +86,6 @@ export const GameRouter = () => {
         userId: userId,
       }),
   });
-
   useEffect(() => {
     setState(getState?.user.state?.__typename);
   }, [getState]);

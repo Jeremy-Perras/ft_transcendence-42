@@ -1,13 +1,11 @@
+import { OnModuleInit } from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import {
-  ConnectedSocket,
-  MessageBody,
-  SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
+  OnGatewayDisconnect,
 } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
-import { GameService, PlayerState } from "../game/game.service";
 
 @WebSocketGateway({ cors: "*", transports: ["websocket"] })
 export class SocketGateway implements OnModuleInit {
@@ -18,16 +16,24 @@ export class SocketGateway implements OnModuleInit {
 
   private connectedUsers: Map<number, string> = new Map();
 
-  handleConnection(client: Socket, ...args: any[]) {
-    const userId = client.request.session.passport.user;
-    const user = this.connectedUsers.get(userId);
-    if (user) {
-      client.emit("error", "You are already connected on another device");
-      client.disconnect();
-    } else {
-      this.connectedUsers.set(userId, client.id);
-      this.eventEmitter.emit("user.connection", userId);
-    }
+  onModuleInit() {
+    this.server.on("connection", (client) => {
+      client.on("getstatus", (callback) => {
+        const userId = client.request.session.passport.user;
+        const user = this.connectedUsers.get(userId);
+        if (!user) {
+          callback({
+            status: "ok",
+          });
+          this.connectedUsers.set(userId, client.id);
+          this.eventEmitter.emit("user.connection", userId);
+        } else {
+          callback({
+            status: "You are already connected on another device",
+          });
+        }
+      });
+    });
   }
 
   handleDisconnect(client: Socket) {

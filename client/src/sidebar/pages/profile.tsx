@@ -33,7 +33,7 @@ import {
 import { RankIcon } from "../utils/rankIcon";
 import BannedDarkIcon from "/src/assets/images/Banned_dark.svg";
 import { useForm, useWatch } from "react-hook-form";
-import { useAuthStore, useInvitationStore } from "../../stores";
+import { useAuthStore, useInvitationStore, useSocketStore } from "../../stores";
 import { IsOnline } from "../components/isOnline";
 import { graphql } from "../../../src/gql";
 import {
@@ -532,10 +532,12 @@ const Unblock = ({
 };
 
 const Disconnect = () => {
+  const socket = useSocketStore().socket;
   return (
     <div
       onClick={() => {
         useAuthStore.getState().logout();
+        socket.disconnect();
       }}
       className="flex h-24 w-full select-none items-center justify-center border-2 bg-slate-100 p-4 text-xl font-bold text-slate-600 transition-all hover:cursor-pointer hover:bg-slate-200  hover:text-slate-500 "
     >

@@ -221,13 +221,9 @@ const RenderState = ({
         sendInvite();
       }
     } else {
-<<<<<<< HEAD
-      socket.emit("joinMatchmaking", gameMode);
-=======
       joinMatchMacking.mutate({
         gameMode: gameMode,
       });
->>>>>>> 4a8741a7 (Merge dataloader and Jeremy_12_01)
     }
     setState("waiting");
   };

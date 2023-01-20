@@ -1,4 +1,4 @@
-import { forwardRef, Inject, Injectable } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { Game, GameMode } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { SocketGateway } from "../socket/socket.gateway";
@@ -24,7 +24,7 @@ export enum playerMove {
   STILL,
 }
 
-type Game = {
+type GameInfo = {
   id: number;
   score: {
     player1: number;
@@ -36,11 +36,11 @@ type Game = {
   };
 };
 
-type ClassicGame = Game & {
+type ClassicGame = GameInfo & {
   type: "CLASSIC";
 };
 
-type BoostGame = Game & {
+type BoostGame = GameInfo & {
   type: "BOOST";
   player1Boost: {
     remaining: number;
@@ -52,7 +52,7 @@ type BoostGame = Game & {
   };
 };
 
-type GiftGame = Game & {
+type GiftGame = GameInfo & {
   type: "GIFT";
   player1Gifts: {
     speed: number;
@@ -86,11 +86,9 @@ type GameData = {
 @Injectable()
 export class GameService {
   constructor(
-    @Inject(forwardRef(() => SocketGateway))
     private readonly socketGateway: SocketGateway,
     private readonly prismaService: PrismaService
   ) {}
-  public saveGameData = new Map<number, GameData>();
   private players: Map<number, ReturnType<typeof PlayerMachine>> = new Map();
   private games: Map<number, Game> = new Map();
   private matchmakingRooms: Record<GameMode, Set<number>> = {
@@ -99,6 +97,7 @@ export class GameService {
     SPEED: new Set(),
   };
 
+  public saveGameData = new Map<number, GameData>();
   InitialState(
     id: number,
     player1Id: number,
@@ -735,7 +734,7 @@ export class GameService {
     }
   }
 
-  @OnEvent("user.disconnection")
+  @OnEvent("user.disconnect")
   disconnect(userId: number) {
     const player = this.players.get(userId);
     if (player) {
