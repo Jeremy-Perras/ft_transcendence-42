@@ -62,7 +62,6 @@ const App = () => {
       });
     }
   }, [isLoggedIn]);
-  console.log(isConnected);
   return !isConnected ? (
     <div className="relative flex h-screen w-screen overflow-hidden">
       <QueryClientProvider client={queryClient}>
