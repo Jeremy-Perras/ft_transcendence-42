@@ -321,10 +321,6 @@ export const handleKeyDown = (
   }>,
   playerMove: React.MutableRefObject<padMove>
 ) => {
-<<<<<<< HEAD
-=======
-  console.log(playerY);
->>>>>>> 18b21abb (fix rebase)
   if (keycode === "Space" && gameMode === GameMode.Speed) {
     socket.emit("boostActivated", gameId);
   }
@@ -332,7 +328,6 @@ export const handleKeyDown = (
     keyboardStatus.current.arrowUp = true;
     if (!keyboardStatus.current.arrowDown) {
       if (playerMove.current !== padMove.UP) {
-<<<<<<< HEAD
         moves.current.push({
           event: moves.current.length,
           timestamp: new Date().getTime(),
@@ -342,15 +337,11 @@ export const handleKeyDown = (
         });
         setY(playerY, moves);
         console.log(playerY.current);
-=======
-        console.log("UP");
->>>>>>> 18b21abb (fix rebase)
         playerMove.current = padMove.UP;
         socket.emit("movePadUp", gameId);
       }
     } else {
       if (playerMove.current !== padMove.STILL) {
-<<<<<<< HEAD
         moves.current.push({
           event: moves.current.length,
           timestamp: new Date().getTime(),
@@ -360,9 +351,6 @@ export const handleKeyDown = (
         });
         setY(playerY, moves);
         console.log(playerY.current);
-=======
-        console.log("NONE");
->>>>>>> 18b21abb (fix rebase)
         playerMove.current = padMove.STILL;
         socket.emit("stopPad", gameId);
       }
@@ -372,7 +360,6 @@ export const handleKeyDown = (
     keyboardStatus.current.arrowDown = true;
     if (!keyboardStatus.current.arrowUp) {
       if (playerMove.current !== padMove.DOWN) {
-<<<<<<< HEAD
         moves.current.push({
           event: moves.current.length,
           timestamp: new Date().getTime(),
@@ -382,15 +369,11 @@ export const handleKeyDown = (
         });
         setY(playerY, moves);
         console.log(playerY.current);
-=======
-        console.log("DOWN");
->>>>>>> 18b21abb (fix rebase)
         playerMove.current = padMove.DOWN;
         socket.emit("movePadDown", gameId);
       }
     } else {
       if (playerMove.current !== padMove.STILL) {
-<<<<<<< HEAD
         moves.current.push({
           event: moves.current.length,
           timestamp: new Date().getTime(),
@@ -400,9 +383,6 @@ export const handleKeyDown = (
         });
         setY(playerY, moves);
         console.log(playerY.current);
-=======
-        console.log("NONE");
->>>>>>> 18b21abb (fix rebase)
         playerMove.current = padMove.STILL;
         socket.emit("stopPad", gameId);
       }
@@ -435,7 +415,6 @@ export const handleKeyUp = (
     keyboardStatus.current.arrowUp = false;
     if (!keyboardStatus.current.arrowDown) {
       if (playerMove.current !== padMove.STILL) {
-<<<<<<< HEAD
         moves.current.push({
           event: moves.current.length,
           timestamp: new Date().getTime(),
@@ -445,15 +424,11 @@ export const handleKeyUp = (
         });
         setY(playerY, moves);
         console.log(playerY.current);
-=======
-        console.log("NONE");
->>>>>>> 18b21abb (fix rebase)
         playerMove.current = padMove.STILL;
         socket.emit("stopPad", gameId);
       }
     } else {
       if (playerMove.current !== padMove.DOWN) {
-<<<<<<< HEAD
         moves.current.push({
           event: moves.current.length,
           timestamp: new Date().getTime(),
@@ -464,10 +439,6 @@ export const handleKeyUp = (
         setY(playerY, moves);
         console.log(playerY.current);
         playerMove.current = padMove.DOWN;
-=======
-        playerMove.current = padMove.DOWN;
-        console.log("DOWN");
->>>>>>> 18b21abb (fix rebase)
         socket.emit("movePadDown", gameId);
       }
     }
@@ -486,15 +457,10 @@ export const handleKeyUp = (
         setY(playerY, moves);
         console.log(playerY.current);
         playerMove.current = padMove.STILL;
-<<<<<<< HEAD
-=======
-        console.log("NONE");
->>>>>>> 18b21abb (fix rebase)
         socket.emit("stopPad", gameId);
       }
     } else {
       if (playerMove.current !== padMove.UP) {
-<<<<<<< HEAD
         moves.current.push({
           event: moves.current.length,
           timestamp: new Date().getTime(),
@@ -505,10 +471,6 @@ export const handleKeyUp = (
         setY(playerY, moves);
         console.log(playerY.current);
         playerMove.current = padMove.UP;
-=======
-        playerMove.current = padMove.UP;
-        console.log("UP");
->>>>>>> 18b21abb (fix rebase)
         socket.emit("movePadUp", gameId);
       }
     }

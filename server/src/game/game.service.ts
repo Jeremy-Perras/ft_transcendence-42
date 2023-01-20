@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { forwardRef, Inject, Injectable } from "@nestjs/common";
 import { Game, GameMode } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { SocketGateway } from "../socket/socket.gateway";
@@ -92,6 +92,7 @@ type GameData = {
 @Injectable()
 export class GameService {
   constructor(
+    @Inject(forwardRef(() => SocketGateway))
     private readonly socketGateway: SocketGateway,
     private readonly prismaService: PrismaService
   ) {}

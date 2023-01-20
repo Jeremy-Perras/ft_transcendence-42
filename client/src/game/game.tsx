@@ -260,7 +260,6 @@ const GameCanvas = ({
       }
       let ctx;
       if (canvas.current) ctx = canvas.current.getContext("2d");
-<<<<<<< HEAD
       if (ctx) draw(ctx, frontGameData.current);
       frontGameData.current = backData;
       if (currentUserId === frontGameData.current.game.players.player1)
@@ -268,41 +267,6 @@ const GameCanvas = ({
       else if (currentUserId === frontGameData.current.game.players.player2)
         frontGameData.current.player2.coord.y = yPlayer.current;
       gameData = backData;
-=======
-      if (
-        frontGameData.current.player1.coord.y !== data.player1.coord.y &&
-        ctx
-      ) {
-        if (frontGameData.current.player1.coord.y <= data.player1.coord.y)
-          frontGameData.current.player1.coord.y++;
-        else frontGameData.current.player1.coord.y--;
-        draw(ctx, frontGameData.current);
-      }
-      if (
-        frontGameData.current.player2.coord.y !== data.player2.coord.y &&
-        ctx
-      ) {
-        if (frontGameData.current.player2.coord.y <= data.player2.coord.y)
-          frontGameData.current.player2.coord.y++;
-        else frontGameData.current.player2.coord.y--;
-        draw(ctx, frontGameData.current);
-      }
-      if (frontGameData.current.ball.coord.x < data.ball.coord.x)
-        frontGameData.current.ball.coord.x +=
-          frontGameData.current.ball.velocity.vx / BALL_VELOCITY;
-      if (frontGameData.current.ball.coord.x > data.ball.coord.x)
-        frontGameData.current.ball.coord.x -=
-          frontGameData.current.ball.velocity.vx / BALL_VELOCITY;
-      if (frontGameData.current.ball.coord.y < data.ball.coord.y)
-        frontGameData.current.ball.coord.y +=
-          frontGameData.current.ball.velocity.vy / BALL_VELOCITY;
-      if (frontGameData.current.ball.coord.y < data.ball.coord.y)
-        frontGameData.current.ball.coord.y -=
-          frontGameData.current.ball.velocity.vy / BALL_VELOCITY;
-      frontGameData.current = data;
-
-      gameData = data;
->>>>>>> 18b21abb (fix rebase)
     };
     const animate = () => {
       let ctx;

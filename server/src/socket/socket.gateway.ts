@@ -11,6 +11,11 @@ import {
 import { GameService, playerMove } from "../game/game.service";
 import { Server, Socket } from "socket.io";
 
+type valueHandleKeys = {
+  handleKey: string;
+  date: number;
+};
+
 @WebSocketGateway({ cors: "*", transports: ["websocket"] })
 export class SocketGateway implements OnModuleInit {
   constructor(
@@ -19,6 +24,7 @@ export class SocketGateway implements OnModuleInit {
   ) {}
   // private handleKey: Map<number, valueHandleKeysPlayer> = new Map();
 
+  private handleKey: Map<number, valueHandleKeys> = new Map();
   @WebSocketServer()
   server: Server;
 
