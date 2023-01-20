@@ -84,6 +84,7 @@ const fireball = {
     gradient.addColorStop(0, "yellow");
     gradient.addColorStop(1, "red");
     context.fillStyle = gradient;
+    console.log(activated);
     if (activated) {
       const angle = Math.atan(Math.abs(velocity.vy) / Math.abs(velocity.vx));
 
@@ -188,7 +189,6 @@ export const draw = (context: CanvasRenderingContext2D, data: GameData) => {
     const boostActivated =
       data.game.player1Boost.activated || data.game.player2Boost.activated;
     fireball.draw(context, data.ball.coord, data.ball.velocity, boostActivated);
-    fireball.draw(context, data.ball.coord, data.ball.velocity, boostActivated);
     boostBar.draw(
       context,
       data.game.player1Boost.remaining,
@@ -214,9 +214,9 @@ export const handleKeyDown = (
 
   playerMove: React.MutableRefObject<padMove>
 ) => {
-  console.log(keycode);
-
+  console.log(playerY);
   if (keycode === "Space" && gameMode === GameMode.Speed) {
+    console.log("BOOST ON");
     socket.emit("boostActivated", gameId);
   }
   if (keycode === "ArrowUp") {
@@ -230,7 +230,6 @@ export const handleKeyDown = (
           playerMove.current = padMove.UP;
         } else {
           console.log("stop");
-          playerMove.current = padMove.STILL;
           socket.emit("stopPad", gameId);
         }
       }
@@ -244,7 +243,6 @@ export const handleKeyDown = (
   }
   if (keycode === "ArrowDown") {
     keyboardStatus.current.arrowDown = true;
-
     if (!keyboardStatus.current.arrowUp) {
       if (playerMove.current !== padMove.DOWN) {
         if (playerY < CANVAS_HEIGHT - PAD_HEIGHT) {
@@ -253,7 +251,6 @@ export const handleKeyDown = (
           socket.emit("movePadDown", gameId);
         } else {
           console.log("stop");
-          playerMove.current = padMove.STILL;
           socket.emit("stopPad", gameId);
         }
       }

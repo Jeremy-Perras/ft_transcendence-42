@@ -519,6 +519,7 @@ export class SocketGateway {
     @MessageBody()
     gameId: number
   ) {
+    console.log("BOOST ON");
     const currentUserId = client.request.session.passport.user;
     this.gameService.handleBoostOn(gameId, currentUserId);
   }
@@ -529,6 +530,8 @@ export class SocketGateway {
     @MessageBody()
     gameId: number
   ) {
+    console.log("BOOST OFF");
+
     const currentUserId = client.request.session.passport.user;
     this.gameService.handleBoostOff(gameId, currentUserId);
   }
