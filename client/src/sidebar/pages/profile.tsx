@@ -214,7 +214,7 @@ const UserProfileHeader = ({
     unachievedMedals.push(
       <Achievement
         key={i}
-        icon={`achievements/unachieved_medal.svg`}
+        icon={`/achievements/unachieved_medal.svg`}
         name={"Unachieved"}
         achieved={false}
       />
@@ -277,7 +277,7 @@ const UserProfileHeader = ({
           {data.user.achievements.map((a, key) => (
             <Achievement
               key={key}
-              icon={`achievements/${a.name.toLowerCase()}.svg`} //TODO : get corresponding icon
+              icon={`/achievements/${a.name.toLowerCase()}.svg`} //TODO : get corresponding icon
               name={a.name}
               achieved={true}
             />
