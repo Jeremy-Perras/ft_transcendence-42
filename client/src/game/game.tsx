@@ -23,11 +23,50 @@ import {
   draw,
   handleKeyDown,
   handleKeyUp,
+  handleKey,
+  counter,
+  incrementCounter,
 } from "./functions/game";
 import { GameData, padMove } from "./types/gameData";
 
 //TODO : animate ball - check coordinates etc
 //TODO : bonus mode
+
+// const wrap = document.getElementById("wrap");
+// const canvas = document.getElementById("canvas");
+
+// function plotImage(ctx, width, height) {
+//   ctx.fillStyle = "red";
+//   ctx.fillRect(0, 0, width, height);
+
+//   ctx.fillStyle = "white";
+//   let min = 0;
+//   if (wrap.clientHeight > wrap.clientWidth) {
+//     min = wrap.clientWidth / 2;
+//   } else {
+//     min = wrap.clientHeight / 2;
+//   }
+//   const offsetx = wrap.clientWidth / 2 - min / 2;
+//   const offsety = wrap.clientHeight / 2 - min / 2;
+//   ctx.fillRect(offsetx, offsety, min, min);
+// }
+
+// function redraw() {
+//   const dpr = window.devicePixelRatio;
+//   const cssWidth = canvas.clientWidth;
+//   const cssHeight = canvas.clientHeight;
+//   const pxWidth = Math.round(dpr * cssWidth);
+//   const pxHeight = Math.round(dpr * cssHeight);
+
+//   canvas.width = pxWidth;
+//   canvas.height = pxHeight;
+
+//   const ctx = canvas.getContext("2d");
+//   ctx.scale(dpr, dpr);
+//   plotImage(ctx, cssWidth, cssHeight);
+// }
+
+// new ResizeObserver(() => redraw()).observe(canvas);
 
 enum gameScreenState {
   INTRO,
@@ -193,6 +232,7 @@ const GameCanvas = ({
         playerMove
       );
     };
+
     const keyDownCb = (e: KeyboardEvent) => handleKey(e, handleKeyDown);
     const keyUpCb = (e: KeyboardEvent) => handleKey(e, handleKeyUp);
 
@@ -218,6 +258,34 @@ const GameCanvas = ({
       window.removeEventListener("keydown", keyUpCb);
     };
   }, [initData, currentUserId]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (playerMove.current === padMove.DOWN) {
+        handleKey.set(counter, {
+          date: new Date().getTime(),
+          handleKey: "down",
+        });
+        incrementCounter();
+        console.log(new Date().getTime(), "down");
+        console.log(handleKey);
+      }
+      // else if (playerMove.current === padMove.STILL)
+      //   console.log(new Date().getTime(), "none");
+      else if (playerMove.current === padMove.UP) {
+        handleKey.set(counter, {
+          date: new Date().getTime(),
+          handleKey: "up",
+        });
+        incrementCounter();
+        console.log(new Date().getTime(), "up");
+      }
+    }, 10);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [playerMove]);
 
   useEffect(() => {
     let gameData: GameData;
@@ -319,12 +387,14 @@ const GameCanvas = ({
   //TODO : pause game ? check subject
   return (
     <div>
+      {/* <div className="h-full w-full" ref={"wrap"}> */}
       <canvas
         tabIndex={0}
         className="border-4 border-white"
         ref={canvas}
         id={"game"}
       />
+      {/* </div> */}
       <div className="my-2 flex w-full items-center justify-center">
         <div className="shrink-0 basis-2/5 truncate">
           {initData.game.players.player1.name}

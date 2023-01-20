@@ -2,6 +2,10 @@ import { GameMode } from "../../gql/graphql";
 import { Socket } from "socket.io-client";
 import { GameData, padMove } from "../types/gameData";
 
+type valueHandleKeys = {
+  handleKey: string;
+  date: number;
+};
 //TODO : set  values depending on client + size ratio got from back
 export const CANVAS_WIDTH = 500;
 export const CANVAS_HEIGHT = 500;
@@ -16,6 +20,8 @@ export const RIGHT_PAD_X = CANVAS_WIDTH - CANVAS_WIDTH / 8 - PAD_WIDTH;
 //TODO : adapt code to differents pad velocity
 export const PAD_VELOCITY = 5;
 export const BALL_VELOCITY = 10;
+export let counter = 0;
+export const handleKey: Map<number, valueHandleKeys> = new Map();
 
 const background = {
   x: 0,
@@ -214,7 +220,6 @@ export const handleKeyDown = (
 
   playerMove: React.MutableRefObject<padMove>
 ) => {
-  console.log(playerY);
   if (keycode === "Space" && gameMode === GameMode.Speed) {
     socket.emit("boostActivated", gameId);
   }
@@ -222,13 +227,21 @@ export const handleKeyDown = (
     keyboardStatus.current.arrowUp = true;
     if (!keyboardStatus.current.arrowDown) {
       if (playerMove.current !== padMove.UP) {
-        console.log("UP");
+        handleKey.set(counter++, {
+          date: new Date().getTime(),
+          handleKey: "UP",
+        });
+        console.log(new Date().getTime(), "UP");
         playerMove.current = padMove.UP;
         socket.emit("movePadUp", gameId);
       }
     } else {
       if (playerMove.current !== padMove.STILL) {
-        console.log("NONE");
+        handleKey.set(counter++, {
+          date: new Date().getTime(),
+          handleKey: "NONE",
+        });
+        console.log(new Date().getTime(), "NONE");
         playerMove.current = padMove.STILL;
         socket.emit("stopPad", gameId);
       }
@@ -238,18 +251,29 @@ export const handleKeyDown = (
     keyboardStatus.current.arrowDown = true;
     if (!keyboardStatus.current.arrowUp) {
       if (playerMove.current !== padMove.DOWN) {
-        console.log("DOWN");
+        handleKey.set(counter++, {
+          date: new Date().getTime(),
+          handleKey: "DOWN",
+        });
+        console.log(new Date().getTime(), "DOWN");
         playerMove.current = padMove.DOWN;
         socket.emit("movePadDown", gameId);
       }
     } else {
       if (playerMove.current !== padMove.STILL) {
-        console.log("NONE");
+        handleKey.set(counter++, {
+          date: new Date().getTime(),
+          handleKey: "NONE",
+        });
+        console.log(new Date().getTime(), "NONE");
         playerMove.current = padMove.STILL;
         socket.emit("stopPad", gameId);
       }
     }
   }
+};
+export const incrementCounter = () => {
+  counter++;
 };
 
 export const handleKeyUp = (
@@ -268,14 +292,14 @@ export const handleKeyUp = (
     keyboardStatus.current.arrowUp = false;
     if (!keyboardStatus.current.arrowDown) {
       if (playerMove.current !== padMove.STILL) {
-        console.log("NONE");
+        console.log(new Date().getTime(), "NONE");
         playerMove.current = padMove.STILL;
         socket.emit("stopPad", gameId);
       }
     } else {
       if (playerMove.current !== padMove.DOWN) {
         playerMove.current = padMove.DOWN;
-        console.log("DOWN");
+        console.log(new Date().getTime(), "DOWN");
         socket.emit("movePadDown", gameId);
       }
     }
@@ -285,13 +309,13 @@ export const handleKeyUp = (
     if (!keyboardStatus.current.arrowUp) {
       if (playerMove.current !== padMove.STILL) {
         playerMove.current = padMove.STILL;
-        console.log("NONE");
+        console.log(new Date().getTime(), "NONE");
         socket.emit("stopPad", gameId);
       }
     } else {
       if (playerMove.current !== padMove.UP) {
         playerMove.current = padMove.UP;
-        console.log("UP");
+        console.log(new Date().getTime(), "UP");
         socket.emit("movePadUp", gameId);
       }
     }
