@@ -570,11 +570,11 @@ export class UserService {
       const game = this.gameService.getGame(currentUserId)!;
       const c = new PlayingState(); // TODO: verify graphql Game;
       c.game = {
-        gameMode: game.mode,
+        gameMode: game.game.type,
         id: game.id,
         score: {
-          player1Score: game.player1Score,
-          player2Score: game.player2Score,
+          player1Score: game.player1.score,
+          player2Score: game.player2.score,
         },
         startAt: game.startedAt,
       };
