@@ -533,6 +533,7 @@ const Unblock = ({
 
 const Disconnect = () => {
   const socket = useSocketStore().socket;
+
   return (
     <div
       onClick={() => {
