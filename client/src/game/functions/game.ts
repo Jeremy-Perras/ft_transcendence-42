@@ -214,29 +214,21 @@ export const handleKeyDown = (
 
   playerMove: React.MutableRefObject<padMove>
 ) => {
-  console.log(keycode);
-
+  console.log(playerY);
   if (keycode === "Space" && gameMode === GameMode.Speed) {
     socket.emit("boostActivated", gameId);
   }
   if (keycode === "ArrowUp") {
     keyboardStatus.current.arrowUp = true;
-
     if (!keyboardStatus.current.arrowDown) {
       if (playerMove.current !== padMove.UP) {
-        if (playerY > 0) {
-          console.log("up");
-          socket.emit("movePadUp", gameId);
-          playerMove.current = padMove.UP;
-        } else {
-          console.log("stop");
-          playerMove.current = padMove.STILL;
-          socket.emit("stopPad", gameId);
-        }
+        console.log("UP");
+        playerMove.current = padMove.UP;
+        socket.emit("movePadUp", gameId);
       }
     } else {
       if (playerMove.current !== padMove.STILL) {
-        console.log("none");
+        console.log("NONE");
         playerMove.current = padMove.STILL;
         socket.emit("stopPad", gameId);
       }
@@ -244,22 +236,15 @@ export const handleKeyDown = (
   }
   if (keycode === "ArrowDown") {
     keyboardStatus.current.arrowDown = true;
-
     if (!keyboardStatus.current.arrowUp) {
       if (playerMove.current !== padMove.DOWN) {
-        if (playerY < CANVAS_HEIGHT - PAD_HEIGHT) {
-          console.log("down");
-          playerMove.current = padMove.DOWN;
-          socket.emit("movePadDown", gameId);
-        } else {
-          console.log("stop");
-          playerMove.current = padMove.STILL;
-          socket.emit("stopPad", gameId);
-        }
+        console.log("DOWN");
+        playerMove.current = padMove.DOWN;
+        socket.emit("movePadDown", gameId);
       }
     } else {
       if (playerMove.current !== padMove.STILL) {
-        console.log("stop");
+        console.log("NONE");
         playerMove.current = padMove.STILL;
         socket.emit("stopPad", gameId);
       }
@@ -283,21 +268,15 @@ export const handleKeyUp = (
     keyboardStatus.current.arrowUp = false;
     if (!keyboardStatus.current.arrowDown) {
       if (playerMove.current !== padMove.STILL) {
-        console.log("stop");
+        console.log("NONE");
         playerMove.current = padMove.STILL;
         socket.emit("stopPad", gameId);
       }
     } else {
       if (playerMove.current !== padMove.DOWN) {
-        if (playerY < CANVAS_HEIGHT - PAD_HEIGHT) {
-          playerMove.current = padMove.DOWN;
-          console.log("down");
-          socket.emit("movePadDown", gameId);
-        } else {
-          console.log("stop");
-          playerMove.current = padMove.STILL;
-          socket.emit("stopPad", gameId);
-        }
+        playerMove.current = padMove.DOWN;
+        console.log("DOWN");
+        socket.emit("movePadDown", gameId);
       }
     }
   }
@@ -306,26 +285,18 @@ export const handleKeyUp = (
     if (!keyboardStatus.current.arrowUp) {
       if (playerMove.current !== padMove.STILL) {
         playerMove.current = padMove.STILL;
-        console.log("stop");
+        console.log("NONE");
         socket.emit("stopPad", gameId);
       }
     } else {
       if (playerMove.current !== padMove.UP) {
-        if (playerY > 0) {
-          playerMove.current = padMove.UP;
-          console.log("up");
-          socket.emit("movePadUp", gameId);
-        } else {
-          playerMove.current = padMove.STILL;
-          console.log("stop");
-          socket.emit("stopPad", gameId);
-        }
+        playerMove.current = padMove.UP;
+        console.log("UP");
+        socket.emit("movePadUp", gameId);
       }
     }
   }
 
-  //fix boost issue
-  console.log(keycode);
   if (keycode === "Space" && gameMode === GameMode.Speed) {
     socket.emit("boostDeactivated", gameId);
   }

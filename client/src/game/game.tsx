@@ -268,10 +268,7 @@ const GameCanvas = ({
       if (frontGameData.current.ball.coord.y < data.ball.coord.y)
         frontGameData.current.ball.coord.y -=
           frontGameData.current.ball.velocity.vy / BALL_VELOCITY;
-      // frontGameData.current = data;
-      frontGameData.current.ball = data.ball;
-      frontGameData.current.game.score.player1 = data.game.score.player1;
-      frontGameData.current.game.score.player2 = data.game.score.player2;
+      frontGameData.current = data;
 
       gameData = data;
     };

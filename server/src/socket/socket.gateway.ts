@@ -4,12 +4,19 @@ import {
   WebSocketGateway,
   WebSocketServer,
   OnGatewayDisconnect,
+  SubscribeMessage,
+  ConnectedSocket,
+  MessageBody,
 } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
+import { GameService } from "../game/game.service";
 
 @WebSocketGateway({ cors: "*", transports: ["websocket"] })
 export class SocketGateway implements OnModuleInit {
-  constructor(private eventEmitter: EventEmitter2) {}
+  constructor(
+    private eventEmitter: EventEmitter2,
+    private gameService: GameService
+  ) {}
 
   @WebSocketServer()
   server: Server;
@@ -54,5 +61,25 @@ export class SocketGateway implements OnModuleInit {
 
   isOnline(userId: number) {
     return this.connectedUsers.has(userId);
+  }
+
+  @SubscribeMessage("boostActivated")
+  async onBoostActivated(
+    @ConnectedSocket() client: Socket,
+    @MessageBody()
+    gameId: number
+  ) {
+    const currentUserId = client.request.session.passport.user;
+    this.gameService.handleBoostOn(gameId, currentUserId);
+  }
+
+  @SubscribeMessage("boostDeactivated")
+  async onBoostDeactivated(
+    @ConnectedSocket() client: Socket,
+    @MessageBody()
+    gameId: number
+  ) {
+    const currentUserId = client.request.session.passport.user;
+    this.gameService.handleBoostOff(gameId, currentUserId);
   }
 }
