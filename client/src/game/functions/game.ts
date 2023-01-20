@@ -16,6 +16,7 @@ export const RIGHT_PAD_X = CANVAS_WIDTH - CANVAS_WIDTH / 8 - PAD_WIDTH;
 //TODO : adapt code to differents pad velocity
 export const PAD_VELOCITY = 5;
 export const BALL_VELOCITY = 10;
+// export let moves = [];
 
 const background = {
   x: 0,
@@ -84,7 +85,6 @@ const fireball = {
     gradient.addColorStop(0, "yellow");
     gradient.addColorStop(1, "red");
     context.fillStyle = gradient;
-    console.log(activated);
     if (activated) {
       const angle = Math.atan(Math.abs(velocity.vy) / Math.abs(velocity.vx));
 
@@ -214,7 +214,6 @@ export const handleKeyDown = (
 
   playerMove: React.MutableRefObject<padMove>
 ) => {
-  console.log(playerY);
   if (keycode === "Space" && gameMode === GameMode.Speed) {
     socket.emit("boostActivated", gameId);
   }
@@ -222,13 +221,13 @@ export const handleKeyDown = (
     keyboardStatus.current.arrowUp = true;
     if (!keyboardStatus.current.arrowDown) {
       if (playerMove.current !== padMove.UP) {
-        console.log("UP");
+        console.log(new Date().getTime(), "UP");
         playerMove.current = padMove.UP;
         socket.emit("movePadUp", gameId);
       }
     } else {
       if (playerMove.current !== padMove.STILL) {
-        console.log("NONE");
+        console.log(new Date().getTime(), "NONE");
         playerMove.current = padMove.STILL;
         socket.emit("stopPad", gameId);
       }
@@ -238,13 +237,13 @@ export const handleKeyDown = (
     keyboardStatus.current.arrowDown = true;
     if (!keyboardStatus.current.arrowUp) {
       if (playerMove.current !== padMove.DOWN) {
-        console.log("DOWN");
+        console.log(new Date().getTime(), "DOWN");
         playerMove.current = padMove.DOWN;
         socket.emit("movePadDown", gameId);
       }
     } else {
       if (playerMove.current !== padMove.STILL) {
-        console.log("NONE");
+        console.log(new Date().getTime(), "NONE");
         playerMove.current = padMove.STILL;
         socket.emit("stopPad", gameId);
       }
@@ -268,14 +267,14 @@ export const handleKeyUp = (
     keyboardStatus.current.arrowUp = false;
     if (!keyboardStatus.current.arrowDown) {
       if (playerMove.current !== padMove.STILL) {
-        console.log("NONE");
+        console.log(new Date().getTime(), "NONE");
         playerMove.current = padMove.STILL;
         socket.emit("stopPad", gameId);
       }
     } else {
       if (playerMove.current !== padMove.DOWN) {
         playerMove.current = padMove.DOWN;
-        console.log("DOWN");
+        console.log(new Date().getTime(), "DOWN");
         socket.emit("movePadDown", gameId);
       }
     }
@@ -285,20 +284,18 @@ export const handleKeyUp = (
     if (!keyboardStatus.current.arrowUp) {
       if (playerMove.current !== padMove.STILL) {
         playerMove.current = padMove.STILL;
-        console.log("NONE");
+        console.log(new Date().getTime(), "NONE");
         socket.emit("stopPad", gameId);
       }
     } else {
       if (playerMove.current !== padMove.UP) {
         playerMove.current = padMove.UP;
-        console.log("UP");
+        console.log(new Date().getTime(), "UP");
         socket.emit("movePadUp", gameId);
       }
     }
   }
 
-  //fix boost issue
-  console.log(keycode);
   if (keycode === "Space" && gameMode === GameMode.Speed) {
     socket.emit("boostDeactivated", gameId);
   }

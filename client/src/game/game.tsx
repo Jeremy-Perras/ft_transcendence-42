@@ -219,6 +219,20 @@ const GameCanvas = ({
     };
   }, [initData, currentUserId]);
 
+  /////////// EVENT MANAGER
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (playerMove.current === padMove.DOWN)
+        console.log(new Date().getTime(), "down");
+      // else if (playerMove.current === padMove.STILL)
+      //   console.log(new Date().getTime(), "none");
+      else if (playerMove.current === padMove.UP)
+        console.log(new Date().getTime(), "up");
+    }, 10);
+
+    return () => clearInterval(interval);
+  }, [playerMove]);
+
   useEffect(() => {
     let gameData: GameData;
     if (canvas.current) {
