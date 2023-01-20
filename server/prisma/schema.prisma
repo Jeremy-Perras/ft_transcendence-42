@@ -9,8 +9,8 @@ datasource db {
 
 enum GameMode {
   CLASSIC
-  SPEED
-  RANDOM
+  BOOST
+  GIFT
 }
 
 enum Achievement {

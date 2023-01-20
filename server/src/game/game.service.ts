@@ -24,23 +24,16 @@ export enum playerMove {
   STILL,
 }
 
-type GameInfo = {
-  id: number;
-  score: {
-    player1: number;
-    player2: number;
-  };
-  players: {
-    player1: number;
-    player2: number;
-  };
+type valueHandleKeys = {
+  handleKey: string;
+  date: number;
 };
 
-type ClassicGame = GameInfo & {
+type ClassicGame = {
   type: "CLASSIC";
 };
 
-type BoostGame = GameInfo & {
+type BoostGame = {
   type: "BOOST";
   player1Boost: {
     remaining: number;
@@ -52,7 +45,7 @@ type BoostGame = GameInfo & {
   };
 };
 
-type GiftGame = GameInfo & {
+type GiftGame = {
   type: "GIFT";
   player1Gifts: {
     speed: number;
@@ -72,11 +65,16 @@ type Coord = {
 };
 
 type Player = {
+  id: number;
   coord: Coord;
   playerMove: playerMove;
+  score: number;
+  event: valueHandleKeys;
 };
 
 type GameData = {
+  id: number;
+  startedAt: Date;
   player1: Player;
   player2: Player;
   ball: { coord: Coord; velocity: { vx: number; vy: number } };
@@ -91,29 +89,36 @@ export class GameService {
     private readonly prismaService: PrismaService
   ) {}
   private players: Map<number, ReturnType<typeof PlayerMachine>> = new Map();
-  private games: Map<number, Game> = new Map();
+  private games: Map<number, GameData> = new Map();
   private matchmakingRooms: Record<GameMode, Set<number>> = {
     CLASSIC: new Set(),
-    RANDOM: new Set(),
-    SPEED: new Set(),
+    GIFT: new Set(),
+    BOOST: new Set(),
   };
 
-  public saveGameData = new Map<number, GameData>();
-  InitialState(
+  initialState(
     id: number,
+    startedAt: Date,
     player1Id: number,
     player2Id: number,
     gameMode: GameMode
-  ) {
-    this.saveGameData.set(id, {
+  ): GameData {
+    return {
+      id: id,
+      startedAt,
       player1: {
+        id: player1Id,
         coord: { x: LEFT_PAD_X, y: (CANVAS_HEIGHT - PAD_HEIGHT) / 2 },
         playerMove: playerMove.STILL,
+        event: { date: 0, handleKey: "NULL" },
+        score: 0,
       },
       player2: {
+        id: player2Id,
         coord: { x: RIGHT_PAD_X, y: (CANVAS_HEIGHT - PAD_HEIGHT) / 2 },
-
         playerMove: playerMove.STILL,
+        score: 0,
+        event: { date: 0, handleKey: "" },
       },
       ball: {
         coord: {
@@ -128,66 +133,47 @@ export class GameService {
       game:
         gameMode === GameMode.CLASSIC
           ? {
-              id: id,
-              score: { player1: 0, player2: 0 },
-              players: { player1: player1Id, player2: player2Id },
               type: "CLASSIC",
             }
-          : gameMode === GameMode.SPEED
+          : gameMode === GameMode.BOOST
           ? {
-              id: id,
-              score: { player1: 0, player2: 0 },
-              players: { player1: player1Id, player2: player2Id },
               type: "BOOST",
               player1Boost: { activated: false, remaining: 100 }, // percent
               player2Boost: { activated: false, remaining: 100 },
             }
           : {
-              id: id,
-              score: { player1: 0, player2: 0 },
-              players: { player1: player1Id, player2: player2Id },
               type: "GIFT",
               player1Gifts: { size: 1, speed: 1 }, // ratio
               player2Gifts: { size: 1, speed: 1 },
             },
-    });
-
-    return this.saveGameData.get(id);
+    };
   }
 
   playerMove(state: playerMove, playerId: number, gameId: number) {
-    const gameData = this.saveGameData.get(gameId);
+    const gameData = this.games.get(gameId);
     if (gameData) {
       switch (state) {
         case playerMove.UP:
-          if (
-            playerId === this.saveGameData.get(gameId)?.game.players.player1
-          ) {
+          if (playerId === this.games.get(gameId)?.player1.id) {
             if (gameData.player1.coord.y >= PAD_VELOCITY)
               gameData.player1.playerMove = playerMove.UP;
             else gameData.player1.playerMove = playerMove.STILL;
-          } else if (
-            playerId === this.saveGameData.get(gameId)?.game.players.player2
-          ) {
+          } else if (playerId === this.games.get(gameId)?.player2.id) {
             if (gameData.player2.coord.y >= PAD_VELOCITY)
               gameData.player2.playerMove = playerMove.UP;
             else gameData.player2.playerMove = playerMove.STILL;
           }
-          this.saveGameData.set(gameId, gameData);
+          this.games.set(gameId, gameData);
           break;
         case playerMove.DOWN:
-          if (
-            playerId === this.saveGameData.get(gameId)?.game.players.player1
-          ) {
+          if (playerId === this.games.get(gameId)?.player1.id) {
             if (
               gameData.player1.coord.y <=
               CANVAS_HEIGHT - PAD_HEIGHT - PAD_VELOCITY
             )
               gameData.player1.playerMove = playerMove.DOWN;
             else gameData.player1.playerMove = playerMove.STILL;
-          } else if (
-            playerId === this.saveGameData.get(gameId)?.game.players.player2
-          ) {
+          } else if (playerId === this.games.get(gameId)?.player2.id) {
             if (
               gameData.player2.coord.y <=
               CANVAS_HEIGHT - PAD_HEIGHT - PAD_VELOCITY
@@ -195,62 +181,60 @@ export class GameService {
               gameData.player2.playerMove = playerMove.DOWN;
             else gameData.player2.playerMove = playerMove.STILL;
           }
-          this.saveGameData.set(gameId, gameData);
+          this.games.set(gameId, gameData);
           break;
         default:
-          if (playerId === this.saveGameData.get(gameId)?.game.players.player1)
+          if (playerId === this.games.get(gameId)?.player1.id)
             gameData.player1.playerMove = playerMove.STILL;
-          else if (
-            playerId === this.saveGameData.get(gameId)?.game.players.player2
-          )
+          else if (playerId === this.games.get(gameId)?.player2.id)
             gameData.player2.playerMove = playerMove.STILL;
 
-          this.saveGameData.set(gameId, gameData);
+          this.games.set(gameId, gameData);
           break;
       }
     }
   }
 
   MovePadUp(gameId: number, playerId: number) {
-    const gameData = this.saveGameData.get(gameId);
+    const gameData = this.games.get(gameId);
     if (gameData !== undefined) {
-      if (playerId === gameData.game.players.player1) {
+      if (playerId === gameData.player1.id) {
         if (gameData.player1.coord.y >= PAD_VELOCITY)
           gameData.player1.coord.y -= PAD_VELOCITY;
-      } else if (playerId === gameData.game.players.player2) {
+      } else if (playerId === gameData.player2.id) {
         if (gameData.player2.coord.y >= PAD_VELOCITY)
           gameData.player2.coord.y -= PAD_VELOCITY;
       }
-      this.saveGameData.set(gameId, gameData);
+      this.games.set(gameId, gameData);
     }
   }
 
   MovePadDown(gameId: number, playerId: number) {
-    const gameData = this.saveGameData.get(gameId);
+    const gameData = this.games.get(gameId);
 
     if (gameData !== undefined) {
-      if (playerId === gameData.game.players.player1) {
+      if (playerId === gameData.player1.id) {
         if (
           gameData.player1.coord.y <=
           CANVAS_HEIGHT - PAD_HEIGHT - PAD_VELOCITY
         )
           gameData.player1.coord.y += PAD_VELOCITY;
-      } else if (playerId === gameData.game.players.player2) {
+      } else if (playerId === gameData.player2.id) {
         if (
           gameData.player2.coord.y <=
           CANVAS_HEIGHT - PAD_HEIGHT - PAD_VELOCITY
         )
           gameData.player2.coord.y += PAD_VELOCITY;
       }
-      this.saveGameData.set(gameId, gameData);
+      this.games.set(gameId, gameData);
     }
   }
 
   handleBoostOn(gameId: number, playerId: number) {
-    const gameData = this.saveGameData.get(gameId);
+    const gameData = this.games.get(gameId);
     if (gameData?.game.type !== "BOOST") return;
     if (gameData !== undefined) {
-      if (playerId === gameData.game.players.player1) {
+      if (playerId === gameData.player1.id) {
         if (
           gameData.game.player1Boost.remaining > 0 &&
           !gameData.game.player2Boost.activated
@@ -270,7 +254,7 @@ export class GameService {
           gameData.ball.velocity.vx =
             gameData.ball.velocity.vx > 0 ? BALL_VELOCITY : -BALL_VELOCITY;
         }
-      } else if (playerId === gameData.game.players.player2) {
+      } else if (playerId === gameData.player2.id) {
         if (
           gameData.game.player2Boost.remaining > 0 &&
           !gameData.game.player1Boost.activated
@@ -291,22 +275,22 @@ export class GameService {
             gameData.ball.velocity.vx > 0 ? BALL_VELOCITY : -BALL_VELOCITY;
         }
       }
-      this.saveGameData.set(gameId, gameData);
+      this.games.set(gameId, gameData);
     }
   }
 
   handleBoostOff(gameId: number, playerId: number) {
-    const gameData = this.saveGameData.get(gameId);
+    const gameData = this.games.get(gameId);
     if (gameData?.game.type !== "BOOST") return;
     if (gameData !== undefined) {
-      if (playerId === gameData.game.players.player1) {
+      if (playerId === gameData.player1.id) {
         gameData.game.player1Boost.activated = false;
         gameData.ball.velocity.vy =
           gameData.ball.velocity.vy /
           Math.abs(gameData.ball.velocity.vx / BALL_VELOCITY);
         gameData.ball.velocity.vx =
           gameData.ball.velocity.vx > 0 ? BALL_VELOCITY : -BALL_VELOCITY;
-      } else if (playerId === gameData.game.players.player2) {
+      } else if (playerId === gameData.player2.id) {
         gameData.game.player2Boost.activated = false;
         gameData.ball.velocity.vy =
           gameData.ball.velocity.vy /
@@ -314,12 +298,12 @@ export class GameService {
         gameData.ball.velocity.vx =
           gameData.ball.velocity.vx > 0 ? BALL_VELOCITY : -BALL_VELOCITY;
       }
-      this.saveGameData.set(gameId, gameData);
+      this.games.set(gameId, gameData);
     }
   }
 
   MoveBall(gameId: number) {
-    const gameData = this.saveGameData.get(gameId);
+    const gameData = this.games.get(gameId);
 
     const checkWallCollision = (gameData: GameData): boolean => {
       let wallCollision = false;
@@ -346,7 +330,7 @@ export class GameService {
       if (wallCollision) {
         gameData.ball.coord.x += gameData.ball.velocity.vx;
         gameData.ball.velocity.vy = -gameData.ball.velocity.vy;
-        this.saveGameData.set(gameId, gameData);
+        this.games.set(gameId, gameData);
       }
       return wallCollision;
     };
@@ -410,7 +394,7 @@ export class GameService {
           gameData.ball.coord.y =
             yColl + (1 - coeff) * gameData.ball.velocity.vy;
 
-          this.saveGameData.set(gameId, gameData);
+          this.games.set(gameId, gameData);
           return true;
         }
 
@@ -431,7 +415,7 @@ export class GameService {
           gameData.ball.coord.y =
             yColl + (1 - coeff) * gameData.ball.velocity.vy;
 
-          this.saveGameData.set(gameId, gameData);
+          this.games.set(gameId, gameData);
           return true;
         }
 
@@ -451,7 +435,7 @@ export class GameService {
           gameData.ball.coord.y =
             yColl + (1 - coeff) * gameData.ball.velocity.vy;
 
-          this.saveGameData.set(gameId, gameData);
+          this.games.set(gameId, gameData);
           return true;
         }
       }
@@ -485,7 +469,7 @@ export class GameService {
             BALL_RADIUS +
             (1 - coeff) * gameData.ball.velocity.vy;
 
-          this.saveGameData.set(gameId, gameData);
+          this.games.set(gameId, gameData);
           return true;
         }
       }
@@ -514,7 +498,7 @@ export class GameService {
             BALL_RADIUS +
             (1 - coeff) * gameData.ball.velocity.vy;
 
-          this.saveGameData.set(gameId, gameData);
+          this.games.set(gameId, gameData);
           return true;
         }
       }
@@ -568,7 +552,7 @@ export class GameService {
           gameData.ball.coord.y =
             yColl + (1 - coeff) * gameData.ball.velocity.vy;
 
-          this.saveGameData.set(gameId, gameData);
+          this.games.set(gameId, gameData);
           return true;
         }
         if (
@@ -586,7 +570,7 @@ export class GameService {
           gameData.ball.coord.y =
             yColl + (1 - coeff) * gameData.ball.velocity.vy;
 
-          this.saveGameData.set(gameId, gameData);
+          this.games.set(gameId, gameData);
           return true;
         }
         if (
@@ -604,7 +588,7 @@ export class GameService {
           gameData.ball.coord.y =
             yColl + (1 - coeff) * gameData.ball.velocity.vy;
 
-          this.saveGameData.set(gameId, gameData);
+          this.games.set(gameId, gameData);
           return true;
         }
       }
@@ -639,7 +623,7 @@ export class GameService {
             BALL_RADIUS +
             (1 - coeff) * gameData.ball.velocity.vy;
 
-          this.saveGameData.set(gameId, gameData);
+          this.games.set(gameId, gameData);
           return true;
         }
       }
@@ -668,7 +652,7 @@ export class GameService {
             BALL_RADIUS +
             (1 - coeff) * gameData.ball.velocity.vy;
 
-          this.saveGameData.set(gameId, gameData);
+          this.games.set(gameId, gameData);
           return true;
         }
       }
@@ -683,7 +667,7 @@ export class GameService {
         gameData.ball.coord.x + gameData.ball.velocity.vx >
         CANVAS_WIDTH + BALL_RADIUS
       ) {
-        gameData.game.score.player1 += 1;
+        gameData.player1.score += 1;
         if (gameData.game.type === "BOOST") {
           if (gameData.game.player1Boost.remaining < 90)
             gameData.game.player1Boost.remaining += 10;
@@ -694,7 +678,7 @@ export class GameService {
         gameData.ball.coord.x + gameData.ball.velocity.vx <
         -BALL_RADIUS
       ) {
-        gameData.game.score.player2 += 1;
+        gameData.player2.score += 1;
         if (gameData.game.type === "BOOST") {
           if (gameData.game.player2Boost.remaining < 90)
             gameData.game.player2Boost.remaining += 10;
@@ -713,7 +697,7 @@ export class GameService {
           gameData.ball.velocity.vx > 0 ? -BALL_VELOCITY : BALL_VELOCITY;
         gameData.ball.velocity.vy =
           rand <= 0.5 ? -BALL_VELOCITY * rand : BALL_VELOCITY * rand;
-        this.saveGameData.set(gameId, gameData);
+        this.games.set(gameId, gameData);
       }
       return isScoring;
     };
@@ -731,7 +715,7 @@ export class GameService {
 
       gameData.ball.coord.x += gameData.ball.velocity.vx;
       gameData.ball.coord.y += gameData.ball.velocity.vy;
-      this.saveGameData.set(gameId, gameData);
+      this.games.set(gameId, gameData);
     }
   }
 
@@ -800,7 +784,7 @@ export class GameService {
 
   getGame = (userId: number) => {
     for (const game of this.games.values()) {
-      if (game.player1Id === userId || game.player2Id === userId) {
+      if (game.player1.id === userId || game.player2.id === userId) {
         return game;
       }
     }
@@ -817,7 +801,16 @@ export class GameService {
           },
         })
         .then((game) => {
-          this.games.set(game.id, game);
+          this.games.set(
+            game.id,
+            this.initialState(
+              game.id,
+              game.startedAt,
+              game.player1Id,
+              game.player2Id,
+              game.mode
+            )
+          );
           resolve();
         })
         .catch(() => {
@@ -833,13 +826,13 @@ export class GameService {
         where: { id: gameId },
         data: {
           finishedAt: new Date(),
-          player1Score: 0, // TODO
-          player2Score: 0, // TODO
+          player1Score: game.player1.score,
+          player2Score: game.player2.score,
         },
       });
 
-      const p1 = this.getPlayer(game.player1Id);
-      const p2 = this.getPlayer(game.player2Id);
+      const p1 = this.getPlayer(game.player1.id);
+      const p2 = this.getPlayer(game.player2.id);
 
       if (p1) p1.send({ type: "GAME_ENDED" });
       if (p2) p2.send({ type: "GAME_ENDED" });
@@ -859,7 +852,7 @@ export class GameService {
       };
 
       switch (userId) {
-        case game.player1Id:
+        case game.player1.id:
           data.player1Score = -42;
           data.player2Score = 11;
           break;
@@ -874,8 +867,8 @@ export class GameService {
         data,
       });
 
-      const p1 = this.getPlayer(game.player1Id);
-      const p2 = this.getPlayer(game.player2Id);
+      const p1 = this.getPlayer(game.player1.id);
+      const p2 = this.getPlayer(game.player2.id);
 
       if (p1) p1.send({ type: "GAME_ENDED" });
       if (p2) p2.send({ type: "GAME_ENDED" });

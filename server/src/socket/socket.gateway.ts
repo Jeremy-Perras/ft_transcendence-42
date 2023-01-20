@@ -11,18 +11,13 @@ import {
 import { Server, Socket } from "socket.io";
 import { GameService } from "../game/game.service";
 
-type valueHandleKeys = {
-  handleKey: string;
-  date: number;
-};
-
 @WebSocketGateway({ cors: "*", transports: ["websocket"] })
 export class SocketGateway implements OnModuleInit {
   constructor(
     private eventEmitter: EventEmitter2,
     private gameService: GameService
   ) {}
-  private handleKey: Map<number, valueHandleKeys> = new Map();
+  // private handleKey: Map<number, valueHandleKeysPlayer> = new Map();
   @WebSocketServer()
   server: Server;
 
@@ -86,5 +81,14 @@ export class SocketGateway implements OnModuleInit {
   ) {
     const currentUserId = client.request.session.passport.user;
     this.gameService.handleBoostOff(gameId, currentUserId);
+  }
+
+  @SubscribeMessage("handleKey")
+  async onHandleKey(
+    @ConnectedSocket() client: Socket,
+    @MessageBody()
+    gameId: number
+  ) {
+    const currentUserId = client.request.session.passport.user;
   }
 }

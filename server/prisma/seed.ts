@@ -307,7 +307,7 @@ try {
     });
 
     console.log("CREATE GAMES");
-    GameMode.RANDOM;
+    GameMode.GIFT;
     await prisma.game.createMany({
       data: [
         // user 1 played 1 CLASSIC game with user 2 to 10
@@ -318,17 +318,17 @@ try {
           player1Score: Math.floor(Math.random() * 50),
           player2Score: Math.floor(Math.random() * 50),
         })),
-        // user 1 played 1 SPEED game with user 2 to 10
+        // user 1 played 1 BOOST game with user 2 to 10
         ...[...Array(9)].map((_, i) => ({
-          mode: GameMode.SPEED,
+          mode: GameMode.BOOST,
           player1Id: i + 2,
           player2Id: 1,
           player1Score: Math.floor(Math.random() * 50),
           player2Score: Math.floor(Math.random() * 50),
         })),
-        // user 1 played 1 RANDOM game with user 2 to 10
+        // user 1 played 1 GIFT game with user 2 to 10
         ...[...Array(9)].map((_, i) => ({
-          mode: GameMode.RANDOM,
+          mode: GameMode.GIFT,
           player1Id: 1,
           player2Id: i + 2,
           player1Score: Math.floor(Math.random() * 50),
