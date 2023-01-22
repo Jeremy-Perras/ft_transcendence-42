@@ -3,18 +3,65 @@ import { Socket } from "socket.io-client";
 import { GameData, padMove } from "../types/gameData";
 
 //TODO : set  values depending on client + size ratio got from back
-export const CANVAS_WIDTH = 500;
-export const CANVAS_HEIGHT = 500;
+export const CANVAS_WIDTH = 4000;
+export const CANVAS_HEIGHT = 4000;
 
 export const PAD_HEIGHT = Math.ceil(CANVAS_HEIGHT / 10);
 export const PAD_WIDTH = Math.ceil(PAD_HEIGHT / 10);
 
-export const BALL_RADIUS = 4;
+export const BALL_RADIUS = 40;
 export const LEFT_PAD_X = CANVAS_WIDTH / 8;
 export const RIGHT_PAD_X = CANVAS_WIDTH - CANVAS_WIDTH / 8 - PAD_WIDTH;
 
-export const BALL_VELOCITY = 10;
+export const BALL_VELOCITY = 100;
 export const PAD_SPEED = 1;
+
+export function plotImage(
+  ctx: CanvasRenderingContext2D,
+  wrap: React.RefObject<HTMLElement>,
+  width: number,
+  height: number,
+  data: GameData
+) {
+  ctx.fillStyle = "red";
+  ctx.fillRect(0, 0, width, height);
+
+  ctx.fillStyle = "white";
+  let min = 0;
+  if (wrap && wrap.current) {
+    if (wrap.current.clientHeight > wrap.current.clientWidth) {
+      min = wrap.current.clientWidth / 2;
+    } else {
+      min = wrap.current.clientHeight / 2;
+    }
+    background.x = wrap.current.clientWidth / 2 - min / 2;
+    background.y = wrap.current.clientHeight / 2 - min / 2;
+  }
+  draw(ctx, data);
+}
+
+export function redraw(
+  wrap: React.RefObject<HTMLElement>,
+  canvas: React.RefObject<HTMLCanvasElement>,
+  data: GameData
+) {
+  const dpr = window.devicePixelRatio;
+  if (canvas && canvas.current) {
+    const cssWidth = canvas.current.clientWidth;
+    const cssHeight = canvas.current.clientHeight;
+    const pxWidth = Math.round(dpr * cssWidth);
+    const pxHeight = Math.round(dpr * cssHeight);
+
+    canvas.current.width = pxWidth;
+    canvas.current.height = pxHeight;
+
+    const ctx = canvas.current.getContext("2d");
+    if (ctx) {
+      ctx.scale(dpr, dpr);
+      plotImage(ctx, wrap, cssWidth, cssHeight, data);
+    }
+  }
+}
 
 const background = {
   x: 0,
@@ -174,7 +221,8 @@ const score = {
 };
 
 export const draw = (context: CanvasRenderingContext2D, data: GameData) => {
-  context?.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+  context?.clearRect(background.x, background.y, CANVAS_WIDTH, CANVAS_HEIGHT);
+  context.translate(background.x, background.y);
   background.draw(context);
   score.draw(context, data.game.score.player1, data.game.score.player2);
   leftPad.draw(context, data.player1.coord.y);
@@ -193,6 +241,7 @@ export const draw = (context: CanvasRenderingContext2D, data: GameData) => {
       data.game.player2Boost.remaining
     );
   }
+  context.setTransform(1, 0, 0, 1, 0, 0);
 };
 
 export const setY = (
@@ -203,21 +252,53 @@ export const setY = (
       timestamp: number;
       move: padMove;
       y: number;
+      done: boolean;
     }[]
-  >,
-  origin: string
+  >
 ) => {
-  console.log(playerY.current);
-  console.log(moves.current[moves.current.length - 1], origin);
   const len = moves.current.length;
-  if (playerY.current <= 0 || playerY.current >= CANVAS_HEIGHT - PAD_HEIGHT)
-    return;
-  const now = new Date().getTime();
 
-  const lastMove = moves.current[len - 1];
+  console.log(moves.current[moves.current.length - 1], origin);
+  console.log(playerY.current);
 
-  // if (lastMove && lastMove.move === padMove.UP)
-  //   playerY.current = PAD_SPEED * (lastMove.timestamp - now);
+  moves.current.forEach((val, i) => {
+    if (!val.done) {
+      if (val.move === padMove.UP) {
+        if (i < len - 1) {
+          const nextMove = moves.current[i + 1];
+          if (nextMove)
+            playerY.current += PAD_SPEED * (nextMove.timestamp - val.timestamp);
+        } else {
+          playerY.current += PAD_SPEED * (Date.now() - val.timestamp);
+        }
+      } else if (val.move === padMove.DOWN) {
+        if (i < len - 1) {
+          const nextMove = moves.current[i + 1];
+          if (nextMove)
+            playerY.current -= PAD_SPEED * (nextMove.timestamp - val.timestamp);
+        } else {
+          playerY.current -= PAD_SPEED * (Date.now() - val.timestamp);
+        }
+      }
+
+      if (playerY.current > CANVAS_HEIGHT - PAD_HEIGHT) {
+        playerY.current = CANVAS_HEIGHT - PAD_HEIGHT;
+      } else if (playerY.current < 0) {
+        playerY.current = 0;
+      }
+
+      if (val.move !== padMove.STILL && i === len - 1) {
+        moves.current.splice(i + 1, 0, {
+          event: len,
+          timestamp: Date.now(),
+          move: val.move,
+          y: playerY.current,
+          done: false,
+        });
+      }
+      val.done = true;
+    }
+  });
 };
 
 export const handleKeyDown = (

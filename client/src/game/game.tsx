@@ -27,98 +27,7 @@ import {
 } from "./functions/game";
 import { GameData, padMove } from "./types/gameData";
 
-//TODO : animate ball - check coordinates etc
 //TODO : bonus mode
-
-const wrap = document.getElementById("wrap");
-const canvas = document.getElementById("canvas");
-
-// function plotImage(ctx, width, height) {
-//   ctx.fillStyle = "red";
-//   ctx.fillRect(0, 0, width, height);
-
-//   ctx.fillStyle = "white";
-//   let min = 0;
-//   if (wrap.clientHeight > wrap.clientWidth) {
-//     min = wrap.clientWidth / 2;
-//   } else {
-//     min = wrap.clientHeight / 2;
-//   }
-//   const offsetx = wrap.clientWidth / 2 - min / 2;
-//   const offsety = wrap.clientHeight / 2 - min / 2;
-//   ctx.fillRect(offsetx, offsety, min, min);
-// }
-
-// function redraw() {
-//   const dpr = window.devicePixelRatio;
-//   const cssWidth = canvas.clientWidth;
-//   const cssHeight = canvas.clientHeight;
-//   const pxWidth = Math.round(dpr * cssWidth);
-//   const pxHeight = Math.round(dpr * cssHeight);
-
-//   canvas.width = pxWidth;
-//   canvas.height = pxHeight;
-
-//   const ctx = canvas.getContext("2d");
-//   ctx.scale(dpr, dpr);
-//   plotImage(ctx, cssWidth, cssHeight);
-// }
-
-// new ResizeObserver(() => redraw()).observe(canvas);
-
-// let loop = null;
-// let pos = 0;
-// let events = [];
-// let lastEvent = "none";
-// const keys = {
-//   up: false,
-//   down: false,
-// };
-
-// const SPEED = 1;
-
-// const start = () => {
-//   startStopBtn.textContent = "stop";
-//   events = [];
-//   loop = setInterval(() => {
-//     events.forEach((val, i) => {
-//       if (!val.done) {
-//         if (val.dir === "up") {
-//           if (i < events.length - 1) {
-//             pos += SPEED * (events[i + 1].time - val.time);
-//           } else {
-//             pos += SPEED * (Date.now() - val.time);
-//           }
-//         } else if (val.dir === "down") {
-//           if (i < events.length - 1) {
-//             pos -= SPEED * (events[i + 1].time - val.time);
-//           } else {
-//             pos -= SPEED * (Date.now() - val.time);
-//           }
-//         }
-
-//         if (pos > 2000) {
-//           pos = 2000;
-//         } else if (pos < -2000) {
-//           pos = -2000;
-//         }
-
-//         if (val.dir !== "none" && i === events.length - 1) {
-//           events.splice(i + 1, 0, {
-//             time: Date.now(),
-//             dir: val.dir,
-//             done: false,
-//             sent: false,
-//           });
-//         }
-//         val.done = true;
-//       }
-//     });
-
-//     printEvents();
-//     posDisplay.textContent = `pos: ${pos}`;
-//   }, 10);
-// };
 
 enum gameScreenState {
   INTRO,
@@ -127,7 +36,6 @@ enum gameScreenState {
 }
 
 const INTRO_DURATION = 1; //INITIAL COUNTDOWN
-// modify canvas size with clientValue
 
 const GameQueryDocument = graphql(`
   query Game($gameId: Int!) {
@@ -189,8 +97,13 @@ const GameCanvas = ({
   setGameState: React.Dispatch<React.SetStateAction<gameScreenState>>;
   initData: GameQuery;
 }) => {
+  const currentUserId = useAuthStore((state) => state.userId);
+  const socket = useSocketStore().socket;
+
+  const wrap = useRef<HTMLElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   if (!canvas) return <>Error</>;
+
   const requestRef = useRef<number>();
   const playerMove = useRef(padMove.STILL);
   const keyboardStatus = useRef({
@@ -199,11 +112,14 @@ const GameCanvas = ({
   });
   const yPlayer = useRef<number>((CANVAS_HEIGHT - PAD_HEIGHT) / 2);
   const moves = useRef<
-    { event: number; timestamp: number; move: padMove; y: number }[]
+    {
+      event: number;
+      timestamp: number;
+      move: padMove;
+      y: number;
+      done: boolean;
+    }[]
   >([]);
-
-  const currentUserId = useAuthStore((state) => state.userId);
-  const socket = useSocketStore().socket;
 
   const frontGameData = useRef<GameData>({
     player1: {
@@ -269,6 +185,7 @@ const GameCanvas = ({
             timestamp: number;
             move: padMove;
             y: number;
+            done: boolean;
           }[]
         >,
         socket: Socket,
@@ -318,86 +235,39 @@ const GameCanvas = ({
     };
   }, [initData, currentUserId]);
 
-  /////////// EVENT MANAGER
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     setY(yPlayer, moves, "");
-  //     // if (playerMove.current === padMove.DOWN) {
-  //     //   // moves.current.push({
-  //     //   //   event: moves.current.length,
-  //     //   //   timestamp: new Date().getTime(),
-  //     //   //   move: padMove.DOWN,
-  //     //   // });
-
-  //     //   console.log(moves.current[moves.current.length - 1]);
-  //     // } else if (playerMove.current === padMove.UP) {
-  //     //   // moves.current.push({
-  //     //   //   event: moves.current.length,
-  //     //   //   timestamp: new Date().getTime(),
-  //     //   //   move: padMove.UP,
-  //     //   // });
-
-  //     //   // console.log(moves.current[moves.current.length - 1]);
-  //     // }
-  //   }, 10);
-
-  //   return () => clearInterval(interval);
-  // }, [playerMove]);
-
-  // useEffect(() => {
-  //   let gameData: GameData;
-  //   if (canvas.current) {
-  //     canvas.current.width = 500;
-  //     canvas.current.height = 500;
-  //   }
-
-  //   const animate = () => {
-  //     let ctx;
-  //     if (canvas.current) ctx = canvas.current.getContext("2d");
-  //     if (ctx && gameData) {
-  //       setY(yPlayer, moves, "");
-  //       gameData.player1.coord.y = yPlayer.current;
-  //       draw(ctx, gameData);
-  //     }
-  //   };
-  //   // socket.off("updateCanvas");
-
-  //   requestRef.current = setInterval(animate, 10);
-  //   return () => {
-  //     clearInterval(requestRef.current);
-  //   };
-  // }, [playerMove]);
-
   useEffect(() => {
     let gameData: GameData;
     if (canvas.current) {
       canvas.current.width = 500;
       canvas.current.height = 500;
     }
-    const cb = (data: GameData) => {
-      if (data.game.score.player1 >= 11 || data.game.score.player2 >= 11) {
+    const cb = (backData: GameData) => {
+      if (
+        backData.game.score.player1 >= 11 ||
+        backData.game.score.player2 >= 11
+      ) {
         socket.emit("endGame", initData.game.id);
         setGameState(gameScreenState.SCORE);
       }
       let ctx;
       if (canvas.current) ctx = canvas.current.getContext("2d");
       if (ctx) draw(ctx, frontGameData.current);
-      frontGameData.current = data;
+      frontGameData.current = backData;
       if (currentUserId === frontGameData.current.game.players.player1)
         frontGameData.current.player1.coord.y = yPlayer.current;
-      if (currentUserId === frontGameData.current.game.players.player2)
+      else if (currentUserId === frontGameData.current.game.players.player2)
         frontGameData.current.player2.coord.y = yPlayer.current;
-      gameData = data;
+      gameData = backData;
     };
     const animate = () => {
       let ctx;
       if (canvas.current) ctx = canvas.current.getContext("2d");
       if (ctx && gameData) {
         if (frontGameData.current) {
-          setY(playerMove, moves, "");
+          setY(playerMove, moves);
           if (currentUserId === frontGameData.current.game.players.player1)
             frontGameData.current.player1.coord.y = yPlayer.current;
-          if (currentUserId === frontGameData.current.game.players.player2)
+          else if (currentUserId === frontGameData.current.game.players.player2)
             frontGameData.current.player2.coord.y = yPlayer.current;
           draw(ctx, frontGameData.current);
         }
@@ -410,17 +280,20 @@ const GameCanvas = ({
       socket.off("updateCanvas", cb);
       clearInterval(requestRef.current);
     };
-  }, []);
+  }, [playerMove, cb]); //TODO : verif
+
+  useEffect(() => {
+    new ResizeObserver(() => redraw(wrap, canvas, frontGameData)).observe(
+      canvas
+    );
+  }, [wrap]); //TODO : test
 
   //TODO : pause game ? check subject
   return (
-    <div>
-      <canvas
-        tabIndex={0}
-        className="border-4 border-white"
-        ref={canvas}
-        id={"game"}
-      />
+    <>
+      <div ref={wrap}>
+        <canvas tabIndex={0} className="border-4 border-white" ref={canvas} />
+      </div>
       <div className="my-2 flex w-full items-center justify-center">
         <div className="shrink-0 basis-2/5 truncate">
           {initData.game.players.player1.name}
@@ -434,13 +307,14 @@ const GameCanvas = ({
       </div>
       <GameTimer startTime={startTime} />
       {/* {!isPlayer && <span className="my-2 text-lg">Live Stream</span>} */}
-    </div>
+    </>
   );
 };
 
 const GameTimer = ({ startTime }: { startTime: number }) => {
-  const [timer, setTimer] = useState(startTime);
-
+  const [timer, setTimer] = useState(
+    Math.floor((new Date().getTime() - startTime) / 1000)
+  );
   useEffect(() => {
     const interval = setInterval(() => {
       setTimer(Math.floor((new Date().getTime() - startTime) / 1000));

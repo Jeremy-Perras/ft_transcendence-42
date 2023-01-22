@@ -1,15 +1,15 @@
 import { Injectable } from "@nestjs/common";
 import { GameMode } from "@prisma/client";
 
-const CANVAS_WIDTH = 500;
-const CANVAS_HEIGHT = 500;
+const CANVAS_WIDTH = 4000;
+const CANVAS_HEIGHT = 4000;
 const PAD_HEIGHT = Math.ceil(CANVAS_HEIGHT / 10);
 const PAD_WIDTH = Math.ceil(PAD_HEIGHT / 10);
-const BALL_RADIUS = 4;
+const BALL_RADIUS = 40;
 export const LEFT_PAD_X = CANVAS_WIDTH / 8;
 export const RIGHT_PAD_X = CANVAS_WIDTH - CANVAS_WIDTH / 8 - PAD_WIDTH;
-const BALL_VELOCITY = 10;
-const PAD_VELOCITY = 5;
+const BALL_VELOCITY = 100;
+const PAD_SPEED = 1;
 
 //TODO : send canvas h and w + ratios to front
 //TODO : send to front only necessary info - remove x player, send pad size and speed, etc
@@ -69,6 +69,12 @@ type Coord = {
 type Player = {
   coord: Coord;
   playerMove: playerMove;
+  moves: Array<{
+    event: number;
+    timestamp: number;
+    move: playerMove;
+    done: boolean;
+  }>;
 };
 
 type GameData = {
@@ -81,6 +87,7 @@ type GameData = {
 @Injectable()
 export class GameService {
   public saveGameData = new Map<number, GameData>();
+
   InitialState(
     id: number,
     player1Id: number,
@@ -91,11 +98,12 @@ export class GameService {
       player1: {
         coord: { x: LEFT_PAD_X, y: (CANVAS_HEIGHT - PAD_HEIGHT) / 2 },
         playerMove: playerMove.STILL,
+        moves: [],
       },
       player2: {
         coord: { x: RIGHT_PAD_X, y: (CANVAS_HEIGHT - PAD_HEIGHT) / 2 },
-
         playerMove: playerMove.STILL,
+        moves: [],
       },
       ball: {
         coord: {
@@ -107,6 +115,7 @@ export class GameService {
           vy: 0,
         },
       },
+
       game:
         gameMode === GameMode.CLASSIC
           ? {
@@ -140,92 +149,128 @@ export class GameService {
   playerMove(state: playerMove, playerId: number, gameId: number) {
     const gameData = this.saveGameData.get(gameId);
     if (gameData) {
-      switch (state) {
-        case playerMove.UP:
-          if (
-            playerId === this.saveGameData.get(gameId)?.game.players.player1
-          ) {
-            if (gameData.player1.coord.y >= PAD_VELOCITY)
-              gameData.player1.playerMove = playerMove.UP;
-            else gameData.player1.playerMove = playerMove.STILL;
-          } else if (
-            playerId === this.saveGameData.get(gameId)?.game.players.player2
-          ) {
-            if (gameData.player2.coord.y >= PAD_VELOCITY)
-              gameData.player2.playerMove = playerMove.UP;
-            else gameData.player2.playerMove = playerMove.STILL;
-          }
-          this.saveGameData.set(gameId, gameData);
-          break;
-        case playerMove.DOWN:
-          if (
-            playerId === this.saveGameData.get(gameId)?.game.players.player1
-          ) {
-            if (
-              gameData.player1.coord.y <=
-              CANVAS_HEIGHT - PAD_HEIGHT - PAD_VELOCITY
-            )
-              gameData.player1.playerMove = playerMove.DOWN;
-            else gameData.player1.playerMove = playerMove.STILL;
-          } else if (
-            playerId === this.saveGameData.get(gameId)?.game.players.player2
-          ) {
-            if (
-              gameData.player2.coord.y <=
-              CANVAS_HEIGHT - PAD_HEIGHT - PAD_VELOCITY
-            )
-              gameData.player2.playerMove = playerMove.DOWN;
-            else gameData.player2.playerMove = playerMove.STILL;
-          }
-          this.saveGameData.set(gameId, gameData);
-          break;
-        default:
-          if (playerId === this.saveGameData.get(gameId)?.game.players.player1)
-            gameData.player1.playerMove = playerMove.STILL;
-          else if (
-            playerId === this.saveGameData.get(gameId)?.game.players.player2
-          )
-            gameData.player2.playerMove = playerMove.STILL;
-
-          this.saveGameData.set(gameId, gameData);
-          break;
-      }
-    }
-  }
-
-  MovePadUp(gameId: number, playerId: number) {
-    const gameData = this.saveGameData.get(gameId);
-    if (gameData !== undefined) {
-      if (playerId === gameData.game.players.player1) {
-        if (gameData.player1.coord.y >= PAD_VELOCITY)
-          gameData.player1.coord.y -= PAD_VELOCITY;
-      } else if (playerId === gameData.game.players.player2) {
-        if (gameData.player2.coord.y >= PAD_VELOCITY)
-          gameData.player2.coord.y -= PAD_VELOCITY;
+      if (playerId === this.saveGameData.get(gameId)?.game.players.player1) {
+        gameData.player1.moves.push({
+          event: gameData.player1.moves.length,
+          move: state,
+          timestamp: new Date().getTime(),
+          done: false,
+        });
+      } else if (
+        playerId === this.saveGameData.get(gameId)?.game.players.player2
+      ) {
+        gameData.player2.moves.push({
+          event: gameData.player2.moves.length,
+          move: state,
+          timestamp: new Date().getTime(),
+          done: false,
+        });
       }
       this.saveGameData.set(gameId, gameData);
     }
   }
 
-  MovePadDown(gameId: number, playerId: number) {
-    const gameData = this.saveGameData.get(gameId);
+  MoveLeftPad(gameId: number) {
+    const interval = setInterval(() => {
+      const gameData = this.saveGameData.get(gameId);
+      if (gameData) {
+        const len = gameData.player1.moves.length;
+        gameData.player1.moves.forEach((val, i) => {
+          if (!val.done) {
+            if (val.move === playerMove.UP) {
+              if (i < len - 1) {
+                const nextMove = gameData.player1.moves[i + 1];
+                if (nextMove)
+                  gameData.player1.coord.y +=
+                    PAD_SPEED * (nextMove.timestamp - val.timestamp);
+              } else {
+                gameData.player1.coord.y +=
+                  PAD_SPEED * (Date.now() - val.timestamp);
+              }
+            } else if (val.move === playerMove.DOWN) {
+              if (i < len - 1) {
+                const nextMove = gameData.player1.moves[i + 1];
+                if (nextMove)
+                  gameData.player1.coord.y -=
+                    PAD_SPEED * (nextMove.timestamp - val.timestamp);
+              } else {
+                gameData.player1.coord.y -=
+                  PAD_SPEED * (Date.now() - val.timestamp);
+              }
+            }
 
-    if (gameData !== undefined) {
-      if (playerId === gameData.game.players.player1) {
-        if (
-          gameData.player1.coord.y <=
-          CANVAS_HEIGHT - PAD_HEIGHT - PAD_VELOCITY
-        )
-          gameData.player1.coord.y += PAD_VELOCITY;
-      } else if (playerId === gameData.game.players.player2) {
-        if (
-          gameData.player2.coord.y <=
-          CANVAS_HEIGHT - PAD_HEIGHT - PAD_VELOCITY
-        )
-          gameData.player2.coord.y += PAD_VELOCITY;
+            if (gameData.player1.coord.y > CANVAS_HEIGHT - PAD_HEIGHT) {
+              gameData.player1.coord.y = CANVAS_HEIGHT - PAD_HEIGHT;
+            } else if (gameData.player1.coord.y < 0) {
+              gameData.player1.coord.y = 0;
+            }
+
+            if (val.move !== playerMove.STILL && i === len - 1) {
+              gameData.player1.moves.splice(i + 1, 0, {
+                event: i + 1,
+                timestamp: Date.now(),
+                move: val.move,
+                done: false,
+              });
+            }
+            val.done = true;
+          }
+        });
+        this.saveGameData.set(gameId, gameData);
       }
-      this.saveGameData.set(gameId, gameData);
-    }
+    }, 10);
+  }
+
+  MoveRightPad(gameId: number) {
+    const interval = setInterval(() => {
+      const gameData = this.saveGameData.get(gameId);
+      if (gameData) {
+        const len = gameData.player2.moves.length;
+        gameData.player2.moves.forEach((val, i) => {
+          if (!val.done) {
+            if (val.move === playerMove.UP) {
+              if (i < len - 1) {
+                const nextMove = gameData.player2.moves[i + 1];
+                if (nextMove)
+                  gameData.player2.coord.y +=
+                    PAD_SPEED * (nextMove.timestamp - val.timestamp);
+              } else {
+                gameData.player2.coord.y +=
+                  PAD_SPEED * (Date.now() - val.timestamp);
+              }
+            } else if (val.move === playerMove.DOWN) {
+              if (i < len - 1) {
+                const nextMove = gameData.player2.moves[i + 1];
+                if (nextMove)
+                  gameData.player2.coord.y -=
+                    PAD_SPEED * (nextMove.timestamp - val.timestamp);
+              } else {
+                gameData.player2.coord.y -=
+                  PAD_SPEED * (Date.now() - val.timestamp);
+              }
+            }
+
+            if (gameData.player2.coord.y > CANVAS_HEIGHT - PAD_HEIGHT) {
+              gameData.player2.coord.y = CANVAS_HEIGHT - PAD_HEIGHT;
+            } else if (gameData.player2.coord.y < 0) {
+              gameData.player2.coord.y = 0;
+            }
+
+            if (val.move !== playerMove.STILL && i === len - 1) {
+              gameData.player2.moves.splice(i + 1, 0, {
+                event: i + 1,
+                timestamp: Date.now(),
+                move: val.move,
+
+                done: false,
+              });
+            }
+            val.done = true;
+          }
+        });
+        this.saveGameData.set(gameId, gameData);
+      }
+    }, 10);
   }
 
   handleBoostOn(gameId: number, playerId: number) {

@@ -103,18 +103,9 @@ export class SocketGateway {
   private playerMove(gameId: number) {
     const callback = () => {
       const gameData = this.gameService.saveGameData.get(gameId);
-      if (gameData?.player1.playerMove === playerMove.DOWN) {
-        this.gameService.MovePadDown(gameId, gameData.game.players.player1);
-      } else if (gameData?.player1.playerMove === playerMove.UP) {
-        this.gameService.MovePadUp(gameId, gameData.game.players.player1);
-      }
-      if (gameData?.player2.playerMove === playerMove.DOWN) {
-        this.gameService.MovePadDown(gameId, gameData.game.players.player2);
-      } else if (gameData?.player2.playerMove === playerMove.UP) {
-        this.gameService.MovePadUp(gameId, gameData.game.players.player2);
-      }
+      this.gameService.MoveLeftPad(gameId);
+      this.gameService.MoveRightPad(gameId);
       this.gameService.MoveBall(gameId);
-      // this.server.to("game" + gameId).emit("updateCanvas", gameData);
       this.server.sockets.adapter.rooms.get(`game${gameId}`)?.forEach((s) => {
         this.server.to(s).emit("updateCanvas", gameData);
       });
@@ -513,6 +504,16 @@ export class SocketGateway {
     this.gameService.playerMove(playerMove.DOWN, currentUserId, gameId);
   }
 
+  @SubscribeMessage("stopPad")
+  async onstopPad(
+    @ConnectedSocket() client: Socket,
+    @MessageBody()
+    gameId: number
+  ) {
+    const currentUserId = client.request.session.passport.user;
+    this.gameService.playerMove(playerMove.STILL, currentUserId, gameId);
+  }
+
   @SubscribeMessage("boostActivated")
   async onBoostActivated(
     @ConnectedSocket() client: Socket,
@@ -534,16 +535,6 @@ export class SocketGateway {
 
     const currentUserId = client.request.session.passport.user;
     this.gameService.handleBoostOff(gameId, currentUserId);
-  }
-
-  @SubscribeMessage("stopPad")
-  async onstopPad(
-    @ConnectedSocket() client: Socket,
-    @MessageBody()
-    gameId: number
-  ) {
-    const currentUserId = client.request.session.passport.user;
-    this.gameService.playerMove(playerMove.STILL, currentUserId, gameId);
   }
 
   @SubscribeMessage("joinRoomAsViewer")
