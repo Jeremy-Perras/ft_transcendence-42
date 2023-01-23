@@ -871,6 +871,7 @@ export class GameService {
               game.mode
             )
           );
+          this.socketGateway.playerMove(game.id);
           resolve();
         })
         .catch(() => {
@@ -896,7 +897,8 @@ export class GameService {
 
       if (p1) p1.send({ type: "GAME_ENDED" });
       if (p2) p2.send({ type: "GAME_ENDED" });
-
+      const interval = this.socketGateway.gameInProgress.get(gameId);
+      clearInterval(interval);
       this.games.delete(gameId);
     }
   };
