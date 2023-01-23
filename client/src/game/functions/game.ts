@@ -220,7 +220,7 @@ export const draw = (context: CanvasRenderingContext2D, data: GameData) => {
   context.translate(background.x, background.y);
 
   background.draw(context);
-  score.draw(context, data.game.score.player1, data.game.score.player2);
+  score.draw(context, data.player1.score, data.player2.score);
   leftPad.draw(context, data.player1.coord.y);
   rightPad.draw(context, data.player2.coord.y);
 
@@ -321,7 +321,7 @@ export const handleKeyDown = (
   }>,
   playerMove: React.MutableRefObject<padMove>
 ) => {
-  if (keycode === "Space" && gameMode === GameMode.Speed) {
+  if (keycode === "Space" && gameMode === GameMode.Boost) {
     socket.emit("boostActivated", gameId);
   }
   if (keycode === "ArrowUp") {
@@ -476,7 +476,7 @@ export const handleKeyUp = (
     }
   }
 
-  if (keycode === "Space" && gameMode === GameMode.Speed) {
+  if (keycode === "Space" && gameMode === GameMode.Boost) {
     socket.emit("boostDeactivated", gameId);
   }
 };

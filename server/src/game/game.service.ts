@@ -871,7 +871,7 @@ export class GameService {
               game.mode
             )
           );
-          this.socketGateway.playerMove(game.id);
+          this.socketGateway.launchGame(game.id);
           resolve();
         })
         .catch(() => {

@@ -124,13 +124,21 @@ const GameCanvas = ({
   >([]);
 
   const frontGameData = useRef<GameData>({
+    id: initData.game.id,
+    startedAt: new Date(),
     player1: {
       coord: { x: LEFT_PAD_X, y: (CANVAS_HEIGHT - PAD_HEIGHT) / 2 },
       playerMove: padMove.STILL,
+      id: initData.game.players.player1.id,
+      score: initData.game.score.player1Score,
+      moves: [],
     },
     player2: {
       coord: { x: RIGHT_PAD_X, y: (CANVAS_HEIGHT - PAD_HEIGHT) / 2 },
       playerMove: padMove.STILL,
+      id: initData.game.players.player2.id,
+      score: initData.game.score.player2Score,
+      moves: [],
     },
     ball: {
       coord: {
@@ -249,22 +257,21 @@ const GameCanvas = ({
       canvas.current.width = 4000;
       canvas.current.height = 4000;
     }
+
     let gameData: GameData;
     const cb = (backData: GameData) => {
-      if (
-        backData.game.score.player1 >= 11 ||
-        backData.game.score.player2 >= 11
-      ) {
+      if (backData.player1.score >= 11 || backData.player2.score >= 11) {
         socket.emit("endGame", initData.game.id);
         setGameState(gameScreenState.SCORE);
       }
       let ctx;
+
       if (canvas.current) ctx = canvas.current.getContext("2d");
       if (ctx) draw(ctx, frontGameData.current);
       frontGameData.current = backData;
-      if (currentUserId === frontGameData.current.game.players.player1)
+      if (currentUserId === frontGameData.current.player1.id)
         frontGameData.current.player1.coord.y = yPlayer.current;
-      else if (currentUserId === frontGameData.current.game.players.player2)
+      else if (currentUserId === frontGameData.current.player2.id)
         frontGameData.current.player2.coord.y = yPlayer.current;
       gameData = backData;
     };
@@ -274,22 +281,22 @@ const GameCanvas = ({
       if (ctx && gameData) {
         if (frontGameData.current) {
           setY(yPlayer, moves);
-          if (currentUserId === frontGameData.current.game.players.player1)
+          if (currentUserId === frontGameData.current.player1.id)
             frontGameData.current.player1.coord.y = yPlayer.current;
-          else if (currentUserId === frontGameData.current.game.players.player2)
+          else if (currentUserId === frontGameData.current.player2.id)
             frontGameData.current.player2.coord.y = yPlayer.current;
           draw(ctx, frontGameData.current);
         }
       }
     };
-    socket.off("updateCanvas");
-    socket.on("updateCanvas", cb);
+    socket.off(`Game_${frontGameData.current.game.id}`);
+    socket.on(`Game_${frontGameData.current.game.id}`, cb);
     requestRef.current = setInterval(animate, 10);
     return () => {
-      socket.off("updateCanvas", cb);
+      socket.off(`Game_${frontGameData.current.game.id}`, cb);
       clearInterval(requestRef.current);
     };
-  }, [playerMove]); //TODO : verif
+  }, [playerMove, frontGameData]); //TODO : verif
 
   //TODO : pause game ? check subject
   return (

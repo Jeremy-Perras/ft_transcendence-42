@@ -24,17 +24,19 @@ export class SocketGateway implements OnModuleInit {
   server: Server;
 
   private connectedUsers: Map<number, string> = new Map();
-  public gameInProgress = new Map<number, NodeJS.Timer>();
+  public gameInProgress = new Map<number, NodeJS.Timer>(); // TODO to private
 
-  public playerMove(gameId: number) {
+  public getUserSocket(id: number) {
+    return this.connectedUsers.get(id);
+  }
+
+  public launchGame(gameId: number) {
     const callback = () => {
       const gameData = this.gameService.games.get(gameId);
       this.gameService.MoveLeftPad(gameId);
       this.gameService.MoveRightPad(gameId);
       this.gameService.MoveBall(gameId);
-      this.server.sockets.adapter.rooms.get(`game${gameId}`)?.forEach((s) => {
-        this.server.to(s).emit("updateCanvas", gameData);
-      });
+      this.server.emit(`Game_${gameId}`, gameData);
     };
     this.gameInProgress.set(gameId, setInterval(callback, 100));
   }

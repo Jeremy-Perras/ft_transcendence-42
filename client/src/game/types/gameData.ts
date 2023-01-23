@@ -5,17 +5,26 @@ export enum padMove {
 }
 
 export type Player = {
+  id: number;
   coord: Coord;
   playerMove: padMove;
+  moves: Array<{
+    event: number;
+    timestamp: number;
+    move: padMove;
+    done: boolean;
+  }>;
+  score: number;
 };
 
 export type GameData = {
+  id: number;
+  startedAt: Date;
   player1: Player;
   player2: Player;
   ball: { coord: Coord; velocity: { vx: number; vy: number } };
   game: GameType;
 };
-
 export type Coord = {
   x: number;
   y: number;
