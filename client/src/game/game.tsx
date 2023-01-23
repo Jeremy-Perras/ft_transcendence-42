@@ -24,6 +24,7 @@ import {
   handleKeyDown,
   handleKeyUp,
   setY,
+  redraw,
 } from "./functions/game";
 import { GameData, padMove } from "./types/gameData";
 
@@ -100,8 +101,9 @@ const GameCanvas = ({
   const currentUserId = useAuthStore((state) => state.userId);
   const socket = useSocketStore().socket;
 
-  const wrap = useRef<HTMLElement>(null);
+  const wrap = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
+
   if (!canvas) return <>Error</>;
 
   const requestRef = useRef<number>();
@@ -235,12 +237,19 @@ const GameCanvas = ({
     };
   }, [initData, currentUserId]);
 
+  const canvasById = document.getElementById("canvas");
   useEffect(() => {
-    let gameData: GameData;
+    if (canvasById)
+      if (canvas)
+        new ResizeObserver(() =>
+          redraw(wrap, canvas, frontGameData.current)
+        ).observe(canvasById);
+    //TODO : manage resize
     if (canvas.current) {
-      canvas.current.width = 500;
-      canvas.current.height = 500;
+      canvas.current.width = 4000;
+      canvas.current.height = 4000;
     }
+    let gameData: GameData;
     const cb = (backData: GameData) => {
       if (
         backData.game.score.player1 >= 11 ||
@@ -264,7 +273,7 @@ const GameCanvas = ({
       if (canvas.current) ctx = canvas.current.getContext("2d");
       if (ctx && gameData) {
         if (frontGameData.current) {
-          setY(playerMove, moves);
+          setY(yPlayer, moves);
           if (currentUserId === frontGameData.current.game.players.player1)
             frontGameData.current.player1.coord.y = yPlayer.current;
           else if (currentUserId === frontGameData.current.game.players.player2)
@@ -280,19 +289,18 @@ const GameCanvas = ({
       socket.off("updateCanvas", cb);
       clearInterval(requestRef.current);
     };
-  }, [playerMove, cb]); //TODO : verif
-
-  useEffect(() => {
-    new ResizeObserver(() => redraw(wrap, canvas, frontGameData)).observe(
-      canvas
-    );
-  }, [wrap]); //TODO : test
+  }, [playerMove]); //TODO : verif
 
   //TODO : pause game ? check subject
   return (
     <>
       <div ref={wrap}>
-        <canvas tabIndex={0} className="border-4 border-white" ref={canvas} />
+        <canvas
+          tabIndex={0}
+          className="h-full w-full border-4 border-white"
+          ref={canvas}
+          id="canvas"
+        />
       </div>
       <div className="my-2 flex w-full items-center justify-center">
         <div className="shrink-0 basis-2/5 truncate">

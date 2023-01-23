@@ -222,58 +222,9 @@ export class UserResolver {
   }
 
   @ResolveField() // TODO
-  async games(
-    @Root() user: User,
-    @Args("finished", {
-      type: () => Boolean,
-      nullable: true,
-      defaultValue: null,
-    })
-    finished?: boolean | null
-  ): Promise<GraphqlGame[]> {
-    return [];
-    // const conditions: Prisma.Enumerable<Prisma.GameWhereInput> = [
-    //   {
-    //     OR: [
-    //       {
-    //         player1Id: user.id,
-    //       },
-    //       {
-    //         player2Id: user.id,
-    //       },
-    //     ],
-    //   },
-    // ];
-
-    // if (finished !== null) {
-    //   conditions.push(
-    //     finished ? { NOT: { finishedAt: null } } : { finishedAt: null }
-    //   );
-    // }
-
-    // const games = await this.prisma.game.findMany({
-    //   select: {
-    //     id: true,
-    //     startedAt: true,
-    //     finishedAt: true,
-    //     mode: true,
-    //     player1Score: true,
-    //     player2Score: true,
-    //   },
-    //   where: {
-    //     AND: conditions,
-    //   },
-    // });
-    // return games.map((game) => ({
-    //   id: game.id,
-    //   gameMode: game.mode,
-    //   startAt: game.startedAt,
-    //   finishedAt: game.finishedAt ?? undefined,
-    //   score: {
-    //     player1Score: game.player1Score,
-    //     player2Score: game.player2Score,
-    //   },
-    // }));
+  async games(@Root() user: User): Promise<GraphqlGame[]> {
+    const gameList = await this.userService.getGames(user.id);
+    return gameList;
   }
 
   @ResolveField()

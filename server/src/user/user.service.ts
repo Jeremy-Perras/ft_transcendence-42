@@ -326,6 +326,39 @@ export class UserService {
     }
   }
 
+  async getGames(userId: number) {
+    const games = await this.prismaService.game.findMany({
+      select: {
+        id: true,
+        startedAt: true,
+        finishedAt: true,
+        mode: true,
+        player1Score: true,
+        player2Score: true,
+      },
+      where: {
+        OR: [
+          {
+            player1Id: userId,
+          },
+          {
+            player2Id: userId,
+          },
+        ],
+      },
+    });
+    return games.map((game) => ({
+      id: game.id,
+      gameMode: game.mode,
+      startAt: game.startedAt,
+      finishedAt: game.finishedAt ?? undefined,
+      score: {
+        player1Score: game.player1Score,
+        player2Score: game.player2Score,
+      },
+    }));
+  }
+
   async getChats(currentUserId: number) {
     const res = await this.prismaService.user.findUnique({
       where: { id: currentUserId },
