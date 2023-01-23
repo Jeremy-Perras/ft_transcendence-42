@@ -214,7 +214,7 @@ const UserProfileHeader = ({
     unachievedMedals.push(
       <Achievement
         key={i}
-        icon={`achievements/unachieved_medal.svg`}
+        icon={`/achievements/unachieved_medal.svg`}
         name={"Unachieved"}
         achieved={false}
       />
@@ -273,11 +273,11 @@ const UserProfileHeader = ({
           <span>Victories : {victories} </span>
           <span>Victory rate : {numberOfGames ? `${victoryRate} %` : "-"}</span>
         </div>
-        <div className="relative flex shrink-0 basis-1/3 flex-wrap items-center justify-center pt-1">
+        <div className="relative mr-2 flex shrink-0 basis-1/3 flex-wrap items-center justify-center pt-1">
           {data.user.achievements.map((a, key) => (
             <Achievement
               key={key}
-              icon={`achievements/${a.name.toLowerCase()}.svg`} //TODO : get corresponding icon
+              icon={`/achievements/${a.name.toLowerCase()}.svg`} //TODO : get corresponding icon
               name={a.name}
               achieved={true}
             />
