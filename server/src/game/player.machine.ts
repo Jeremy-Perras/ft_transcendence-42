@@ -273,7 +273,7 @@ export const PlayerMachine = (
           ],
           after: [
             {
-              delay: 3000,
+              delay: 10000,
               target: "offline",
             },
           ],

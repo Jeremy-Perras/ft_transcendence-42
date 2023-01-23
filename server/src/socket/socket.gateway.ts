@@ -17,9 +17,7 @@ export class SocketGateway implements OnModuleInit {
     private eventEmitter: EventEmitter2,
     private gameService: GameService
   ) {}
-  // private handleKey: Map<number, valueHandleKeysPlayer> = new Map();
 
-  // private handleKey: Map<number, valueHandleKeys> = new Map();
   @WebSocketServer()
   server: Server;
 
