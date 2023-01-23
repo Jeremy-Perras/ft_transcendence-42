@@ -28,7 +28,7 @@ export class SocketGateway implements OnModuleInit {
 
   private playerMove(gameId: number) {
     const callback = () => {
-      const gameData = this.gameService.saveGameData.get(gameId);
+      const gameData = this.gameService.games.get(gameId);
       this.gameService.MoveLeftPad(gameId);
       this.gameService.MoveRightPad(gameId);
       this.gameService.MoveBall(gameId);

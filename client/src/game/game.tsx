@@ -150,7 +150,7 @@ const GameCanvas = ({
             },
             type: "CLASSIC",
           }
-        : initData.game.gameMode === GameMode.Speed
+        : initData.game.gameMode === GameMode.Boost
         ? {
             id: initData.game.id,
             score: { player1: 0, player2: 0 },
@@ -463,7 +463,7 @@ const Intro = ({
         <span className="mx-1 pb-1 font-mono">:</span>
         <span>{timer % 60 < 10 ? `0${timer % 60}` : `${timer % 60}`}</span>
       </div>
-      {data.game.gameMode === GameMode.Speed && (
+      {data.game.gameMode === GameMode.Boost && (
         <div className="my-10 flex w-full justify-center text-xl">
           Press SPACE to fire the ball!
         </div>

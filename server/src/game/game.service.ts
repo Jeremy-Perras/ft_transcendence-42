@@ -68,17 +68,13 @@ type Player = {
   id: number;
   coord: Coord;
   playerMove: playerMove;
-<<<<<<< HEAD
   moves: Array<{
     event: number;
     timestamp: number;
     move: playerMove;
     done: boolean;
   }>;
-=======
   score: number;
-  event: valueHandleKeys;
->>>>>>> 65484380 (merge data from back and player)
 };
 
 type GameData = {
@@ -97,8 +93,9 @@ export class GameService {
     private readonly socketGateway: SocketGateway,
     private readonly prismaService: PrismaService
   ) {}
+
   private players: Map<number, ReturnType<typeof PlayerMachine>> = new Map();
-  private games: Map<number, GameData> = new Map();
+  public games: Map<number, GameData> = new Map();
   private matchmakingRooms: Record<GameMode, Set<number>> = {
     CLASSIC: new Set(),
     GIFT: new Set(),
@@ -119,23 +116,15 @@ export class GameService {
         id: player1Id,
         coord: { x: LEFT_PAD_X, y: (CANVAS_HEIGHT - PAD_HEIGHT) / 2 },
         playerMove: playerMove.STILL,
-<<<<<<< HEAD
         moves: [],
-=======
-        event: { date: 0, handleKey: "NULL" },
         score: 0,
->>>>>>> 65484380 (merge data from back and player)
       },
       player2: {
         id: player2Id,
         coord: { x: RIGHT_PAD_X, y: (CANVAS_HEIGHT - PAD_HEIGHT) / 2 },
         playerMove: playerMove.STILL,
-<<<<<<< HEAD
         moves: [],
-=======
         score: 0,
-        event: { date: 0, handleKey: "" },
->>>>>>> 65484380 (merge data from back and player)
       },
       ball: {
         coord: {
@@ -170,8 +159,7 @@ export class GameService {
   playerMove(state: playerMove, playerId: number, gameId: number) {
     const gameData = this.games.get(gameId);
     if (gameData) {
-<<<<<<< HEAD
-      if (playerId === this.saveGameData.get(gameId)?.game.players.player1) {
+      if (playerId === this.games.get(gameId)?.player1.id) {
         console.log("player 1", gameData.player1.coord.y);
         gameData.player1.moves.push({
           event: gameData.player1.moves.length,
@@ -179,9 +167,7 @@ export class GameService {
           timestamp: new Date().getTime(),
           done: false,
         });
-      } else if (
-        playerId === this.saveGameData.get(gameId)?.game.players.player2
-      ) {
+      } else if (playerId === this.games.get(gameId)?.player2.id) {
         console.log("player 2", gameData.player2.coord.y);
         gameData.player2.moves.push({
           event: gameData.player2.moves.length,
@@ -189,56 +175,14 @@ export class GameService {
           timestamp: new Date().getTime(),
           done: false,
         });
-=======
-      switch (state) {
-        case playerMove.UP:
-          if (playerId === this.games.get(gameId)?.player1.id) {
-            if (gameData.player1.coord.y >= PAD_VELOCITY)
-              gameData.player1.playerMove = playerMove.UP;
-            else gameData.player1.playerMove = playerMove.STILL;
-          } else if (playerId === this.games.get(gameId)?.player2.id) {
-            if (gameData.player2.coord.y >= PAD_VELOCITY)
-              gameData.player2.playerMove = playerMove.UP;
-            else gameData.player2.playerMove = playerMove.STILL;
-          }
-          this.games.set(gameId, gameData);
-          break;
-        case playerMove.DOWN:
-          if (playerId === this.games.get(gameId)?.player1.id) {
-            if (
-              gameData.player1.coord.y <=
-              CANVAS_HEIGHT - PAD_HEIGHT - PAD_VELOCITY
-            )
-              gameData.player1.playerMove = playerMove.DOWN;
-            else gameData.player1.playerMove = playerMove.STILL;
-          } else if (playerId === this.games.get(gameId)?.player2.id) {
-            if (
-              gameData.player2.coord.y <=
-              CANVAS_HEIGHT - PAD_HEIGHT - PAD_VELOCITY
-            )
-              gameData.player2.playerMove = playerMove.DOWN;
-            else gameData.player2.playerMove = playerMove.STILL;
-          }
-          this.games.set(gameId, gameData);
-          break;
-        default:
-          if (playerId === this.games.get(gameId)?.player1.id)
-            gameData.player1.playerMove = playerMove.STILL;
-          else if (playerId === this.games.get(gameId)?.player2.id)
-            gameData.player2.playerMove = playerMove.STILL;
-
-          this.games.set(gameId, gameData);
-          break;
->>>>>>> 65484380 (merge data from back and player)
       }
-      this.saveGameData.set(gameId, gameData);
+      this.games.set(gameId, gameData);
     }
   }
 
-<<<<<<< HEAD
   MoveLeftPad(gameId: number) {
     setInterval(() => {
-      const gameData = this.saveGameData.get(gameId);
+      const gameData = this.games.get(gameId);
       if (gameData) {
         const len = gameData.player1.moves.length;
         gameData.player1.moves.forEach((val, i) => {
@@ -286,14 +230,14 @@ export class GameService {
             val.done = true;
           }
         });
-        this.saveGameData.set(gameId, gameData);
+        this.games.set(gameId, gameData);
       }
     }, 10);
   }
 
   MoveRightPad(gameId: number) {
     setInterval(() => {
-      const gameData = this.saveGameData.get(gameId);
+      const gameData = this.games.get(gameId);
       if (gameData) {
         const len = gameData.player2.moves.length;
         gameData.player2.moves.forEach((val, i) => {
@@ -341,44 +285,9 @@ export class GameService {
             val.done = true;
           }
         });
-        this.saveGameData.set(gameId, gameData);
+        this.games.set(gameId, gameData);
       }
     }, 10);
-=======
-  MovePadUp(gameId: number, playerId: number) {
-    const gameData = this.games.get(gameId);
-    if (gameData !== undefined) {
-      if (playerId === gameData.player1.id) {
-        if (gameData.player1.coord.y >= PAD_VELOCITY)
-          gameData.player1.coord.y -= PAD_VELOCITY;
-      } else if (playerId === gameData.player2.id) {
-        if (gameData.player2.coord.y >= PAD_VELOCITY)
-          gameData.player2.coord.y -= PAD_VELOCITY;
-      }
-      this.games.set(gameId, gameData);
-    }
-  }
-
-  MovePadDown(gameId: number, playerId: number) {
-    const gameData = this.games.get(gameId);
-
-    if (gameData !== undefined) {
-      if (playerId === gameData.player1.id) {
-        if (
-          gameData.player1.coord.y <=
-          CANVAS_HEIGHT - PAD_HEIGHT - PAD_VELOCITY
-        )
-          gameData.player1.coord.y += PAD_VELOCITY;
-      } else if (playerId === gameData.player2.id) {
-        if (
-          gameData.player2.coord.y <=
-          CANVAS_HEIGHT - PAD_HEIGHT - PAD_VELOCITY
-        )
-          gameData.player2.coord.y += PAD_VELOCITY;
-      }
-      this.games.set(gameId, gameData);
-    }
->>>>>>> 65484380 (merge data from back and player)
   }
 
   handleBoostOn(gameId: number, playerId: number) {
