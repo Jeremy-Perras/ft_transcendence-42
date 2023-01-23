@@ -13,9 +13,36 @@ import { GameInvitations } from "./components/gameInvitation";
 import { GameMode } from "../gql/graphql";
 import { ReactComponent as RefuseIcon } from "pixelarticons/svg/close.svg";
 import { graphql } from "../gql";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import request from "graphql-request";
+import queryClient from "../query";
+import { useNavigate } from "react-router-dom";
 type State = "idle" | "selecting" | "waiting";
+
+const GetGameIdQueryDocument = graphql(`
+  query GameId($userId: Int) {
+    user(id: $userId) {
+      state {
+        ... on WaitingForInviteeState {
+          invitee {
+            id
+          }
+          gameMode
+        }
+        ... on MatchmakingState {
+          __typename
+          gameMode
+        }
+        ... on PlayingState {
+          __typename
+          game {
+            id
+          }
+        }
+      }
+    }
+  }
+`);
 
 const Idle = ({ play }: { play: () => void }) => {
   return (
@@ -287,15 +314,25 @@ const RenderState = ({
 };
 
 const Error = ({ message }: { message: string | undefined }) => {
+  const [error, setError] = useState<boolean>(message ? true : false);
   return (
-    <div className="absolute top-0 z-10  w-1/3 justify-center ">
-      <div className=" flex w-full flex-auto flex-row  bg-slate-100 ">
-        <span className="flex grow truncate pl-2 pt-1 text-center align-middle font-sans text-black">{`${message}`}</span>
-        <div className="flex w-1/3 basis-1/5 justify-end ">
-          <RefuseIcon className="mx-2 w-5 bg-red-300 hover:cursor-pointer " />
+    <>
+      {error ? (
+        <div className="absolute top-0 z-10  w-full justify-center ">
+          <div className=" flex w-full flex-auto flex-row  bg-slate-100 ">
+            <span className="flex grow truncate pl-2 pt-1 text-center align-middle font-sans text-black">{`${message}`}</span>
+            <div className="flex w-1/3 basis-1/5 justify-end ">
+              <RefuseIcon
+                className="mx-2 w-5 bg-red-300 hover:cursor-pointer "
+                onClick={() => {
+                  setError(false);
+                }}
+              />
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+      ) : null}
+    </>
   );
 };
 
@@ -303,12 +340,31 @@ export const Home = () => {
   const [state, setState] = useState<State>("idle");
   const isLoggedIn = !!useAuthStore((state) => state.userId);
   const { invitationState, clearInvite } = useInvitationStore();
-
+  const userId = useAuthStore().userId;
   const isSmall = useMediaQuery("(max-height : 1000px)");
   const isNarrow = useMediaQuery("(max-width : 640px)");
   const [displayInvitationError, setDisplayInvitationError] = useState(false);
   const socket = useSocketStore().socket;
   const [message, setMessage] = useState<string>();
+  const navigate = useNavigate();
+
+  const { data: getGameId } = useQuery({
+    queryKey: ["UsersGameId", userId],
+    queryFn: async () =>
+      request("/graphql", GetGameIdQueryDocument, {
+        userId: userId,
+      }),
+  });
+
+  useEffect(() => {
+    getGameId?.user.state?.__typename === "PlayingState"
+      ? navigate(`game/${getGameId?.user.state.game.id}`)
+      : null;
+  }, [getGameId]);
+
+  useEffect(() => {
+    queryClient.invalidateQueries(["UserGameId", userId]);
+  }, [userId]);
 
   const cancelInvitation = useMutation(async () =>
     request("/graphql", CancelInvitationMutationDocument)
@@ -323,6 +379,7 @@ export const Home = () => {
     setMessage(info);
     setDisplayInvitationError(true);
   });
+
   useEffect(() => {
     const cb = () => {
       clearInvite();
