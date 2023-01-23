@@ -245,19 +245,25 @@ const GameCanvas = ({
     };
   }, [initData, currentUserId]);
 
-  const canvasById = document.getElementById("canvas");
+  const wrapById = document.getElementById("wrap");
+
   useEffect(() => {
-    if (canvasById)
-      if (canvas)
-        new ResizeObserver(() =>
-          redraw(wrap, canvas, frontGameData.current)
-        ).observe(canvasById);
-    //TODO : manage resize
-    if (canvas.current) {
-      canvas.current.width = 4000;
-      canvas.current.height = 4000;
+    const obs = new ResizeObserver(() =>
+      redraw(wrap, canvas, frontGameData.current)
+    );
+    redraw(wrap, canvas, frontGameData.current);
+
+    console.log("resize");
+    if (wrap && wrap.current) {
+      obs.observe(wrap.current);
     }
 
+    return () => {
+      if (wrap && wrap.current) obs.unobserve(wrap.current);
+    };
+  }, [wrap, canvas, frontGameData]);
+
+  useEffect(() => {
     let gameData: GameData;
     const cb = (backData: GameData) => {
       if (backData.player1.score >= 11 || backData.player2.score >= 11) {
@@ -265,7 +271,6 @@ const GameCanvas = ({
         setGameState(gameScreenState.SCORE);
       }
       let ctx;
-
       if (canvas.current) ctx = canvas.current.getContext("2d");
       if (ctx) draw(ctx, frontGameData.current);
       frontGameData.current = backData;
@@ -301,26 +306,26 @@ const GameCanvas = ({
   //TODO : pause game ? check subject
   return (
     <>
-      <div ref={wrap}>
+      <div className="flex h-full w-full" ref={wrap} id="wrap">
         <canvas
           tabIndex={0}
-          className="h-full w-full border-4 border-white"
+          className="m-auto  border-white"
           ref={canvas}
           id="canvas"
         />
       </div>
-      <div className="my-2 flex w-full items-center justify-center">
+      {/* <div className="my-2 flex w-full items-center justify-center">
         <div className="shrink-0 basis-2/5 truncate">
           {initData.game.players.player1.name}
         </div>
         <div className="mx-4 shrink-0 basis-1/5 text-center">VS</div>
         <div className="shrink-0 basis-2/5">
           {initData.game.players.player2.name}
-        </div>
+        </div> */}
 
-        {/* TODO : add here banner with player avatar, rank, name */}
-      </div>
-      <GameTimer startTime={startTime} />
+      {/* TODO : add here banner with player avatar, rank, name */}
+      {/* </div>
+      <GameTimer startTime={startTime} /> */}
       {/* {!isPlayer && <span className="my-2 text-lg">Live Stream</span>} */}
     </>
   );
@@ -510,7 +515,7 @@ export const Game = () => {
       return <Score gameId={gameId} />;
     case gameScreenState.PLAYING:
       return (
-        <div id="game">
+        <div className=" h-full w-full">
           <GameCanvas
             initData={data}
             startTime={startTime + INTRO_DURATION * 1000}

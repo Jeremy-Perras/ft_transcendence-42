@@ -104,7 +104,7 @@ export const GameRouter = () => {
   }, [userId]);
 
   return (
-    <div className="relative flex shrink grow flex-col items-center bg-[#002a2a] font-display text-gray-200">
+    <div className="relative flex h-screen w-screen shrink grow flex-col items-center bg-[#002a2a] font-display text-gray-200 sm:w-[calc(theme(width.full)-theme(width.128))]">
       <RouterProvider router={router} />
     </div>
   );

@@ -13,48 +13,38 @@ export const LEFT_PAD_X = CANVAS_WIDTH / 8;
 export const RIGHT_PAD_X = CANVAS_WIDTH - CANVAS_WIDTH / 8 - PAD_WIDTH;
 
 export const BALL_VELOCITY = 100;
-export const PAD_SPEED = 1; //px / ms => change to 1 when resize ok
-
-export function plotImage(
-  ctx: CanvasRenderingContext2D,
-  wrap: React.RefObject<HTMLElement>,
-  width: number,
-  height: number,
-  data: GameData
-) {
-  let min = 0;
-  if (wrap && wrap.current) {
-    if (wrap.current.clientHeight > wrap.current.clientWidth) {
-      min = wrap.current.clientWidth / 2;
-    } else {
-      min = wrap.current.clientHeight / 2;
-    }
-    background.x = wrap.current.clientWidth / 2 - min / 2;
-    background.y = wrap.current.clientHeight / 2 - min / 2;
-  }
-  draw(ctx, data);
-}
+export const PAD_SPEED = 1; //px / ms
 
 export function redraw(
   wrap: React.RefObject<HTMLElement>,
   canvas: React.RefObject<HTMLCanvasElement>,
   data: GameData
 ) {
-  const dpr = window.devicePixelRatio;
+  let cssWidth;
+  let cssHeight;
+  if (wrap && wrap.current) {
+    cssWidth = wrap.current.clientWidth;
+    cssHeight = wrap.current.clientHeight;
+  }
+  let min = 0;
+  if (cssHeight && cssWidth) {
+    if (cssHeight > cssWidth) min = cssWidth;
+    else min = cssHeight;
+  }
+  console.log("redraw", cssHeight, cssWidth, min);
+
   if (canvas && canvas.current) {
-    const cssWidth = canvas.current.clientWidth;
-    const cssHeight = canvas.current.clientHeight;
-    const pxWidth = Math.round(dpr * cssWidth);
-    const pxHeight = Math.round(dpr * cssHeight);
-
-    canvas.current.width = pxWidth;
-    canvas.current.height = pxHeight;
-
+    canvas.current.width = min;
+    canvas.current.height = min;
     const ctx = canvas.current.getContext("2d");
     if (ctx) {
-      ctx.scale(dpr, dpr);
-      plotImage(ctx, wrap, cssWidth, cssHeight, data);
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.fillStyle = "red";
+      ctx.fillRect(0, 0, min, min);
+      const scale = min / 4000;
+      ctx.scale(scale, scale);
     }
+    if (ctx) draw(ctx, data);
   }
 }
 
@@ -194,6 +184,7 @@ const boostBar = {
 };
 
 const score = {
+  //TODO : add names
   color: "white",
   draw(
     context: CanvasRenderingContext2D,
@@ -217,16 +208,12 @@ const score = {
 
 export const draw = (context: CanvasRenderingContext2D, data: GameData) => {
   context?.clearRect(background.x, background.y, CANVAS_WIDTH, CANVAS_HEIGHT);
-  context.translate(background.x, background.y);
-
   background.draw(context);
   score.draw(context, data.player1.score, data.player2.score);
   leftPad.draw(context, data.player1.coord.y);
   rightPad.draw(context, data.player2.coord.y);
-
   if (data.game.type === "CLASSIC" || data.game.type === "GIFT")
     ball.draw(context, data.ball.coord.x, data.ball.coord.y);
-
   if (data.game.type === "BOOST") {
     const boostActivated =
       data.game.player1Boost.activated || data.game.player2Boost.activated;
@@ -336,7 +323,7 @@ export const handleKeyDown = (
           done: false,
         });
         setY(playerY, moves);
-        console.log(playerY.current);
+        // console.log(playerY.current);
         playerMove.current = padMove.UP;
         socket.emit("movePadUp", gameId);
       }
@@ -350,7 +337,7 @@ export const handleKeyDown = (
           done: false,
         });
         setY(playerY, moves);
-        console.log(playerY.current);
+        // console.log(playerY.current);
         playerMove.current = padMove.STILL;
         socket.emit("stopPad", gameId);
       }
@@ -368,7 +355,7 @@ export const handleKeyDown = (
           done: false,
         });
         setY(playerY, moves);
-        console.log(playerY.current);
+        // console.log(playerY.current);
         playerMove.current = padMove.DOWN;
         socket.emit("movePadDown", gameId);
       }
@@ -382,7 +369,7 @@ export const handleKeyDown = (
           done: false,
         });
         setY(playerY, moves);
-        console.log(playerY.current);
+        // console.log(playerY.current);
         playerMove.current = padMove.STILL;
         socket.emit("stopPad", gameId);
       }
@@ -423,7 +410,7 @@ export const handleKeyUp = (
           done: false,
         });
         setY(playerY, moves);
-        console.log(playerY.current);
+        // console.log(playerY.current);
         playerMove.current = padMove.STILL;
         socket.emit("stopPad", gameId);
       }
@@ -437,7 +424,7 @@ export const handleKeyUp = (
           done: false,
         });
         setY(playerY, moves);
-        console.log(playerY.current);
+        // console.log(playerY.current);
         playerMove.current = padMove.DOWN;
         socket.emit("movePadDown", gameId);
       }
@@ -455,7 +442,7 @@ export const handleKeyUp = (
           done: false,
         });
         setY(playerY, moves);
-        console.log(playerY.current);
+        // console.log(playerY.current);
         playerMove.current = padMove.STILL;
         socket.emit("stopPad", gameId);
       }
@@ -469,7 +456,7 @@ export const handleKeyUp = (
           done: false,
         });
         setY(playerY, moves);
-        console.log(playerY.current);
+        // console.log(playerY.current);
         playerMove.current = padMove.UP;
         socket.emit("movePadUp", gameId);
       }

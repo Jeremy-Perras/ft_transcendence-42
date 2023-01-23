@@ -377,7 +377,7 @@ const GameHistory = ({
                 src={
                   game.gameMode === GameMode.Classic
                     ? ClassicIcon
-                    : game.gameMode === GameMode.Random
+                    : game.gameMode === GameMode.Gift
                     ? BonusIcon
                     : FireIcon
                 }
@@ -816,6 +816,5 @@ export default function Profile() {
   >;
   const { data } = useQuery({ ...query(userId), initialData });
   if (typeof data === "undefined") return <div>Error</div>;
-  console.log(data.user.games);
   return <DisplayUserProfile data={data} />;
 }

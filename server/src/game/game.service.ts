@@ -160,7 +160,7 @@ export class GameService {
     const gameData = this.games.get(gameId);
     if (gameData) {
       if (playerId === this.games.get(gameId)?.player1.id) {
-        console.log("player 1", gameData.player1.coord.y);
+        // console.log("player 1", gameData.player1.coord.y);
         gameData.player1.moves.push({
           event: gameData.player1.moves.length,
           move: state,
@@ -168,7 +168,7 @@ export class GameService {
           done: false,
         });
       } else if (playerId === this.games.get(gameId)?.player2.id) {
-        console.log("player 2", gameData.player2.coord.y);
+        // console.log("player 2", gameData.player2.coord.y);
         gameData.player2.moves.push({
           event: gameData.player2.moves.length,
           move: state,
