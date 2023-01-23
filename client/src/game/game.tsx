@@ -34,6 +34,7 @@ enum gameScreenState {
   INTRO,
   PLAYING,
   SCORE,
+  PAUSE,
 }
 
 const INTRO_DURATION = 1; //INITIAL COUNTDOWN
@@ -260,8 +261,7 @@ const GameCanvas = ({
 
     let gameData: GameData;
     const cb = (backData: GameData) => {
-      if (backData.player1.score >= 11 || backData.player2.score >= 11) {
-        socket.emit("endGame", initData.game.id);
+      if (backData.player1.score === 11 || backData.player2.score === 11) {
         setGameState(gameScreenState.SCORE);
       }
       let ctx;
@@ -289,11 +289,28 @@ const GameCanvas = ({
         }
       }
     };
-    socket.off(`Game_${frontGameData.current.game.id}`);
     socket.on(`Game_${frontGameData.current.game.id}`, cb);
+    socket.on(`forfeitGame${frontGameData.current.game.id}`, () =>
+      setGameState(gameScreenState.SCORE)
+    );
+    socket.on(`pauseGame${frontGameData.current.game.id}`, () =>
+      setGameState(gameScreenState.PAUSE)
+    );
+    socket.on(`unpauseGame${frontGameData.current.game.id}`, () =>
+      setGameState(gameScreenState.PLAYING)
+    );
     requestRef.current = setInterval(animate, 10);
     return () => {
       socket.off(`Game_${frontGameData.current.game.id}`, cb);
+      socket.off(`forfeitGame${frontGameData.current.game.id}`, () =>
+        setGameState(gameScreenState.SCORE)
+      );
+      socket.off(`pauseGame${frontGameData.current.game.id}`, () =>
+        setGameState(gameScreenState.PAUSE)
+      );
+      socket.off(`unpauseGame${frontGameData.current.game.id}`, () =>
+        setGameState(gameScreenState.PLAYING)
+      );
       clearInterval(requestRef.current);
     };
   }, [playerMove, frontGameData]); //TODO : verif

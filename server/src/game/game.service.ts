@@ -160,7 +160,6 @@ export class GameService {
     const gameData = this.games.get(gameId);
     if (gameData) {
       if (playerId === this.games.get(gameId)?.player1.id) {
-        console.log("player 1", gameData.player1.coord.y);
         gameData.player1.moves.push({
           event: gameData.player1.moves.length,
           move: state,
@@ -168,7 +167,6 @@ export class GameService {
           done: false,
         });
       } else if (playerId === this.games.get(gameId)?.player2.id) {
-        console.log("player 2", gameData.player2.coord.y);
         gameData.player2.moves.push({
           event: gameData.player2.moves.length,
           move: state,
@@ -176,6 +174,7 @@ export class GameService {
           done: false,
         });
       }
+      console.log(gameData.player1.coord.y);
       this.games.set(gameId, gameData);
     }
   }
@@ -728,6 +727,9 @@ export class GameService {
         CANVAS_WIDTH + BALL_RADIUS
       ) {
         gameData.player1.score += 1;
+        if (gameData.player2.score === 11) {
+          this.endGame(gameId);
+        }
         if (gameData.game.type === "BOOST") {
           if (gameData.game.player1Boost.remaining < 90)
             gameData.game.player1Boost.remaining += 10;
@@ -739,6 +741,9 @@ export class GameService {
         -BALL_RADIUS
       ) {
         gameData.player2.score += 1;
+        if (gameData.player2.score === 11) {
+          this.endGame(gameId);
+        }
         if (gameData.game.type === "BOOST") {
           if (gameData.game.player2Boost.remaining < 90)
             gameData.game.player2Boost.remaining += 10;
@@ -934,7 +939,9 @@ export class GameService {
 
       if (p1) p1.send({ type: "GAME_ENDED" });
       if (p2) p2.send({ type: "GAME_ENDED" });
-
+      this.socketGateway.server.emit(`forfeitGame${game.id}`);
+      const interval = this.socketGateway.gameInProgress.get(game.id);
+      clearInterval(interval);
       this.games.delete(game.id);
     }
   };
@@ -943,7 +950,13 @@ export class GameService {
     const game = this.getGame(userId);
 
     if (game) {
-      // TODO: send pause event to room
+      const interval = this.socketGateway.gameInProgress.get(game?.id);
+      clearInterval(interval);
+      this.socketGateway.server.emit(`pauseGame${game.id}`);
+      setTimeout(() => {
+        this.socketGateway.launchGame(game.id);
+        this.socketGateway.server.emit(`unpauseGame${game.id}`);
+      }, 3000);
     }
   };
 }
