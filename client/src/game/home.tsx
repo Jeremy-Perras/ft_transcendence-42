@@ -247,7 +247,7 @@ const RenderState = ({
             nbOfFrames={21}
           />
           <Mode
-            selectMode={() => selectMode(GameMode.Speed)}
+            selectMode={() => selectMode(GameMode.Boost)}
             name={"fireball"}
             textEffects={"text-red-500"}
             animate={() => false}
@@ -255,7 +255,7 @@ const RenderState = ({
             nbOfFrames={21}
           />
           <Mode
-            selectMode={() => selectMode(GameMode.Random)}
+            selectMode={() => selectMode(GameMode.Gift)}
             name={"bonus"}
             textEffects={"text-amber-500"}
             animate={(isEnter: boolean) => {
