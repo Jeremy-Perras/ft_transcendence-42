@@ -79,6 +79,7 @@ export const GameRouter = () => {
   const socket = useSocketStore().socket;
   const userId = useAuthStore().userId;
   const setState = useStateStore().setState;
+
   const { data: getState } = useQuery({
     queryKey: ["Users", userId],
     queryFn: async () =>
@@ -86,6 +87,7 @@ export const GameRouter = () => {
         userId: userId,
       }),
   });
+
   useEffect(() => {
     setState(getState?.user.state?.__typename);
   }, [getState]);
