@@ -31,10 +31,26 @@ export class SocketGateway implements OnModuleInit {
   public launchGame(gameId: number) {
     const callback = () => {
       const gameData = this.gameService.games.get(gameId);
-      this.gameService.MoveLeftPad(gameId);
-      this.gameService.MoveRightPad(gameId);
-      this.gameService.MoveBall(gameId);
-      this.server.emit(`Game_${gameId}`, gameData);
+      if (gameData) {
+        this.gameService.MovePads(gameId);
+        this.gameService.MoveBall(gameId);
+        const dataToEmit = {
+          id: gameData.id,
+          player1: {
+            id: gameData.player1.id,
+            coord: gameData.player1.coord,
+            score: gameData.player1.score,
+          },
+          player2: {
+            id: gameData.player2.id,
+            coord: gameData.player2.coord,
+            score: gameData.player2.score,
+          },
+          ball: gameData.ball,
+          game: gameData.game,
+        };
+        this.server.emit(`Game_${gameId}`, dataToEmit);
+      }
     };
     this.gameInProgress.set(gameId, setInterval(callback, 100));
   }

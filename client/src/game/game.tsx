@@ -29,6 +29,7 @@ import {
 import { GameData, padMove } from "./types/gameData";
 
 //TODO : bonus mode
+//TODO : add names on canvas
 
 enum gameScreenState {
   INTRO,
@@ -88,14 +89,29 @@ export const gameLoader = async (
   }
 };
 
+const updateGameData = (
+  frontGameData: React.MutableRefObject<GameData>,
+  backGameData: GameData,
+  initData: GameQuery
+) => {
+  frontGameData.current.ball = backGameData.ball;
+  frontGameData.current.player1.coord = backGameData.player1.coord;
+  frontGameData.current.player2.coord = backGameData.player2.coord;
+  frontGameData.current.player1.score = backGameData.player1.score;
+  frontGameData.current.player2.score = backGameData.player2.score;
+  frontGameData.current.game = backGameData.game;
+  frontGameData.current.player1.id = initData.game.players.player1.id;
+  frontGameData.current.player2.id = initData.game.players.player2.id;
+  frontGameData.current.player1.name = initData.game.players.player1.name;
+  frontGameData.current.player2.name = initData.game.players.player2.name;
+};
+
 let eventSetup = false;
 
 const GameCanvas = ({
-  startTime,
   setGameState,
   initData,
 }: {
-  startTime: number;
   setGameState: React.Dispatch<React.SetStateAction<gameScreenState>>;
   initData: GameQuery;
 }) => {
@@ -126,20 +142,19 @@ const GameCanvas = ({
 
   const frontGameData = useRef<GameData>({
     id: initData.game.id,
-    startedAt: new Date(),
     player1: {
+      id: initData.game.players.player1.id,
+      name: initData.game.players.player1.name,
       coord: { x: LEFT_PAD_X, y: (CANVAS_HEIGHT - PAD_HEIGHT) / 2 },
       playerMove: padMove.STILL,
-      id: initData.game.players.player1.id,
       score: initData.game.score.player1Score,
-      moves: [],
     },
     player2: {
+      id: initData.game.players.player2.id,
+      name: initData.game.players.player2.name,
       coord: { x: RIGHT_PAD_X, y: (CANVAS_HEIGHT - PAD_HEIGHT) / 2 },
       playerMove: padMove.STILL,
-      id: initData.game.players.player2.id,
       score: initData.game.score.player2Score,
-      moves: [],
     },
     ball: {
       coord: {
@@ -151,33 +166,15 @@ const GameCanvas = ({
     game:
       initData.game.gameMode === GameMode.Classic
         ? {
-            id: initData.game.id,
-            score: { player1: 0, player2: 0 },
-            players: {
-              player1: initData.game.players.player1.id,
-              player2: initData.game.players.player2.id,
-            },
             type: "CLASSIC",
           }
         : initData.game.gameMode === GameMode.Boost
         ? {
-            id: initData.game.id,
-            score: { player1: 0, player2: 0 },
-            players: {
-              player1: initData.game.players.player1.id,
-              player2: initData.game.players.player2.id,
-            },
             type: "BOOST",
             player1Boost: { activated: false, remaining: 100 }, // percent
             player2Boost: { activated: false, remaining: 100 },
           }
         : {
-            id: initData.game.id,
-            score: { player1: 0, player2: 0 },
-            players: {
-              player1: initData.game.players.player1.id,
-              player2: initData.game.players.player2.id,
-            },
             type: "GIFT",
             player1Gifts: { size: 1, speed: 1 }, // ratio
             player2Gifts: { size: 1, speed: 1 },
@@ -246,19 +243,14 @@ const GameCanvas = ({
     };
   }, [initData, currentUserId]);
 
-  const wrapById = document.getElementById("wrap");
-
   useEffect(() => {
     const obs = new ResizeObserver(() =>
       redraw(wrap, canvas, frontGameData.current)
     );
     redraw(wrap, canvas, frontGameData.current);
-
-    console.log("resize");
     if (wrap && wrap.current) {
       obs.observe(wrap.current);
     }
-
     return () => {
       if (wrap && wrap.current) obs.unobserve(wrap.current);
     };
@@ -266,6 +258,7 @@ const GameCanvas = ({
 
   useEffect(() => {
     let gameData: GameData;
+
     const cb = (backData: GameData) => {
       if (backData.player1.score === 11 || backData.player2.score === 11) {
         setGameState(gameScreenState.SCORE);
@@ -273,14 +266,19 @@ const GameCanvas = ({
       let ctx;
       if (canvas.current) ctx = canvas.current.getContext("2d");
       if (ctx) draw(ctx, frontGameData.current);
-      frontGameData.current = backData;
-      if (currentUserId === frontGameData.current.player1.id)
-        frontGameData.current.player1.coord.y = yPlayer.current;
-      else if (currentUserId === frontGameData.current.player2.id)
-        frontGameData.current.player2.coord.y = yPlayer.current;
+      updateGameData(frontGameData, backData, initData);
+
+      if (currentUserId === frontGameData.current.player1.id) {
+        //TODO : adjust y - find why
+      } else if (currentUserId === frontGameData.current.player2.id) {
+        //TODO : adjust y - find why
+      }
+
       gameData = backData;
     };
     const animate = () => {
+      console.log("player 1 : ", frontGameData.current.player1.coord.y);
+      console.log("player 2 : ", frontGameData.current.player2.coord.y);
       let ctx;
       if (canvas.current) ctx = canvas.current.getContext("2d");
       if (ctx && gameData) {
@@ -294,33 +292,32 @@ const GameCanvas = ({
         }
       }
     };
-    socket.on(`Game_${frontGameData.current.game.id}`, cb);
-    socket.on(`forfeitGame${frontGameData.current.game.id}`, () =>
+    socket.on(`Game_${frontGameData.current.id}`, cb);
+    socket.on(`forfeitGame${frontGameData.current.id}`, () =>
       setGameState(gameScreenState.SCORE)
     );
-    socket.on(`pauseGame${frontGameData.current.game.id}`, () =>
+    socket.on(`pauseGame${frontGameData.current.id}`, () =>
       setGameState(gameScreenState.PAUSE)
     );
-    socket.on(`unpauseGame${frontGameData.current.game.id}`, () =>
+    socket.on(`unpauseGame${frontGameData.current.id}`, () =>
       setGameState(gameScreenState.PLAYING)
     );
     requestRef.current = setInterval(animate, 10);
     return () => {
-      socket.off(`Game_${frontGameData.current.game.id}`, cb);
-      socket.off(`forfeitGame${frontGameData.current.game.id}`, () =>
+      socket.off(`Game_${frontGameData.current.id}`, cb);
+      socket.off(`forfeitGame${frontGameData.current.id}`, () =>
         setGameState(gameScreenState.SCORE)
       );
-      socket.off(`pauseGame${frontGameData.current.game.id}`, () =>
+      socket.off(`pauseGame${frontGameData.current.id}`, () =>
         setGameState(gameScreenState.PAUSE)
       );
-      socket.off(`unpauseGame${frontGameData.current.game.id}`, () =>
+      socket.off(`unpauseGame${frontGameData.current.id}`, () =>
         setGameState(gameScreenState.PLAYING)
       );
       clearInterval(requestRef.current);
     };
   }, [playerMove, frontGameData]); //TODO : verif
 
-  //TODO : pause game ? check subject
   return (
     <>
       <div className="flex h-full w-full" ref={wrap} id="wrap">
@@ -348,25 +345,25 @@ const GameCanvas = ({
   );
 };
 
-const GameTimer = ({ startTime }: { startTime: number }) => {
-  const [timer, setTimer] = useState(
-    Math.floor((new Date().getTime() - startTime) / 1000)
-  );
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setTimer(Math.floor((new Date().getTime() - startTime) / 1000));
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [timer]);
+// const GameTimer = ({ startTime }: { startTime: number }) => {
+//   const [timer, setTimer] = useState(
+//     Math.floor((new Date().getTime() - startTime) / 1000)
+//   );
+//   useEffect(() => {
+//     const interval = setInterval(() => {
+//       setTimer(Math.floor((new Date().getTime() - startTime) / 1000));
+//     }, 1000);
+//     return () => clearInterval(interval);
+//   }, [timer]);
 
-  return (
-    <div className="my-2 flex w-20 justify-center">
-      <span>{Math.floor(timer / 60)} </span>
-      <span className="mx-1 pb-1 font-mono text-lg">:</span>
-      <span>{timer % 60 < 10 ? `0${timer % 60}` : `${timer % 60}`}</span>
-    </div>
-  );
-};
+//   return (
+//     <div className="my-2 flex w-20 justify-center">
+//       <span>{Math.floor(timer / 60)} </span>
+//       <span className="mx-1 pb-1 font-mono text-lg">:</span>
+//       <span>{timer % 60 < 10 ? `0${timer % 60}` : `${timer % 60}`}</span>
+//     </div>
+//   );
+// };
 
 const Score = ({ gameId }: { gameId: number }) => {
   const navigate = useNavigate();
@@ -533,11 +530,7 @@ export const Game = () => {
     case gameScreenState.PLAYING:
       return (
         <div className=" h-full w-full">
-          <GameCanvas
-            initData={data}
-            startTime={startTime + INTRO_DURATION * 1000}
-            setGameState={setGameState}
-          />
+          <GameCanvas initData={data} setGameState={setGameState} />
         </div>
       );
 

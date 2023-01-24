@@ -4,49 +4,11 @@ export enum padMove {
   STILL,
 }
 
-export type Player = {
-  id: number;
-  coord: Coord;
-  playerMove: padMove;
-  moves: Array<{
-    event: number;
-    timestamp: number;
-    move: padMove;
-    done: boolean;
-  }>;
-  score: number;
-};
-
-export type GameData = {
-  id: number;
-  startedAt: Date;
-  player1: Player;
-  player2: Player;
-  ball: { coord: Coord; velocity: { vx: number; vy: number } };
-  game: GameType;
-};
-export type Coord = {
-  x: number;
-  y: number;
-};
-
-export type Game = {
-  id: number;
-  score: {
-    player1: number;
-    player2: number;
-  };
-  players: {
-    player1: number;
-    player2: number;
-  };
-};
-
-export type ClassicGame = Game & {
+export type ClassicGame = {
   type: "CLASSIC";
 };
 
-export type BoostGame = Game & {
+export type BoostGame = {
   type: "BOOST";
   player1Boost: {
     remaining: number;
@@ -58,7 +20,7 @@ export type BoostGame = Game & {
   };
 };
 
-export type GiftGame = Game & {
+export type GiftGame = {
   type: "GIFT";
   player1Gifts: {
     speed: number;
@@ -71,3 +33,24 @@ export type GiftGame = Game & {
 };
 
 export type GameType = ClassicGame | BoostGame | GiftGame;
+
+export type Coord = {
+  x: number;
+  y: number;
+};
+
+export type Player = {
+  id: number;
+  name: string;
+  coord: Coord;
+  playerMove: padMove;
+  score: number;
+};
+
+export type GameData = {
+  id: number;
+  player1: Player;
+  player2: Player;
+  ball: { coord: Coord; velocity: { vx: number; vy: number } };
+  game: GameType;
+};

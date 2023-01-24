@@ -2,11 +2,11 @@ import { GameMode } from "../../gql/graphql";
 import { Socket } from "socket.io-client";
 import { GameData, padMove } from "../types/gameData";
 
-export const CANVAS_WIDTH = 4000;
-export const CANVAS_HEIGHT = 4000;
+export const CANVAS_WIDTH = 2000;
+export const CANVAS_HEIGHT = 2000;
 
-export const PAD_HEIGHT = Math.ceil(CANVAS_HEIGHT / 10);
-export const PAD_WIDTH = Math.ceil(PAD_HEIGHT / 10);
+export const PAD_HEIGHT = Math.ceil(CANVAS_HEIGHT / 12);
+export const PAD_WIDTH = Math.ceil(PAD_HEIGHT / 5);
 
 export const BALL_RADIUS = 40;
 export const LEFT_PAD_X = CANVAS_WIDTH / 8;
@@ -31,7 +31,6 @@ export function redraw(
     if (cssHeight > cssWidth) min = cssWidth;
     else min = cssHeight;
   }
-  console.log("redraw", cssHeight, cssWidth, min);
 
   if (canvas && canvas.current) {
     canvas.current.width = min;
@@ -39,9 +38,7 @@ export function redraw(
     const ctx = canvas.current.getContext("2d");
     if (ctx) {
       ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.fillStyle = "red";
-      ctx.fillRect(0, 0, min, min);
-      const scale = min / 4000;
+      const scale = min / CANVAS_HEIGHT;
       ctx.scale(scale, scale);
     }
     if (ctx) draw(ctx, data);
@@ -52,12 +49,31 @@ const background = {
   x: 0,
   y: 0,
   draw(context: CanvasRenderingContext2D) {
-    context.fillStyle = "black";
     context.beginPath();
-    context.fillRect(this.x, this.y, CANVAS_WIDTH, CANVAS_HEIGHT);
+
     context.fillStyle = "white";
+    context.fillRect(0, 0, CANVAS_WIDTH / 100, CANVAS_HEIGHT);
+    context.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT / 100);
+    context.fillRect(
+      CANVAS_WIDTH - CANVAS_WIDTH / 100,
+      0,
+      CANVAS_WIDTH / 100,
+      CANVAS_HEIGHT
+    );
+    context.fillRect(
+      0,
+      CANVAS_HEIGHT - CANVAS_HEIGHT / 100,
+      CANVAS_WIDTH,
+      CANVAS_HEIGHT / 100
+    );
+
     for (let y = 0; y <= CANVAS_HEIGHT; y += CANVAS_HEIGHT / 40) {
-      context.fillRect(CANVAS_WIDTH / 2 - 2, y, 4, CANVAS_HEIGHT / 80);
+      context.fillRect(
+        CANVAS_WIDTH / 2 - CANVAS_WIDTH / 200,
+        y,
+        CANVAS_WIDTH / 100,
+        CANVAS_HEIGHT / 80
+      );
     }
     context.closePath();
   },
@@ -168,23 +184,51 @@ const boostBar = {
     gradient1.addColorStop(1, "red");
     context.fillStyle = gradient1;
     context.fillRect(
-      CANVAS_WIDTH / 50,
-      CANVAS_HEIGHT / 50 + ((CANVAS_HEIGHT / 5) * (100 - fillPlayer1)) / 100,
+      CANVAS_WIDTH / 50 + CANVAS_WIDTH / 100,
+      CANVAS_HEIGHT / 50 +
+        CANVAS_HEIGHT / 100 +
+        ((CANVAS_HEIGHT / 5) * (100 - fillPlayer1)) / 100,
       CANVAS_WIDTH / 50,
       ((CANVAS_HEIGHT / 5) * fillPlayer1) / 100
     );
 
     context.fillRect(
-      (48 * CANVAS_WIDTH) / 50,
-      CANVAS_HEIGHT / 50 + ((CANVAS_HEIGHT / 5) * (100 - fillPlayer2)) / 100,
+      (48 * CANVAS_WIDTH) / 50 - CANVAS_WIDTH / 100,
+      CANVAS_HEIGHT / 50 +
+        CANVAS_HEIGHT / 100 +
+        ((CANVAS_HEIGHT / 5) * (100 - fillPlayer2)) / 100,
       CANVAS_WIDTH / 50,
       ((CANVAS_HEIGHT / 5) * fillPlayer2) / 100
     );
   },
 };
 
+const names = {
+  color: "white",
+  draw(
+    context: CanvasRenderingContext2D,
+    player1Name: string,
+    player2Name: string
+  ) {
+    context.fillStyle = this.color;
+    context.font = "48px w95fa";
+    context.textAlign = "center";
+    context.fillText(
+      `${player1Name.substring(0, 25)}${player1Name.length >= 25 ? "..." : ""}`,
+      (CANVAS_WIDTH * 3) / 10,
+      CANVAS_HEIGHT / 30,
+      CANVAS_WIDTH / 5
+    );
+    context.fillText(
+      `${player2Name.substring(0, 25)}${player2Name.length >= 25 ? "..." : ""}`,
+      (CANVAS_WIDTH * 7) / 10,
+      CANVAS_HEIGHT / 30,
+      CANVAS_WIDTH / 5
+    );
+  },
+};
+
 const score = {
-  //TODO : add names
   color: "white",
   draw(
     context: CanvasRenderingContext2D,
@@ -192,16 +236,19 @@ const score = {
     player2Score: number
   ) {
     context.fillStyle = this.color;
-    context.font = "280px mono";
+    context.font = "150px w95fa";
+    context.textAlign = "center";
     context.fillText(
       `${player1Score}`,
-      (CANVAS_WIDTH * 2) / 6,
-      CANVAS_HEIGHT / 10
+      (CANVAS_WIDTH * 3) / 10,
+      CANVAS_HEIGHT / 10,
+      CANVAS_WIDTH / 5
     );
     context.fillText(
       `${player2Score}`,
-      (CANVAS_WIDTH * 4) / 6,
-      CANVAS_HEIGHT / 10
+      (CANVAS_WIDTH * 7) / 10,
+      CANVAS_HEIGHT / 10,
+      CANVAS_WIDTH / 5
     );
   },
 };
@@ -209,6 +256,7 @@ const score = {
 export const draw = (context: CanvasRenderingContext2D, data: GameData) => {
   context?.clearRect(background.x, background.y, CANVAS_WIDTH, CANVAS_HEIGHT);
   background.draw(context);
+  names.draw(context, data.player1.name, data.player2.name);
   score.draw(context, data.player1.score, data.player2.score);
   leftPad.draw(context, data.player1.coord.y);
   rightPad.draw(context, data.player2.coord.y);
@@ -239,7 +287,7 @@ export const setY = (
   >
 ) => {
   const len = moves.current.length;
-  console.log(moves.current);
+  // console.log(moves.current);
   moves.current.forEach((val, i) => {
     if (!val.done) {
       if (val.move === padMove.UP) {
