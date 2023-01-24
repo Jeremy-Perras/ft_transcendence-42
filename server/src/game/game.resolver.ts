@@ -1,4 +1,9 @@
-import { NotFoundException, UseGuards } from "@nestjs/common";
+import {
+  BadRequestException,
+  NotFoundException,
+  RequestTimeoutException,
+  UseGuards,
+} from "@nestjs/common";
 import {
   Args,
   ArgsType,
@@ -189,7 +194,7 @@ export class GameResolver {
     @CurrentUser() currentUserId: number
   ) {
     const currentPlayer = this.gameService.getPlayer(currentUserId);
-    if (!currentPlayer) throw new Error();
+    if (!currentPlayer) throw new BadRequestException();
     const wait = waitFor(
       currentPlayer,
       (state) => state.matches("_.waitingForInvitee"),
@@ -197,7 +202,7 @@ export class GameResolver {
         timeout: 1000,
       }
     ).catch(() => {
-      throw new Error();
+      throw new RequestTimeoutException("This player is not responding");
     });
 
     const name = await this.prisma.user.findFirst({
@@ -219,11 +224,13 @@ export class GameResolver {
   @Mutation((returns) => Boolean)
   async cancelGameInvite(@CurrentUser() currentUserId: number) {
     const currentPlayer = this.gameService.getPlayer(currentUserId);
-    if (!currentPlayer) throw new Error();
+    if (!currentPlayer) throw new BadRequestException();
     const wait = waitFor(currentPlayer, (state) => state.matches("_.idle"), {
       timeout: 10000,
     }).catch(() => {
-      throw new Error();
+      throw new RequestTimeoutException(
+        "We were not able to cancel the invite, try again"
+      );
     });
     currentPlayer.send({ type: "CANCEL_INVITATION" });
     await wait;
@@ -236,11 +243,11 @@ export class GameResolver {
     @CurrentUser() currentUserId: number
   ) {
     const currentPlayer = this.gameService.getPlayer(currentUserId);
-    if (!currentPlayer) throw new Error();
+    if (!currentPlayer) throw new BadRequestException();
     const wait = waitFor(currentPlayer, (state) => state.matches("_.playing"), {
       timeout: 10000,
     }).catch(() => {
-      throw new Error();
+      throw new RequestTimeoutException("This player is not responding");
     });
     currentPlayer.send({ type: "ACCEPT_INVITATION", inviterId: userId });
     await wait;
@@ -253,7 +260,7 @@ export class GameResolver {
     @CurrentUser() currentUserId: number
   ) {
     const currentPlayer = this.gameService.getPlayer(currentUserId);
-    if (!currentPlayer) throw new Error();
+    if (!currentPlayer) throw new BadRequestException();
     const wait = waitFor(
       currentPlayer,
       (state) => !state.context.invitations.has(userId),
@@ -261,7 +268,9 @@ export class GameResolver {
         timeout: 10000,
       }
     ).catch(() => {
-      throw new Error();
+      throw new RequestTimeoutException(
+        "We were not able to refuse the invite, try again"
+      );
     });
     currentPlayer.send({ type: "REFUSE_INVITATION", inviterId: userId });
     await wait;
@@ -274,7 +283,7 @@ export class GameResolver {
     @CurrentUser() currentUserId: number
   ) {
     const currentPlayer = this.gameService.getPlayer(currentUserId);
-    if (!currentPlayer) throw new Error();
+    if (!currentPlayer) throw new BadRequestException();
     const wait = waitFor(
       currentPlayer,
       (state) => state.matches("_.waitingForMatchmaking"),
@@ -282,7 +291,9 @@ export class GameResolver {
         timeout: 10000,
       }
     ).catch(() => {
-      throw new Error();
+      throw new RequestTimeoutException(
+        "Unable to join matchmaking, try again"
+      );
     });
     currentPlayer.send({ type: "JOIN_MATCHMAKING", gameMode });
     await wait;
@@ -292,11 +303,13 @@ export class GameResolver {
   @Mutation((returns) => Boolean)
   async leaveMatchmaking(@CurrentUser() currentUserId: number) {
     const currentPlayer = this.gameService.getPlayer(currentUserId);
-    if (!currentPlayer) throw new Error();
+    if (!currentPlayer) throw new BadRequestException();
     const wait = waitFor(currentPlayer, (state) => state.matches("_.idle"), {
       timeout: 10000,
     }).catch(() => {
-      throw new Error();
+      throw new RequestTimeoutException(
+        "Unable to leave matchmaking, try again"
+      );
     });
     currentPlayer.send({ type: "LEAVE_MATCHMAKING" });
     await wait;
