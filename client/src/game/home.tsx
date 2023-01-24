@@ -1,4 +1,9 @@
-import { useAuthStore, useInvitationStore, useSocketStore } from "../stores";
+import {
+  useAuthStore,
+  useInvitationStore,
+  useSocketStore,
+  useStateStore,
+} from "../stores";
 import { useMediaQuery } from "@react-hookz/web";
 import { useEffect, useState } from "react";
 import { ReactComponent as CloseBox } from "pixelarticons/svg/close-box.svg";
@@ -211,13 +216,17 @@ const RenderState = ({
   state,
   setState,
   isNarrow,
+  setMessage,
+  setDisplayError,
 }: {
   state: State;
   setState: React.Dispatch<React.SetStateAction<State>>;
   isNarrow: boolean | undefined;
+  setMessage: React.Dispatch<React.SetStateAction<string | undefined>>;
+  setDisplayError: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   const { invitationState, invitationId, sendInvite } = useInvitationStore();
-
+  const userId = useAuthStore().userId;
   const gameInvitation = useMutation(
     async ({
       gameMode,
@@ -229,13 +238,47 @@ const RenderState = ({
       request("/graphql", GameInvitationMutationDocument, {
         gameMode: gameMode,
         userId: inviteeId,
-      })
+      }),
+    {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      onError: (e: any) => {
+        try {
+          const message = e.response.errors[0].message;
+          if (message) {
+            setMessage(message);
+          } else {
+            setMessage("An error was unexpected please retry your action");
+          }
+        } catch {
+          setMessage("An error was unexpected please retry your action");
+        }
+        queryClient.invalidateQueries(["Users", userId]);
+        setDisplayError(true);
+      },
+    }
   );
   const joinMatchMacking = useMutation(
     async ({ gameMode }: { gameMode: GameMode }) =>
       request("/graphql", JoinMatchMackingMutationDocument, {
         gameMode: gameMode,
-      })
+      }),
+    {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      onError: (e: any) => {
+        try {
+          const message = e.response.errors[0].message;
+          if (message) {
+            setMessage(message);
+          } else {
+            setMessage("An error was unexpected please retry your action");
+          }
+        } catch {
+          setMessage("An error was unexpected please retry your action");
+        }
+        queryClient.invalidateQueries(["Users", userId]);
+        setDisplayError(true);
+      },
+    }
   );
 
   const play = () => {
@@ -313,11 +356,16 @@ const RenderState = ({
   }
 };
 
-const Error = ({ message }: { message: string | undefined }) => {
-  const [error, setError] = useState<boolean>(message ? true : false);
+const Error = ({
+  message,
+  setMessage,
+}: {
+  message: string | undefined;
+  setMessage: React.Dispatch<React.SetStateAction<string | undefined>>;
+}) => {
   return (
     <>
-      {error ? (
+      {message ? (
         <div className="absolute top-0 z-30  w-full justify-center ">
           <div className=" flex w-full flex-auto flex-row  bg-slate-100 ">
             <span className="flex grow truncate pl-2 pt-1 text-center align-middle font-sans text-black">{`${message}`}</span>
@@ -325,7 +373,7 @@ const Error = ({ message }: { message: string | undefined }) => {
               <RefuseIcon
                 className="mx-2 w-5 bg-red-300 hover:cursor-pointer "
                 onClick={() => {
-                  setError(false);
+                  setMessage(undefined);
                 }}
               />
             </div>
@@ -343,7 +391,7 @@ export const Home = () => {
   const userId = useAuthStore().userId;
   const isSmall = useMediaQuery("(max-height : 1000px)");
   const isNarrow = useMediaQuery("(max-width : 640px)");
-  const [displayInvitationError, setDisplayInvitationError] = useState(false);
+  const [displayError, setDisplayError] = useState(false);
   const socket = useSocketStore().socket;
   const [message, setMessage] = useState<string>();
   const navigate = useNavigate();
@@ -366,12 +414,46 @@ export const Home = () => {
     queryClient.invalidateQueries(["UserGameId", userId]);
   }, [userId]);
 
-  const cancelInvitation = useMutation(async () =>
-    request("/graphql", CancelInvitationMutationDocument)
+  const cancelInvitation = useMutation(
+    async () => request("/graphql", CancelInvitationMutationDocument),
+    {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      onError: (e: any) => {
+        try {
+          const message = e.response.errors[0].message;
+          if (message) {
+            setMessage(message);
+          } else {
+            setMessage("An error was unexpected please retry your action");
+          }
+        } catch {
+          setMessage("An error was unexpected please retry your action");
+        }
+        queryClient.invalidateQueries(["Users", userId]);
+        setDisplayError(true);
+      },
+    }
   );
 
-  const leaveMatchMacking = useMutation(async () =>
-    request("/graphql", LeaveMatchMackingMutationDocument)
+  const leaveMatchMacking = useMutation(
+    async () => request("/graphql", LeaveMatchMackingMutationDocument),
+    {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      onError: (e: any) => {
+        try {
+          const message = e.response.errors[0].message;
+          if (message) {
+            setMessage(message);
+          } else {
+            setMessage("An error was unexpected please retry your action");
+          }
+        } catch {
+          setMessage("An error was unexpected please retry your action");
+        }
+        queryClient.invalidateQueries(["Users", userId]);
+        setDisplayError(true);
+      },
+    }
   );
 
   socket.on("invitationRejected", () => {
@@ -381,7 +463,7 @@ export const Home = () => {
   socket.on("error", (message) => {
     const info = message;
     setMessage(info);
-    setDisplayInvitationError(true);
+    setDisplayError(true);
   });
 
   useEffect(() => {
@@ -432,7 +514,13 @@ export const Home = () => {
       ) : null}
       <div className="crt turn flex h-full items-center justify-center">
         {isLoggedIn ? (
-          <RenderState state={state} setState={setState} isNarrow={isNarrow} />
+          <RenderState
+            state={state}
+            setState={setState}
+            isNarrow={isNarrow}
+            setMessage={setMessage}
+            setDisplayError={setDisplayError}
+          />
         ) : (
           <a
             href={`${window.location.protocol}//${window.location.host}/auth/login`}
@@ -442,8 +530,13 @@ export const Home = () => {
           </a>
         )}
       </div>
-      {displayInvitationError ? <Error message={message} /> : null}
-      <GameInvitations />
+      {displayError ? (
+        <Error message={message} setMessage={setMessage} />
+      ) : null}
+      <GameInvitations
+        setMessage={setMessage}
+        setDisplayError={setDisplayError}
+      />
     </>
   );
 };
