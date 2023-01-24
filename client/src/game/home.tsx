@@ -318,7 +318,7 @@ const Error = ({ message }: { message: string | undefined }) => {
   return (
     <>
       {error ? (
-        <div className="absolute top-0 z-10  w-full justify-center ">
+        <div className="absolute top-0 z-30  w-full justify-center ">
           <div className=" flex w-full flex-auto flex-row  bg-slate-100 ">
             <span className="flex grow truncate pl-2 pt-1 text-center align-middle font-sans text-black">{`${message}`}</span>
             <div className="flex w-1/3 basis-1/5 justify-end ">
@@ -374,6 +374,10 @@ export const Home = () => {
     request("/graphql", LeaveMatchMackingMutationDocument)
   );
 
+  socket.on("invitationRejected", () => {
+    setState("idle");
+  });
+
   socket.on("error", (message) => {
     const info = message;
     setMessage(info);
@@ -394,9 +398,8 @@ export const Home = () => {
         break;
     }
 
-    if (invitationState) {
-      socket.on("cancelInvitation", cb);
-    }
+    socket.on("cancelInvitation", cb);
+
     return () => {
       socket.off("cancelInvitation", cb);
     };

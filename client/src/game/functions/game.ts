@@ -31,7 +31,6 @@ export function redraw(
     if (cssHeight > cssWidth) min = cssWidth;
     else min = cssHeight;
   }
-  console.log("redraw", cssHeight, cssWidth, min);
 
   if (canvas && canvas.current) {
     canvas.current.width = min;
@@ -88,10 +87,14 @@ const rightPad = {
 const ball = {
   classicColor: "white",
 
-  draw(context: CanvasRenderingContext2D, x: number, y: number) {
+  draw(
+    context: CanvasRenderingContext2D,
+    coord: { x: number; y: number },
+    velocity: { vx: number; vy: number }
+  ) {
     context.fillStyle = this.classicColor;
     context.beginPath();
-    context.arc(x, y, BALL_RADIUS, 0, 2 * Math.PI);
+    context.arc(coord.x, coord.y, BALL_RADIUS, 0, 2 * Math.PI);
     context.closePath();
     context.fill();
   },
@@ -213,7 +216,7 @@ export const draw = (context: CanvasRenderingContext2D, data: GameData) => {
   leftPad.draw(context, data.player1.coord.y);
   rightPad.draw(context, data.player2.coord.y);
   if (data.game.type === "CLASSIC" || data.game.type === "GIFT")
-    ball.draw(context, data.ball.coord.x, data.ball.coord.y);
+    ball.draw(context, data.ball.coord, data.ball.velocity);
   if (data.game.type === "BOOST") {
     const boostActivated =
       data.game.player1Boost.activated || data.game.player2Boost.activated;
@@ -239,7 +242,6 @@ export const setY = (
   >
 ) => {
   const len = moves.current.length;
-  console.log(moves.current);
   moves.current.forEach((val, i) => {
     if (!val.done) {
       if (val.move === padMove.UP) {

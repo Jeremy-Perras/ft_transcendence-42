@@ -117,9 +117,9 @@ export const GameInvitations = () => {
     }
   );
 
-  socket.on("cancelInvitation", (gameInvitation: GameInvitation) => {
+  socket.on("cancelInvitation", ({ inviterId: inviterId }) => {
     setInvitationList((list) =>
-      list.filter((invite) => invite !== gameInvitation)
+      list.filter((invite) => invite.inviterId !== inviterId)
     );
   });
 

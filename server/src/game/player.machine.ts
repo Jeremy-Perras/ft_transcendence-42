@@ -273,7 +273,7 @@ export const PlayerMachine = (
           ],
           after: [
             {
-              delay: 10000,
+              delay: 3000,
               target: "offline",
             },
           ],
@@ -388,17 +388,40 @@ export const PlayerMachine = (
               } else reject();
             }
           }),
-        gameStart: (context) =>
+        gameStart: (
+          context,
+          event:
+            | { type: "GAME_FOUND" }
+            | { type: "done.invoke.player._.acceptingInvite:invocation[0]" }
+            | { type: "done.invoke.player._.creatingGame:invocation[0]" }
+            | {
+                type: "done.invoke.player._.waitingForMatchmaking:invocation[0]";
+              }
+            | { type: "CONNECT" }
+        ) =>
           new Promise((resolve, reject) => {
             const game = gameService.getGame(context.userId);
             const gameId = game?.id;
 
-            if (gameId) {
-              socket.sendToUser(context.userId, "gameStarting", { gameId });
-              resolve();
-            } else {
-              reject();
+            if (game) {
+              let other;
+              if (context.userId === game.player1.id) {
+                other = gameService.getPlayer(game?.player2.id);
+              } else {
+                other = gameService.getPlayer(game?.player1.id);
+              }
+              if (gameId && other) {
+                if (event.type === "CONNECT") {
+                  if (other.getSnapshot().matches("_.playing")) {
+                    socket.server.emit(`unpauseGame${game.id}`);
+                  }
+                } else {
+                  socket.sendToUser(context.userId, "gameStarting", { gameId });
+                }
+                resolve();
+              }
             }
+            reject();
           }),
         createGame: (
           context,
@@ -505,6 +528,10 @@ export const PlayerMachine = (
         removeInvite: assign({
           invitations: (context, event) => {
             context.invitations.delete(event.inviterId);
+
+            socket.sendToUser(context.userId, "cancelInvitation", {
+              inviterId: event.inviterId,
+            });
             return context.invitations;
           },
         }),

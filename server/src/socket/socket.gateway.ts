@@ -22,7 +22,18 @@ export class SocketGateway implements OnModuleInit {
   server: Server;
 
   private connectedUsers: Map<number, string> = new Map();
-  public gameInProgress = new Map<number, NodeJS.Timer>(); // TODO to private
+  private gameInProgress = new Map<number, NodeJS.Timer>();
+
+  public clearGameIntervall(id: number) {
+    const interval = this.gameInProgress.get(id);
+    clearInterval(interval);
+  }
+
+  public eraseGameInProgress(id: number) {
+    const interval = this.gameInProgress.get(id);
+    clearInterval(interval);
+    this.gameInProgress.delete(id);
+  }
 
   public getUserSocket(id: number) {
     return this.connectedUsers.get(id);

@@ -273,6 +273,7 @@ export class GameResolver {
       );
     });
     currentPlayer.send({ type: "REFUSE_INVITATION", inviterId: userId });
+
     await wait;
     return true;
   }

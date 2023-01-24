@@ -254,7 +254,6 @@ const GameCanvas = ({
     );
     redraw(wrap, canvas, frontGameData.current);
 
-    console.log("resize");
     if (wrap && wrap.current) {
       obs.observe(wrap.current);
     }
@@ -278,12 +277,17 @@ const GameCanvas = ({
         frontGameData.current.player1.coord.y = yPlayer.current;
       else if (currentUserId === frontGameData.current.player2.id)
         frontGameData.current.player2.coord.y = yPlayer.current;
-      gameData = backData;
+      if (currentUserId === frontGameData.current.player1.id) {
+        console.log(yPlayer.current);
+        console.log(backData.player1.coord.y);
+      }
+      // gameData = backData;
+      // frontGameData.current = backData;
     };
     const animate = () => {
       let ctx;
       if (canvas.current) ctx = canvas.current.getContext("2d");
-      if (ctx && gameData) {
+      if (ctx) {
         if (frontGameData.current) {
           setY(yPlayer, moves);
           if (currentUserId === frontGameData.current.player1.id)
@@ -320,7 +324,6 @@ const GameCanvas = ({
     };
   }, [playerMove, frontGameData]); //TODO : verif
 
-  //TODO : pause game ? check subject
   return (
     <>
       <div className="flex h-full w-full" ref={wrap} id="wrap">
@@ -455,7 +458,6 @@ const Intro = ({
     }, 1000);
     return () => clearInterval(interval);
   }, [timer]);
-
   return (
     <>
       <div className="mt-10 flex items-center">
@@ -501,6 +503,14 @@ const Intro = ({
   );
 };
 
+const Pause = () => {
+  return (
+    <div className="test-center my-10 flex w-20 justify-center text-5xl">
+      <span className="text-center">Other player is disconnected</span>
+    </div>
+  );
+};
+
 export const Game = () => {
   const params = useParams();
   if (typeof params.gameId === "undefined") return <div>Error</div>;
@@ -540,7 +550,8 @@ export const Game = () => {
           />
         </div>
       );
-
+    case gameScreenState.PAUSE:
+      return <Pause />;
     default:
       return <div>Error</div>;
   }
