@@ -101,14 +101,9 @@ const rightPad = {
   },
 };
 
-const ball = {
+export const ball = {
   classicColor: "white",
-
-  draw(
-    context: CanvasRenderingContext2D,
-    coord: { x: number; y: number },
-    velocity: { vx: number; vy: number }
-  ) {
+  draw(context: CanvasRenderingContext2D, coord: { x: number; y: number }) {
     context.fillStyle = this.classicColor;
     context.beginPath();
     context.arc(coord.x, coord.y, BALL_RADIUS, 0, 2 * Math.PI);
@@ -265,7 +260,7 @@ export const draw = (context: CanvasRenderingContext2D, data: GameData) => {
   leftPad.draw(context, data.player1.coord.y);
   rightPad.draw(context, data.player2.coord.y);
   if (data.game.type === "CLASSIC" || data.game.type === "GIFT")
-    ball.draw(context, data.ball.coord, data.ball.velocity);
+    ball.draw(context, data.ball.coord);
   if (data.game.type === "BOOST") {
     const boostActivated =
       data.game.player1Boost.activated || data.game.player2Boost.activated;

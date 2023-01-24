@@ -25,6 +25,7 @@ import {
   handleKeyUp,
   setY,
   redraw,
+  ball,
 } from "./functions/game";
 import { GameData, padMove } from "./types/gameData";
 
@@ -126,11 +127,14 @@ const GameCanvas = ({
   if (!canvas) return <>Error</>;
 
   const requestRef = useRef<number>();
+  const drawBall = useRef<number>();
   const playerMove = useRef(padMove.STILL);
   const keyboardStatus = useRef({
     arrowUp: false,
     arrowDown: false,
   });
+  const yBall = useRef<number>((CANVAS_WIDTH + 2 * BALL_RADIUS) / 2);
+  const xBall = useRef<number>((CANVAS_HEIGHT + 2 * BALL_RADIUS) / 2);
   const yPlayer = useRef<number>((CANVAS_HEIGHT - PAD_HEIGHT) / 2);
   const moves = useRef<
     {
@@ -266,6 +270,8 @@ const GameCanvas = ({
         setGameState(gameScreenState.SCORE);
       }
       let ctx;
+      xBall.current = frontGameData.current.ball.coord.x;
+      yBall.current = frontGameData.current.ball.coord.y;
       if (canvas.current) ctx = canvas.current.getContext("2d");
       if (ctx) draw(ctx, frontGameData.current);
       updateGameData(frontGameData, backData, initData);
@@ -296,9 +302,8 @@ const GameCanvas = ({
         console.log(yPlayer.current);
         console.log(backData.player1.coord.y);
       }
-      // gameData = backData;
-      // frontGameData.current = backData;
     };
+
     const animate = () => {
       let ctx;
       if (canvas.current) ctx = canvas.current.getContext("2d");
@@ -313,8 +318,20 @@ const GameCanvas = ({
         }
       }
     };
-    socket.on(`Game_${frontGameData.current.id}`, cb);
-    socket.on(`forfeitGame${frontGameData.current.id}`, () =>
+
+    // const animateBall = () => {
+    //   let ctx;
+
+    //   if (canvas.current) ctx = canvas.current.getContext("2d");
+    //   if (ctx && frontGameData.current) {
+    //     ball.draw(ctx, { x: xBall.current, y: yBall.current });
+    //     xBall.current = frontGameData.current.ball.velocity.vx;
+    //     yBall.current = frontGameData.current.ball.velocity.vy;
+    //   }
+    //   //TODO COPY the back calcul for the ball
+    // };
+    socket.on(`Game_${frontGameData.current.game.id}`, cb);
+    socket.on(`forfeitGame${frontGameData.current.game.id}`, () =>
       setGameState(gameScreenState.SCORE)
     );
     socket.on(`pauseGame${frontGameData.current.id}`, () =>
@@ -324,6 +341,8 @@ const GameCanvas = ({
       setGameState(gameScreenState.PLAYING)
     );
     requestRef.current = setInterval(animate, 10);
+    // drawBall.current = setInterval(animateBall, 1); // TODO BALL
+
     return () => {
       socket.off(`Game_${frontGameData.current.id}`, cb);
       socket.off(`forfeitGame${frontGameData.current.id}`, () =>
@@ -336,6 +355,7 @@ const GameCanvas = ({
         setGameState(gameScreenState.PLAYING)
       );
       clearInterval(requestRef.current);
+      clearInterval(drawBall.current);
     };
   }, [playerMove, frontGameData]);
 
@@ -364,7 +384,11 @@ const Score = ({
   player2Score: number;
 }) => {
   const navigate = useNavigate();
-
+  const initialData = useLoaderData() as Awaited<ReturnType<typeof gameLoader>>;
+  const { data } = useQuery({ ...query(gameId), initialData });
+  if (typeof data === "undefined") return <div>Error</div>;
+  //TODO check score
+  console.log(data);
   return (
     <>
       <div className="mt-1 flex h-12 w-128 items-center pl-1">
@@ -393,7 +417,8 @@ const Score = ({
           </div>
         </div>
       </div>
-      <div>{`${player1Score} - ${player2Score}`}</div>
+
+      <div>{`${data.game.score.player1Score} - ${data.game.score.player2Score}`}</div>
       <button
         className="my-6 border-2 border-slate-300 bg-slate-100 p-4 text-slate-500 hover:bg-slate-300 hover:text-slate-600"
         onClick={() => navigate(`/`)}

@@ -680,7 +680,7 @@ export class GameService {
         gameData.ball.coord.x + gameData.ball.velocity.vx >
         CANVAS_WIDTH + BALL_RADIUS
       ) {
-        gameData.player1.score += 1;
+        gameData.player1.score = gameData.player1.score + 1;
         if (gameData.player2.score === 11) {
           this.endGame(gameId);
         }
@@ -830,6 +830,7 @@ export class GameService {
               game.mode
             )
           );
+          console.log(game);
           this.socketGateway.launchGame(game.id);
           resolve();
         })
@@ -840,7 +841,8 @@ export class GameService {
 
   endGame = async (gameId: number) => {
     const game = this.games.get(gameId);
-
+    console.log(gameId);
+    console.log(game);
     if (game) {
       await this.prismaService.game.update({
         where: { id: gameId },

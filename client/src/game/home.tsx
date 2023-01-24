@@ -1,9 +1,4 @@
-import {
-  useAuthStore,
-  useInvitationStore,
-  useSocketStore,
-  useStateStore,
-} from "../stores";
+import { useAuthStore, useInvitationStore, useSocketStore } from "../stores";
 import { useMediaQuery } from "@react-hookz/web";
 import { useEffect, useState } from "react";
 import { ReactComponent as CloseBox } from "pixelarticons/svg/close-box.svg";
