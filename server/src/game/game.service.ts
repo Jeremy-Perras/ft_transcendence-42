@@ -856,8 +856,7 @@ export class GameService {
 
       if (p1) p1.send({ type: "GAME_ENDED" });
       if (p2) p2.send({ type: "GAME_ENDED" });
-      const interval = this.socketGateway.gameInProgress.get(gameId);
-      clearInterval(interval);
+      this.socketGateway.eraseGameInProgress(game.id);
       this.games.delete(gameId);
     }
   };
@@ -894,8 +893,7 @@ export class GameService {
       if (p1) p1.send({ type: "GAME_ENDED" });
       if (p2) p2.send({ type: "GAME_ENDED" });
       this.socketGateway.server.emit(`forfeitGame${game.id}`);
-      const interval = this.socketGateway.gameInProgress.get(game.id);
-      clearInterval(interval);
+      this.socketGateway.eraseGameInProgress(game.id);
       this.games.delete(game.id);
     }
   };
@@ -904,13 +902,8 @@ export class GameService {
     const game = this.getGame(userId);
 
     if (game) {
-      const interval = this.socketGateway.gameInProgress.get(game?.id);
-      clearInterval(interval);
+      this.socketGateway.clearGameIntervall(game.id);
       this.socketGateway.server.emit(`pauseGame${game.id}`);
-      setTimeout(() => {
-        this.socketGateway.launchGame(game.id);
-        this.socketGateway.server.emit(`unpauseGame${game.id}`);
-      }, 3000);
     }
   };
 }

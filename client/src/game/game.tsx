@@ -292,7 +292,12 @@ const GameCanvas = ({
           yPlayer.current = backData.player2.coord.y;
         }
         frontGameData.current.player2.coord.y = yPlayer.current;
+      if (currentUserId === frontGameData.current.player1.id) {
+        console.log(yPlayer.current);
+        console.log(backData.player1.coord.y);
       }
+      // gameData = backData;
+      // frontGameData.current = backData;
     };
     const animate = () => {
       let ctx;
@@ -441,7 +446,6 @@ const Intro = ({
     }, 1000);
     return () => clearInterval(interval);
   }, [timer]);
-
   return (
     <>
       <div className="mt-10 flex items-center">
@@ -487,6 +491,14 @@ const Intro = ({
   );
 };
 
+const Pause = () => {
+  return (
+    <div className="test-center my-10 flex w-20 justify-center text-5xl">
+      <span className="text-center">Other player is disconnected</span>
+    </div>
+  );
+};
+
 export const Game = () => {
   const params = useParams();
   if (typeof params.gameId === "undefined") return <div>Error</div>;
@@ -529,7 +541,8 @@ export const Game = () => {
           <GameCanvas initData={data} setGameState={setGameState} />
         </div>
       );
-
+    case gameScreenState.PAUSE:
+      return <Pause />;
     default:
       return <div>Error</div>;
   }

@@ -407,7 +407,6 @@ export class UserResolver {
     @Args() args: GetUserArgs
   ) {
     await this.userService.refuseFriendInvite(currentUserId, args.userId);
-
     return true;
   }
 
