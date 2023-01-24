@@ -8,6 +8,7 @@ import { graphql } from "../../gql";
 import request from "graphql-request";
 import { useMutation } from "@tanstack/react-query";
 import { GameMode } from "client/src/gql/graphql";
+import queryClient from "../../query";
 
 const AcceptInvitationMutationDocument = graphql(`
   mutation AcceptGameInvite($userId: Int!) {
@@ -24,9 +25,13 @@ const RefuseInvitationMutationDocument = graphql(`
 const Invitation = ({
   invitation,
   setInvitationList,
+  setMessage,
+  setDisplayError,
 }: {
   invitation: GameInvitation;
   setInvitationList: React.Dispatch<React.SetStateAction<GameInvitation[]>>;
+  setMessage: React.Dispatch<React.SetStateAction<string | undefined>>;
+  setDisplayError: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   const acceptGameInvitation = useMutation(
     async ({ userId }: { userId: number }) =>
@@ -34,12 +39,29 @@ const Invitation = ({
         userId: userId,
       })
   );
-
+  const userId = useAuthStore().userId;
   const refuseGameInvitation = useMutation(
     async ({ userId }: { userId: number }) =>
       request("/graphql", RefuseInvitationMutationDocument, {
         userId: userId,
-      })
+      }),
+    {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      onError: (e: any) => {
+        try {
+          const message = e.response.errors[0].message;
+          if (message) {
+            setMessage(message);
+          } else {
+            setMessage("An error was unexpected please retry your action");
+          }
+        } catch {
+          setMessage("An error was unexpected please retry your action");
+        }
+        queryClient.invalidateQueries(["Users", userId]);
+        setDisplayError(true);
+      },
+    }
   );
   const [display, setDisplay] = useState(true);
 
@@ -90,7 +112,13 @@ const Invitation = ({
   ) : null;
 };
 
-export const GameInvitations = () => {
+export const GameInvitations = ({
+  setMessage,
+  setDisplayError,
+}: {
+  setMessage: React.Dispatch<React.SetStateAction<string | undefined>>;
+  setDisplayError: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
   const [invitationList, setInvitationList] = useState<GameInvitation[]>([]);
   const socket = useSocketStore().socket;
   const userId = useAuthStore().userId;
@@ -130,6 +158,8 @@ export const GameInvitations = () => {
           key={index}
           invitation={invitation}
           setInvitationList={setInvitationList}
+          setMessage={setMessage}
+          setDisplayError={setDisplayError}
         />
       ))}
     </>
