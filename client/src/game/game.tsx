@@ -11,6 +11,7 @@ import { Socket } from "socket.io-client";
 
 import { graphql } from "../gql/gql";
 import { GameMode, GameQuery } from "../gql/graphql";
+import queryClient from "../query";
 import { useAuthStore, useSocketStore } from "../stores";
 import {
   LEFT_PAD_X,
@@ -18,7 +19,6 @@ import {
   PAD_HEIGHT,
   RIGHT_PAD_X,
   CANVAS_WIDTH,
-  BALL_RADIUS,
   BALL_VELOCITY,
   draw,
   handleKeyDown,
@@ -95,8 +95,6 @@ const updateGameData = (
   initData: GameQuery
 ) => {
   frontGameData.current.ball = backGameData.ball;
-  frontGameData.current.player1.coord = backGameData.player1.coord;
-  frontGameData.current.player2.coord = backGameData.player2.coord;
   frontGameData.current.player1.score = backGameData.player1.score;
   frontGameData.current.player2.score = backGameData.player2.score;
   frontGameData.current.game = backGameData.game;
@@ -104,6 +102,10 @@ const updateGameData = (
   frontGameData.current.player2.id = initData.game.players.player2.id;
   frontGameData.current.player1.name = initData.game.players.player1.name;
   frontGameData.current.player2.name = initData.game.players.player2.name;
+  frontGameData.current.player1.lastMoveTimestamp =
+    backGameData.player1.lastMoveTimestamp;
+  frontGameData.current.player2.lastMoveTimestamp =
+    backGameData.player2.lastMoveTimestamp;
 };
 
 let eventSetup = false;
@@ -148,6 +150,7 @@ const GameCanvas = ({
       coord: { x: LEFT_PAD_X, y: (CANVAS_HEIGHT - PAD_HEIGHT) / 2 },
       playerMove: padMove.STILL,
       score: initData.game.score.player1Score,
+      lastMoveTimestamp: 0,
     },
     player2: {
       id: initData.game.players.player2.id,
@@ -155,11 +158,12 @@ const GameCanvas = ({
       coord: { x: RIGHT_PAD_X, y: (CANVAS_HEIGHT - PAD_HEIGHT) / 2 },
       playerMove: padMove.STILL,
       score: initData.game.score.player2Score,
+      lastMoveTimestamp: 0,
     },
     ball: {
       coord: {
-        x: (CANVAS_WIDTH + 2 * BALL_RADIUS) / 2,
-        y: (CANVAS_HEIGHT + 2 * BALL_RADIUS) / 2,
+        x: CANVAS_WIDTH / 2,
+        y: CANVAS_HEIGHT / 2,
       },
       velocity: { vx: BALL_VELOCITY, vy: 0 },
     },
@@ -257,31 +261,43 @@ const GameCanvas = ({
   }, [wrap, canvas, frontGameData]);
 
   useEffect(() => {
-    let gameData: GameData;
-
     const cb = (backData: GameData) => {
-      if (backData.player1.score === 11 || backData.player2.score === 11) {
+      if (backData.player1.score >= 11 || backData.player2.score >= 11) {
         setGameState(gameScreenState.SCORE);
       }
       let ctx;
       if (canvas.current) ctx = canvas.current.getContext("2d");
       if (ctx) draw(ctx, frontGameData.current);
       updateGameData(frontGameData, backData, initData);
-
+      let t;
       if (currentUserId === frontGameData.current.player1.id) {
-        //TODO : adjust y - find why
+        frontGameData.current.player2.coord.y = backData.player2.coord.y;
+        t = moves.current.find(
+          (m) => m.timestamp === frontGameData.current.player1.lastMoveTimestamp
+        );
+        if (t) {
+          // const diff = backData.player1.coord.y - t.y;
+          // console.log(diff);
+          yPlayer.current = backData.player1.coord.y;
+        }
+        frontGameData.current.player1.coord.y = yPlayer.current;
       } else if (currentUserId === frontGameData.current.player2.id) {
-        //TODO : adjust y - find why
+        frontGameData.current.player1.coord.y = backData.player1.coord.y;
+        t = moves.current.find(
+          (m) => m.timestamp === frontGameData.current.player2.lastMoveTimestamp
+        );
+        if (t) {
+          // const diff = backData.player2.coord.y - t.y;
+          // console.log(diff);
+          yPlayer.current = backData.player2.coord.y;
+        }
+        frontGameData.current.player2.coord.y = yPlayer.current;
       }
-
-      gameData = backData;
     };
     const animate = () => {
-      console.log("player 1 : ", frontGameData.current.player1.coord.y);
-      console.log("player 2 : ", frontGameData.current.player2.coord.y);
       let ctx;
       if (canvas.current) ctx = canvas.current.getContext("2d");
-      if (ctx && gameData) {
+      if (ctx) {
         if (frontGameData.current) {
           setY(yPlayer, moves);
           if (currentUserId === frontGameData.current.player1.id)
@@ -316,60 +332,33 @@ const GameCanvas = ({
       );
       clearInterval(requestRef.current);
     };
-  }, [playerMove, frontGameData]); //TODO : verif
+  }, [playerMove, frontGameData]);
 
   return (
     <>
       <div className="flex h-full w-full" ref={wrap} id="wrap">
-        <canvas
-          tabIndex={0}
-          className="m-auto  border-white"
-          ref={canvas}
-          id="canvas"
-        />
+        <canvas tabIndex={0} className="m-auto  border-white" ref={canvas} />
       </div>
-      {/* <div className="my-2 flex w-full items-center justify-center">
-        <div className="shrink-0 basis-2/5 truncate">
-          {initData.game.players.player1.name}
-        </div>
-        <div className="mx-4 shrink-0 basis-1/5 text-center">VS</div>
-        <div className="shrink-0 basis-2/5">
-          {initData.game.players.player2.name}
-        </div> */}
-
-      {/* TODO : add here banner with player avatar, rank, name */}
-      {/* </div>
-      <GameTimer startTime={startTime} /> */}
-      {/* {!isPlayer && <span className="my-2 text-lg">Live Stream</span>} */}
     </>
   );
 };
 
-// const GameTimer = ({ startTime }: { startTime: number }) => {
-//   const [timer, setTimer] = useState(
-//     Math.floor((new Date().getTime() - startTime) / 1000)
-//   );
-//   useEffect(() => {
-//     const interval = setInterval(() => {
-//       setTimer(Math.floor((new Date().getTime() - startTime) / 1000));
-//     }, 1000);
-//     return () => clearInterval(interval);
-//   }, [timer]);
-
-//   return (
-//     <div className="my-2 flex w-20 justify-center">
-//       <span>{Math.floor(timer / 60)} </span>
-//       <span className="mx-1 pb-1 font-mono text-lg">:</span>
-//       <span>{timer % 60 < 10 ? `0${timer % 60}` : `${timer % 60}`}</span>
-//     </div>
-//   );
-// };
-
-const Score = ({ gameId }: { gameId: number }) => {
+const Score = ({
+  player1Id,
+  player1Name,
+  player1Score,
+  player2Id,
+  player2Name,
+  player2Score,
+}: {
+  player1Id: number;
+  player1Name: string;
+  player1Score: number;
+  player2Id: number;
+  player2Name: string;
+  player2Score: number;
+}) => {
   const navigate = useNavigate();
-  const initialData = useLoaderData() as Awaited<ReturnType<typeof gameLoader>>;
-  const { data } = useQuery({ ...query(gameId), initialData });
-  if (typeof data === "undefined") return <div>Error</div>;
 
   return (
     <>
@@ -377,29 +366,29 @@ const Score = ({ gameId }: { gameId: number }) => {
         <div className="relative flex w-full">
           <img
             className=" h-10 w-10 border border-black object-cover  "
-            src={`http://localhost:5173/upload/avatar/${data.game.players.player1.id}`}
+            src={`http://localhost:5173/upload/avatar/${player1Id}`}
             alt="Player 1 avatar"
           />
 
           <div className="ml-2 w-32 self-center truncate text-left ">
-            {data.game.players.player1.name}
+            {player1Name}
           </div>
           <div className="grow select-none self-center text-center text-lg font-bold ">
             VS
           </div>
           <div className="ml-2 w-32 self-center truncate text-left ">
-            {data.game.players.player2?.name}
+            {player2Name}
           </div>
           <div className="relative">
             <img
               className="h-10 w-10 justify-end border border-black object-cover "
-              src={`http://localhost:5173/upload/avatar/${data.game.players.player2.id}`}
+              src={`http://localhost:5173/upload/avatar/${player2Id}`}
               alt="Player 2 avatar"
             />
           </div>
         </div>
       </div>
-      <div>{`${data.game.score.player1Score} - ${data.game.score.player2Score}`}</div>
+      <div>{`${player1Score} - ${player2Score}`}</div>
       <button
         className="my-6 border-2 border-slate-300 bg-slate-100 p-4 text-slate-500 hover:bg-slate-300 hover:text-slate-600"
         onClick={() => navigate(`/`)}
@@ -506,16 +495,13 @@ export const Game = () => {
   const { data } = useQuery({ ...query(gameId), initialData });
   if (typeof data === "undefined") return <div>Error</div>;
 
-  // const [gameState, setGameState] = useState<gameScreenState>(
-  //   data.game.finishedAt ? gameScreenState.SCORE : gameScreenState.PLAYING
-  // );
-  // TODO : go to score if game is already finished
-
   const startTime = new Date(data.game.startAt).getTime();
   const currentTime = new Date().getTime();
 
   const [gameState, setGameState] = useState<gameScreenState>(
-    currentTime > startTime + INTRO_DURATION * 1000
+    data.game.finishedAt
+      ? gameScreenState.SCORE
+      : currentTime > startTime + INTRO_DURATION * 1000
       ? gameScreenState.PLAYING
       : gameScreenState.INTRO
   );
@@ -526,7 +512,17 @@ export const Game = () => {
         <Intro startTime={startTime} setGameState={setGameState} data={data} />
       );
     case gameScreenState.SCORE:
-      return <Score gameId={gameId} />;
+      queryClient.invalidateQueries(["Game", data.game.id]);
+      return (
+        <Score
+          player1Id={data.game.players.player1.id}
+          player2Id={data.game.players.player2.id}
+          player1Score={data.game.score.player1Score}
+          player2Score={data.game.score.player2Score}
+          player1Name={data.game.players.player1.name}
+          player2Name={data.game.players.player2.name}
+        />
+      );
     case gameScreenState.PLAYING:
       return (
         <div className=" h-full w-full">

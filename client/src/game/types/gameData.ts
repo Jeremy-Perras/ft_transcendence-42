@@ -45,6 +45,7 @@ export type Player = {
   coord: Coord;
   playerMove: padMove;
   score: number;
+  lastMoveTimestamp: number;
 };
 
 export type GameData = {

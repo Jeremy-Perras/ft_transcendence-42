@@ -8,11 +8,11 @@ export const CANVAS_HEIGHT = 2000;
 export const PAD_HEIGHT = Math.ceil(CANVAS_HEIGHT / 12);
 export const PAD_WIDTH = Math.ceil(PAD_HEIGHT / 5);
 
-export const BALL_RADIUS = 40;
+const BALL_RADIUS = CANVAS_WIDTH / 100;
 export const LEFT_PAD_X = CANVAS_WIDTH / 8;
 export const RIGHT_PAD_X = CANVAS_WIDTH - CANVAS_WIDTH / 8 - PAD_WIDTH;
 
-export const BALL_VELOCITY = 100;
+export const BALL_VELOCITY = 50;
 export const PAD_SPEED = 1; //px / ms
 
 export function redraw(
@@ -287,7 +287,7 @@ export const setY = (
   >
 ) => {
   const len = moves.current.length;
-  // console.log(moves.current);
+
   moves.current.forEach((val, i) => {
     if (!val.done) {
       if (val.move === padMove.UP) {
@@ -331,6 +331,7 @@ export const setY = (
           done: false,
         });
       }
+      val.y = playerY.current;
       val.done = true;
     }
   });
@@ -364,29 +365,32 @@ export const handleKeyDown = (
     keyboardStatus.current.arrowUp = true;
     if (!keyboardStatus.current.arrowDown) {
       if (playerMove.current !== padMove.UP) {
+        const n = new Date().getTime();
         moves.current.push({
           event: moves.current.length,
-          timestamp: new Date().getTime(),
+          timestamp: n,
           move: padMove.UP,
           y: playerY.current,
           done: false,
         });
         setY(playerY, moves);
+
         playerMove.current = padMove.UP;
-        socket.emit("movePadUp", gameId);
+        socket.emit("movePadUp", { gameId: gameId, timestamp: n });
       }
     } else {
       if (playerMove.current !== padMove.STILL) {
+        const n = new Date().getTime();
         moves.current.push({
           event: moves.current.length,
-          timestamp: new Date().getTime(),
+          timestamp: n,
           move: padMove.STILL,
           y: playerY.current,
           done: false,
         });
         setY(playerY, moves);
         playerMove.current = padMove.STILL;
-        socket.emit("stopPad", gameId);
+        socket.emit("stopPad", { gameId: gameId, timestamp: n });
       }
     }
   }
@@ -394,29 +398,31 @@ export const handleKeyDown = (
     keyboardStatus.current.arrowDown = true;
     if (!keyboardStatus.current.arrowUp) {
       if (playerMove.current !== padMove.DOWN) {
+        const n = new Date().getTime();
         moves.current.push({
           event: moves.current.length,
-          timestamp: new Date().getTime(),
+          timestamp: n,
           move: padMove.DOWN,
           y: playerY.current,
           done: false,
         });
         setY(playerY, moves);
         playerMove.current = padMove.DOWN;
-        socket.emit("movePadDown", gameId);
+        socket.emit("movePadDown", { gameId: gameId, timestamp: n });
       }
     } else {
       if (playerMove.current !== padMove.STILL) {
+        const n = new Date().getTime();
         moves.current.push({
           event: moves.current.length,
-          timestamp: new Date().getTime(),
+          timestamp: n,
           move: padMove.STILL,
           y: playerY.current,
           done: false,
         });
         setY(playerY, moves);
         playerMove.current = padMove.STILL;
-        socket.emit("stopPad", gameId);
+        socket.emit("stopPad", { gameId: gameId, timestamp: n });
       }
     }
   }
@@ -447,29 +453,31 @@ export const handleKeyUp = (
     keyboardStatus.current.arrowUp = false;
     if (!keyboardStatus.current.arrowDown) {
       if (playerMove.current !== padMove.STILL) {
+        const n = new Date().getTime();
         moves.current.push({
           event: moves.current.length,
-          timestamp: new Date().getTime(),
+          timestamp: n,
           move: padMove.STILL,
           y: playerY.current,
           done: false,
         });
         setY(playerY, moves);
         playerMove.current = padMove.STILL;
-        socket.emit("stopPad", gameId);
+        socket.emit("stopPad", { gameId: gameId, timestamp: n });
       }
     } else {
       if (playerMove.current !== padMove.DOWN) {
+        const n = new Date().getTime();
         moves.current.push({
           event: moves.current.length,
-          timestamp: new Date().getTime(),
+          timestamp: n,
           move: padMove.DOWN,
           y: playerY.current,
           done: false,
         });
         setY(playerY, moves);
         playerMove.current = padMove.DOWN;
-        socket.emit("movePadDown", gameId);
+        socket.emit("movePadDown", { gameId: gameId, timestamp: n });
       }
     }
   }
@@ -477,29 +485,31 @@ export const handleKeyUp = (
     keyboardStatus.current.arrowDown = false;
     if (!keyboardStatus.current.arrowUp) {
       if (playerMove.current !== padMove.STILL) {
+        const n = new Date().getTime();
         moves.current.push({
           event: moves.current.length,
-          timestamp: new Date().getTime(),
+          timestamp: n,
           move: padMove.STILL,
           y: playerY.current,
           done: false,
         });
         setY(playerY, moves);
         playerMove.current = padMove.STILL;
-        socket.emit("stopPad", gameId);
+        socket.emit("stopPad", { gameId: gameId, timestamp: n });
       }
     } else {
       if (playerMove.current !== padMove.UP) {
+        const n = new Date().getTime();
         moves.current.push({
           event: moves.current.length,
-          timestamp: new Date().getTime(),
+          timestamp: n,
           move: padMove.UP,
           y: playerY.current,
           done: false,
         });
         setY(playerY, moves);
         playerMove.current = padMove.UP;
-        socket.emit("movePadUp", gameId);
+        socket.emit("movePadUp", { gameId: gameId, timestamp: n });
       }
     }
   }

@@ -32,6 +32,9 @@ export class SocketGateway implements OnModuleInit {
     const callback = () => {
       const gameData = this.gameService.games.get(gameId);
       if (gameData) {
+        // console.log("player 1 : ", gameData.player1.playerMove);
+        // console.log("player 2 : ", gameData.player2.playerMove);
+
         this.gameService.MovePads(gameId);
         this.gameService.MoveBall(gameId);
         const dataToEmit = {
@@ -40,16 +43,20 @@ export class SocketGateway implements OnModuleInit {
             id: gameData.player1.id,
             coord: gameData.player1.coord,
             score: gameData.player1.score,
+            lastMoveTimestamp: gameData.player1.lastMoveTimestamp,
           },
           player2: {
             id: gameData.player2.id,
             coord: gameData.player2.coord,
             score: gameData.player2.score,
+            lastMoveTimestamp: gameData.player2.lastMoveTimestamp,
           },
           ball: gameData.ball,
           game: gameData.game,
         };
         this.server.emit(`Game_${gameId}`, dataToEmit);
+        gameData.player2.lastMoveTimestamp = 0;
+        gameData.player1.lastMoveTimestamp = 0;
       }
     };
     this.gameInProgress.set(gameId, setInterval(callback, 100));
@@ -99,30 +106,44 @@ export class SocketGateway implements OnModuleInit {
   async onMovePadUp(
     @ConnectedSocket() client: Socket,
     @MessageBody()
-    gameId: number
+    { gameId, timestamp }: { gameId: number; timestamp: number }
   ) {
     const currentUserId = client.request.session.passport.user;
-    this.gameService.playerMove(playerMove.UP, currentUserId, gameId);
+    this.gameService.playerMove(
+      playerMove.UP,
+      currentUserId,
+      gameId,
+      timestamp
+    );
   }
-  //["gameId" : {player1 : {x, y, currentMove, score}, player2 : {x,y,currentMove,score}, }]
+
   @SubscribeMessage("movePadDown")
   async onMovePadDown(
     @ConnectedSocket() client: Socket,
     @MessageBody()
-    gameId: number
+    { gameId, timestamp }: { gameId: number; timestamp: number }
   ) {
     const currentUserId = client.request.session.passport.user;
-    this.gameService.playerMove(playerMove.DOWN, currentUserId, gameId);
+    this.gameService.playerMove(
+      playerMove.DOWN,
+      currentUserId,
+      gameId,
+      timestamp
+    );
   }
 
   @SubscribeMessage("stopPad")
   async onstopPad(
     @ConnectedSocket() client: Socket,
-    @MessageBody()
-    gameId: number
+    @MessageBody() { gameId, timestamp }: { gameId: number; timestamp: number }
   ) {
     const currentUserId = client.request.session.passport.user;
-    this.gameService.playerMove(playerMove.STILL, currentUserId, gameId);
+    this.gameService.playerMove(
+      playerMove.STILL,
+      currentUserId,
+      gameId,
+      timestamp
+    );
   }
 
   @SubscribeMessage("boostActivated")
