@@ -324,10 +324,6 @@ export const handleKeyDown = (
           done: false,
         });
         setY(playerY, moves);
-<<<<<<< HEAD
-        // console.log(playerY.current);
-=======
->>>>>>> 53c0ffcf (Pause, forfeit and endgame)
         playerMove.current = padMove.UP;
         socket.emit("movePadUp", gameId);
       }
@@ -341,10 +337,6 @@ export const handleKeyDown = (
           done: false,
         });
         setY(playerY, moves);
-<<<<<<< HEAD
-        // console.log(playerY.current);
-=======
->>>>>>> 53c0ffcf (Pause, forfeit and endgame)
         playerMove.current = padMove.STILL;
         socket.emit("stopPad", gameId);
       }
@@ -362,10 +354,6 @@ export const handleKeyDown = (
           done: false,
         });
         setY(playerY, moves);
-<<<<<<< HEAD
-        // console.log(playerY.current);
-=======
->>>>>>> 53c0ffcf (Pause, forfeit and endgame)
         playerMove.current = padMove.DOWN;
         socket.emit("movePadDown", gameId);
       }
@@ -379,10 +367,6 @@ export const handleKeyDown = (
           done: false,
         });
         setY(playerY, moves);
-<<<<<<< HEAD
-        // console.log(playerY.current);
-=======
->>>>>>> 53c0ffcf (Pause, forfeit and endgame)
         playerMove.current = padMove.STILL;
         socket.emit("stopPad", gameId);
       }
@@ -423,10 +407,6 @@ export const handleKeyUp = (
           done: false,
         });
         setY(playerY, moves);
-<<<<<<< HEAD
-        // console.log(playerY.current);
-=======
->>>>>>> 53c0ffcf (Pause, forfeit and endgame)
         playerMove.current = padMove.STILL;
         socket.emit("stopPad", gameId);
       }
@@ -440,10 +420,6 @@ export const handleKeyUp = (
           done: false,
         });
         setY(playerY, moves);
-<<<<<<< HEAD
-        // console.log(playerY.current);
-=======
->>>>>>> 53c0ffcf (Pause, forfeit and endgame)
         playerMove.current = padMove.DOWN;
         socket.emit("movePadDown", gameId);
       }
@@ -461,10 +437,6 @@ export const handleKeyUp = (
           done: false,
         });
         setY(playerY, moves);
-<<<<<<< HEAD
-        // console.log(playerY.current);
-=======
->>>>>>> 53c0ffcf (Pause, forfeit and endgame)
         playerMove.current = padMove.STILL;
         socket.emit("stopPad", gameId);
       }
@@ -478,10 +450,6 @@ export const handleKeyUp = (
           done: false,
         });
         setY(playerY, moves);
-<<<<<<< HEAD
-        // console.log(playerY.current);
-=======
->>>>>>> 53c0ffcf (Pause, forfeit and endgame)
         playerMove.current = padMove.UP;
         socket.emit("movePadUp", gameId);
       }
