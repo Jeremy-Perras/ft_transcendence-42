@@ -19,11 +19,20 @@ const LEFT_PAD_X = CANVAS_WIDTH / 8;
 const RIGHT_PAD_X = CANVAS_WIDTH - CANVAS_WIDTH / 8 - PAD_WIDTH;
 const BALL_VELOCITY = 50;
 const PAD_SPEED = 1; //px / ms
-
+export const GIFT_SPEED = 1;
+const BORDER_WIDTH = CANVAS_WIDTH / 100;
+const BORDER_HEIGHT = CANVAS_HEIGHT / 100;
+const GIFT_WIDTH = 338;
+const GIFT_HEIGHT = 338;
 export enum playerMove {
   UP,
   DOWN,
   STILL,
+}
+
+export enum giftPlayer {
+  SPEED,
+  SIZE,
 }
 
 type ClassicGame = {
@@ -44,6 +53,7 @@ type BoostGame = {
 
 type GiftGame = {
   type: "GIFT";
+  Gift: Array<{ coord: Coord; gift: giftPlayer; start: number; side: 1 | -1 }>;
   player1Gifts: {
     speed: number;
     size: number;
@@ -150,10 +160,36 @@ export class GameService {
             }
           : {
               type: "GIFT",
+              Gift: [],
               player1Gifts: { size: 1, speed: 1 }, // ratio
               player2Gifts: { size: 1, speed: 1 },
             },
     };
+  }
+
+  moveGift(gameId: number) {
+    const gameData = this.games.get(gameId);
+    const c = Math.random();
+    if (c > 0.99 && gameData?.game.type === "GIFT")
+      gameData?.game.Gift.push({
+        coord: {
+          x: CANVAS_WIDTH / 2,
+          y: (CANVAS_HEIGHT - BORDER_HEIGHT - GIFT_HEIGHT) * Math.random(),
+        },
+        gift: giftPlayer.SIZE,
+        side: Math.random() > 0.5 ? 1 : -1,
+        start: new Date().getTime(),
+      });
+
+    if (gameData?.game.type === "GIFT") {
+      gameData.game.Gift.forEach((e) => {
+        e.coord.x += 5 * e.side;
+      });
+      gameData.game.Gift.filter((e) => {
+        e.coord.x <= CANVAS_WIDTH - BORDER_WIDTH - GIFT_WIDTH &&
+          e.coord.x >= BORDER_WIDTH;
+      });
+    }
   }
 
   playerMove(

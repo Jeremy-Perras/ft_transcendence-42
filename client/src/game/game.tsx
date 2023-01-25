@@ -183,7 +183,9 @@ const GameCanvas = ({
           }
         : {
             type: "GIFT",
-            player1Gifts: { size: 1, speed: 1 },
+
+            Gift: [],
+            player1Gifts: { size: 1, speed: 1 }, // ratio
             player2Gifts: { size: 1, speed: 1 },
           },
   });
@@ -321,7 +323,6 @@ const GameCanvas = ({
         }
       }
     };
-
     socket.on(`Game_${frontGameData.current.id}`, cb);
     socket.on(`forfeitGame${frontGameData.current.id}`, () =>
       setGameState(gameScreenState.SCORE)
@@ -553,6 +554,22 @@ export const Game = () => {
       );
     };
   }, [gameState]);
+  }, []);
+
+  const [gameState, setGameState] = useState<gameScreenState>(
+    data.game.finishedAt
+      ? gameScreenState.SCORE
+      : currentTime > startTime + INTRO_DURATION * 1000
+      ? gameScreenState.PLAYING
+      : gameScreenState.INTRO
+  );
+  const Pause = () => {
+    return (
+      <div className="test-center my-10 flex w-20 justify-center text-5xl">
+        <span className="text-center">Other player is disconnected</span>
+      </div>
+    );
+  };
 
   switch (gameState) {
     case gameScreenState.INTRO:
@@ -579,6 +596,8 @@ export const Game = () => {
           <GameCanvas initData={data} setGameState={setGameState} />
         </div>
       );
+    case gameScreenState.PAUSE:
+      return <Pause />;
 
     default:
       return <div>Error</div>;
