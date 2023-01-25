@@ -4,6 +4,11 @@ export enum padMove {
   STILL,
 }
 
+export enum giftPlayer {
+  SPEED,
+  SIZE,
+}
+
 export type ClassicGame = {
   type: "CLASSIC";
 };
@@ -22,6 +27,7 @@ export type BoostGame = {
 
 export type GiftGame = {
   type: "GIFT";
+  Gift: Array<{ coord: Coord; gift: giftPlayer; start: number; side: 1 | -1 }>;
   player1Gifts: {
     speed: number;
     size: number;
