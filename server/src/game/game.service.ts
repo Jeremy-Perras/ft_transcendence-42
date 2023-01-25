@@ -680,7 +680,7 @@ export class GameService {
         gameData.ball.coord.x + gameData.ball.velocity.vx >
         CANVAS_WIDTH + BALL_RADIUS
       ) {
-        gameData.player1.score = gameData.player1.score + 1;
+        gameData.player1.score += 1;
         if (gameData.player2.score === 11) {
           this.endGame(gameId);
         }
