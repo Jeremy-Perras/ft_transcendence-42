@@ -850,6 +850,7 @@ export class GameService {
       if (p1) p1.send({ type: "GAME_ENDED" });
       if (p2) p2.send({ type: "GAME_ENDED" });
       this.socketGateway.eraseGameInProgress(game.id);
+      this.socketGateway.server.emit(`endGame${game.id}`);
       this.games.delete(gameId);
     }
   };
