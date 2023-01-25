@@ -23,8 +23,11 @@ import {
   draw,
   handleKeyDown,
   handleKeyUp,
-  setY,
+  setCurrentPlayerY,
   redraw,
+  FRAME_RATE,
+  animateBall,
+  animateOpponentPad,
 } from "./functions/game";
 import { GameData, padMove } from "./types/gameData";
 
@@ -132,8 +135,8 @@ const GameCanvas = ({
     arrowDown: false,
   });
   const yPlayer = useRef<number>((CANVAS_HEIGHT - PAD_HEIGHT) / 2);
-  // const yBall = useRef<number>(CANVAS_WIDTH / 2);
-  // const xBall = useRef<number>(CANVAS_HEIGHT / 2); TODO BALL
+  const nextYOpponent = useRef<number>((CANVAS_HEIGHT - PAD_HEIGHT) / 2);
+
   const moves = useRef<
     {
       event: number;
@@ -273,7 +276,7 @@ const GameCanvas = ({
       updateGameData(frontGameData, backData, initData);
       let t;
       if (currentUserId === frontGameData.current.player1.id) {
-        frontGameData.current.player2.coord.y = backData.player2.coord.y;
+        nextYOpponent.current = backData.player2.coord.y;
         t = moves.current.find(
           (m) => m.timestamp === frontGameData.current.player1.lastMoveTimestamp
         );
@@ -284,7 +287,7 @@ const GameCanvas = ({
         }
         frontGameData.current.player1.coord.y = yPlayer.current;
       } else if (currentUserId === frontGameData.current.player2.id) {
-        frontGameData.current.player1.coord.y = backData.player1.coord.y;
+        nextYOpponent.current = backData.player1.coord.y;
         t = moves.current.find(
           (m) => m.timestamp === frontGameData.current.player2.lastMoveTimestamp
         );
@@ -301,27 +304,26 @@ const GameCanvas = ({
       if (canvas.current) ctx = canvas.current.getContext("2d");
       if (ctx) {
         if (frontGameData.current) {
-          setY(yPlayer, moves);
-          if (currentUserId === frontGameData.current.player1.id)
+          setCurrentPlayerY(yPlayer, moves);
+          if (currentUserId === frontGameData.current.player1.id) {
             frontGameData.current.player1.coord.y = yPlayer.current;
-          else if (currentUserId === frontGameData.current.player2.id)
+            frontGameData.current.player2 = animateOpponentPad(
+              frontGameData.current.player2,
+              nextYOpponent.current
+            );
+          } else if (currentUserId === frontGameData.current.player2.id) {
             frontGameData.current.player2.coord.y = yPlayer.current;
+            frontGameData.current.player1 = animateOpponentPad(
+              frontGameData.current.player1,
+              nextYOpponent.current
+            );
+          }
+          animateBall(frontGameData);
           draw(ctx, frontGameData.current);
         }
       }
     };
-    // const animateBall = () => {
-    //   let ctx;
 
-    //   if (canvas.current) ctx = canvas.current.getContext("2d");
-    //   if (ctx && frontGameData.current) {
-    //     ball.draw(ctx, { x: xBall.current, y: yBall.current });
-    //     xBall.current = frontGameData.current.ball.velocity.vx;
-    //     yBall.current = frontGameData.current.ball.velocity.vy;
-    //   }
-    //   //TODO COPY the back calcul for the ball
-    // };
-    // drawBall.current = setInterval(animateBall, 1); // TODO BALL
     socket.on(`Game_${frontGameData.current.id}`, cb);
     socket.on(`forfeitGame${frontGameData.current.id}`, () =>
       setGameState(gameScreenState.SCORE)
@@ -332,7 +334,7 @@ const GameCanvas = ({
     socket.on(`unpauseGame${frontGameData.current.id}`, () =>
       setGameState(gameScreenState.PLAYING)
     );
-    requestRef.current = setInterval(animate, 10);
+    requestRef.current = setInterval(animate, FRAME_RATE);
     return () => {
       socket.off(`Game_${frontGameData.current.id}`, cb);
       socket.off(`forfeitGame${frontGameData.current.id}`, () =>

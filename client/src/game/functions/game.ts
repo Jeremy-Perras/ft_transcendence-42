@@ -1,9 +1,12 @@
 import { GameMode } from "../../gql/graphql";
 import { Socket } from "socket.io-client";
-import { GameData, padMove } from "../types/gameData";
+import { GameData, padMove, Player } from "../types/gameData";
 
+export const FRAME_RATE = 10; //draw every 10 ms
 export const CANVAS_WIDTH = 2000;
 export const CANVAS_HEIGHT = 2000;
+const BORDER_WIDTH = CANVAS_WIDTH / 100;
+const BORDER_HEIGHT = CANVAS_HEIGHT / 100;
 
 export const PAD_HEIGHT = Math.ceil(CANVAS_HEIGHT / 12);
 export const PAD_WIDTH = Math.ceil(PAD_HEIGHT / 5);
@@ -12,7 +15,7 @@ const BALL_RADIUS = CANVAS_WIDTH / 100;
 export const LEFT_PAD_X = CANVAS_WIDTH / 8;
 export const RIGHT_PAD_X = CANVAS_WIDTH - CANVAS_WIDTH / 8 - PAD_WIDTH;
 
-export const BALL_VELOCITY = 50;
+export const BALL_VELOCITY = 50; //px / 100 ms
 export const PAD_SPEED = 1; //px / ms
 
 export function redraw(
@@ -273,7 +276,129 @@ export const draw = (context: CanvasRenderingContext2D, data: GameData) => {
   }
 };
 
-export const setY = (
+//TODO : aspect escalier deplacement balle parfois
+//TODO : animer autre pad
+//TODO : decrease progressively ball speed when unboost ? limit boost ?
+//TODO : sometimes crosses pad
+//passes through pad
+export const animateBall = (data: React.MutableRefObject<GameData>) => {
+  const vx = data.current.ball.velocity.vx;
+  const vy = data.current.ball.velocity.vy;
+
+  //wall collision
+  if (vy < 0) {
+    if (
+      data.current.ball.coord.y + vy / FRAME_RATE <
+      BALL_RADIUS + BORDER_HEIGHT
+    ) {
+      data.current.ball.coord.y =
+        BALL_RADIUS +
+        BORDER_HEIGHT +
+        Math.floor(
+          (Math.abs(vy) - (data.current.ball.coord.y - BALL_RADIUS)) /
+            FRAME_RATE
+        );
+      data.current.ball.velocity.vy = -vy;
+      return;
+    }
+  } else if (vy > 0) {
+    if (
+      data.current.ball.coord.y + vy / FRAME_RATE >
+      CANVAS_HEIGHT - BALL_RADIUS - BORDER_HEIGHT
+    ) {
+      data.current.ball.coord.y =
+        CANVAS_HEIGHT -
+        BALL_RADIUS -
+        BORDER_HEIGHT -
+        (vy / FRAME_RATE -
+          (CANVAS_HEIGHT -
+            BALL_RADIUS -
+            BORDER_HEIGHT -
+            data.current.ball.coord.y));
+      data.current.ball.velocity.vy = -vy;
+      return;
+    }
+  }
+
+  //pad collision
+  //left
+  if (vx < 0) {
+    if (
+      data.current.ball.coord.x -
+        BALL_RADIUS -
+        (data.current.player1.coord.x + PAD_WIDTH) >=
+        0 &&
+      data.current.ball.coord.x -
+        BALL_RADIUS -
+        (data.current.player1.coord.x + PAD_WIDTH) <=
+        Math.abs(vx) / FRAME_RATE
+    ) {
+      const coeff =
+        (data.current.ball.coord.x -
+          BALL_RADIUS -
+          (data.current.player1.coord.x + PAD_WIDTH)) /
+        Math.abs(vx) /
+        FRAME_RATE;
+      const yColl = data.current.ball.coord.y + (vy / FRAME_RATE) * coeff;
+
+      if (
+        yColl > data.current.player1.coord.y - BALL_RADIUS &&
+        yColl < data.current.player1.coord.y + PAD_HEIGHT + BALL_RADIUS
+      ) {
+        return;
+      }
+      //TODO horizontal
+    }
+    //right
+  } else if (vx > 0) {
+    if (
+      data.current.ball.coord.x + BALL_RADIUS + vx / FRAME_RATE >=
+      data.current.player2.coord.x
+    ) {
+      const coeff =
+        (data.current.player2.coord.x -
+          (data.current.ball.coord.x + BALL_RADIUS)) /
+        vx /
+        FRAME_RATE;
+      const yColl = data.current.ball.coord.y + (vy / FRAME_RATE) * coeff;
+
+      if (
+        yColl > data.current.player2.coord.y - BALL_RADIUS &&
+        yColl < data.current.player2.coord.y + PAD_HEIGHT + BALL_RADIUS
+      ) {
+        return;
+      }
+    }
+  }
+  if (
+    data.current.ball.coord.x + data.current.ball.velocity.vx / FRAME_RATE >=
+      CANVAS_WIDTH - BALL_RADIUS - BORDER_WIDTH ||
+    data.current.ball.coord.x + data.current.ball.velocity.vx / FRAME_RATE <=
+      BALL_RADIUS + BORDER_WIDTH
+  ) {
+    return;
+  }
+
+  //no collision
+  data.current.ball.coord.x += vx / FRAME_RATE;
+  data.current.ball.coord.y += vy / FRAME_RATE;
+};
+
+export const animateOpponentPad = (player: Player, nextY: number): Player => {
+  if (player.coord.y > nextY) {
+    player.coord.y -= PAD_SPEED * FRAME_RATE;
+    if (player.coord.y < nextY) player.coord.y = nextY;
+  } else if (player.coord.y < nextY) {
+    player.coord.y += PAD_SPEED * FRAME_RATE;
+    if (player.coord.y > nextY) player.coord.y = nextY;
+  }
+  if (player.coord.y < BORDER_HEIGHT) player.coord.y = BORDER_HEIGHT;
+  if (player.coord.y > CANVAS_HEIGHT - BORDER_HEIGHT - PAD_HEIGHT)
+    player.coord.y = CANVAS_HEIGHT - BORDER_HEIGHT - PAD_HEIGHT;
+  return player;
+};
+
+export const setCurrentPlayerY = (
   playerY: React.MutableRefObject<number>,
   moves: React.MutableRefObject<
     {
@@ -314,10 +439,10 @@ export const setY = (
         }
       }
 
-      if (playerY.current > CANVAS_HEIGHT - PAD_HEIGHT) {
-        playerY.current = CANVAS_HEIGHT - PAD_HEIGHT;
-      } else if (playerY.current < 0) {
-        playerY.current = 0;
+      if (playerY.current > CANVAS_HEIGHT - PAD_HEIGHT - BORDER_HEIGHT) {
+        playerY.current = CANVAS_HEIGHT - PAD_HEIGHT - BORDER_HEIGHT;
+      } else if (playerY.current < BORDER_HEIGHT) {
+        playerY.current = BORDER_HEIGHT;
       }
 
       if (val.move !== padMove.STILL && i === len - 1) {
@@ -371,7 +496,7 @@ export const handleKeyDown = (
           y: playerY.current,
           done: false,
         });
-        setY(playerY, moves);
+        setCurrentPlayerY(playerY, moves);
 
         playerMove.current = padMove.UP;
         socket.emit("movePadUp", { gameId: gameId, timestamp: n });
@@ -386,7 +511,7 @@ export const handleKeyDown = (
           y: playerY.current,
           done: false,
         });
-        setY(playerY, moves);
+        setCurrentPlayerY(playerY, moves);
         playerMove.current = padMove.STILL;
         socket.emit("stopPad", { gameId: gameId, timestamp: n });
       }
@@ -404,7 +529,7 @@ export const handleKeyDown = (
           y: playerY.current,
           done: false,
         });
-        setY(playerY, moves);
+        setCurrentPlayerY(playerY, moves);
         playerMove.current = padMove.DOWN;
         socket.emit("movePadDown", { gameId: gameId, timestamp: n });
       }
@@ -418,7 +543,7 @@ export const handleKeyDown = (
           y: playerY.current,
           done: false,
         });
-        setY(playerY, moves);
+        setCurrentPlayerY(playerY, moves);
         playerMove.current = padMove.STILL;
         socket.emit("stopPad", { gameId: gameId, timestamp: n });
       }
@@ -459,7 +584,7 @@ export const handleKeyUp = (
           y: playerY.current,
           done: false,
         });
-        setY(playerY, moves);
+        setCurrentPlayerY(playerY, moves);
         playerMove.current = padMove.STILL;
         socket.emit("stopPad", { gameId: gameId, timestamp: n });
       }
@@ -473,7 +598,7 @@ export const handleKeyUp = (
           y: playerY.current,
           done: false,
         });
-        setY(playerY, moves);
+        setCurrentPlayerY(playerY, moves);
         playerMove.current = padMove.DOWN;
         socket.emit("movePadDown", { gameId: gameId, timestamp: n });
       }
@@ -491,7 +616,7 @@ export const handleKeyUp = (
           y: playerY.current,
           done: false,
         });
-        setY(playerY, moves);
+        setCurrentPlayerY(playerY, moves);
         playerMove.current = padMove.STILL;
         socket.emit("stopPad", { gameId: gameId, timestamp: n });
       }
@@ -505,7 +630,7 @@ export const handleKeyUp = (
           y: playerY.current,
           done: false,
         });
-        setY(playerY, moves);
+        setCurrentPlayerY(playerY, moves);
         playerMove.current = padMove.UP;
         socket.emit("movePadUp", { gameId: gameId, timestamp: n });
       }

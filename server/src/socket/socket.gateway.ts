@@ -43,23 +43,22 @@ export class SocketGateway implements OnModuleInit {
     const callback = () => {
       const gameData = this.gameService.games.get(gameId);
       if (gameData) {
-        // console.log("player 1 : ", gameData.player1.playerMove);
-        // console.log("player 2 : ", gameData.player2.playerMove);
-
-        this.gameService.MovePads(gameId);
-        this.gameService.MoveBall(gameId);
+        this.gameService.movePads(gameId);
+        this.gameService.moveBall(gameId);
         const dataToEmit = {
           id: gameData.id,
           player1: {
             id: gameData.player1.id,
             coord: gameData.player1.coord,
             score: gameData.player1.score,
+            move: gameData.player1.playerMove,
             lastMoveTimestamp: gameData.player1.lastMoveTimestamp,
           },
           player2: {
             id: gameData.player2.id,
             coord: gameData.player2.coord,
             score: gameData.player2.score,
+            move: gameData.player2.playerMove,
             lastMoveTimestamp: gameData.player2.lastMoveTimestamp,
           },
           ball: gameData.ball,

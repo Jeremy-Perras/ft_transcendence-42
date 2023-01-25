@@ -57,6 +57,7 @@ const UserProfileQueryDocument = graphql(`
       name
       rank
       games {
+        id
         finishedAt
         gameMode
         players {
@@ -311,16 +312,20 @@ const GameHistory = ({
         </div>
       ) : null}
       {data?.user.games.map((game, index) => {
-        const victory =
-          (game.players.player1.id === data?.user.id &&
-            game.score.player1Score > game.score.player2Score) ||
-          (game.players.player2?.id === data?.user.id &&
-            game.score.player2Score > game.score.player1Score);
-        const equal =
-          (game.players.player1.id === data?.user.id &&
-            game.score.player1Score === game.score.player2Score) ||
-          (game.players.player2?.id === data?.user.id &&
-            game.score.player2Score === game.score.player1Score);
+        let victory = false;
+        let equal = false;
+        if (game.finishedAt) {
+          victory =
+            (game.players.player1.id === data?.user.id &&
+              game.score.player1Score > game.score.player2Score) ||
+            (game.players.player2?.id === data?.user.id &&
+              game.score.player2Score > game.score.player1Score);
+          equal =
+            (game.players.player1.id === data?.user.id &&
+              game.score.player1Score === game.score.player2Score) ||
+            (game.players.player2?.id === data?.user.id &&
+              game.score.player2Score === game.score.player1Score);
+        }
         return (
           <div
             key={index}
@@ -355,22 +360,34 @@ const GameHistory = ({
                 <IsOnline userStatus={game.players.player2.status} />
               </div>
             </div>
-            <div
-              className={`${
-                victory ? "bg-green-400" : equal ? "bg-slate-200" : "bg-red-400"
-              } mx-1 flex h-full basis-1/6 flex-col justify-center border-x border-black text-center font-bold`}
-            >
-              {victory ? (
-                <div>VICTORY</div>
-              ) : equal ? (
-                <div>DRAW</div>
-              ) : (
-                <div>DEFEAT</div>
-              )}
-              <span>
-                {game.score.player1Score} - {game.score.player2Score}
-              </span>
-            </div>
+            {game.finishedAt ? (
+              <div
+                className={`${
+                  victory
+                    ? "bg-green-400"
+                    : equal
+                    ? "bg-slate-200"
+                    : "bg-red-400"
+                } mx-1 flex h-full basis-1/6 flex-col justify-center border-x border-black text-center font-bold`}
+              >
+                {victory ? (
+                  <div>VICTORY</div>
+                ) : equal ? (
+                  <div>DRAW</div>
+                ) : (
+                  <div>DEFEAT</div>
+                )}
+                <span>
+                  {game.score.player1Score} - {game.score.player2Score}
+                </span>
+              </div>
+            ) : (
+              <div className="mx-1 flex h-full basis-1/6 items-center justify-center border-x border-black bg-yellow-400 ">
+                <div className={`animate-pulse text-center font-bold`}>
+                  PLAYING
+                </div>
+              </div>
+            )}
             <div className="flex justify-center">
               <img
                 className="h-8 w-10 "
@@ -563,6 +580,7 @@ const FriendButtons = ({
   data: UserProfileQuery;
   setDisplayMutationError: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
+  const navigate = useNavigate();
   const { createInvite } = useInvitationStore();
   const blockUser = useMutation(
     async ({ userId }: { userId: number }) =>
@@ -592,7 +610,10 @@ const FriendButtons = ({
       <div
         onClick={() => {
           if (data.user.status === UserStatus.Online) {
-            createInvite(data.user.name, data.user.id);
+            if (data.user.games.some((g) => !g.finishedAt)) {
+              const gameInProgress = data.user.games.find((g) => !g.finishedAt);
+              navigate(`/game/${gameInProgress?.id}`);
+            } else createInvite(data.user.name, data.user.id);
           }
         }}
         className={`flex h-24 basis-1/3 items-center justify-center border-2 p-4 text-center transition-all ${
@@ -602,7 +623,11 @@ const FriendButtons = ({
         } `}
       >
         <PlayIcon className="mr-2 w-10 self-center" />
-        <span>Play !</span>
+        <span>
+          {data.user.games.some((g) => !g.finishedAt)
+            ? "Watch live !"
+            : "Play !"}
+        </span>
       </div>
       <div
         onClick={() => {

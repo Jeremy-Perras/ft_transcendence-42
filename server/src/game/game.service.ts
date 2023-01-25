@@ -8,12 +8,15 @@ import { OnEvent } from "@nestjs/event-emitter";
 
 const CANVAS_WIDTH = 2000;
 const CANVAS_HEIGHT = 2000;
-export const PAD_HEIGHT = Math.ceil(CANVAS_HEIGHT / 12);
-export const PAD_WIDTH = Math.ceil(PAD_HEIGHT / 5);
+const BORDER_WIDTH = CANVAS_WIDTH / 100;
+const BORDER_HEIGHT = CANVAS_HEIGHT / 100;
+
+const PAD_HEIGHT = Math.ceil(CANVAS_HEIGHT / 12);
+const PAD_WIDTH = Math.ceil(PAD_HEIGHT / 5);
 
 const BALL_RADIUS = CANVAS_WIDTH / 100;
-export const LEFT_PAD_X = CANVAS_WIDTH / 8;
-export const RIGHT_PAD_X = CANVAS_WIDTH - CANVAS_WIDTH / 8 - PAD_WIDTH;
+const LEFT_PAD_X = CANVAS_WIDTH / 8;
+const RIGHT_PAD_X = CANVAS_WIDTH - CANVAS_WIDTH / 8 - PAD_WIDTH;
 const BALL_VELOCITY = 50;
 const PAD_SPEED = 1; //px / ms
 
@@ -159,7 +162,6 @@ export class GameService {
     gameId: number,
     timestamp: number
   ) {
-    // console.log(state);
     const gameData = this.games.get(gameId);
 
     if (gameData) {
@@ -184,12 +186,11 @@ export class GameService {
     }
   }
 
-  MovePad(player: Player) {
+  movePad(player: Player) {
     const len = player.moves.length;
     const newMoves: typeof player.moves = [];
     player.moves.forEach((val, i) => {
       if (!val.done) {
-        console.log(val, i);
         if (val.move === playerMove.UP) {
           if (i < len - 1) {
             const nextMove = player.moves[i + 1];
@@ -215,10 +216,10 @@ export class GameService {
             );
           }
         }
-        if (player.coord.y > CANVAS_HEIGHT - PAD_HEIGHT) {
-          player.coord.y = CANVAS_HEIGHT - PAD_HEIGHT;
-        } else if (player.coord.y < 0) {
-          player.coord.y = 0;
+        if (player.coord.y > CANVAS_HEIGHT - PAD_HEIGHT - BORDER_HEIGHT) {
+          player.coord.y = CANVAS_HEIGHT - PAD_HEIGHT - BORDER_HEIGHT;
+        } else if (player.coord.y < BORDER_HEIGHT) {
+          player.coord.y = BORDER_HEIGHT;
         }
         if (i === len - 1) player.lastMoveTimestamp = val.timestamp;
         if (val.move !== playerMove.STILL && i === len - 1) {
@@ -235,11 +236,11 @@ export class GameService {
     player.moves = newMoves;
   }
 
-  MovePads(gameId: number) {
+  movePads(gameId: number) {
     const gameData = this.games.get(gameId);
     if (gameData) {
-      this.MovePad(gameData.player1);
-      this.MovePad(gameData.player2);
+      this.movePad(gameData.player1);
+      this.movePad(gameData.player2);
     }
   }
 
@@ -254,7 +255,7 @@ export class GameService {
         ) {
           gameData.game.player1Boost.activated = true;
           gameData.game.player1Boost.remaining--;
-          if (Math.abs(gameData.ball.velocity.vx) < 3 * BALL_VELOCITY) {
+          if (Math.abs(gameData.ball.velocity.vx) < 2 * BALL_VELOCITY) {
             gameData.ball.velocity.vx *= 1.05;
             gameData.ball.velocity.vy *= 1.05;
           }
@@ -274,7 +275,7 @@ export class GameService {
         ) {
           gameData.game.player2Boost.activated = true;
           gameData.game.player2Boost.remaining--;
-          if (Math.abs(gameData.ball.velocity.vx) < 3 * BALL_VELOCITY) {
+          if (Math.abs(gameData.ball.velocity.vx) < 2 * BALL_VELOCITY) {
             gameData.ball.velocity.vx *= 1.05;
             gameData.ball.velocity.vy *= 1.05;
           }
@@ -298,45 +299,47 @@ export class GameService {
     if (gameData !== undefined) {
       if (playerId === gameData.player1.id) {
         gameData.game.player1Boost.activated = false;
-        gameData.ball.velocity.vy =
-          gameData.ball.velocity.vy /
-          Math.abs(gameData.ball.velocity.vx / BALL_VELOCITY);
-        gameData.ball.velocity.vx =
-          gameData.ball.velocity.vx > 0 ? BALL_VELOCITY : -BALL_VELOCITY;
       } else if (playerId === gameData.player2.id) {
         gameData.game.player2Boost.activated = false;
-        gameData.ball.velocity.vy =
-          gameData.ball.velocity.vy /
-          Math.abs(gameData.ball.velocity.vx / BALL_VELOCITY);
-        gameData.ball.velocity.vx =
-          gameData.ball.velocity.vx > 0 ? BALL_VELOCITY : -BALL_VELOCITY;
       }
+      gameData.ball.velocity.vy =
+        gameData.ball.velocity.vy /
+        Math.abs(gameData.ball.velocity.vx / BALL_VELOCITY);
+      gameData.ball.velocity.vx =
+        gameData.ball.velocity.vx > 0 ? BALL_VELOCITY : -BALL_VELOCITY;
       this.games.set(gameId, gameData);
     }
   }
 
-  MoveBall(gameId: number) {
+  moveBall(gameId: number) {
     const gameData = this.games.get(gameId);
 
     const checkWallCollision = (gameData: GameData): boolean => {
       let wallCollision = false;
       if (
         gameData.ball.coord.y + gameData.ball.velocity.vy >
-        CANVAS_HEIGHT - BALL_RADIUS
+        CANVAS_HEIGHT - BALL_RADIUS - BORDER_HEIGHT
       ) {
         wallCollision = true;
+
         gameData.ball.coord.y =
           CANVAS_HEIGHT -
           BALL_RADIUS -
+          BORDER_HEIGHT -
           (gameData.ball.velocity.vy -
-            (CANVAS_HEIGHT - BALL_RADIUS - gameData.ball.coord.y));
+            (CANVAS_HEIGHT -
+              BALL_RADIUS -
+              BORDER_HEIGHT -
+              gameData.ball.coord.y));
       } else if (
         gameData.ball.coord.y + gameData.ball.velocity.vy <
-        BALL_RADIUS
+        BALL_RADIUS + BORDER_HEIGHT
       ) {
         wallCollision = true;
+
         gameData.ball.coord.y =
           BALL_RADIUS +
+          BORDER_HEIGHT +
           Math.abs(gameData.ball.velocity.vy) -
           (gameData.ball.coord.y - BALL_RADIUS);
       }
@@ -375,20 +378,14 @@ export class GameService {
             (yColl - gameData.player1.coord.y - PAD_HEIGHT / 2) /
             (PAD_HEIGHT / 2);
 
-          const angle =
-            padCollisionRatio < -0.75
-              ? -Math.PI / 4
-              : padCollisionRatio < -0.5
-              ? -Math.PI / 6
-              : padCollisionRatio < -0.25
-              ? -Math.PI / 12
-              : padCollisionRatio <= 0.25
-              ? 0
-              : padCollisionRatio < 0.5
-              ? Math.PI / 12
-              : padCollisionRatio < 0.75
-              ? Math.PI / 6
-              : Math.PI / 4;
+          let angle;
+          if (padCollisionRatio < -0.75) angle = -Math.PI / 4;
+          else if (padCollisionRatio < -0.5) angle = -Math.PI / 6;
+          else if (padCollisionRatio < -0.25) angle = -Math.PI / 12;
+          else if (padCollisionRatio < 0.25) angle = 0;
+          else if (padCollisionRatio < 0.5) angle = Math.PI / 12;
+          else if (padCollisionRatio < 0.75) angle = Math.PI / 6;
+          else angle = Math.PI / 4;
 
           //new velocity
 
@@ -522,8 +519,10 @@ export class GameService {
       //vertical collision
       if (
         gameData.player2.coord.x - (gameData.ball.coord.x + BALL_RADIUS) >= 0 &&
-        gameData.player2.coord.x - (gameData.ball.coord.x + BALL_RADIUS) <=
-          Math.abs(gameData.ball.velocity.vx)
+        gameData.ball.coord.x +
+          BALL_RADIUS +
+          Math.abs(gameData.ball.velocity.vx) >=
+          gameData.player2.coord.x
       ) {
         const coeff =
           (gameData.player2.coord.x - (gameData.ball.coord.x + BALL_RADIUS)) /
@@ -539,20 +538,15 @@ export class GameService {
             (yColl - gameData.player2.coord.y - PAD_HEIGHT / 2) /
             (PAD_HEIGHT / 2);
 
-          const angle =
-            padCollisionRatio < -0.75
-              ? (5 * Math.PI) / 4
-              : padCollisionRatio < -0.5
-              ? (7 * Math.PI) / 6
-              : padCollisionRatio < -0.25
-              ? (13 * Math.PI) / 12
-              : padCollisionRatio <= 0.25
-              ? Math.PI
-              : padCollisionRatio < 0.5
-              ? (11 * Math.PI) / 12
-              : padCollisionRatio < 0.75
-              ? (5 * Math.PI) / 6
-              : (3 * Math.PI) / 4;
+          let angle;
+          if (padCollisionRatio < -0.75) angle = (5 * Math.PI) / 4;
+          else if (padCollisionRatio < -0.5) angle = (7 * Math.PI) / 6;
+          else if (padCollisionRatio < -0.25) angle = (13 * Math.PI) / 12;
+          else if (padCollisionRatio < 0.25) angle = Math.PI;
+          else if (padCollisionRatio < 0.5) angle = (11 * Math.PI) / 12;
+          else if (padCollisionRatio < 0.75) angle = (5 * Math.PI) / 6;
+          else angle = (3 * Math.PI) / 4;
+
           let sinus = Math.sin(angle);
           if (Math.abs(sinus) < Number.EPSILON) sinus = 0;
           gameData.ball.velocity.vy = BALL_VELOCITY * 2 * sinus;
@@ -677,8 +671,8 @@ export class GameService {
       // OK
       let isScoring = false;
       if (
-        gameData.ball.coord.x + gameData.ball.velocity.vx >
-        CANVAS_WIDTH + BALL_RADIUS
+        gameData.ball.coord.x + gameData.ball.velocity.vx >=
+        CANVAS_WIDTH - BALL_RADIUS - BORDER_WIDTH
       ) {
         gameData.player1.score += 1;
         if (gameData.player1.score === 11) {
@@ -691,16 +685,16 @@ export class GameService {
         }
         isScoring = true;
       } else if (
-        gameData.ball.coord.x + gameData.ball.velocity.vx <
-        -BALL_RADIUS
+        gameData.ball.coord.x + gameData.ball.velocity.vx <=
+        BALL_RADIUS + BORDER_WIDTH
       ) {
         gameData.player2.score += 1;
         if (gameData.player2.score === 11) {
           this.endGame(gameId);
         }
         if (gameData.game.type === "BOOST") {
-          if (gameData.game.player2Boost.remaining < 90)
-            gameData.game.player2Boost.remaining += 10;
+          if (gameData.game.player2Boost.remaining < 95)
+            gameData.game.player2Boost.remaining += 5;
           else gameData.game.player2Boost.remaining = 100;
         }
         isScoring = true;
@@ -713,7 +707,7 @@ export class GameService {
           CANVAS_HEIGHT * rand * 0.8 + 0.1 * CANVAS_HEIGHT;
 
         gameData.ball.velocity.vx =
-          gameData.ball.velocity.vx > 0 ? -BALL_VELOCITY : BALL_VELOCITY;
+          gameData.ball.velocity.vx > 0 ? BALL_VELOCITY : -BALL_VELOCITY;
         gameData.ball.velocity.vy =
           rand <= 0.5 ? -BALL_VELOCITY * rand : BALL_VELOCITY * rand;
         this.games.set(gameId, gameData);
@@ -830,7 +824,6 @@ export class GameService {
               game.mode
             )
           );
-          console.log(game);
           this.socketGateway.launchGame(game.id);
           resolve();
         })
@@ -853,7 +846,7 @@ export class GameService {
 
       const p1 = this.getPlayer(game.player1.id);
       const p2 = this.getPlayer(game.player2.id);
-
+      this.socketGateway.server.emit(`endGame${game.id}`);
       if (p1) p1.send({ type: "GAME_ENDED" });
       if (p2) p2.send({ type: "GAME_ENDED" });
       this.socketGateway.eraseGameInProgress(game.id);
