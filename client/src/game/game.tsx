@@ -182,6 +182,7 @@ const GameCanvas = ({
           }
         : {
             type: "GIFT",
+            Gift: [],
             player1Gifts: { size: 1, speed: 1 }, // ratio
             player2Gifts: { size: 1, speed: 1 },
           },
@@ -310,18 +311,6 @@ const GameCanvas = ({
         }
       }
     };
-    // const animateBall = () => {
-    //   let ctx;
-
-    //   if (canvas.current) ctx = canvas.current.getContext("2d");
-    //   if (ctx && frontGameData.current) {
-    //     ball.draw(ctx, { x: xBall.current, y: yBall.current });
-    //     xBall.current = frontGameData.current.ball.velocity.vx;
-    //     yBall.current = frontGameData.current.ball.velocity.vy;
-    //   }
-    //   //TODO COPY the back calcul for the ball
-    // };
-    // drawBall.current = setInterval(animateBall, 1); // TODO BALL
     socket.on(`Game_${frontGameData.current.id}`, cb);
     socket.on(`forfeitGame${frontGameData.current.id}`, () =>
       setGameState(gameScreenState.SCORE)
@@ -535,6 +524,13 @@ export const Game = () => {
       ? gameScreenState.PLAYING
       : gameScreenState.INTRO
   );
+  const Pause = () => {
+    return (
+      <div className="test-center my-10 flex w-20 justify-center text-5xl">
+        <span className="text-center">Other player is disconnected</span>
+      </div>
+    );
+  };
 
   switch (gameState) {
     case gameScreenState.INTRO:
@@ -559,6 +555,8 @@ export const Game = () => {
           <GameCanvas initData={data} setGameState={setGameState} />
         </div>
       );
+    case gameScreenState.PAUSE:
+      return <Pause />;
 
     default:
       return <div>Error</div>;

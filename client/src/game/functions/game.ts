@@ -1,6 +1,7 @@
 import { GameMode } from "../../gql/graphql";
 import { Socket } from "socket.io-client";
 import { GameData, padMove } from "../types/gameData";
+import { giftDraw } from "./gift";
 
 export const CANVAS_WIDTH = 2000;
 export const CANVAS_HEIGHT = 2000;
@@ -14,6 +15,7 @@ export const RIGHT_PAD_X = CANVAS_WIDTH - CANVAS_WIDTH / 8 - PAD_WIDTH;
 
 export const BALL_VELOCITY = 50;
 export const PAD_SPEED = 1; //px / ms
+export const GIFT_SPEED = 1;
 
 export function redraw(
   wrap: React.RefObject<HTMLElement>,
@@ -40,8 +42,8 @@ export function redraw(
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       const scale = min / CANVAS_HEIGHT;
       ctx.scale(scale, scale);
+      draw(ctx, data);
     }
-    if (ctx) draw(ctx, data);
   }
 }
 
@@ -109,6 +111,13 @@ export const ball = {
     context.arc(coord.x, coord.y, BALL_RADIUS, 0, 2 * Math.PI);
     context.closePath();
     context.fill();
+  },
+};
+
+const gift = {
+  classicColor: "white",
+  draw(context: CanvasRenderingContext2D, coord: { x: number; y: number }) {
+    giftDraw(context, coord);
   },
 };
 
@@ -261,6 +270,11 @@ export const draw = (context: CanvasRenderingContext2D, data: GameData) => {
   rightPad.draw(context, data.player2.coord.y);
   if (data.game.type === "CLASSIC" || data.game.type === "GIFT")
     ball.draw(context, data.ball.coord);
+  if (data.game.type === "GIFT") {
+    data.game.Gift.forEach((e) => {
+      gift.draw(context, e.coord);
+    });
+  }
   if (data.game.type === "BOOST") {
     const boostActivated =
       data.game.player1Boost.activated || data.game.player2Boost.activated;
