@@ -176,6 +176,15 @@ export class SocketGateway implements OnModuleInit {
     this.gameService.handleBoostOff(gameId, currentUserId);
   }
 
+  @SubscribeMessage("watchLive")
+  async onWatchLive(
+    @ConnectedSocket() client: Socket,
+    @MessageBody()
+    gameId: number
+  ) {
+    client.emit("gameStarting", { gameId: gameId });
+  }
+
   @SubscribeMessage("handleKey")
   async onHandleKey(
     @ConnectedSocket() client: Socket,

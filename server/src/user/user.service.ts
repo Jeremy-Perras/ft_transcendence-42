@@ -348,6 +348,7 @@ export class UserService {
           },
         ],
       },
+      orderBy: { startedAt: "desc" },
     });
     return games.map((game) => ({
       id: game.id,

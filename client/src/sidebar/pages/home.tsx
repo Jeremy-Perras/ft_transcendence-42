@@ -35,7 +35,6 @@ import queryClient from "../../../src/query";
 
 import { useDebouncedState } from "@react-hookz/web";
 import { ErrorMessage } from "../components/error";
-import { useSocketStore } from "../../stores";
 
 const DiscussionsAndInvitationsQueryDocument = graphql(`
   query DiscussionsAndInvitations($userId: Int) {
@@ -77,6 +76,7 @@ const GetUserStatus = graphql(`
     }
   }
 `);
+//TODO : ask jerem if useful
 
 const query = (): UseQueryOptions<
   DiscussionsAndInvitationsQuery,
@@ -170,7 +170,6 @@ const Invitation = ({
   name: string;
   setDisplayMutationError: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
-  const socket = useSocketStore().socket;
   const acceptInvitation = useMutation(
     async ({ userId }: { userId: number }) =>
       request("/graphql", AcceptInvitationMutationDocument, {

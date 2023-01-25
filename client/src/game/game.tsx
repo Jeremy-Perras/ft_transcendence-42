@@ -377,45 +377,43 @@ const Score = ({
   const navigate = useNavigate();
 
   return (
-    <>
-      <div className="mt-1 flex h-12 w-128 items-center pl-1">
-        <div className="relative flex w-full">
+    <div className="flex h-full w-full flex-col items-center justify-evenly">
+      <div className="flex items-center justify-center ">
+        <div className="flex w-48 grow-0 flex-col items-center justify-center">
           <img
-            className=" h-10 w-10 border border-black object-cover  "
+            className="border border-black object-cover"
             src={`http://localhost:5173/upload/avatar/${player1Id}`}
             alt="Player 1 avatar"
           />
-
-          <div className="ml-2 w-32 self-center truncate text-left ">
+          <div className="my-2 grow-0 truncate text-center font-content">
             {player1Name}
           </div>
-          <div className="grow select-none self-center text-center text-lg font-bold ">
-            VS
-          </div>
-          <div className="ml-2 w-32 self-center truncate text-left ">
+        </div>
+        <div className="mx-4 select-none text-center">VS</div>
+        <div className="flex w-48 grow-0 flex-col items-center ">
+          <img
+            className="border border-black object-cover "
+            src={`http://localhost:5173/upload/avatar/${player2Id}`}
+            alt="Player 2 avatar"
+          />{" "}
+          <div className="my-2   grow-0 truncate text-center font-content">
             {player2Name}
-          </div>
-          <div className="relative">
-            <img
-              className="h-10 w-10 justify-end border border-black object-cover "
-              src={`http://localhost:5173/upload/avatar/${player2Id}`}
-              alt="Player 2 avatar"
-            />
           </div>
         </div>
       </div>
-      <div>
+
+      <div className="text-4xl">
         {player1Score && player2Score
           ? `${player1Score} - ${player2Score}`
           : `- - -`}
       </div>
       <button
-        className="my-6 border-2 border-slate-300 bg-slate-100 p-4 text-slate-500 hover:bg-slate-300 hover:text-slate-600"
+        className="my-6 text-3xl text-white hover:text-slate-300"
         onClick={() => navigate(`/`)}
       >
         Home
       </button>
-    </>
+    </div>
   );
 };
 

@@ -33,7 +33,12 @@ import {
 import { RankIcon } from "../utils/rankIcon";
 import BannedDarkIcon from "/src/assets/images/Banned_dark.svg";
 import { useForm, useWatch } from "react-hook-form";
-import { useAuthStore, useInvitationStore, useSocketStore } from "../../stores";
+import {
+  useAuthStore,
+  useInvitationStore,
+  useSidebarStore,
+  useSocketStore,
+} from "../../stores";
 import { IsOnline } from "../components/isOnline";
 import { graphql } from "../../../src/gql";
 import {
@@ -382,7 +387,7 @@ const GameHistory = ({
                 </span>
               </div>
             ) : (
-              <div className="mx-1 flex h-full basis-1/6 items-center justify-center border-x border-black bg-yellow-400 ">
+              <div className="mx-1 flex h-full basis-1/6 items-center justify-center border-x border-black bg-slate-200 ">
                 <div className={`animate-pulse text-center font-bold`}>
                   PLAYING
                 </div>
@@ -580,7 +585,6 @@ const FriendButtons = ({
   data: UserProfileQuery;
   setDisplayMutationError: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
-  const navigate = useNavigate();
   const { createInvite } = useInvitationStore();
   const blockUser = useMutation(
     async ({ userId }: { userId: number }) =>
@@ -605,6 +609,8 @@ const FriendButtons = ({
         queryClient.invalidateQueries(["UserProfile", data.user.id]),
     }
   );
+  const socket = useSocketStore().socket;
+  const closeSidebar = useSidebarStore((state) => state.close);
   return (
     <div className="flex h-24 select-none bg-slate-100 text-2xl font-bold text-slate-600">
       <div
@@ -612,7 +618,8 @@ const FriendButtons = ({
           if (data.user.status === UserStatus.Online) {
             if (data.user.games.some((g) => !g.finishedAt)) {
               const gameInProgress = data.user.games.find((g) => !g.finishedAt);
-              navigate(`/game/${gameInProgress?.id}`);
+              socket.emit("watchLive", gameInProgress?.id);
+              closeSidebar();
             } else createInvite(data.user.name, data.user.id);
           }
         }}
