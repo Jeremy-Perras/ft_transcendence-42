@@ -681,7 +681,7 @@ export class GameService {
         CANVAS_WIDTH + BALL_RADIUS
       ) {
         gameData.player1.score += 1;
-        if (gameData.player2.score === 11) {
+        if (gameData.player1.score === 11) {
           this.endGame(gameId);
         }
         if (gameData.game.type === "BOOST") {
@@ -841,8 +841,6 @@ export class GameService {
 
   endGame = async (gameId: number) => {
     const game = this.games.get(gameId);
-    console.log(gameId);
-    console.log(game);
     if (game) {
       await this.prismaService.game.update({
         where: { id: gameId },

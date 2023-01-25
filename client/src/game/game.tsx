@@ -402,7 +402,11 @@ const Score = ({
           </div>
         </div>
       </div>
-      <div>{`${player1Score} - ${player2Score}`}</div>
+      <div>
+        {player1Score && player2Score
+          ? `${player1Score} - ${player2Score}`
+          : `- - -`}
+      </div>
       <button
         className="my-6 border-2 border-slate-300 bg-slate-100 p-4 text-slate-500 hover:bg-slate-300 hover:text-slate-600"
         onClick={() => navigate(`/`)}
@@ -511,6 +515,18 @@ export const Game = () => {
 
   const startTime = new Date(data.game.startAt).getTime();
   const currentTime = new Date().getTime();
+  const socket = useSocketStore().socket;
+
+  useEffect(() => {
+    socket.on(`endGame${gameId}`, () =>
+      queryClient.invalidateQueries(["Game", gameId])
+    );
+    return () => {
+      socket.off(`endGame${gameId}`, () =>
+        queryClient.invalidateQueries(["Game", gameId])
+      );
+    };
+  }, []);
 
   const [gameState, setGameState] = useState<gameScreenState>(
     data.game.finishedAt
@@ -548,7 +564,6 @@ export const Game = () => {
       return <div>Error</div>;
   }
 };
-
 // const Counter = (context: CanvasRenderingContext2D, gameData: GameData) => {
 //   const [count, setCount] = useState(0);
 
