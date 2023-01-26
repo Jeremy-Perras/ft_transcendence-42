@@ -422,10 +422,8 @@ const GameHistory = ({
                   </span>
                 </div>
               ) : (
-                <div className="flex items-center justify-center border-x border-black bg-slate-200">
-                  <div className={`animate-pulse text-center font-bold`}>
-                    PLAYING
-                  </div>
+                <div className="flex  basis-24 animate-pulse flex-col justify-center border-x border-black bg-slate-200 text-center font-bold">
+                  <div>PLAYING</div>
                 </div>
               )}
               <div className="flex justify-center">
@@ -667,9 +665,7 @@ const FriendButtons = ({
       >
         <PlayIcon className="mr-2 w-10 self-center" />
         <span>
-          {data.user.games.some((g) => !g.finishedAt)
-            ? "Watch live !"
-            : "Play !"}
+          {data.user.games.some((g) => !g.finishedAt) ? "Watch live!" : "Play!"}
         </span>
       </div>
       <div

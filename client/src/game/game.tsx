@@ -41,7 +41,7 @@ enum gameScreenState {
   PAUSE,
 }
 
-const INTRO_DURATION = 1; //INITIAL COUNTDOWN
+const INTRO_DURATION = 5; //INITIAL COUNTDOWN
 
 const GameQueryDocument = graphql(`
   query Game($gameId: Int!) {
@@ -461,47 +461,47 @@ const Intro = ({
   }, [timer]);
 
   return (
-    <>
-      <div className="mt-10 flex items-center">
-        <div className="relative flex w-full">
-          <div className="mx-4">
-            <img
-              className="h-60 w-60 border border-black object-cover  "
-              src={`http://localhost:5173/upload/avatar/${data.game.players.player1.id}`}
-              alt="Player 1 avatar"
-            />
-            <div className="w-60 self-center truncate text-center">
-              {data.game.players.player1.name}
-            </div>
+    <div className="flex flex-col items-center justify-center">
+      <div className="relative mt-10 flex w-full items-center justify-center">
+        <div className="mx-2 flex w-40 flex-col items-center justify-center sm:w-60 ">
+          <img
+            className="h-40 w-40 justify-end border border-black object-cover sm:h-60 sm:w-60 "
+            src={`http://localhost:5173/upload/avatar/${data.game.players.player1.id}`}
+            alt="Player 2 avatar"
+          />
+          <div className="mt-2 truncate text-center text-xs sm:text-base ">
+            {data.game.players.player1?.name}
           </div>
-          <div className="grow animate-pulse select-none self-center text-center text-3xl font-bold ">
-            VS
-          </div>
-          <div className="mx-4">
-            <div className="relative">
-              <img
-                className="h-60 w-60 justify-end border border-black object-cover "
-                src={`http://localhost:5173/upload/avatar/${data.game.players.player2.id}`}
-                alt="Player 2 avatar"
-              />
-            </div>
-            <div className="ml-2 w-60 self-center truncate text-center ">
-              {data.game.players.player2?.name}
-            </div>
+        </div>
+        <div className="grow animate-pulse select-none self-center text-center text-3xl font-bold ">
+          VS
+        </div>
+        <div className="mx-2 flex w-40 flex-col items-center justify-center sm:w-60 ">
+          <img
+            className="h-40 w-40 justify-end border border-black object-cover sm:h-60 sm:w-60 "
+            src={`http://localhost:5173/upload/avatar/${data.game.players.player2.id}`}
+            alt="Player 2 avatar"
+          />
+          <div className="mt-2 truncate text-center text-xs sm:text-base ">
+            {data.game.players.player2?.name}
           </div>
         </div>
       </div>
+
       <div className="my-10 flex w-20 justify-center text-5xl">
         <span>{Math.floor(timer / 60)} </span>
         <span className="mx-1 pb-1 font-mono">:</span>
         <span>{timer % 60 < 10 ? `0${timer % 60}` : `${timer % 60}`}</span>
       </div>
       {data.game.gameMode === GameMode.Boost && (
-        <div className="my-10 flex w-full justify-center text-xl">
+        <div className="my-10 text-center  text-xl">
           Press SPACE to fire the ball!
         </div>
       )}
-    </>
+      {data.game.gameMode === GameMode.Gift && (
+        <div className="my-10 text-center  text-xl">Catch the gifts!</div>
+      )}
+    </div>
   );
 };
 

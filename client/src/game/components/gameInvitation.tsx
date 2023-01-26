@@ -66,7 +66,7 @@ const Invitation = ({
   const [display, setDisplay] = useState(true);
 
   return display ? (
-    <div className="absolute bottom-0 z-10 flex w-screen justify-center">
+    <div className="absolute bottom-0 z-10 flex w-screen max-w-[screen] flex-wrap justify-center">
       <motion.span
         onClick={() => setDisplay(false)}
         transition={{
@@ -83,21 +83,21 @@ const Invitation = ({
             src={`/upload/avatar/${invitation.inviterId}`}
           />
           <span
-            className={`shrink grow-0 truncate`}
+            className={`shrink grow-0 truncate text-xs sm:text-base`}
           >{`${invitation.inviterName}`}</span>
-          <span className="w-content">{` invites you to play ${invitation.gameMode} mode. Accept?`}</span>
+          <span className="truncate text-xs sm:text-base">{` invites you to play ${invitation.gameMode} mode. Accept?`}</span>
         </span>
 
         <div className="flex basis-1/5 justify-end ">
           <AcceptIcon
-            className="h-8 w-8 animate-none border border-slate-300 bg-slate-200 hover:cursor-pointer hover:bg-slate-300"
+            className="h-6 w-6 animate-none border border-slate-300 bg-slate-200 hover:cursor-pointer hover:bg-slate-300 sm:h-8 sm:w-8"
             onClick={() => {
               acceptGameInvitation.mutate({ userId: invitation.inviterId });
               setInvitationList([]);
             }}
           />
           <RefuseIcon
-            className="mx-2 h-8 w-8 border border-slate-300 bg-slate-200 hover:cursor-pointer hover:bg-slate-300"
+            className="mx-2 h-6 w-6 border border-slate-300 bg-slate-200 hover:cursor-pointer hover:bg-slate-300 sm:h-8 sm:w-8"
             onClick={() => {
               setInvitationList((list) =>
                 list.filter((invite) => invite !== invitation)
@@ -141,6 +141,7 @@ export const GameInvitations = ({
         gameMode: gameMode,
         inviterName: name,
       };
+      console.log(newInvitation);
       setInvitationList([newInvitation, ...invitationList]);
     }
   );

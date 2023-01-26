@@ -505,7 +505,7 @@ export const PlayerMachine = (
         notifyInvite: (context, event) => {
           socket.sendToUser(context.userId, "newInvitation", {
             inviterId: event.inviterId,
-            gameMode: context.gameMode,
+            gameMode: context.invitations.get(event.inviterId),
             name: event.name,
           });
         },
