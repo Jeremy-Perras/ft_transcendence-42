@@ -331,116 +331,120 @@ const GameHistory = ({
   const navigate = useNavigate();
 
   return (
-    <div className="flex w-full grow flex-col overflow-auto p-1 text-sm">
+    <>
       <h2 className="mt-3 pb-2 text-center text-xl font-bold">MATCH HISTORY</h2>
-      {data.user.games.length === 0 ? (
-        <div className="flex flex-col">
-          <div className="mt-20 text-center text-2xl text-slate-300">
-            {`${data.user.id === currentUserId ? "You" : data.user.name} didn't
+      <ul className="flex w-full grow flex-col overflow-auto p-1 text-sm">
+        {data.user.games.length === 0 ? (
+          <div className="flex flex-col">
+            <div className="mt-20 text-center text-2xl text-slate-300">
+              {`${
+                data.user.id === currentUserId ? "You" : data.user.name
+              } didn't
             play yet !`}
-          </div>
-          <PlayIcon className="text-slate-100" />
-        </div>
-      ) : null}
-      {data?.user.games.map((game, index) => {
-        let victory = false;
-        let equal = false;
-        if (game.finishedAt) {
-          victory =
-            (game.players.player1.id === data?.user.id &&
-              game.score.player1Score > game.score.player2Score) ||
-            (game.players.player2?.id === data?.user.id &&
-              game.score.player2Score > game.score.player1Score);
-          equal =
-            (game.players.player1.id === data?.user.id &&
-              game.score.player1Score === game.score.player2Score) ||
-            (game.players.player2?.id === data?.user.id &&
-              game.score.player2Score === game.score.player1Score);
-        }
-        return (
-          <div
-            key={index}
-            className="mt-1 flex h-10 w-full items-center border border-black bg-slate-100"
-          >
-            <div className="flex h-full w-full">
-              <div className="relative flex h-full shrink-0 justify-start border-r border-black">
-                <img
-                  onClick={() =>
-                    navigate(`/profile/${game.players.player1.id}`)
-                  }
-                  className="h-full object-cover hover:cursor-pointer"
-                  src={`/upload/avatar/${game.players.player1.id}`}
-                  alt="Player 1 avatar"
-                />
-                <IsOnline userStatus={game.players.player1.status} />
-              </div>
-              <div className="flex h-full w-full">
-                <div className="ml-2 w-32 self-center truncate text-left">
-                  {game.players.player1.name}
-                </div>
-                <div className="grow select-none self-center text-center text-lg font-bold ">
-                  VS
-                </div>
-                <div className="ml-2 w-32 self-center truncate text-left">
-                  {game.players.player2?.name}
-                </div>
-              </div>
-              <div className="relative flex h-full shrink-0 justify-end border-l border-black">
-                <img
-                  onClick={() =>
-                    navigate(`/profile/${game.players.player2.id}`)
-                  }
-                  className="relative h-full object-cover hover:cursor-pointer"
-                  src={`/upload/avatar/${game.players.player2.id}`}
-                  alt="Player 2 avatar"
-                />
-                <IsOnline userStatus={game.players.player2.status} />
-              </div>
             </div>
-            {game.finishedAt ? (
-              <div
-                className={`${
-                  victory
-                    ? "bg-green-400"
-                    : equal
-                    ? "bg-slate-200"
-                    : "bg-red-400"
-                } flex h-full basis-1/6 flex-col justify-center border-x border-black text-center font-bold`}
-              >
-                {victory ? (
-                  <div>VICTORY</div>
-                ) : equal ? (
-                  <div>DRAW</div>
-                ) : (
-                  <div>DEFEAT</div>
-                )}
-                <span>
-                  {game.score.player1Score} - {game.score.player2Score}
-                </span>
-              </div>
-            ) : (
-              <div className="flex h-full basis-1/6 items-center justify-center border-x border-black bg-slate-200 ">
-                <div className={`animate-pulse text-center font-bold`}>
-                  PLAYING
+            <PlayIcon className="text-slate-100" />
+          </div>
+        ) : null}
+        {data?.user.games.map((game, index) => {
+          let victory = false;
+          let equal = false;
+          if (game.finishedAt) {
+            victory =
+              (game.players.player1.id === data?.user.id &&
+                game.score.player1Score > game.score.player2Score) ||
+              (game.players.player2?.id === data?.user.id &&
+                game.score.player2Score > game.score.player1Score);
+            equal =
+              (game.players.player1.id === data?.user.id &&
+                game.score.player1Score === game.score.player2Score) ||
+              (game.players.player2?.id === data?.user.id &&
+                game.score.player2Score === game.score.player1Score);
+          }
+          return (
+            <li
+              key={index}
+              className="mt-1 flex min-w-[30rem] border border-black bg-slate-100"
+            >
+              <div className="flex min-w-0 basis-full justify-between">
+                <div className="relative flex h-full shrink-0 justify-start border-r border-black">
+                  <img
+                    onClick={() =>
+                      navigate(`/profile/${game.players.player1.id}`)
+                    }
+                    className="h-10 object-cover hover:cursor-pointer"
+                    src={`/upload/avatar/${game.players.player1.id}`}
+                    alt="Player 1 avatar"
+                  />
+                  <IsOnline userStatus={game.players.player1.status} />
+                </div>
+                <div className="flex justify-between truncate">
+                  <span className="ml-2 min-w-0 justify-start self-center truncate text-left">
+                    {game.players.player1.name}
+                  </span>
+                  <span className="mx-2 select-none self-center text-center text-lg font-bold">
+                    VS
+                  </span>
+                  <span className="mr-2 min-w-0 justify-end self-center truncate text-right">
+                    {game.players.player2.name}
+                  </span>
+                </div>
+                <div className="relative flex h-full shrink-0 justify-end border-l border-black">
+                  <img
+                    onClick={() =>
+                      navigate(`/profile/${game.players.player2.id}`)
+                    }
+                    className="relative h-10 object-cover hover:cursor-pointer"
+                    src={`/upload/avatar/${game.players.player2.id}`}
+                    alt="Player 2 avatar"
+                  />
+                  <IsOnline userStatus={game.players.player2.status} />
                 </div>
               </div>
-            )}
-            <div className="flex justify-center">
-              <img
-                className="h-8 w-10 "
-                src={
-                  game.gameMode === GameMode.Classic
-                    ? ClassicIcon
-                    : game.gameMode === GameMode.Gift
-                    ? BonusIcon
-                    : FireIcon
-                }
-              />
-            </div>
-          </div>
-        );
-      })}
-    </div>
+              {game.finishedAt ? (
+                <div
+                  className={`${
+                    victory
+                      ? "bg-green-400"
+                      : equal
+                      ? "bg-slate-200"
+                      : "bg-red-400"
+                  } flex basis-24 flex-col justify-center border-x border-black text-center font-bold`}
+                >
+                  {victory ? (
+                    <div>VICTORY</div>
+                  ) : equal ? (
+                    <div>DRAW</div>
+                  ) : (
+                    <div>DEFEAT</div>
+                  )}
+                  <span>
+                    {game.score.player1Score} - {game.score.player2Score}
+                  </span>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center border-x border-black bg-slate-200">
+                  <div className={`animate-pulse text-center font-bold`}>
+                    PLAYING
+                  </div>
+                </div>
+              )}
+              <div className="flex justify-center">
+                <img
+                  className="h-8 w-10"
+                  src={
+                    game.gameMode === GameMode.Classic
+                      ? ClassicIcon
+                      : game.gameMode === GameMode.Gift
+                      ? BonusIcon
+                      : FireIcon
+                  }
+                />
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </>
   );
 };
 
