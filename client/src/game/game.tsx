@@ -28,6 +28,7 @@ import {
   FRAME_RATE,
   animateBall,
   animateOpponentPad,
+  animateBallGift,
 } from "./functions/game";
 import { GameData, padMove } from "./types/gameData";
 
@@ -129,6 +130,9 @@ const GameCanvas = ({
   if (!canvas) return <>Error</>;
 
   const requestRef = useRef<number>();
+  const playerSpeed = useRef<number>(1);
+  const playerSize = useRef<number>(1);
+  const playerBonus = useRef<string>("Bonus");
   const playerMove = useRef(padMove.STILL);
   const keyboardStatus = useRef({
     arrowUp: false,
@@ -213,7 +217,9 @@ const GameCanvas = ({
           arrowUp: boolean;
           arrowDown: boolean;
         }>,
-        playerMove: React.MutableRefObject<padMove>
+        playerMove: React.MutableRefObject<padMove>,
+        playerSpeed: number,
+        playerSize: number
       ) => void
     ) => {
       cb(
@@ -224,7 +230,9 @@ const GameCanvas = ({
         initData.game.id,
         initData.game.gameMode,
         keyboardStatus,
-        playerMove
+        playerMove,
+        playerSpeed.current,
+        playerSize.current
       );
     };
     const keyDownCb = (e: KeyboardEvent) => handleKey(e, handleKeyDown);
@@ -255,9 +263,21 @@ const GameCanvas = ({
 
   useEffect(() => {
     const obs = new ResizeObserver(() =>
-      redraw(wrap, canvas, frontGameData.current)
+      redraw(
+        wrap,
+        canvas,
+        frontGameData.current,
+        playerBonus.current,
+        currentUserId
+      )
     );
-    redraw(wrap, canvas, frontGameData.current);
+    redraw(
+      wrap,
+      canvas,
+      frontGameData.current,
+      playerBonus.current,
+      currentUserId
+    );
     if (wrap && wrap.current) {
       obs.observe(wrap.current);
     }
@@ -273,10 +293,33 @@ const GameCanvas = ({
       }
       let ctx;
       if (canvas.current) ctx = canvas.current.getContext("2d");
-      if (ctx) draw(ctx, frontGameData.current);
+      if (ctx)
+        draw(ctx, frontGameData.current, playerBonus.current, currentUserId);
       updateGameData(frontGameData, backData, initData);
       let t;
       if (currentUserId === frontGameData.current.player1.id) {
+        if (frontGameData.current.game.type === "GIFT") {
+          if (
+            playerSize.current > frontGameData.current.game.player1Gifts.size
+          ) {
+            playerBonus.current = "Size down";
+          } else if (
+            playerSize.current < frontGameData.current.game.player1Gifts.size
+          ) {
+            playerBonus.current = "Size up";
+          }
+          if (
+            playerSpeed.current > frontGameData.current.game.player1Gifts.speed
+          ) {
+            playerBonus.current = "Speed down";
+          } else if (
+            playerSpeed.current < frontGameData.current.game.player1Gifts.speed
+          ) {
+            playerBonus.current = "Speed up";
+          }
+          playerSize.current = frontGameData.current.game.player1Gifts.size;
+          playerSpeed.current = frontGameData.current.game.player1Gifts.speed;
+        }
         nextYOpponent.current = backData.player2.coord.y;
         t = moves.current.find(
           (m) => m.timestamp === frontGameData.current.player1.lastMoveTimestamp
@@ -288,6 +331,28 @@ const GameCanvas = ({
         }
         frontGameData.current.player1.coord.y = yPlayer.current;
       } else if (currentUserId === frontGameData.current.player2.id) {
+        if (frontGameData.current.game.type === "GIFT") {
+          if (
+            playerSize.current > frontGameData.current.game.player2Gifts.size
+          ) {
+            playerBonus.current = "Size down";
+          } else if (
+            playerSize.current < frontGameData.current.game.player2Gifts.size
+          ) {
+            playerBonus.current = "Size up";
+          }
+          if (
+            playerSpeed.current > frontGameData.current.game.player2Gifts.speed
+          ) {
+            playerBonus.current = "Speed down";
+          } else if (
+            playerSpeed.current < frontGameData.current.game.player2Gifts.speed
+          ) {
+            playerBonus.current = "Speed up";
+          }
+          playerSize.current = frontGameData.current.game.player2Gifts.size;
+          playerSpeed.current = frontGameData.current.game.player2Gifts.speed;
+        }
         nextYOpponent.current = backData.player1.coord.y;
         t = moves.current.find(
           (m) => m.timestamp === frontGameData.current.player2.lastMoveTimestamp
@@ -305,22 +370,51 @@ const GameCanvas = ({
       if (canvas.current) ctx = canvas.current.getContext("2d");
       if (ctx) {
         if (frontGameData.current) {
-          setCurrentPlayerY(yPlayer, moves);
+          setCurrentPlayerY(
+            yPlayer,
+            moves,
+            playerSpeed.current,
+            playerSize.current
+          );
           if (currentUserId === frontGameData.current.player1.id) {
             frontGameData.current.player1.coord.y = yPlayer.current;
-            frontGameData.current.player2 = animateOpponentPad(
-              frontGameData.current.player2,
-              nextYOpponent.current
-            );
+            if (frontGameData.current.game.type === "GIFT") {
+              frontGameData.current.player2 = animateOpponentPad(
+                frontGameData.current.player2,
+                nextYOpponent.current,
+                frontGameData.current.game.player2Gifts.speed,
+                frontGameData.current.game.player2Gifts.size
+              );
+            } else {
+              frontGameData.current.player2 = animateOpponentPad(
+                frontGameData.current.player2,
+                nextYOpponent.current,
+                1,
+                1
+              );
+            }
           } else if (currentUserId === frontGameData.current.player2.id) {
             frontGameData.current.player2.coord.y = yPlayer.current;
-            frontGameData.current.player1 = animateOpponentPad(
-              frontGameData.current.player1,
-              nextYOpponent.current
-            );
+            if (frontGameData.current.game.type === "GIFT") {
+              frontGameData.current.player1 = animateOpponentPad(
+                frontGameData.current.player1,
+                nextYOpponent.current,
+                frontGameData.current.game.player1Gifts.speed,
+                frontGameData.current.game.player1Gifts.size
+              );
+            } else {
+              frontGameData.current.player1 = animateOpponentPad(
+                frontGameData.current.player1,
+                nextYOpponent.current,
+                1,
+                1
+              );
+            }
           }
-          animateBall(frontGameData);
-          draw(ctx, frontGameData.current);
+          if (frontGameData.current.game.type !== "GIFT")
+            animateBall(frontGameData);
+          else animateBallGift(frontGameData);
+          draw(ctx, frontGameData.current, playerBonus.current, currentUserId);
         }
       }
     };

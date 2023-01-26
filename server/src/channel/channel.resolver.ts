@@ -43,6 +43,7 @@ import DataLoader from "dataloader";
 import { ChannelService } from "./channel.service";
 import {
   BlockingIdsLoader,
+  BlockedByIdsLoader,
   UserChannelIdsLoader,
   UserLoader,
 } from "../user/user.loaders";
@@ -267,6 +268,7 @@ export class ChannelResolver {
     >,
     @Loader(BlockingIdsLoader)
     blockingIdsLoader: DataLoader<PrismaUser["id"], number[]>,
+    blockedByIdsLoader: DataLoader<PrismaUser["id"], number[]>,
     @Root() channel: Channel,
     @CurrentUser() currentUserId: number
   ): Promise<GraphqlChannelMessage[]> {
@@ -274,6 +276,7 @@ export class ChannelResolver {
       userChannelIdsLoader,
       channelMessagesLoader,
       blockingIdsLoader,
+      blockedByIdsLoader,
       channel.id,
       currentUserId
     );

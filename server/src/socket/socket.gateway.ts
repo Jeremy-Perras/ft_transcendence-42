@@ -45,11 +45,13 @@ export class SocketGateway implements OnModuleInit {
       if (gameData) {
         // console.log("player 1 : ", gameData.player1.playerMove);
         // console.log("player 2 : ", gameData.player2.playerMove);
-
-        this.gameService.MovePads(gameId);
-        this.gameService.MoveBall(gameId);
+        this.gameService.movePads(gameId);
+        if (gameData?.game.type !== "GIFT") {
+          this.gameService.moveBall(gameId);
+        }
         if (gameData?.game.type === "GIFT") {
           this.gameService.moveGift(gameId);
+          this.gameService.moveBallGift(gameId);
         }
         const dataToEmit = {
           id: gameData.id,

@@ -9,12 +9,9 @@ import e from "express";
 
 const CANVAS_WIDTH = 2000;
 const CANVAS_HEIGHT = 2000;
-const BORDER_WIDTH = CANVAS_WIDTH / 100;
-const BORDER_HEIGHT = CANVAS_HEIGHT / 100;
 
 const PAD_HEIGHT = Math.ceil(CANVAS_HEIGHT / 12);
 const PAD_WIDTH = Math.ceil(PAD_HEIGHT / 5);
-
 const BALL_RADIUS = CANVAS_WIDTH / 100;
 const LEFT_PAD_X = CANVAS_WIDTH / 8;
 const RIGHT_PAD_X = CANVAS_WIDTH - CANVAS_WIDTH / 8 - PAD_WIDTH;
@@ -31,12 +28,33 @@ export enum playerMove {
   STILL,
 }
 
-export enum giftPlayer {
-  SPEED_UP = 1.2,
-  SPEED_SLOW = 0.8,
-  SIZE_UP = 1.3,
-  SIZE_DOWN = 0.5,
-}
+type GiftType =
+  | {
+      name: "SPEED_UP" | "SPEED_SLOW";
+      speed: number;
+    }
+  | {
+      name: "SIZE_UP" | "SIZE_DOWN";
+      size: number;
+    };
+const gifts: GiftType[] = [
+  {
+    name: "SPEED_UP",
+    speed: 1.2,
+  },
+  {
+    name: "SPEED_SLOW",
+    speed: 0.9,
+  },
+  {
+    name: "SIZE_UP",
+    size: 1.2,
+  },
+  {
+    name: "SIZE_DOWN",
+    size: 0.5,
+  },
+];
 
 type ClassicGame = {
   type: "CLASSIC";
@@ -56,7 +74,7 @@ type BoostGame = {
 
 type GiftGame = {
   type: "GIFT";
-  Gift: Array<{ coord: Coord; gift: giftPlayer; start: number; side: 1 | -1 }>;
+  Gift: Array<{ coord: Coord; gift: GiftType; side: 1 | -1 }>;
   player1Gifts: {
     speed: number;
     size: number;
@@ -170,71 +188,167 @@ export class GameService {
     };
   }
 
-  // isInside(coord: number, small: number, great: number, side: number) {
-  //   if (side === 1) {
-  //     if(coord)
-  //   }
-  //   return false;
-  // }
+  isInside(
+    coordx: number,
+    coordy: number,
+    smallx: number,
+    greatx: number,
+    smally: number,
+    greaty: number
+  ) {
+    if (
+      coordx >= smallx &&
+      coordx <= greatx &&
+      coordy >= smally &&
+      coordy <= greaty
+    ) {
+      return true;
+    }
+    return false;
+  }
+
+  giftInsidePlayer(
+    gameData: GameData,
+    e: {
+      coord: Coord;
+      gift: GiftType;
+      side: 1 | -1;
+    }
+  ) {
+    if (gameData.game.type === "GIFT") {
+      if (
+        e.side === -1 &&
+        !this.isInside(
+          e.coord.x,
+          e.coord.y,
+          gameData.player1.coord.x,
+          gameData.player1.coord.x + PAD_WIDTH,
+          gameData.player1.coord.y,
+          gameData.player1.coord.y +
+            PAD_HEIGHT * gameData.game.player1Gifts.size
+        ) &&
+        !this.isInside(
+          e.coord.x - GIFT_WIDTH / 2,
+          e.coord.y,
+          gameData.player1.coord.x,
+          gameData.player1.coord.x + PAD_WIDTH,
+          gameData.player1.coord.y,
+          gameData.player1.coord.y +
+            PAD_HEIGHT * gameData.game.player1Gifts.size
+        ) &&
+        !this.isInside(
+          e.coord.x + GIFT_WIDTH / 2,
+          e.coord.y,
+          gameData.player1.coord.x,
+          gameData.player1.coord.x + PAD_WIDTH,
+          gameData.player1.coord.y,
+          gameData.player1.coord.y +
+            PAD_HEIGHT * gameData.game.player1Gifts.size
+        )
+      ) {
+        return true;
+      } else if (
+        e.side === 1 &&
+        !this.isInside(
+          e.coord.x,
+          e.coord.y,
+          gameData.player2.coord.x,
+          gameData.player2.coord.x + PAD_WIDTH,
+          gameData.player2.coord.y,
+          gameData.player2.coord.y +
+            PAD_HEIGHT * gameData.game.player1Gifts.size
+        ) &&
+        !this.isInside(
+          e.coord.x - GIFT_WIDTH / 2,
+          e.coord.y,
+          gameData.player2.coord.x,
+          gameData.player2.coord.x + PAD_WIDTH,
+          gameData.player2.coord.y,
+          gameData.player2.coord.y +
+            PAD_HEIGHT * gameData.game.player1Gifts.size
+        ) &&
+        !this.isInside(
+          e.coord.x + GIFT_WIDTH / 2,
+          e.coord.y,
+          gameData.player2.coord.x,
+          gameData.player2.coord.x + PAD_WIDTH,
+          gameData.player2.coord.y,
+          gameData.player2.coord.y +
+            PAD_HEIGHT * gameData.game.player1Gifts.size
+        )
+      ) {
+        return true;
+      }
+      if (e.side === -1 && gameData.game.type === "GIFT") {
+        if (e.gift.name === "SIZE_DOWN") {
+          gameData.game.player1Gifts.size *= e.gift.size;
+        } else if (e.gift.name === "SIZE_UP") {
+          gameData.game.player1Gifts.size *= e.gift.size;
+        } else if (e.gift.name === "SPEED_SLOW") {
+          gameData.game.player1Gifts.speed *= e.gift.speed;
+        } else if (e.gift.name === "SPEED_UP") {
+          gameData.game.player1Gifts.speed *= e.gift.speed;
+        }
+      } else if (gameData.game.type === "GIFT") {
+        if (e.gift.name === "SIZE_DOWN") {
+          gameData.game.player2Gifts.size *= e.gift.size;
+        } else if (e.gift.name === "SIZE_UP") {
+          gameData.game.player2Gifts.size *= e.gift.size;
+        } else if (e.gift.name === "SPEED_SLOW") {
+          gameData.game.player2Gifts.speed *= e.gift.speed;
+        } else if (e.gift.name === "SPEED_UP") {
+          gameData.game.player2Gifts.speed *= e.gift.speed;
+        }
+      }
+      return false;
+    }
+  }
 
   moveGift(gameId: number) {
     const gameData = this.games.get(gameId);
     const c = Math.random();
-    const rand = Math.floor(Math.random() * Object.keys(giftPlayer).length);
 
-    if (c > 0.99 && gameData?.game.type === "GIFT") {
+    if (c > 0.992 && gameData?.game.type === "GIFT") {
       gameData?.game.Gift.push({
         coord: {
-          x: CANVAS_WIDTH / 2,
-          y: (CANVAS_HEIGHT - BORDER_HEIGHT - GIFT_HEIGHT) * Math.random(),
+          x: CANVAS_WIDTH / 2 + GIFT_WIDTH / 2,
+          y:
+            Math.floor(
+              (CANVAS_HEIGHT - BORDER_HEIGHT - GIFT_HEIGHT) * Math.random()
+            ) >=
+            BORDER_HEIGHT + GIFT_HEIGHT
+              ? Math.floor(
+                  (CANVAS_HEIGHT - BORDER_HEIGHT - GIFT_HEIGHT) * Math.random()
+                )
+              : BORDER_HEIGHT + GIFT_HEIGHT,
         },
-
-        gift: giftPlayer.SIZE_UP,
+        gift: gifts[Math.floor(Math.random() * (gifts.length - 1))] as GiftType,
         side: Math.random() > 0.5 ? 1 : -1,
-        start: new Date().getTime(),
       });
     }
 
     if (gameData?.game.type === "GIFT") {
       gameData.game.Gift.forEach((e) => {
-        e.coord.x += 5 * e.side;
+        e.coord.x += 20 * e.side;
       });
 
-      gameData.game.Gift = gameData.game.Gift.filter(
+      const resultp1 = gameData.game.Gift.filter(
         (e) =>
           e.coord.x >= GIFT_WIDTH + BORDER_WIDTH &&
-          e.coord.x <= CANVAS_WIDTH - GIFT_WIDTH - BORDER_WIDTH
-        // e.side === 1 &&
-        // !this.isBetween(
-        //   e.coord.x,
-        //   gameData.player1.coord.x - PAD_WIDTH / 2,
-        //   gameData.player1.coord.x + PAD_WIDTH / 2
-        // ) &&
-        // !this.isBetween(
-        //   e.coord.y,
-        //   gameData.player1.coord.y - PAD_HEIGHT / 2,
-        //   gameData.player1.coord.y + PAD_HEIGHT / 2
-        // )
+          e.coord.x <= CANVAS_WIDTH - GIFT_WIDTH - BORDER_WIDTH &&
+          e.side === -1 &&
+          this.giftInsidePlayer(gameData, e)
       );
-      // const resultp2 = gameData.game.Gift.filter(
-      //   (e) =>
-      //     e.coord.x >= GIFT_WIDTH + BORDER_WIDTH &&
-      //     e.coord.x <= CANVAS_WIDTH - GIFT_WIDTH - BORDER_WIDTH
-      //     // e.side === -1 &&
-      //     // !this.isBetween(
-      //     //   e.coord.x,
-      //     //   gameData.player2.coord.x - PAD_WIDTH / 2,
-      //     //   gameData.player2.coord.x + PAD_WIDTH / 2
-      //     // ) &&
-      //     // !this.isBetween(
-      //     //   e.coord.y,
-      //     //   gameData.player2.coord.y - PAD_HEIGHT / 2,
-      //     //   gameData.player2.coord.y + PAD_HEIGHT / 2
-      //     // )
-      // );
-      // console.log(gameData.game.Gift);
-      // gameData.game.Gift = resultp2.concat(resultp1);
-      // console.log(gameData.game.Gift);
+      const resultp2 = gameData.game.Gift.filter(
+        (e) =>
+          e.coord.x >= GIFT_WIDTH + BORDER_WIDTH &&
+          e.coord.x <= CANVAS_WIDTH - GIFT_WIDTH - BORDER_WIDTH &&
+          e.side === 1 &&
+          this.giftInsidePlayer(gameData, e)
+      );
+      console.log("1", gameData.game.player1Gifts.size);
+      console.log("2", gameData.game.player2Gifts.size);
+      gameData.game.Gift = resultp2.concat(resultp1);
     }
   }
 
@@ -319,22 +433,85 @@ export class GameService {
     player.moves = newMoves;
   }
 
+  movePadGift(
+    player: Player,
+    playerGifts: {
+      speed: number;
+      size: number;
+    }
+  ) {
+    const len = player.moves.length;
+    const newMoves: typeof player.moves = [];
+
+    player.moves.forEach((val, i) => {
+      if (!val.done) {
+        if (val.move === playerMove.UP) {
+          if (i < len - 1) {
+            const nextMove = player.moves[i + 1];
+            if (nextMove)
+              player.coord.y -= Math.floor(
+                PAD_SPEED *
+                  playerGifts.speed *
+                  (nextMove.timestamp - val.timestamp)
+              );
+          } else {
+            player.coord.y -= Math.floor(
+              PAD_SPEED *
+                playerGifts.speed *
+                (new Date().getTime() - val.timestamp)
+            );
+          }
+        } else if (val.move === playerMove.DOWN) {
+          if (i < len - 1) {
+            const nextMove = player.moves[i + 1];
+            if (nextMove)
+              player.coord.y += Math.floor(
+                PAD_SPEED *
+                  playerGifts.speed *
+                  (nextMove.timestamp - val.timestamp)
+              );
+          } else {
+            player.coord.y += Math.floor(
+              PAD_SPEED *
+                playerGifts.speed *
+                (new Date().getTime() - val.timestamp)
+            );
+          }
+        }
+        if (
+          player.coord.y >
+          CANVAS_HEIGHT - PAD_HEIGHT * playerGifts.size - BORDER_HEIGHT
+        ) {
+          player.coord.y =
+            CANVAS_HEIGHT - PAD_HEIGHT * playerGifts.size - BORDER_HEIGHT;
+        } else if (player.coord.y < BORDER_HEIGHT) {
+          player.coord.y = BORDER_HEIGHT;
+        }
+        if (i === len - 1) player.lastMoveTimestamp = val.timestamp;
+        if (val.move !== playerMove.STILL && i === len - 1) {
+          newMoves.push({
+            event: i + 1,
+            timestamp: new Date().getTime(),
+            move: val.move,
+            done: false,
+          });
+        }
+        val.done = true;
+      }
+    });
+    player.moves = newMoves;
+  }
+
   movePads(gameId: number) {
     const gameData = this.games.get(gameId);
 
-    if (gameData) {
+    if (gameData && gameData.game.type != "GIFT") {
       this.movePad(gameData.player1);
+
       this.movePad(gameData.player2);
-
-      // if (gameData?.game.type === "GIFT") {
-      //   PAD_SPEED = gameData?.game.player1Gifts.speed;
-      //   PAD_HEIGHT = gameData?.game.player1Gifts.size;
-      // }
-
-      // if (gameData?.game.type === "GIFT") {
-      //   PAD_SPEED = gameData?.game.player2Gifts.speed;
-      //   PAD_HEIGHT = gameData?.game.player2Gifts.size;
-      // }
+    } else if (gameData && gameData.game.type === "GIFT") {
+      this.movePadGift(gameData.player1, gameData.game.player1Gifts);
+      this.movePadGift(gameData.player2, gameData.game.player2Gifts);
     }
   }
 
@@ -823,6 +1000,462 @@ export class GameService {
       gameData.ball.coord.x += gameData.ball.velocity.vx;
       gameData.ball.coord.y += gameData.ball.velocity.vy;
       this.games.set(gameId, gameData);
+    }
+  }
+
+  moveBallGift(gameId: number) {
+    const gameData = this.games.get(gameId);
+    if (gameData?.game.type === "GIFT") {
+      const checkWallCollision = (gameData: GameData): boolean => {
+        let wallCollision = false;
+        if (gameData?.game.type === "GIFT") {
+          if (
+            gameData.ball.coord.y + gameData.ball.velocity.vy >
+            CANVAS_HEIGHT - BALL_RADIUS - BORDER_HEIGHT
+          ) {
+            wallCollision = true;
+
+            gameData.ball.coord.y =
+              CANVAS_HEIGHT -
+              BALL_RADIUS -
+              BORDER_HEIGHT -
+              (gameData.ball.velocity.vy -
+                (CANVAS_HEIGHT -
+                  BALL_RADIUS -
+                  BORDER_HEIGHT -
+                  gameData.ball.coord.y));
+          } else if (
+            gameData.ball.coord.y + gameData.ball.velocity.vy <
+            BALL_RADIUS + BORDER_HEIGHT
+          ) {
+            wallCollision = true;
+
+            gameData.ball.coord.y =
+              BALL_RADIUS +
+              BORDER_HEIGHT +
+              Math.abs(gameData.ball.velocity.vy) -
+              (gameData.ball.coord.y - BALL_RADIUS);
+          }
+          if (wallCollision) {
+            gameData.ball.coord.x += gameData.ball.velocity.vx;
+            gameData.ball.velocity.vy = -gameData.ball.velocity.vy;
+            this.games.set(gameId, gameData);
+          }
+        }
+        return wallCollision;
+      };
+
+      const leftPadCollision = (gameData: GameData): boolean => {
+        //VERTICAL COLLISION
+        if (gameData.game.type === "GIFT") {
+          if (
+            gameData.ball.coord.x -
+              BALL_RADIUS -
+              (gameData.player1.coord.x + PAD_WIDTH) >=
+              0 &&
+            gameData.ball.coord.x -
+              BALL_RADIUS -
+              (gameData.player1.coord.x + PAD_WIDTH) <=
+              Math.abs(gameData.ball.velocity.vx)
+          ) {
+            const coeff =
+              (gameData.ball.coord.x -
+                BALL_RADIUS -
+                (gameData.player1.coord.x + PAD_WIDTH)) /
+              Math.abs(gameData.ball.velocity.vx);
+            const yColl =
+              gameData.ball.coord.y + gameData.ball.velocity.vy * coeff;
+            if (
+              gameData.game.type === "GIFT" &&
+              yColl >= gameData.player1.coord.y &&
+              yColl <=
+                gameData.player1.coord.y +
+                  PAD_HEIGHT * gameData.game.player1Gifts.size
+            ) {
+              //collision
+              const padCollisionRatio =
+                (yColl -
+                  gameData.player1.coord.y -
+                  (gameData.game.player1Gifts.size * PAD_HEIGHT) / 2) /
+                ((PAD_HEIGHT * gameData.game.player1Gifts.size) / 2);
+
+              let angle;
+              if (padCollisionRatio < -0.75) angle = -Math.PI / 4;
+              else if (padCollisionRatio < -0.5) angle = -Math.PI / 6;
+              else if (padCollisionRatio < -0.25) angle = -Math.PI / 12;
+              else if (padCollisionRatio < 0.25) angle = 0;
+              else if (padCollisionRatio < 0.5) angle = Math.PI / 12;
+              else if (padCollisionRatio < 0.75) angle = Math.PI / 6;
+              else angle = Math.PI / 4;
+
+              //new velocity
+
+              let sinus = Math.sin(angle);
+              if (Math.abs(sinus) < Number.EPSILON) sinus = 0;
+              gameData.ball.velocity.vy = BALL_VELOCITY * 2 * sinus;
+              gameData.ball.velocity.vx = -gameData.ball.velocity.vx;
+
+              //next coordinate
+              gameData.ball.coord.x =
+                gameData.player1.coord.x +
+                PAD_WIDTH +
+                BALL_RADIUS +
+                (1 - coeff) * gameData.ball.velocity.vx;
+
+              gameData.ball.coord.y =
+                yColl + (1 - coeff) * gameData.ball.velocity.vy;
+
+              this.games.set(gameId, gameData);
+              return true;
+            }
+
+            //upper corner
+            if (
+              yColl > gameData.player1.coord.y - BALL_RADIUS &&
+              yColl < gameData.player1.coord.y
+            ) {
+              gameData.ball.velocity.vy =
+                BALL_VELOCITY * 2 * Math.sin(-Math.PI / 4);
+              gameData.ball.velocity.vx = -gameData.ball.velocity.vx;
+
+              gameData.ball.coord.x =
+                gameData.player1.coord.x +
+                PAD_WIDTH +
+                BALL_RADIUS +
+                (1 - coeff) * gameData.ball.velocity.vx;
+              gameData.ball.coord.y =
+                yColl + (1 - coeff) * gameData.ball.velocity.vy;
+
+              this.games.set(gameId, gameData);
+              return true;
+            }
+
+            //lower corner
+            if (
+              yColl >
+                gameData.player1.coord.y +
+                  PAD_HEIGHT * gameData.game.player1Gifts.size &&
+              yColl <
+                gameData.player1.coord.y +
+                  PAD_HEIGHT * gameData.game.player1Gifts.size +
+                  BALL_RADIUS
+            ) {
+              gameData.ball.velocity.vy =
+                BALL_VELOCITY * 2 * Math.sin(Math.PI / 4);
+              gameData.ball.velocity.vx = -gameData.ball.velocity.vx;
+
+              gameData.ball.coord.x =
+                gameData.player1.coord.x +
+                PAD_WIDTH +
+                BALL_RADIUS +
+                (1 - coeff) * gameData.ball.velocity.vx;
+              gameData.ball.coord.y =
+                yColl + (1 - coeff) * gameData.ball.velocity.vy;
+
+              this.games.set(gameId, gameData);
+              return true;
+            }
+          }
+
+          //horizontal collision - inferior border
+          if (
+            gameData.ball.velocity.vy < 0 &&
+            gameData.ball.coord.y - BALL_RADIUS >=
+              gameData.player1.coord.y +
+                PAD_HEIGHT * gameData.game.player1Gifts.size &&
+            gameData.ball.coord.y -
+              BALL_RADIUS -
+              (gameData.player1.coord.y +
+                PAD_HEIGHT * gameData.game.player1Gifts.size) <=
+              Math.abs(gameData.ball.velocity.vy)
+          ) {
+            const coeff =
+              (gameData.ball.coord.y -
+                BALL_RADIUS -
+                (gameData.player1.coord.y +
+                  PAD_HEIGHT * gameData.game.player1Gifts.size)) /
+              Math.abs(gameData.ball.velocity.vy);
+            const xColl =
+              gameData.ball.coord.x + gameData.ball.velocity.vx * coeff;
+            if (
+              xColl > gameData.player1.coord.x &&
+              xColl <= gameData.player1.coord.x + PAD_WIDTH
+            ) {
+              gameData.ball.velocity.vy = -gameData.ball.velocity.vy;
+
+              gameData.ball.coord.x += gameData.ball.velocity.vx;
+              gameData.ball.coord.y =
+                gameData.player1.coord.y +
+                PAD_HEIGHT * gameData.game.player1Gifts.size +
+                BALL_RADIUS +
+                (1 - coeff) * gameData.ball.velocity.vy;
+
+              this.games.set(gameId, gameData);
+              return true;
+            }
+          }
+
+          //horizontal - superior border
+          if (
+            gameData.ball.velocity.vy > 0 &&
+            gameData.ball.coord.y + BALL_RADIUS <= gameData.player1.coord.y &&
+            gameData.player1.coord.y - (gameData.ball.coord.y + BALL_RADIUS) <=
+              Math.abs(gameData.ball.velocity.vy)
+          ) {
+            const coeff =
+              (gameData.player1.coord.y -
+                (gameData.ball.coord.y + BALL_RADIUS)) /
+              Math.abs(gameData.ball.velocity.vy);
+            const xColl =
+              gameData.ball.coord.x + gameData.ball.velocity.vx * coeff;
+
+            if (
+              xColl > gameData.player1.coord.x &&
+              xColl <= gameData.player1.coord.x + PAD_WIDTH
+            ) {
+              gameData.ball.velocity.vy = -gameData.ball.velocity.vy;
+
+              gameData.ball.coord.x += gameData.ball.velocity.vx;
+              gameData.ball.coord.y =
+                gameData.player1.coord.y -
+                BALL_RADIUS +
+                (1 - coeff) * gameData.ball.velocity.vy;
+
+              this.games.set(gameId, gameData);
+              return true;
+            }
+          }
+        }
+        return false;
+      };
+
+      const rightPadCollision = (gameData: GameData): boolean => {
+        //vertical collision
+        if (gameData.game.type === "GIFT") {
+          if (
+            gameData.player2.coord.x - (gameData.ball.coord.x + BALL_RADIUS) >=
+              0 &&
+            gameData.ball.coord.x +
+              BALL_RADIUS +
+              Math.abs(gameData.ball.velocity.vx) >=
+              gameData.player2.coord.x
+          ) {
+            const coeff =
+              (gameData.player2.coord.x -
+                (gameData.ball.coord.x + BALL_RADIUS)) /
+              Math.abs(gameData.ball.velocity.vx);
+            const yColl =
+              gameData.ball.coord.y + gameData.ball.velocity.vy * coeff;
+
+            //pad core collision
+            if (
+              yColl >= gameData.player2.coord.y &&
+              yColl <=
+                gameData.player2.coord.y +
+                  PAD_HEIGHT * gameData.game.player2Gifts.size
+            ) {
+              const padCollisionRatio =
+                (yColl -
+                  gameData.player2.coord.y -
+                  (PAD_HEIGHT * gameData.game.player2Gifts.size) / 2) /
+                ((PAD_HEIGHT * gameData.game.player2Gifts.size) / 2);
+
+              let angle;
+              if (padCollisionRatio < -0.75) angle = (5 * Math.PI) / 4;
+              else if (padCollisionRatio < -0.5) angle = (7 * Math.PI) / 6;
+              else if (padCollisionRatio < -0.25) angle = (13 * Math.PI) / 12;
+              else if (padCollisionRatio < 0.25) angle = Math.PI;
+              else if (padCollisionRatio < 0.5) angle = (11 * Math.PI) / 12;
+              else if (padCollisionRatio < 0.75) angle = (5 * Math.PI) / 6;
+              else angle = (3 * Math.PI) / 4;
+
+              let sinus = Math.sin(angle);
+              if (Math.abs(sinus) < Number.EPSILON) sinus = 0;
+              gameData.ball.velocity.vy = BALL_VELOCITY * 2 * sinus;
+              gameData.ball.velocity.vx = -gameData.ball.velocity.vx;
+
+              gameData.ball.coord.x =
+                gameData.player2.coord.x -
+                BALL_RADIUS +
+                (1 - coeff) * gameData.ball.velocity.vx;
+              gameData.ball.coord.y =
+                yColl + (1 - coeff) * gameData.ball.velocity.vy;
+
+              this.games.set(gameId, gameData);
+              return true;
+            }
+            if (
+              yColl > gameData.player2.coord.y - BALL_RADIUS &&
+              yColl < gameData.player2.coord.y
+            ) {
+              gameData.ball.velocity.vy =
+                BALL_VELOCITY * 2 * Math.sin((5 * Math.PI) / 4);
+              gameData.ball.velocity.vx = -gameData.ball.velocity.vx;
+
+              gameData.ball.coord.x =
+                gameData.player2.coord.x -
+                BALL_RADIUS +
+                (1 - coeff) * gameData.ball.velocity.vx;
+              gameData.ball.coord.y =
+                yColl + (1 - coeff) * gameData.ball.velocity.vy;
+
+              this.games.set(gameId, gameData);
+              return true;
+            }
+            if (
+              yColl >
+                gameData.player2.coord.y +
+                  PAD_HEIGHT * gameData.game.player2Gifts.size &&
+              yColl <
+                gameData.player2.coord.y +
+                  PAD_HEIGHT * gameData.game.player2Gifts.size -
+                  BALL_RADIUS
+            ) {
+              gameData.ball.velocity.vy =
+                BALL_VELOCITY * 2 * Math.sin((3 * Math.PI) / 4);
+              gameData.ball.velocity.vx = -gameData.ball.velocity.vx;
+
+              gameData.ball.coord.x =
+                gameData.player2.coord.x -
+                BALL_RADIUS +
+                (1 - coeff) * gameData.ball.velocity.vx;
+              gameData.ball.coord.y =
+                yColl + (1 - coeff) * gameData.ball.velocity.vy;
+
+              this.games.set(gameId, gameData);
+              return true;
+            }
+          }
+
+          // horizontal collision - inferior border
+          if (
+            gameData.ball.velocity.vy < 0 &&
+            gameData.ball.coord.y - BALL_RADIUS >=
+              gameData.player2.coord.y +
+                PAD_HEIGHT * gameData.game.player2Gifts.size &&
+            gameData.ball.coord.y -
+              BALL_RADIUS -
+              (gameData.player2.coord.y +
+                PAD_HEIGHT * gameData.game.player2Gifts.size) <=
+              Math.abs(gameData.ball.velocity.vy)
+          ) {
+            const coeff =
+              (gameData.ball.coord.y -
+                BALL_RADIUS -
+                (gameData.player2.coord.y +
+                  PAD_HEIGHT * gameData.game.player2Gifts.size)) /
+              Math.abs(gameData.ball.velocity.vy);
+            const xColl =
+              gameData.ball.coord.x + gameData.ball.velocity.vx * coeff;
+
+            if (
+              xColl > gameData.player2.coord.x &&
+              xColl <= gameData.player2.coord.x + PAD_WIDTH
+            ) {
+              gameData.ball.velocity.vy = -gameData.ball.velocity.vy;
+
+              gameData.ball.coord.x += gameData.ball.velocity.vx;
+              gameData.ball.coord.y =
+                gameData.player2.coord.y +
+                PAD_HEIGHT * gameData.game.player2Gifts.size +
+                BALL_RADIUS +
+                (1 - coeff) * gameData.ball.velocity.vy;
+
+              this.games.set(gameId, gameData);
+              return true;
+            }
+          }
+
+          //horizontal collision - superior border
+          if (
+            gameData.ball.velocity.vy > 0 &&
+            gameData.ball.coord.y + BALL_RADIUS <= gameData.player2.coord.y &&
+            gameData.player2.coord.y - (gameData.ball.coord.y + BALL_RADIUS) <=
+              Math.abs(gameData.ball.velocity.vy)
+          ) {
+            const coeff =
+              (gameData.player2.coord.y -
+                (gameData.ball.coord.y + BALL_RADIUS)) /
+              Math.abs(gameData.ball.velocity.vy);
+            const xColl =
+              gameData.ball.coord.x + gameData.ball.velocity.vx * coeff;
+
+            if (
+              xColl > gameData.player2.coord.x &&
+              xColl <= gameData.player2.coord.x + PAD_WIDTH
+            ) {
+              gameData.ball.velocity.vy = -gameData.ball.velocity.vy;
+
+              gameData.ball.coord.x += gameData.ball.velocity.vx;
+              gameData.ball.coord.y =
+                gameData.player2.coord.y -
+                BALL_RADIUS +
+                (1 - coeff) * gameData.ball.velocity.vy;
+
+              this.games.set(gameId, gameData);
+              return true;
+            }
+          }
+        }
+        return false;
+      };
+
+      const goal = (gameData: GameData): boolean => {
+        // OK
+        let isScoring = false;
+        if (gameData.game.type === "GIFT") {
+          if (
+            gameData.ball.coord.x + gameData.ball.velocity.vx >=
+            CANVAS_WIDTH - BALL_RADIUS - BORDER_WIDTH
+          ) {
+            gameData.player1.score += 1;
+            if (gameData.player1.score === 11) {
+              this.endGame(gameId);
+            }
+
+            isScoring = true;
+          } else if (
+            gameData.ball.coord.x + gameData.ball.velocity.vx <=
+            BALL_RADIUS + BORDER_WIDTH
+          ) {
+            gameData.player2.score += 1;
+            if (gameData.player2.score === 11) {
+              this.endGame(gameId);
+            }
+
+            isScoring = true;
+          }
+          if (isScoring) {
+            const rand = Math.random();
+
+            gameData.ball.coord.x = CANVAS_WIDTH / 2 + BALL_RADIUS;
+            gameData.ball.coord.y =
+              CANVAS_HEIGHT * rand * 0.8 + 0.1 * CANVAS_HEIGHT;
+
+            gameData.ball.velocity.vx =
+              gameData.ball.velocity.vx > 0 ? BALL_VELOCITY : -BALL_VELOCITY;
+            gameData.ball.velocity.vy =
+              rand <= 0.5 ? -BALL_VELOCITY * rand : BALL_VELOCITY * rand;
+            this.games.set(gameId, gameData);
+          }
+        }
+        return isScoring;
+      };
+
+      if (gameData !== undefined) {
+        if (checkWallCollision(gameData)) return;
+        if (gameData.ball.velocity.vx < 0) {
+          if (leftPadCollision(gameData)) return;
+        }
+        if (gameData.ball.velocity.vx > 0) {
+          if (rightPadCollision(gameData)) return;
+        }
+        if (goal(gameData)) return;
+
+        gameData.ball.coord.x += gameData.ball.velocity.vx;
+        gameData.ball.coord.y += gameData.ball.velocity.vy;
+        this.games.set(gameId, gameData);
+      }
     }
   }
 
