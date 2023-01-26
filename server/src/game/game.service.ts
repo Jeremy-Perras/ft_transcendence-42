@@ -5,6 +5,7 @@ import { SocketGateway } from "../socket/socket.gateway";
 import { PlayerMachine } from "./player.machine";
 import { waitFor } from "xstate/lib/waitFor";
 import { OnEvent } from "@nestjs/event-emitter";
+import e from "express";
 
 const CANVAS_WIDTH = 2000;
 const CANVAS_HEIGHT = 2000;
@@ -19,8 +20,8 @@ const PAD_SPEED = 1; //px / ms
 export const GIFT_SPEED = 1;
 const BORDER_WIDTH = CANVAS_WIDTH / 100;
 const BORDER_HEIGHT = CANVAS_HEIGHT / 100;
-const GIFT_WIDTH = 338;
-const GIFT_HEIGHT = 338;
+const GIFT_WIDTH = Math.floor(338 * 0.2);
+const GIFT_HEIGHT = Math.floor(338 * 0.2);
 export enum playerMove {
   UP,
   DOWN,
@@ -28,8 +29,10 @@ export enum playerMove {
 }
 
 export enum giftPlayer {
-  SPEED,
-  SIZE,
+  SPEED_UP = 1.2,
+  SPEED_SLOW = 0.8,
+  SIZE_UP = 1.3,
+  SIZE_DOWN = 0.5,
 }
 
 type ClassicGame = {
@@ -164,28 +167,71 @@ export class GameService {
     };
   }
 
+  // isInside(coord: number, small: number, great: number, side: number) {
+  //   if (side === 1) {
+  //     if(coord)
+  //   }
+  //   return false;
+  // }
+
   moveGift(gameId: number) {
     const gameData = this.games.get(gameId);
     const c = Math.random();
-    if (c > 0.99 && gameData?.game.type === "GIFT")
+    const rand = Math.floor(Math.random() * Object.keys(giftPlayer).length);
+
+    if (c > 0.99 && gameData?.game.type === "GIFT") {
       gameData?.game.Gift.push({
         coord: {
           x: CANVAS_WIDTH / 2,
           y: (CANVAS_HEIGHT - BORDER_HEIGHT - GIFT_HEIGHT) * Math.random(),
         },
-        gift: giftPlayer.SIZE,
+
+        gift: giftPlayer.SIZE_UP,
         side: Math.random() > 0.5 ? 1 : -1,
         start: new Date().getTime(),
       });
+    }
 
     if (gameData?.game.type === "GIFT") {
       gameData.game.Gift.forEach((e) => {
         e.coord.x += 5 * e.side;
       });
-      gameData.game.Gift.filter((e) => {
-        e.coord.x <= CANVAS_WIDTH - BORDER_WIDTH - GIFT_WIDTH &&
-          e.coord.x >= BORDER_WIDTH;
-      });
+
+      gameData.game.Gift = gameData.game.Gift.filter(
+        (e) =>
+          e.coord.x >= GIFT_WIDTH + BORDER_WIDTH &&
+          e.coord.x <= CANVAS_WIDTH - GIFT_WIDTH - BORDER_WIDTH
+        // e.side === 1 &&
+        // !this.isBetween(
+        //   e.coord.x,
+        //   gameData.player1.coord.x - PAD_WIDTH / 2,
+        //   gameData.player1.coord.x + PAD_WIDTH / 2
+        // ) &&
+        // !this.isBetween(
+        //   e.coord.y,
+        //   gameData.player1.coord.y - PAD_HEIGHT / 2,
+        //   gameData.player1.coord.y + PAD_HEIGHT / 2
+        // )
+      );
+      // const resultp2 = gameData.game.Gift.filter(
+      //   (e) =>
+      //     e.coord.x >= GIFT_WIDTH + BORDER_WIDTH &&
+      //     e.coord.x <= CANVAS_WIDTH - GIFT_WIDTH - BORDER_WIDTH
+      //     // e.side === -1 &&
+      //     // !this.isBetween(
+      //     //   e.coord.x,
+      //     //   gameData.player2.coord.x - PAD_WIDTH / 2,
+      //     //   gameData.player2.coord.x + PAD_WIDTH / 2
+      //     // ) &&
+      //     // !this.isBetween(
+      //     //   e.coord.y,
+      //     //   gameData.player2.coord.y - PAD_HEIGHT / 2,
+      //     //   gameData.player2.coord.y + PAD_HEIGHT / 2
+      //     // )
+      // );
+      // console.log(gameData.game.Gift);
+      // gameData.game.Gift = resultp2.concat(resultp1);
+      // console.log(gameData.game.Gift);
     }
   }
 
@@ -195,7 +241,6 @@ export class GameService {
     gameId: number,
     timestamp: number
   ) {
-    // console.log(state);
     const gameData = this.games.get(gameId);
 
     if (gameData) {
@@ -223,9 +268,9 @@ export class GameService {
   MovePad(player: Player) {
     const len = player.moves.length;
     const newMoves: typeof player.moves = [];
+
     player.moves.forEach((val, i) => {
       if (!val.done) {
-        console.log(val, i);
         if (val.move === playerMove.UP) {
           if (i < len - 1) {
             const nextMove = player.moves[i + 1];
@@ -273,8 +318,17 @@ export class GameService {
 
   MovePads(gameId: number) {
     const gameData = this.games.get(gameId);
+
     if (gameData) {
+      // if (gameData?.game.type === "GIFT") {
+      //   PAD_SPEED = gameData?.game.player1Gifts.speed;
+      //   PAD_HEIGHT = gameData?.game.player1Gifts.size;
+      // }
       this.MovePad(gameData.player1);
+      // if (gameData?.game.type === "GIFT") {
+      //   PAD_SPEED = gameData?.game.player2Gifts.speed;
+      //   PAD_HEIGHT = gameData?.game.player2Gifts.size;
+      // }
       this.MovePad(gameData.player2);
     }
   }
@@ -866,7 +920,6 @@ export class GameService {
               game.mode
             )
           );
-          console.log(game);
           this.socketGateway.launchGame(game.id);
           resolve();
         })
