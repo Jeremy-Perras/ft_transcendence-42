@@ -9,6 +9,16 @@ export enum giftPlayer {
   SIZE,
 }
 
+type GiftType =
+  | {
+      name: "SPEED_UP" | "SPEED_SLOW";
+      speed: number;
+    }
+  | {
+      name: "SIZE_UP" | "SIZE_DOWN";
+      size: number;
+    };
+
 export type ClassicGame = {
   type: "CLASSIC";
 };
@@ -27,7 +37,7 @@ export type BoostGame = {
 
 export type GiftGame = {
   type: "GIFT";
-  Gift: Array<{ coord: Coord; gift: giftPlayer; start: number; side: 1 | -1 }>;
+  Gift: Array<{ coord: Coord; gift: GiftType; side: 1 | -1 }>;
   player1Gifts: {
     speed: number;
     size: number;

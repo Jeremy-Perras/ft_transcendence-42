@@ -195,6 +195,7 @@ export class ChannelService {
   async getMessages(
     userChannelIdsLoader: DataLoader<User["id"], number[]>,
     channelMessageLoader: DataLoader<Channel["id"], ChannelMessage[]>,
+    blockedByIdsLoader: DataLoader<User["id"], number[]>,
     blockingIdsLoader: DataLoader<User["id"], number[]>,
     channelId: number,
     currentUserId: number
@@ -211,7 +212,8 @@ export class ChannelService {
           })),
           skipDuplicates: true,
         });
-        const blockedIds = await blockingIdsLoader.load(currentUserId);
+        const blockedIds = await blockedByIdsLoader.load(currentUserId);
+        const blockee = await blockingIdsLoader.load(currentUserId);
         return messages.map((message) => ({
           id: message.id,
           content: blockedIds.some((i) => i === message.authorId)

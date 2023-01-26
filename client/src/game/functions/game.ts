@@ -1,6 +1,6 @@
 import { GameMode } from "../../gql/graphql";
 import { Socket } from "socket.io-client";
-import { GameData, padMove, Player } from "../types/gameData";
+import { Coord, GameData, padMove, Player } from "../types/gameData";
 import { giftDraw } from "./gift";
 
 export const FRAME_RATE = 10; //draw every 10 ms
@@ -23,7 +23,9 @@ export const GIFT_SPEED = 1;
 export function redraw(
   wrap: React.RefObject<HTMLElement>,
   canvas: React.RefObject<HTMLCanvasElement>,
-  data: GameData
+  data: GameData,
+  playerBonus: string,
+  currentUserId: number | undefined
 ) {
   let cssWidth;
   let cssHeight;
@@ -45,7 +47,7 @@ export function redraw(
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       const scale = min / CANVAS_HEIGHT;
       ctx.scale(scale, scale);
-      draw(ctx, data);
+      draw(ctx, data, playerBonus, currentUserId);
     }
   }
 }
@@ -93,6 +95,13 @@ const leftPad = {
     context.closePath();
     context.fill();
   },
+  drawGift(context: CanvasRenderingContext2D, y: number, size: number) {
+    context.fillStyle = this.color;
+    context.beginPath();
+    context.fillRect(LEFT_PAD_X, y, PAD_WIDTH, PAD_HEIGHT * size);
+    context.closePath();
+    context.fill();
+  },
 };
 
 const rightPad = {
@@ -101,6 +110,13 @@ const rightPad = {
     context.fillStyle = this.color;
     context.beginPath();
     context.fillRect(RIGHT_PAD_X, y, PAD_WIDTH, PAD_HEIGHT);
+    context.closePath();
+    context.fill();
+  },
+  drawGift(context: CanvasRenderingContext2D, y: number, size: number) {
+    context.fillStyle = this.color;
+    context.beginPath();
+    context.fillRect(RIGHT_PAD_X, y, PAD_WIDTH, PAD_HEIGHT * size);
     context.closePath();
     context.fill();
   },
@@ -114,6 +130,14 @@ export const ball = {
     context.arc(coord.x, coord.y, BALL_RADIUS, 0, 2 * Math.PI);
     context.closePath();
     context.fill();
+  },
+};
+
+const text = {
+  classicColor: "white",
+  draw(context: CanvasRenderingContext2D, playerBonus: string, coord: Coord) {
+    context.font = "48px serif";
+    context.fillText(playerBonus, coord.x, coord.y);
   },
 };
 
@@ -264,20 +288,43 @@ const score = {
   },
 };
 
-export const draw = (context: CanvasRenderingContext2D, data: GameData) => {
+export const draw = (
+  context: CanvasRenderingContext2D,
+  data: GameData,
+  playerBonus: string,
+  currentUserId: number | undefined
+) => {
   context?.clearRect(background.x, background.y, CANVAS_WIDTH, CANVAS_HEIGHT);
   background.draw(context);
   names.draw(context, data.player1.name, data.player2.name);
   score.draw(context, data.player1.score, data.player2.score);
-  leftPad.draw(context, data.player1.coord.y);
-  rightPad.draw(context, data.player2.coord.y);
-  if (data.game.type === "CLASSIC" || data.game.type === "GIFT")
-    ball.draw(context, data.ball.coord);
+  if (data.game.type === "CLASSIC") {
+    leftPad.draw(context, data.player1.coord.y);
+    rightPad.draw(context, data.player2.coord.y);
+  }
   if (data.game.type === "GIFT") {
     data.game.Gift.forEach((e) => {
       gift.draw(context, e.coord);
     });
+    leftPad.drawGift(
+      context,
+      data.player1.coord.y,
+      data.game.player1Gifts.size
+    );
+    rightPad.drawGift(
+      context,
+      data.player2.coord.y,
+      data.game.player2Gifts.size
+    );
+    if (currentUserId === data.player1.id)
+      text.draw(context, playerBonus, { x: 200, y: 200 });
+    else if (currentUserId) {
+      text.draw(context, playerBonus, { x: 1800, y: 200 });
+    }
   }
+  if (data.game.type === "CLASSIC" || data.game.type === "GIFT")
+    ball.draw(context, data.ball.coord);
+
   if (data.game.type === "BOOST") {
     const boostActivated =
       data.game.player1Boost.activated || data.game.player2Boost.activated;
@@ -398,22 +445,138 @@ export const animateBall = (data: React.MutableRefObject<GameData>) => {
   data.current.ball.coord.y += vy / FRAME_RATE;
 };
 
-export const animateOpponentPad = (player: Player, nextY: number): Player => {
+export const animateBallGift = (data: React.MutableRefObject<GameData>) => {
+  const vx = data.current.ball.velocity.vx;
+  const vy = data.current.ball.velocity.vy;
+  if (data.current.game.type === "GIFT") {
+    //wall collision
+    if (vy < 0) {
+      if (
+        data.current.ball.coord.y + vy / FRAME_RATE <
+        BALL_RADIUS + BORDER_HEIGHT
+      ) {
+        data.current.ball.coord.y =
+          BALL_RADIUS +
+          BORDER_HEIGHT +
+          Math.floor(
+            (Math.abs(vy) - (data.current.ball.coord.y - BALL_RADIUS)) /
+              FRAME_RATE
+          );
+        data.current.ball.velocity.vy = -vy;
+        return;
+      }
+    } else if (vy > 0) {
+      if (
+        data.current.ball.coord.y + vy / FRAME_RATE >
+        CANVAS_HEIGHT - BALL_RADIUS - BORDER_HEIGHT
+      ) {
+        data.current.ball.coord.y =
+          CANVAS_HEIGHT -
+          BALL_RADIUS -
+          BORDER_HEIGHT -
+          (vy / FRAME_RATE -
+            (CANVAS_HEIGHT -
+              BALL_RADIUS -
+              BORDER_HEIGHT -
+              data.current.ball.coord.y));
+        data.current.ball.velocity.vy = -vy;
+        return;
+      }
+    }
+
+    //pad collision
+    //left
+    if (vx < 0) {
+      if (
+        data.current.ball.coord.x -
+          BALL_RADIUS -
+          (data.current.player1.coord.x + PAD_WIDTH) >=
+          0 &&
+        data.current.ball.coord.x -
+          BALL_RADIUS -
+          (data.current.player1.coord.x + PAD_WIDTH) <=
+          Math.abs(vx) / FRAME_RATE
+      ) {
+        const coeff =
+          (data.current.ball.coord.x -
+            BALL_RADIUS -
+            (data.current.player1.coord.x + PAD_WIDTH)) /
+          Math.abs(vx) /
+          FRAME_RATE;
+        const yColl = data.current.ball.coord.y + (vy / FRAME_RATE) * coeff;
+
+        if (
+          yColl > data.current.player1.coord.y - BALL_RADIUS &&
+          yColl <
+            data.current.player1.coord.y +
+              PAD_HEIGHT * data.current.game.player1Gifts.size +
+              BALL_RADIUS
+        ) {
+          return;
+        }
+        //TODO horizontal
+      }
+      //right
+    } else if (vx > 0) {
+      if (
+        data.current.ball.coord.x + BALL_RADIUS + vx / FRAME_RATE >=
+        data.current.player2.coord.x
+      ) {
+        const coeff =
+          (data.current.player2.coord.x -
+            (data.current.ball.coord.x + BALL_RADIUS)) /
+          vx /
+          FRAME_RATE;
+        const yColl = data.current.ball.coord.y + (vy / FRAME_RATE) * coeff;
+
+        if (
+          yColl > data.current.player2.coord.y - BALL_RADIUS &&
+          yColl <
+            data.current.player2.coord.y +
+              PAD_HEIGHT * data.current.game.player2Gifts.size +
+              BALL_RADIUS
+        ) {
+          return;
+        }
+      }
+    }
+    if (
+      data.current.ball.coord.x + data.current.ball.velocity.vx / FRAME_RATE >=
+        CANVAS_WIDTH - BALL_RADIUS - BORDER_WIDTH ||
+      data.current.ball.coord.x + data.current.ball.velocity.vx / FRAME_RATE <=
+        BALL_RADIUS + BORDER_WIDTH
+    ) {
+      return;
+    }
+
+    //no collision
+    data.current.ball.coord.x += vx / FRAME_RATE;
+    data.current.ball.coord.y += vy / FRAME_RATE;
+  }
+};
+
+export const animateOpponentPad = (
+  player: Player,
+  nextY: number,
+  playerSpeed: number,
+  playerSize: number
+): Player => {
   if (player.coord.y > nextY) {
-    player.coord.y -= PAD_SPEED * FRAME_RATE;
+    player.coord.y -= PAD_SPEED * playerSpeed * FRAME_RATE;
     if (player.coord.y < nextY) player.coord.y = nextY;
   } else if (player.coord.y < nextY) {
-    player.coord.y += PAD_SPEED * FRAME_RATE;
+    player.coord.y += PAD_SPEED * playerSpeed * FRAME_RATE;
     if (player.coord.y > nextY) player.coord.y = nextY;
   }
   if (player.coord.y < BORDER_HEIGHT) player.coord.y = BORDER_HEIGHT;
-  if (player.coord.y > CANVAS_HEIGHT - BORDER_HEIGHT - PAD_HEIGHT)
-    player.coord.y = CANVAS_HEIGHT - BORDER_HEIGHT - PAD_HEIGHT;
+  if (player.coord.y > CANVAS_HEIGHT - BORDER_HEIGHT - PAD_HEIGHT * playerSize)
+    player.coord.y = CANVAS_HEIGHT - BORDER_HEIGHT - PAD_HEIGHT * playerSize;
   return player;
 };
 
 export const setCurrentPlayerY = (
   playerY: React.MutableRefObject<number>,
+
   moves: React.MutableRefObject<
     {
       event: number;
@@ -422,7 +585,9 @@ export const setCurrentPlayerY = (
       y: number;
       done: boolean;
     }[]
-  >
+  >,
+  playerSpeed: number,
+  playerSize: number
 ) => {
   const len = moves.current.length;
   moves.current.forEach((val, i) => {
@@ -432,11 +597,11 @@ export const setCurrentPlayerY = (
           const nextMove = moves.current[i + 1];
           if (nextMove)
             playerY.current -= Math.floor(
-              PAD_SPEED * (nextMove.timestamp - val.timestamp)
+              PAD_SPEED * playerSpeed * (nextMove.timestamp - val.timestamp)
             );
         } else {
           playerY.current -= Math.floor(
-            PAD_SPEED * (new Date().getTime() - val.timestamp)
+            PAD_SPEED * playerSpeed * (new Date().getTime() - val.timestamp)
           );
         }
       } else if (val.move === padMove.DOWN) {
@@ -444,17 +609,21 @@ export const setCurrentPlayerY = (
           const nextMove = moves.current[i + 1];
           if (nextMove)
             playerY.current += Math.floor(
-              PAD_SPEED * (nextMove.timestamp - val.timestamp)
+              PAD_SPEED * playerSpeed * (nextMove.timestamp - val.timestamp)
             );
         } else {
           playerY.current += Math.floor(
-            PAD_SPEED * (new Date().getTime() - val.timestamp)
+            PAD_SPEED * playerSpeed * (new Date().getTime() - val.timestamp)
           );
         }
       }
 
-      if (playerY.current > CANVAS_HEIGHT - PAD_HEIGHT - BORDER_HEIGHT) {
-        playerY.current = CANVAS_HEIGHT - PAD_HEIGHT - BORDER_HEIGHT;
+      if (
+        playerY.current >
+        CANVAS_HEIGHT - PAD_HEIGHT * playerSize - BORDER_HEIGHT
+      ) {
+        playerY.current =
+          CANVAS_HEIGHT - PAD_HEIGHT * playerSize - BORDER_HEIGHT;
       } else if (playerY.current < BORDER_HEIGHT) {
         playerY.current = BORDER_HEIGHT;
       }
@@ -493,7 +662,9 @@ export const handleKeyDown = (
     arrowUp: boolean;
     arrowDown: boolean;
   }>,
-  playerMove: React.MutableRefObject<padMove>
+  playerMove: React.MutableRefObject<padMove>,
+  playerSpeed: number,
+  playerSize: number
 ) => {
   if (keycode === "Space" && gameMode === GameMode.Boost) {
     socket.emit("boostActivated", gameId);
@@ -510,7 +681,7 @@ export const handleKeyDown = (
           y: playerY.current,
           done: false,
         });
-        setCurrentPlayerY(playerY, moves);
+        setCurrentPlayerY(playerY, moves, playerSpeed, playerSize);
 
         playerMove.current = padMove.UP;
         socket.emit("movePadUp", { gameId: gameId, timestamp: n });
@@ -525,7 +696,7 @@ export const handleKeyDown = (
           y: playerY.current,
           done: false,
         });
-        setCurrentPlayerY(playerY, moves);
+        setCurrentPlayerY(playerY, moves, playerSpeed, playerSize);
         playerMove.current = padMove.STILL;
         socket.emit("stopPad", { gameId: gameId, timestamp: n });
       }
@@ -543,7 +714,7 @@ export const handleKeyDown = (
           y: playerY.current,
           done: false,
         });
-        setCurrentPlayerY(playerY, moves);
+        setCurrentPlayerY(playerY, moves, playerSpeed, playerSize);
         playerMove.current = padMove.DOWN;
         socket.emit("movePadDown", { gameId: gameId, timestamp: n });
       }
@@ -557,7 +728,7 @@ export const handleKeyDown = (
           y: playerY.current,
           done: false,
         });
-        setCurrentPlayerY(playerY, moves);
+        setCurrentPlayerY(playerY, moves, playerSpeed, playerSize);
         playerMove.current = padMove.STILL;
         socket.emit("stopPad", { gameId: gameId, timestamp: n });
       }
@@ -584,7 +755,9 @@ export const handleKeyUp = (
     arrowUp: boolean;
     arrowDown: boolean;
   }>,
-  playerMove: React.MutableRefObject<padMove>
+  playerMove: React.MutableRefObject<padMove>,
+  playerSpeed: number,
+  playerSize: number
 ) => {
   if (keycode === "ArrowUp") {
     keyboardStatus.current.arrowUp = false;
@@ -598,7 +771,7 @@ export const handleKeyUp = (
           y: playerY.current,
           done: false,
         });
-        setCurrentPlayerY(playerY, moves);
+        setCurrentPlayerY(playerY, moves, playerSpeed, playerSize);
         playerMove.current = padMove.STILL;
         socket.emit("stopPad", { gameId: gameId, timestamp: n });
       }
@@ -612,7 +785,7 @@ export const handleKeyUp = (
           y: playerY.current,
           done: false,
         });
-        setCurrentPlayerY(playerY, moves);
+        setCurrentPlayerY(playerY, moves, playerSpeed, playerSize);
         playerMove.current = padMove.DOWN;
         socket.emit("movePadDown", { gameId: gameId, timestamp: n });
       }
@@ -630,7 +803,7 @@ export const handleKeyUp = (
           y: playerY.current,
           done: false,
         });
-        setCurrentPlayerY(playerY, moves);
+        setCurrentPlayerY(playerY, moves, playerSpeed, playerSize);
         playerMove.current = padMove.STILL;
         socket.emit("stopPad", { gameId: gameId, timestamp: n });
       }
@@ -644,7 +817,7 @@ export const handleKeyUp = (
           y: playerY.current,
           done: false,
         });
-        setCurrentPlayerY(playerY, moves);
+        setCurrentPlayerY(playerY, moves, playerSpeed, playerSize);
         playerMove.current = padMove.UP;
         socket.emit("movePadUp", { gameId: gameId, timestamp: n });
       }
