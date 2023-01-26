@@ -995,7 +995,7 @@ const ChannelMode = ({
 
   return (
     <form
-      className="mt-4 flex h-full flex-col"
+      className="flex flex-col"
       onSubmit={handleSubmit((data) => {
         showPasswordField
           ? updatePassword.mutate({
@@ -1005,15 +1005,15 @@ const ChannelMode = ({
           : null;
       })}
     >
-      <div className="flex w-full ">
-        <div className="flex h-10 basis-1/2">Mode : {activeMode}</div>
+      <div className="flex w-full pt-2">
+        <div className="flex  basis-1/2 ">Mode : {activeMode}</div>
         {changesAuthorized && activeMode !== "Private" && (
-          <div className="flex w-full">
+          <div className="flex w-full flex-wrap">
             <button
               onClick={() => {
                 setShowPasswordField(!showPasswordField), reset();
               }}
-              className="mr-1 h-6 basis-1/2 border-2 border-slate-300 bg-slate-200 text-xs hover:cursor-pointer hover:bg-slate-300"
+              className="mr-1 basis-2/5 border-2 border-slate-300 bg-slate-200 text-xs hover:cursor-pointer hover:bg-slate-300"
             >
               {activeMode === "Password" && !showPasswordField
                 ? "Change password"
@@ -1035,7 +1035,7 @@ const ChannelMode = ({
                   activeMode === "Password" && showPasswordField
                     ? "opacity-20 hover:cursor-not-allowed"
                     : "hover:cursor-pointer hover:bg-slate-200"
-                } h-6 basis-1/2 border-2  border-slate-200 bg-slate-100 text-xs `}
+                }  basis-2/5 border-2  border-slate-200 bg-slate-100 text-xs `}
               >
                 Remove Password
               </button>
@@ -1044,12 +1044,12 @@ const ChannelMode = ({
         )}
       </div>
 
-      <div className="mb-2 flex h-full items-center justify-start">
+      <div className="mb-2 h-full ">
         {changesAuthorized && activeMode !== "Private" ? (
           <div
             className={`${
               showPasswordField ? "opacity-100" : "opacity-10"
-            } flex items-center justify-center`}
+            } flex flex-wrap items-center justify-start`}
           >
             <label className="mr-2 text-sm text-slate-400" htmlFor="Password">
               {activeMode === "Password" ? "New password: " : "Password: "}
@@ -1069,7 +1069,7 @@ const ChannelMode = ({
                   showPasswordField && errors.password
                     ? "ring-1 ring-red-500"
                     : "ring-0 "
-                }  h-7 w-48 self-center px-1 text-xs`}
+                }  h-7 w-40 self-center px-1 text-xs`}
               />
 
               {errors.password && showPasswordField && (
@@ -1088,6 +1088,7 @@ const ChannelMode = ({
                   : "hover:cursor-not-allowed"
               } ml-3 flex w-fit justify-center self-center border border-slate-300 bg-slate-200 px-1 text-center text-xs font-bold `}
               type="submit"
+              value="Submit"
             />
           </div>
         ) : null}
@@ -1114,10 +1115,10 @@ const ChannelHeader = ({
   setLeaveConfirmation: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   return (
-    <div className="relative flex w-full flex-col border-b-2 bg-slate-100 p-2">
+    <div className="relative flex w-full flex-col border-b-2 bg-slate-100 p-1">
       <div className="absolute top-1 right-1 flex">
         <LeaveIcon
-          className="mt-1 w-8 self-center text-lg text-slate-500 hover:cursor-pointer hover:text-slate-700"
+          className="mt-1 w-6 self-center text-lg text-black hover:cursor-pointer hover:text-slate-700"
           onClick={() => {
             setLeaveConfirmation(true);
           }}
@@ -1135,8 +1136,8 @@ const ChannelHeader = ({
           ) : null}
           <UsersIcon className="mt-2 h-20 w-20 self-center text-slate-700 " />
         </div>
-        <div className="ml-4 flex h-full w-full flex-col">
-          <div className="pt-2 text-left text-2xl font-bold">
+        <div className="ml-4 flex h-full w-full flex-col pt-2">
+          <div className="w-48 truncate pr-4 text-left text-xl font-bold sm:w-80">
             Channel : {channelName}
           </div>
           <ChannelMode
