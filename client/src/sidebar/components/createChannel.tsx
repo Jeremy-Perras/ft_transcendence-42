@@ -20,13 +20,13 @@ type formData = {
 export const CreateChannelBtn = ({
   setShowChannelCreation,
 }: {
-  setShowChannelCreation: (showChannelCreation: boolean) => void;
+  setShowChannelCreation: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   return (
     <MessagePlusIcon
       className="h-9 cursor-pointer transition-colors duration-200 hover:text-slate-500"
       onClick={() => {
-        setShowChannelCreation(true);
+        setShowChannelCreation((prev) => !prev);
       }}
     />
   );
@@ -124,10 +124,6 @@ export default function CreateChannel({
           e.preventDefault();
           setShowChannelCreation(false);
         }}
-        onInteractOutside={(e) => {
-          e.preventDefault();
-          setShowChannelCreation(false);
-        }}
       >
         <AnimatePresence>
           {showChannelCreation ? (
@@ -149,7 +145,7 @@ export default function CreateChannel({
                   val.y === 0 && setFocus("name");
                 }}
               >
-                <div className=" flex h-full w-full flex-col pb-8 opacity-100 transition-all">
+                <div className="flex h-full w-full flex-col pb-8 opacity-100 transition-all">
                   <form
                     className="flex h-full flex-col"
                     onSubmit={handleSubmit((data) => {
@@ -178,7 +174,7 @@ export default function CreateChannel({
                             <input
                               className={`${
                                 errors.name ? "ring-1 ring-red-500" : ""
-                              } " px-1 text-xl`}
+                              } px-1 text-xl`}
                               {...register("name", {
                                 required: true,
                                 maxLength: 100,

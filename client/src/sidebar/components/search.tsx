@@ -34,9 +34,11 @@ const SearchUsersAndChannelsQueryDocument = graphql(`
 export const SearchBar = ({
   searchInput,
   setSearchInput,
+  setShowChannelCreation,
 }: {
   searchInput: string;
   setSearchInput: (value: string) => void;
+  setShowChannelCreation: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   const input = useRef<HTMLInputElement>(null);
 
@@ -53,6 +55,7 @@ export const SearchBar = ({
         spellCheck={false}
         className="w-full grow py-1 px-2 text-lg focus:outline-none focus:ring-2 focus:ring-inset"
         placeholder="search"
+        onFocus={(e) => setShowChannelCreation(false)}
         onChange={(e) => setSearchInput(e.target.value)}
         onKeyDown={(e) => {
           if (e.code == "Escape" && searchInput.length > 0) {

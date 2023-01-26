@@ -4,7 +4,7 @@ import {
   useQuery,
   UseQueryOptions,
 } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { ReactComponent as UsersIcon } from "pixelarticons/svg/users.svg";
@@ -235,6 +235,10 @@ export const Home = () => {
   const [showChannelCreation, setShowChannelCreation] = useState(false);
   const [displayMutationError, setDisplayMutationError] = useState(false);
 
+  useEffect(() => {
+    if (searchInput.length) setShowChannelCreation(false);
+  }, [searchInput]);
+
   const initialData = useLoaderData() as Awaited<ReturnType<typeof homeLoader>>;
   const { data: chatsAndInvitations } = useQuery({ ...query(), initialData });
   if (typeof chatsAndInvitations === "undefined")
@@ -242,13 +246,14 @@ export const Home = () => {
 
   return (
     <div className="relative flex h-full flex-col">
-      <Header className={showChannelCreation ? "pointer-events-none" : ""}>
+      <Header>
         <>
           <HeaderLeftBtn>
             <CreateChannelBtn setShowChannelCreation={setShowChannelCreation} />
           </HeaderLeftBtn>
           <HeaderCenterContent>
             <SearchBar
+              setShowChannelCreation={setShowChannelCreation}
               searchInput={searchInput}
               setSearchInput={setSearchInput}
             />

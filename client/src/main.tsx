@@ -13,6 +13,7 @@ const App = () => {
   const isLoggedIn = !!useAuthStore((state) => state.userId);
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const socket = useSocketStore().socket;
+
   useEffect(() => {
     if (!init) {
       init = true;
@@ -71,7 +72,9 @@ const App = () => {
       </QueryClientProvider>
     </div>
   ) : (
-    <span>You are already connected on another device</span>
+    <span className="crt flex h-screen w-screen shrink grow select-none items-center justify-center bg-[#002a2a] text-center font-display text-gray-200 ">
+      You are already connected on another device
+    </span>
   );
 };
 

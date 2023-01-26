@@ -285,7 +285,7 @@ export default function Chat() {
           }`}
           onKeyDown={(e) => {
             if (data.blocking === false && data.blocked === false) {
-              if (e.code == "Enter" && !e.getModifierState("Shift")) {
+              if (e.key == "Enter" && !e.getModifierState("Shift")) {
                 sendDirectMessage.mutate({
                   message: content,
                   userId: userId,

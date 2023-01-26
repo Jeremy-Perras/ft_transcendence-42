@@ -199,7 +199,7 @@ const WaitingScreen = () => {
   return (
     <div className="flex h-full w-full flex-col items-center justify-center">
       <div
-        className="relative mb-4 inline-block animate-pulse  select-none text-4xl"
+        className="relative mb-4 inline-block animate-pulse select-none  text-center text-4xl"
         style={{ textShadow: "none" }}
       >
         {`Waiting For ${invitationName ?? "An Opponent"}`}

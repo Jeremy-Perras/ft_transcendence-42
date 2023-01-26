@@ -338,7 +338,7 @@ const MessageInput = ({
         onKeyDown={(e) => {
           if (!cannotSendMessage) {
             if (content != "") {
-              if (e.code == "Enter" && !e.getModifierState("Shift")) {
+              if (e.key == "Enter" && !e.getModifierState("Shift")) {
                 sendChannelMessage.mutate({
                   message: content,
                   channelId: channelId,
