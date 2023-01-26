@@ -122,10 +122,7 @@ export class ChannelService {
       const channelMembers = await channelMembersLoader.load(channelId);
       if (
         channel.ownerId === currentUserId ||
-        channelMembers.some(
-          (member) =>
-            member.userId === currentUserId && member.role === ChannelRole.ADMIN
-        )
+        channelMembers.some((member) => member.userId === currentUserId)
       ) {
         const membersIds = channelMembers.reduce((acc, curr) => {
           if (curr.role === ChannelRole.MEMBER) acc.push(curr.userId);

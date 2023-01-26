@@ -247,6 +247,7 @@ export default function CreateChannel({
                     <input
                       className="flex w-36 justify-center self-center border-2 border-slate-300 bg-slate-200 px-2 py-4 text-center text-2xl font-bold hover:cursor-pointer hover:bg-slate-300"
                       type="submit"
+                      value="Create"
                     />
                   </form>
                 </div>

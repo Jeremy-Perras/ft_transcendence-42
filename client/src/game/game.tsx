@@ -378,7 +378,7 @@ const Score = ({
 
   return (
     <div className="flex h-full w-full flex-col items-center justify-evenly">
-      <div className="flex items-center justify-center ">
+      <div className="flex items-center justify-center">
         <div className="flex w-48 grow-0 flex-col items-center justify-center">
           <img
             className="border border-black object-cover"
@@ -396,7 +396,7 @@ const Score = ({
             src={`http://localhost:5173/upload/avatar/${player2Id}`}
             alt="Player 2 avatar"
           />{" "}
-          <div className="my-2   grow-0 truncate text-center font-content">
+          <div className="my-2 grow-0 truncate text-center font-content">
             {player2Name}
           </div>
         </div>
@@ -466,7 +466,7 @@ const Intro = ({
         <div className="relative flex w-full">
           <div className="mx-4">
             <img
-              className=" h-60 w-60 border border-black object-cover  "
+              className="h-60 w-60 border border-black object-cover  "
               src={`http://localhost:5173/upload/avatar/${data.game.players.player1.id}`}
               alt="Player 1 avatar"
             />
@@ -517,6 +517,14 @@ export const Game = () => {
   const currentTime = new Date().getTime();
   const socket = useSocketStore().socket;
 
+  const [gameState, setGameState] = useState<gameScreenState>(
+    data.game.finishedAt
+      ? gameScreenState.SCORE
+      : currentTime > startTime + INTRO_DURATION * 1000
+      ? gameScreenState.PLAYING
+      : gameScreenState.INTRO
+  );
+
   useEffect(() => {
     socket.on(`endGame${gameId}`, () =>
       queryClient.invalidateQueries(["Game", gameId])
@@ -526,15 +534,7 @@ export const Game = () => {
         queryClient.invalidateQueries(["Game", gameId])
       );
     };
-  }, []);
-
-  const [gameState, setGameState] = useState<gameScreenState>(
-    data.game.finishedAt
-      ? gameScreenState.SCORE
-      : currentTime > startTime + INTRO_DURATION * 1000
-      ? gameScreenState.PLAYING
-      : gameScreenState.INTRO
-  );
+  }, [gameState]);
 
   switch (gameState) {
     case gameScreenState.INTRO:

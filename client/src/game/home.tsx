@@ -144,7 +144,7 @@ const Mode = ({
       <div className="relative flex w-2/3 justify-center">
         {isSelected && !isSmall && !isNarrow && (
           <motion.img
-            className="absolute -top-16 left-1/2"
+            className="pointer-events-none absolute -top-16 left-1/2"
             src={"game_modes/arrow.svg"}
             initial={{ x: "-50%" }}
             animate={{ y: [0, 20, 0] }}
@@ -154,7 +154,9 @@ const Mode = ({
         {!isSmall
           ? [...Array(nbOfFrames).keys()].map((e) => (
               <motion.img
-                className={`${animationIndex === e ? "" : "hidden"}`}
+                className={`${
+                  animationIndex === e ? "" : "hidden"
+                } pointer-events-none`}
                 src={`game_modes/${urlBase}/frame${e + 1}.svg`}
                 animate={animate(isSelected)}
                 key={e}
@@ -486,7 +488,7 @@ export const Home = () => {
     <>
       <img
         src={LogoImage}
-        className={`mt-5 w-4/5 sm:max-w-lg lg:max-w-xl 2xl:max-w-2xl ${
+        className={`pointer-events-none mt-5 w-4/5 select-none sm:max-w-lg lg:max-w-xl 2xl:max-w-2xl ${
           isSmall ? "mx-auto" : "absolute left-1/2 -translate-x-1/2"
         }`}
         alt="Pong game logo"
@@ -507,7 +509,7 @@ export const Home = () => {
           className="crt turn absolute left-2 top-1 w-8 cursor-pointer text-red-600 sm:w-9"
         />
       ) : null}
-      <div className="crt turn flex h-full items-center justify-center">
+      <div className="crt turn flex h-full select-none items-center justify-center">
         {isLoggedIn ? (
           <RenderState
             state={state}

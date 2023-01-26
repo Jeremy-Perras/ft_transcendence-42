@@ -22,7 +22,7 @@ import { ReactComponent as UnfriendIcon } from "pixelarticons/svg/user-x.svg";
 import { ReactComponent as AcceptIcon } from "pixelarticons/svg/check.svg";
 import { ReactComponent as RefuseIcon } from "pixelarticons/svg/close.svg";
 import { ReactComponent as EditIcon } from "pixelarticons/svg/edit.svg";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { ReactComponent as LogOutIcon } from "pixelarticons/svg/logout.svg";
 import {
   Header,
@@ -160,6 +160,18 @@ const UpdateUserNameMutationDocument = graphql(`
   }
 `);
 
+const achievementNames = new Map<string, string>([
+  ["first_win", "Rookie - First victory"],
+  ["ten_win", "Not too bad - 10 victories"],
+  ["twentyfive_win", "Winner - 25 victories"],
+  ["one_hundred_win", "Legend - 100 victories"],
+  ["five_lose_in_a_row", "Looser - Five defeats in a row"],
+  ["five_win_in_a_row", "Steady - Five wins in a row"],
+  ["five_players", "5 different opponents"],
+  ["multi_mode", "Try each mode"],
+  ["unachieved", "???"],
+]);
+
 const Achievement = ({
   icon,
   name,
@@ -170,6 +182,7 @@ const Achievement = ({
   achieved: boolean;
 }) => {
   const [showName, setShowName] = useState(false);
+
   return (
     <div>
       <img
@@ -184,11 +197,10 @@ const Achievement = ({
       <div
         className={`${
           showName ? "opacity-100" : "opacity-0"
-        } absolute left-0 -bottom-4 w-full text-center text-xs ${
-          achieved ? "text-slate-600" : "text-slate-200"
-        }`}
+        } absolute left-0 -bottom-4 w-full text-center text-xs text-slate-600     
+        `}
       >
-        {name.toLowerCase()}
+        {achievementNames.get(name.toLowerCase())}
       </div>
     </div>
   );
@@ -227,6 +239,7 @@ const UserProfileHeader = ({
     );
   }
 
+  const [_, invalidateAvatarCache] = useReducer((x) => x + 1, 0);
   const changeHandler = (event: File) => {
     const formData = new FormData();
     formData.append("file", event);
@@ -235,13 +248,26 @@ const UserProfileHeader = ({
       body: formData,
     }).then(() => {
       queryClient.invalidateQueries(["UserProfile", data.user.id]);
+      invalidateAvatarCache();
     });
   };
+
+  useEffect(() => {
+    const url = `/upload/avatar/${data.user.id}`;
+    fetch(url, {
+      cache: "reload",
+      mode: "no-cors",
+    }).then(() => {
+      document.body
+        .querySelectorAll<HTMLImageElement>(`img[src='${url}']`)
+        .forEach((img) => (img.src = url));
+    });
+  }, [data.user.id, _]);
 
   const inputFile = useRef<HTMLInputElement>(null);
 
   return (
-    <div className="relative flex flex-col">
+    <div className="relative flex flex-col border-b-2 border-slate-300  bg-slate-100 pb-4 shadow-md">
       <div className="flex w-full items-center">
         <div className="relative my-2 ml-3 mr-2 flex shrink-0">
           <img
@@ -306,7 +332,7 @@ const GameHistory = ({
 
   return (
     <div className="flex w-full grow flex-col overflow-auto p-1 text-sm">
-      <h2 className="mt-8 pb-2 text-center text-xl font-bold">MATCH HISTORY</h2>
+      <h2 className="mt-3 pb-2 text-center text-xl font-bold">MATCH HISTORY</h2>
       {data.user.games.length === 0 ? (
         <div className="flex flex-col">
           <div className="mt-20 text-center text-2xl text-slate-300">
@@ -334,31 +360,37 @@ const GameHistory = ({
         return (
           <div
             key={index}
-            className="mt-1 flex h-12 w-full items-center border border-slate-700 bg-slate-200  pl-1"
+            className="mt-1 flex h-10 w-full items-center border border-black bg-slate-100"
           >
-            <div className="relative flex w-full">
-              <img
-                onClick={() => navigate(`/profile/${game.players.player1.id}`)}
-                className=" h-10 w-10 border border-black object-cover hover:cursor-pointer "
-                src={`/upload/avatar/${game.players.player1.id}`}
-                alt="Player 1 avatar"
-              />
-              <IsOnline userStatus={game.players.player1.status} />
-              <div className="ml-2 w-32 self-center truncate text-left ">
-                {game.players.player1.name}
+            <div className="flex h-full w-full">
+              <div className="relative flex h-full shrink-0 justify-start border-r border-black">
+                <img
+                  onClick={() =>
+                    navigate(`/profile/${game.players.player1.id}`)
+                  }
+                  className="h-full object-cover hover:cursor-pointer"
+                  src={`/upload/avatar/${game.players.player1.id}`}
+                  alt="Player 1 avatar"
+                />
+                <IsOnline userStatus={game.players.player1.status} />
               </div>
-              <div className="grow select-none self-center text-center text-lg font-bold ">
-                VS
+              <div className="flex h-full w-full">
+                <div className="ml-2 w-32 self-center truncate text-left">
+                  {game.players.player1.name}
+                </div>
+                <div className="grow select-none self-center text-center text-lg font-bold ">
+                  VS
+                </div>
+                <div className="ml-2 w-32 self-center truncate text-left">
+                  {game.players.player2?.name}
+                </div>
               </div>
-              <div className="ml-2 w-32 self-center truncate text-left ">
-                {game.players.player2?.name}
-              </div>
-              <div className="relative">
+              <div className="relative flex h-full shrink-0 justify-end border-l border-black">
                 <img
                   onClick={() =>
                     navigate(`/profile/${game.players.player2.id}`)
                   }
-                  className="h-10 w-10 justify-end border border-black object-cover hover:cursor-pointer"
+                  className="relative h-full object-cover hover:cursor-pointer"
                   src={`/upload/avatar/${game.players.player2.id}`}
                   alt="Player 2 avatar"
                 />
@@ -373,7 +405,7 @@ const GameHistory = ({
                     : equal
                     ? "bg-slate-200"
                     : "bg-red-400"
-                } mx-1 flex h-full basis-1/6 flex-col justify-center border-x border-black text-center font-bold`}
+                } flex h-full basis-1/6 flex-col justify-center border-x border-black text-center font-bold`}
               >
                 {victory ? (
                   <div>VICTORY</div>
@@ -387,7 +419,7 @@ const GameHistory = ({
                 </span>
               </div>
             ) : (
-              <div className="mx-1 flex h-full basis-1/6 items-center justify-center border-x border-black bg-slate-200 ">
+              <div className="flex h-full basis-1/6 items-center justify-center border-x border-black bg-slate-200 ">
                 <div className={`animate-pulse text-center font-bold`}>
                   PLAYING
                 </div>
@@ -562,7 +594,7 @@ const Disconnect = () => {
         useAuthStore.getState().logout();
         socket.disconnect();
       }}
-      className="flex h-24 w-full select-none items-center justify-center border-2 bg-slate-100 p-4 text-xl font-bold text-slate-600 transition-all hover:cursor-pointer hover:bg-slate-200  hover:text-slate-500 "
+      className="flex h-24 w-full select-none items-center justify-center border-2 border-slate-200 bg-slate-100 p-4 text-xl font-bold text-slate-600 transition-all hover:cursor-pointer  hover:bg-slate-200 hover:text-slate-600"
     >
       <LogOutIcon className="m-1 h-12 rotate-180 cursor-pointer" />
       <span className="text-2xl">Logout</span>
