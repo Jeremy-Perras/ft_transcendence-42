@@ -1719,6 +1719,10 @@ export class GameService {
         data: { achievement: { set: "MULTI_MODE" } },
       });
     }
+    await this.prismaService.user.update({
+      where: { id: game.player1.id },
+      data: { rank: { increment: 1 } },
+    });
   };
 
   forfeitGame = async (userId: number) => {
