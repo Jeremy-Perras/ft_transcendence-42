@@ -10,17 +10,25 @@ import {
 } from "react-router-dom";
 import { graphql } from "../gql";
 import queryClient from "../query";
-import { useAuthStore, useSocketStore, useStateStore } from "../stores";
+import {
+  useAuthStore,
+  useGameStore,
+  useInvitationStore,
+  useSocketStore,
+  useStateStore,
+} from "../stores";
 import { Game, gameLoader } from "./game";
 import { Home } from "./home";
 
 const GetStateQueryDocument = graphql(`
-  query UserState($userId: Int) {
-    user(id: $userId) {
+  query UserState {
+    user {
       state {
         ... on WaitingForInviteeState {
+          __typename
           invitee {
             id
+            name
           }
           gameMode
         }
@@ -90,17 +98,41 @@ export const GameRouter = () => {
   const socket = useSocketStore().socket;
   const userId = useAuthStore().userId;
   const setState = useStateStore().setState;
+  const { createInvite } = useInvitationStore();
+  const { setGameId } = useGameStore();
 
   const { data: getState } = useQuery({
     queryKey: ["Users", userId],
-    queryFn: async () =>
-      request("/graphql", GetStateQueryDocument, {
-        userId: userId,
-      }),
+    queryFn: async () => request("/graphql", GetStateQueryDocument, {}),
   });
 
   useEffect(() => {
-    setState(getState?.user.state?.__typename);
+    if (getState && getState.user.state) {
+      switch (getState.user.state.__typename) {
+        case "MatchmakingState": {
+          setState("MatchmakingWait");
+          break;
+        }
+        case "PlayingState": {
+          setState("Playing");
+          setGameId(getState.user.state.game.id);
+          break;
+        }
+        case "WaitingForInviteeState": {
+          setState("InvitationWait");
+          createInvite(
+            getState.user.state.invitee.name,
+            getState.user.state.invitee.id
+          );
+          break;
+        }
+        default: {
+          setState("Idle");
+        }
+      }
+    } else {
+      setState("Idle");
+    }
   }, [getState]);
 
   useEffect(() => {

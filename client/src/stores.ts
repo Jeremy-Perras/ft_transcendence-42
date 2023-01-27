@@ -21,29 +21,6 @@ const useSocketStore = create<SocketStore>(() => ({
   socket: io({ transports: ["websocket"] }),
 }));
 
-type InvitationStore = {
-  invitationName?: string;
-  invitationId?: number;
-  invitationState?: "selecting" | "waiting";
-  createInvite: (name: string, id: number) => void;
-  sendInvite: () => void;
-  clearInvite: () => void;
-};
-const useInvitationStore = create<InvitationStore>((set) => ({
-  invitationName: undefined,
-  invitationId: undefined,
-  invitationState: undefined,
-  createInvite: (name, id) =>
-    set({
-      invitationName: name,
-      invitationId: id,
-      invitationState: "selecting",
-    }),
-  sendInvite: () => set({ invitationState: "waiting" }),
-  clearInvite: () =>
-    set({ invitationName: undefined, invitationState: undefined }),
-}));
-
 type AuthStore = {
   userId: number | undefined;
   login: (id: number) => void;
@@ -57,21 +34,51 @@ const useAuthStore = create<AuthStore>((set) => ({
   logout: () => {
     fetch("/auth/logout").then(() => {
       set({ userId: undefined });
+      window.location.href = "/";
     });
   },
 }));
 
+type InvitationStore = {
+  invitationName?: string;
+  invitationId?: number;
+  createInvite: (name: string, id: number) => void;
+  clearInvite: () => void;
+};
+const useInvitationStore = create<InvitationStore>((set) => ({
+  invitationName: undefined,
+  invitationId: undefined,
+  createInvite: (name, id) =>
+    set({
+      invitationName: name,
+      invitationId: id,
+    }),
+  clearInvite: () =>
+    set({ invitationName: undefined, invitationId: undefined }),
+}));
+
+type GameStore = {
+  gameId?: number;
+  setGameId: (gameId: number | undefined) => void;
+};
+const useGameStore = create<GameStore>((set) => ({
+  gameId: undefined,
+  setGameId: (gameId) => set({ gameId }),
+}));
+
 type State =
-  | "MatchmakingState"
-  | "PlayingState"
-  | "WaitingForInviteeState"
-  | undefined;
+  | "MatchmakingSelect"
+  | "MatchmakingWait"
+  | "InvitationSelect"
+  | "InvitationWait"
+  | "Idle"
+  | "Playing";
 type StateStore = {
   state: State;
   setState: (state: State) => void;
 };
 const useStateStore = create<StateStore>((set) => ({
-  state: undefined,
+  state: "Idle",
   setState: (state: State) => {
     set({ state });
   },
@@ -81,6 +88,7 @@ export {
   useSidebarStore,
   useAuthStore,
   useSocketStore,
-  useInvitationStore,
   useStateStore,
+  useInvitationStore,
+  useGameStore,
 };

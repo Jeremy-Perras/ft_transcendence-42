@@ -1,4 +1,10 @@
-import { useAuthStore, useInvitationStore, useSocketStore } from "../stores";
+import {
+  useAuthStore,
+  useGameStore,
+  useInvitationStore,
+  useSocketStore,
+  useStateStore,
+} from "../stores";
 import { useMediaQuery } from "@react-hookz/web";
 import { useEffect, useState } from "react";
 import { ReactComponent as CloseBox } from "pixelarticons/svg/close-box.svg";
@@ -13,41 +19,18 @@ import { GameInvitations } from "./components/gameInvitation";
 import { GameMode } from "../gql/graphql";
 import { ReactComponent as RefuseIcon } from "pixelarticons/svg/close.svg";
 import { graphql } from "../gql";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import request from "graphql-request";
 import queryClient from "../query";
 import { useNavigate } from "react-router-dom";
-type State = "idle" | "selecting" | "waiting";
 
-const GetGameIdQueryDocument = graphql(`
-  query GameId($userId: Int) {
-    user(id: $userId) {
-      state {
-        ... on WaitingForInviteeState {
-          invitee {
-            id
-          }
-          gameMode
-        }
-        ... on MatchmakingState {
-          __typename
-          gameMode
-        }
-        ... on PlayingState {
-          __typename
-          game {
-            id
-          }
-        }
-      }
-    }
-  }
-`);
-
-const Idle = ({ play }: { play: () => void }) => {
+const Idle = () => {
+  const { setState } = useStateStore();
   return (
     <span
-      onClick={play}
+      onClick={() => {
+        setState("MatchmakingSelect");
+      }}
       className="animate-pulse cursor-pointer select-none text-center text-4xl sm:text-5xl md:text-6xl lg:text-7xl"
     >
       Click To Play
@@ -178,7 +161,6 @@ const Mode = ({
 let waitingScreenIntervalId = -1;
 const WaitingScreen = () => {
   const [width, setWidth] = useState(0);
-
   const { invitationName } = useInvitationStore();
 
   useEffect(() => {
@@ -210,20 +192,18 @@ const WaitingScreen = () => {
 };
 
 const RenderState = ({
-  state,
-  setState,
   isNarrow,
   setMessage,
   setDisplayError,
 }: {
-  state: State;
-  setState: React.Dispatch<React.SetStateAction<State>>;
   isNarrow: boolean | undefined;
   setMessage: React.Dispatch<React.SetStateAction<string | undefined>>;
   setDisplayError: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
-  const { invitationState, invitationId, sendInvite } = useInvitationStore();
   const userId = useAuthStore().userId;
+  const { state } = useStateStore();
+  const { invitationId } = useInvitationStore();
+
   const gameInvitation = useMutation(
     async ({
       gameMode,
@@ -254,6 +234,7 @@ const RenderState = ({
       },
     }
   );
+
   const joinMatchMacking = useMutation(
     async ({ gameMode }: { gameMode: GameMode }) =>
       request("/graphql", JoinMatchMackingMutationDocument, {
@@ -278,78 +259,72 @@ const RenderState = ({
     }
   );
 
-  const play = () => {
-    setState("selecting");
-  };
   const selectMode = (gameMode: GameMode) => {
-    if (invitationState) {
+    if (state === "InvitationSelect") {
       if (invitationId) {
         gameInvitation.mutate({ gameMode: gameMode, inviteeId: invitationId });
-        sendInvite();
       }
-    } else {
+    } else if (state === "MatchmakingSelect") {
       joinMatchMacking.mutate({
         gameMode: gameMode,
       });
     }
-    setState("waiting");
   };
 
-  switch (state) {
-    case "idle":
-      return <Idle play={play} />;
-    case "selecting":
-      return (
-        <ul
-          className={`${
-            isNarrow ? "w-1/3" : "w-full"
-          } flex h-1/3 flex-col justify-center  sm:flex-row sm:items-center`}
-        >
-          <Mode
-            selectMode={() => selectMode(GameMode.Classic)}
-            name={"classic"}
-            textEffects={"text-white"}
-            animate={() => false}
-            urlBase={"bouncing_ball"}
-            nbOfFrames={21}
-          />
-          <Mode
-            selectMode={() => selectMode(GameMode.Boost)}
-            name={"fireball"}
-            textEffects={"text-red-500"}
-            animate={() => false}
-            urlBase={"fireball"}
-            nbOfFrames={21}
-          />
-          <Mode
-            selectMode={() => selectMode(GameMode.Gift)}
-            name={"bonus"}
-            textEffects={"text-amber-500"}
-            animate={(isEnter: boolean) => {
-              return isEnter
-                ? {
-                    rotate: [0, -5, 5, 0],
-                    transition: {
-                      duration: 1,
-                      delay: 0.1,
-                      repeat: Infinity,
-                    },
-                  }
-                : {
-                    scale: [0.8, 1, 0.8],
-                    transition: {
-                      duration: 2,
-                      repeat: Infinity,
-                    },
-                  };
-            }}
-            urlBase={"bonus"}
-            nbOfFrames={1}
-          />
-        </ul>
-      );
-    case "waiting":
-      return <WaitingScreen />;
+  if (state === "InvitationSelect" || state === "MatchmakingSelect") {
+    return (
+      <ul
+        className={`${
+          isNarrow ? "w-1/3" : "w-full"
+        } flex h-1/3 flex-col justify-center  sm:flex-row sm:items-center`}
+      >
+        <Mode
+          selectMode={() => selectMode(GameMode.Classic)}
+          name={"classic"}
+          textEffects={"text-white"}
+          animate={() => false}
+          urlBase={"bouncing_ball"}
+          nbOfFrames={21}
+        />
+        <Mode
+          selectMode={() => selectMode(GameMode.Boost)}
+          name={"fireball"}
+          textEffects={"text-red-500"}
+          animate={() => false}
+          urlBase={"fireball"}
+          nbOfFrames={21}
+        />
+        <Mode
+          selectMode={() => selectMode(GameMode.Gift)}
+          name={"bonus"}
+          textEffects={"text-amber-500"}
+          animate={(isEnter: boolean) => {
+            return isEnter
+              ? {
+                  rotate: [0, -5, 5, 0],
+                  transition: {
+                    duration: 1,
+                    delay: 0.1,
+                    repeat: Infinity,
+                  },
+                }
+              : {
+                  scale: [0.8, 1, 0.8],
+                  transition: {
+                    duration: 2,
+                    repeat: Infinity,
+                  },
+                };
+          }}
+          urlBase={"bonus"}
+          nbOfFrames={1}
+        />
+      </ul>
+    );
+  } else if (state === "InvitationWait" || state === "MatchmakingWait") {
+    return <WaitingScreen />;
+  } else {
+    return <Idle />;
   }
 };
 
@@ -390,9 +365,7 @@ const Error = ({
 };
 
 export const Home = () => {
-  const [state, setState] = useState<State>("idle");
   const isLoggedIn = !!useAuthStore((state) => state.userId);
-  const { invitationState, clearInvite } = useInvitationStore();
   const userId = useAuthStore().userId;
   const isSmall = useMediaQuery("(max-height : 1000px)");
   const isNarrow = useMediaQuery("(max-width : 640px)");
@@ -400,24 +373,15 @@ export const Home = () => {
   const socket = useSocketStore().socket;
   const [message, setMessage] = useState<string>();
   const navigate = useNavigate();
-
-  const { data: getGameId } = useQuery({
-    queryKey: ["UsersGameId", userId],
-    queryFn: async () =>
-      request("/graphql", GetGameIdQueryDocument, {
-        userId: userId,
-      }),
-  });
+  const { state, setState } = useStateStore();
+  const { gameId } = useGameStore();
+  const { clearInvite } = useInvitationStore();
 
   useEffect(() => {
-    getGameId?.user.state?.__typename === "PlayingState"
-      ? navigate(`game/${getGameId?.user.state.game.id}`)
-      : null;
-  }, [getGameId]);
-
-  useEffect(() => {
-    queryClient.invalidateQueries(["UserGameId", userId]);
-  }, [userId]);
+    if (gameId && state === "Playing") {
+      navigate(`game/${gameId}`);
+    }
+  }, [gameId, state]);
 
   const cancelInvitation = useMutation(
     async () => request("/graphql", CancelInvitationMutationDocument),
@@ -461,36 +425,11 @@ export const Home = () => {
     }
   );
 
-  socket.on("invitationRejected", () => {
-    setState("idle");
-  });
-
   socket.on("error", (message) => {
     const info = message;
     setMessage(info);
     setDisplayError(true);
   });
-
-  useEffect(() => {
-    const cb = () => {
-      clearInvite();
-      setState("idle");
-    };
-    switch (invitationState) {
-      case "selecting":
-        setState("selecting");
-        break;
-      case "waiting":
-        setState("waiting");
-        break;
-    }
-
-    socket.on("cancelInvitation", cb);
-
-    return () => {
-      socket.off("cancelInvitation", cb);
-    };
-  }, [invitationState]);
 
   return (
     <>
@@ -501,18 +440,17 @@ export const Home = () => {
         }`}
         alt="Pong game logo"
       />
-      {state !== "idle" ? (
+      {state !== "Idle" ? (
         <CloseBox
           onClick={() => {
-            if (invitationState) {
-              if (invitationState === "waiting") {
-                cancelInvitation.mutate();
-              }
+            if (state === "InvitationWait") {
+              cancelInvitation.mutate();
               clearInvite();
-            } else if (state === "waiting") {
+            } else if (state === "MatchmakingWait") {
               leaveMatchMacking.mutate();
+            } else {
+              setState("Idle");
             }
-            setState("idle");
           }}
           className="crt turn absolute left-2 top-1 w-8 cursor-pointer text-red-600 sm:w-9"
         />
@@ -520,8 +458,6 @@ export const Home = () => {
       <div className="crt turn flex h-full select-none items-center justify-center">
         {isLoggedIn ? (
           <RenderState
-            state={state}
-            setState={setState}
             isNarrow={isNarrow}
             setMessage={setMessage}
             setDisplayError={setDisplayError}
