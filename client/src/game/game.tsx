@@ -128,7 +128,7 @@ const GameCanvas = ({
   if (!canvas) return <>Error</>;
 
   const requestRef = useRef<number>();
-  const watchingLive = useRef<boolean>(false);
+  const [watchingLive, setWatchingLive] = useState(false);
   const playerSpeed = useRef<number>(1);
   const playerSize = useRef<number>(1);
   const playerBonus = useRef<{ name: string; timestamp: number }[]>([]);
@@ -249,7 +249,6 @@ const GameCanvas = ({
         window.addEventListener("keydown", keyDownCb);
         window.addEventListener("keyup", keyUpCb);
       } else {
-        watchingLive.current = true;
         socket.emit("joinRoomAsViewer", initData.game.id);
       }
       socket.emit("gameReady", initData.game.id);
@@ -261,6 +260,17 @@ const GameCanvas = ({
       window.removeEventListener("keyup", keyUpCb);
     };
   }, [initData, currentUserId]);
+
+  useEffect(() => {
+    if (currentUserId) {
+      setWatchingLive(
+        currentUserId === initData.game.players.player1.id ||
+          currentUserId === initData.game.players.player2.id
+          ? false
+          : true
+      );
+    }
+  }, [currentUserId]);
 
   useEffect(() => {
     const obs = new ResizeObserver(() =>
@@ -438,7 +448,7 @@ const GameCanvas = ({
 
   return (
     <>
-      {watchingLive.current && (
+      {watchingLive && (
         <div className="absolute top-1 left-0 right-0 mx-auto animate-pulse text-center">
           LIVE STREAM
         </div>
