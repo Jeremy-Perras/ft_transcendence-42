@@ -337,6 +337,8 @@ export class UserService {
         mode: true,
         player1Score: true,
         player2Score: true,
+        player1Id: true,
+        player2Id: true,
       },
       where: {
         OR: [
@@ -359,6 +361,8 @@ export class UserService {
         player1Score: game.player1Score,
         player2Score: game.player2Score,
       },
+      player1Id: game.player1Id,
+      player2Id: game.player2Id,
     }));
   }
 

@@ -443,65 +443,73 @@ const GameCanvas = ({
   );
 };
 
-const Score = ({
+const MatchHeader = ({
   player1Id,
   player1Name,
-  player1Score,
   player1Rank,
   player2Id,
   player2Name,
-  player2Score,
   player2Rank,
 }: {
   player1Id: number;
   player1Name: string;
-  player1Score: number;
   player1Rank: number;
   player2Id: number;
   player2Name: string;
-  player2Score: number;
   player2Rank: number;
 }) => {
+  return (
+    <div className=" mt-10 flex w-full items-center justify-center">
+      <div className="relative mx-2 flex w-40 flex-col items-center justify-center sm:w-60 ">
+        <img
+          className="h-40 w-40 justify-end border border-black object-cover sm:h-60 sm:w-60"
+          src={`http://localhost:5173/upload/avatar/${player1Id}`}
+          alt="Player 2 avatar"
+        />
+        <img
+          className="absolute top-2 -right-6 h-12 w-12 sm:-right-10 sm:h-20 sm:w-20"
+          src={RankIcon(player1Rank)}
+        />
+        <div className="mt-2 truncate text-center text-xs sm:text-base ">
+          {player1Name}
+        </div>
+      </div>
+      <div className="mx-4 select-none text-center">VS</div>
+      <div className="relative mx-2 flex w-40 flex-col items-center justify-center sm:w-60">
+        <img
+          className="h-40 w-40 justify-end border border-black object-cover sm:h-60 sm:w-60"
+          src={`http://localhost:5173/upload/avatar/${player2Id}`}
+          alt="Player 2 avatar"
+        />
+        <img
+          className="absolute top-2 -right-6 h-12 w-12 sm:-right-10 sm:h-20 sm:w-20"
+          src={RankIcon(player2Rank)}
+        />
+        <div className="mt-2 truncate text-center text-xs sm:text-base ">
+          {player2Name}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const Score = ({ data }: { data: GameQuery }) => {
   const navigate = useNavigate();
 
   return (
-    <div className="cret flex h-full w-full flex-col items-center justify-evenly">
-      <div className="flex items-center justify-center">
-        <div className="relative flex w-48 grow-0 flex-col items-center justify-center">
-          <img
-            className="border border-black object-cover"
-            src={`http://localhost:5173/upload/avatar/${player1Id}`}
-            alt="Player 1 avatar"
-          />
-          <img
-            className="absolute top-2 -right-6 h-12 w-12 sm:-right-10 sm:h-20 sm:w-20"
-            src={RankIcon(player1Rank)}
-          />
-          <div className="my-2 grow-0 truncate text-center font-content">
-            {player1Name}
-          </div>
-        </div>
-        <div className="mx-4 select-none text-center">VS</div>
-        <div className="relative flex w-48 grow-0 flex-col items-center ">
-          <img
-            className="border border-black object-cover "
-            src={`http://localhost:5173/upload/avatar/${player2Id}`}
-            alt="Player 2 avatar"
-          />
-          <img
-            className="absolute top-2 -right-6 h-12 w-12 sm:-right-10 sm:h-20 sm:w-20"
-            src={RankIcon(player2Rank)}
-          />
-          <div className="my-2 grow-0 truncate text-center font-content">
-            {player2Name}
-          </div>
-        </div>
-      </div>
-
+    <div className="crt flex h-full w-full flex-col items-center justify-evenly">
+      <MatchHeader
+        player1Id={data.game.players.player1.id}
+        player2Id={data.game.players.player2.id}
+        player1Name={data.game.players.player1.name}
+        player1Rank={data.game.players.player1.rank}
+        player2Name={data.game.players.player2.name}
+        player2Rank={data.game.players.player2.rank}
+      />
       <div className="text-4xl">
-        {player1Score === 0 && player2Score === 0
-          ? `- - -`
-          : `${player1Score} - ${player2Score}`}
+        {data.game.score.player1Score && data.game.score.player2Score
+          ? `${data.game.score.player1Score} - ${data.game.score.player2Score}`
+          : `- - -`}
       </div>
       <button
         className="my-6 text-3xl text-white hover:text-slate-300"
@@ -558,39 +566,14 @@ const Intro = ({
 
   return (
     <div className="crt flex flex-col items-center justify-center">
-      <div className=" mt-10 flex w-full items-center justify-center">
-        <div className="relative mx-2 flex w-40 flex-col items-center justify-center sm:w-60 ">
-          <img
-            className=" h-40 w-40 justify-end border border-black object-cover sm:h-60 sm:w-60 "
-            src={`http://localhost:5173/upload/avatar/${data.game.players.player1.id}`}
-            alt="Player 2 avatar"
-          />
-          <img
-            className="absolute top-2 -right-6 h-12 w-12 sm:-right-10 sm:h-20 sm:w-20"
-            src={RankIcon(data.game.players.player1.rank)}
-          />
-          <div className="mt-2 truncate text-center text-xs sm:text-base ">
-            {data.game.players.player1?.name}
-          </div>
-        </div>
-        <div className="grow animate-pulse select-none self-center text-center text-3xl font-bold ">
-          VS
-        </div>
-        <div className="relative mx-2 flex w-40 flex-col items-center justify-center sm:w-60">
-          <img
-            className="h-40 w-40 justify-end border border-black object-cover sm:h-60 sm:w-60"
-            src={`http://localhost:5173/upload/avatar/${data.game.players.player2.id}`}
-            alt="Player 2 avatar"
-          />
-          <img
-            className="absolute top-2 -right-6 h-12 w-12 sm:-right-10 sm:h-20 sm:w-20"
-            src={RankIcon(data.game.players.player2.rank)}
-          />
-          <div className="mt-2 truncate text-center text-xs sm:text-base ">
-            {data.game.players.player2?.name}
-          </div>
-        </div>
-      </div>
+      <MatchHeader
+        player1Id={data.game.players.player1.id}
+        player2Id={data.game.players.player2.id}
+        player1Name={data.game.players.player1.name}
+        player1Rank={data.game.players.player1.rank}
+        player2Name={data.game.players.player2.name}
+        player2Rank={data.game.players.player2.rank}
+      />
 
       <div className="my-10 flex w-20 justify-center text-5xl">
         <span>{Math.floor(timer / 60)} </span>
@@ -654,19 +637,7 @@ export const Game = () => {
         <Intro startTime={startTime} setGameState={setGameState} data={data} />
       );
     case gameScreenState.SCORE:
-      queryClient.invalidateQueries(["Game", data.game.id]);
-      return (
-        <Score
-          player1Id={data.game.players.player1.id}
-          player2Id={data.game.players.player2.id}
-          player1Score={data.game.score.player1Score}
-          player2Score={data.game.score.player2Score}
-          player1Name={data.game.players.player1.name}
-          player2Name={data.game.players.player2.name}
-          player1Rank={data.game.players.player1.rank}
-          player2Rank={data.game.players.player2.rank}
-        />
-      );
+      return <Score data={data} />;
     case gameScreenState.PLAYING:
       return (
         <div className=" h-full w-full">
