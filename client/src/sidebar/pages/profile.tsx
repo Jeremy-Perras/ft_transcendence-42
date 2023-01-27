@@ -329,7 +329,8 @@ const GameHistory = ({
   currentUserId: number;
 }) => {
   const navigate = useNavigate();
-
+  const socket = useSocketStore().socket;
+  const closeSidebar = useSidebarStore((state) => state.close);
   return (
     <>
       <h2 className="mt-3 pb-2 text-center text-xl font-bold">MATCH HISTORY</h2>
@@ -422,7 +423,13 @@ const GameHistory = ({
                   </span>
                 </div>
               ) : (
-                <div className="flex  basis-24 animate-pulse flex-col justify-center border-x border-black bg-slate-200 text-center font-bold">
+                <div
+                  onClick={() => {
+                    socket.emit("watchLive", game.id);
+                    closeSidebar();
+                  }}
+                  className="flex basis-24 animate-pulse flex-col justify-center border-x border-black bg-slate-200 text-center font-bold hover:cursor-pointer hover:bg-slate-300"
+                >
                   <div>PLAYING</div>
                 </div>
               )}
