@@ -15,7 +15,7 @@ export const PAD_WIDTH = Math.ceil(PAD_HEIGHT / 5);
 const BALL_RADIUS = CANVAS_WIDTH / 100;
 export const LEFT_PAD_X = CANVAS_WIDTH / 8;
 export const RIGHT_PAD_X = CANVAS_WIDTH - CANVAS_WIDTH / 8 - PAD_WIDTH;
-export const BALL_VELOCITY = 50;
+export const BALL_VELOCITY = 75;
 const GIFT_SPEED = 20; //px/100ms
 const PAD_SPEED = 1; //px / ms
 

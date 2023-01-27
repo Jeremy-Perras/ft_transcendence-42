@@ -8,6 +8,7 @@ import {
   createMemoryRouter,
   LoaderFunctionArgs,
   RouterProvider,
+  useNavigate,
 } from "react-router-dom";
 import { QueryClient, useQuery } from "@tanstack/react-query";
 import queryClient from "../query";
@@ -38,30 +39,50 @@ const loaderFn = (
   return (args: LoaderFunctionArgs) => fn(queryClient, args);
 };
 
+const ErrorPage = () => {
+  const navigate = useNavigate();
+  return (
+    <div className="flex h-full w-full flex-col items-center justify-center text-center text-2xl text-slate-600">
+      <div>Page not found</div>
+      <div
+        onClick={() => navigate("/")}
+        className="mt-10 border-2 bg-slate-100 p-6 align-middle font-bold transition-all hover:cursor-pointer hover:bg-slate-200"
+      >
+        <span>Reload</span>
+      </div>
+    </div>
+  );
+};
+
 const router = createMemoryRouter([
   {
     path: "/",
     element: <Home />,
+    errorElement: <ErrorPage />,
     loader: loaderFn(homeLoader),
   },
   {
     path: "/channel/:channelId",
     element: <Channel />,
+    errorElement: <ErrorPage />,
     loader: loaderFn(channelLoader),
   },
   {
     path: "/settings/channel/:channelId",
     element: <ChannelSettings />,
+    errorElement: <ErrorPage />,
     loader: loaderFn(channelSettingsLoader),
   },
   {
     path: "/chat/:userId",
     element: <Chat />,
+    errorElement: <ErrorPage />,
     loader: loaderFn(chatLoader),
   },
   {
     path: "/profile/:userId",
     element: <Profile />,
+    errorElement: <ErrorPage />,
     loader: loaderFn(profileLoader),
   },
 ]);
