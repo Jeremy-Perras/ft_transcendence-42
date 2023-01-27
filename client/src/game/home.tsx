@@ -123,9 +123,9 @@ const Mode = ({
   return (
     <motion.li
       onClick={selectMode}
-      className={`flex cursor-pointer flex-col items-center ${
-        isSmall ? "mb-4 last:mb-0" : null
-      }`}
+      className={`{ isSmall ? "mb-4 last:mb-0" :
+        null } inline flex cursor-pointer flex-col
+      items-center`}
       initial={{ scale: 0, opacity: 0.5 }}
       animate={{
         scale: 1,
