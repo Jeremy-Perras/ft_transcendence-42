@@ -266,8 +266,7 @@ export class ChannelResolver {
       PrismaChannel["id"],
       PrismaChannelMessage[]
     >,
-    @Loader(BlockingIdsLoader)
-    blockingIdsLoader: DataLoader<PrismaUser["id"], number[]>,
+    @Loader(BlockedByIdsLoader)
     blockedByIdsLoader: DataLoader<PrismaUser["id"], number[]>,
     @Root() channel: Channel,
     @CurrentUser() currentUserId: number
@@ -275,7 +274,6 @@ export class ChannelResolver {
     const m = await this.channelService.getMessages(
       userChannelIdsLoader,
       channelMessagesLoader,
-      blockingIdsLoader,
       blockedByIdsLoader,
       channel.id,
       currentUserId

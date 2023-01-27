@@ -1,5 +1,5 @@
 import { forwardRef, Inject, Injectable } from "@nestjs/common";
-import { GameMode } from "@prisma/client";
+import { Achievement, Game, GameMode } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { SocketGateway } from "../socket/socket.gateway";
 import { PlayerMachine } from "./player.machine";
@@ -1578,7 +1578,146 @@ export class GameService {
       if (p2) p2.send({ type: "GAME_ENDED" });
       this.socketGateway.eraseGameInProgress(game.id);
       this.socketGateway.server.emit(`endGame${game.id}`);
+      this.achievementPlayer1(game);
       this.games.delete(gameId);
+    }
+  };
+
+  achievementPlayer1 = async (game: GameData) => {
+    const gamePlayer1 = await this.prismaService.game.findMany({
+      where: {
+        OR: [{ player1Id: game.player1.id, player2Id: game.player1.id }],
+      },
+    });
+
+    const winRate = gamePlayer1.filter((e) => {
+      (e.player1Id === game.player1.id && e.player1Score > e.player2Score) ||
+        (e.player2Id === game.player1.id && e.player2Score > e.player1Score);
+    });
+
+    if (winRate.length === 1) {
+      await this.prismaService.userAchievement.update({
+        where: {
+          userId_achievement: {
+            achievement: "FIRST_WIN",
+            userId: game.player1.id,
+          },
+        },
+        data: { achievement: { set: "FIRST_WIN" } },
+      });
+    } else if (winRate.length === 10) {
+      await this.prismaService.userAchievement.update({
+        where: {
+          userId_achievement: {
+            achievement: "TEN_WIN",
+            userId: game.player1.id,
+          },
+        },
+        data: { achievement: { set: "TEN_WIN" } },
+      });
+    } else if (winRate.length === 25) {
+      await this.prismaService.userAchievement.update({
+        where: {
+          userId_achievement: {
+            achievement: "TWENTYFIVE_WIN",
+            userId: game.player1.id,
+          },
+        },
+        data: { achievement: { set: "TWENTYFIVE_WIN" } },
+      });
+    } else if (winRate.length === 100) {
+      await this.prismaService.userAchievement.update({
+        where: {
+          userId_achievement: {
+            achievement: "ONE_HUNDRED_WIN",
+            userId: game.player1.id,
+          },
+        },
+        data: { achievement: { set: "ONE_HUNDRED_WIN" } },
+      });
+    }
+
+    const gameRow = gamePlayer1.slice(0, 6);
+    const gameRowLoose = gameRow.filter(
+      (e) =>
+        (e.player1Id === game.player1.id && e.player1Score < e.player2Score) ||
+        (e.player2Id === game.player1.id && e.player2Score < e.player1Score)
+    );
+    if (gameRowLoose.length === 5) {
+      await this.prismaService.userAchievement.update({
+        where: {
+          userId_achievement: {
+            achievement: "FIVE_LOSE_IN_A_ROW",
+            userId: game.player1.id,
+          },
+        },
+        data: { achievement: { set: "FIVE_LOSE_IN_A_ROW" } },
+      });
+    }
+
+    const gameRowWin = gameRow.filter(
+      (e) =>
+        (e.player1Id === game.player1.id && e.player1Score > e.player2Score) ||
+        (e.player2Id === game.player1.id && e.player2Score > e.player1Score)
+    );
+    if (gameRowWin.length === 5) {
+      await this.prismaService.userAchievement.update({
+        where: {
+          userId_achievement: {
+            achievement: "FIVE_WIN_IN_A_ROW",
+            userId: game.player1.id,
+          },
+        },
+        data: { achievement: { set: "FIVE_WIN_IN_A_ROW" } },
+      });
+    }
+
+    const successFivePlayers: Game[] = [];
+    gamePlayer1.forEach((e) =>
+      successFivePlayers.forEach((c) => {
+        if (
+          (e.player1Id === c.player1Id &&
+            successFivePlayers.every((d) => d.player2Id !== c.player2Id)) ||
+          (e.player2Id === c.player2Id &&
+            successFivePlayers.every((d) => d.player1Id !== c.player1Id))
+        ) {
+          successFivePlayers.push(e);
+        }
+      })
+    );
+    if (successFivePlayers.length === 5) {
+      await this.prismaService.userAchievement.update({
+        where: {
+          userId_achievement: {
+            achievement: "FIVE_PLAYERS",
+            userId: game.player1.id,
+          },
+        },
+        data: { achievement: { set: "FIVE_PLAYERS" } },
+      });
+    }
+
+    const successMultiMode: Game[] = [];
+    gamePlayer1.forEach((e) => {
+      if (
+        successMultiMode.every((c) => {
+          c.mode !== e.mode;
+        })
+      ) {
+        successFivePlayers.push(e);
+      }
+    });
+
+    if (successMultiMode.length === 3) {
+      await this.prismaService.userAchievement.update({
+        where: {
+          userId_achievement: {
+            achievement: "MULTI_MODE",
+            userId: game.player1.id,
+          },
+        },
+        data: { achievement: { set: "MULTI_MODE" } },
+      });
     }
   };
 
