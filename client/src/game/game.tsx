@@ -12,6 +12,7 @@ import { Socket } from "socket.io-client";
 import { graphql } from "../gql/gql";
 import { GameMode, GameQuery } from "../gql/graphql";
 import queryClient from "../query";
+import { RankIcon } from "../sidebar/utils/rankIcon";
 import { useAuthStore, useSocketStore } from "../stores";
 import {
   LEFT_PAD_X,
@@ -31,9 +32,6 @@ import {
 } from "./functions/game";
 import { GameData, padMove } from "./types/gameData";
 
-//TODO : bonus mode
-//TODO : add names on canvas
-
 enum gameScreenState {
   INTRO,
   PLAYING,
@@ -41,7 +39,7 @@ enum gameScreenState {
   PAUSE,
 }
 
-const INTRO_DURATION = 5; //INITIAL COUNTDOWN
+const INTRO_DURATION = 500; //INITIAL COUNTDOWN
 
 const GameQueryDocument = graphql(`
   query Game($gameId: Int!) {
@@ -180,12 +178,12 @@ const GameCanvas = ({
         : initData.game.gameMode === GameMode.Boost
         ? {
             type: "BOOST",
-            player1Boost: { activated: false, remaining: 100 }, // percent
+            player1Boost: { activated: false, remaining: 100 },
             player2Boost: { activated: false, remaining: 100 },
           }
         : {
             type: "GIFT",
-            player1Gifts: { size: 1, speed: 1 }, // ratio
+            player1Gifts: { size: 1, speed: 1 },
             player2Gifts: { size: 1, speed: 1 },
           },
   });
@@ -363,39 +361,51 @@ const Score = ({
   player1Id,
   player1Name,
   player1Score,
+  player1Rank,
   player2Id,
   player2Name,
   player2Score,
+  player2Rank,
 }: {
   player1Id: number;
   player1Name: string;
   player1Score: number;
+  player1Rank: number;
   player2Id: number;
   player2Name: string;
   player2Score: number;
+  player2Rank: number;
 }) => {
   const navigate = useNavigate();
 
   return (
     <div className="flex h-full w-full flex-col items-center justify-evenly">
       <div className="flex items-center justify-center">
-        <div className="flex w-48 grow-0 flex-col items-center justify-center">
+        <div className="relative flex w-48 grow-0 flex-col items-center justify-center">
           <img
             className="border border-black object-cover"
             src={`http://localhost:5173/upload/avatar/${player1Id}`}
             alt="Player 1 avatar"
+          />
+          <img
+            className="absolute top-2 -right-6 h-12 w-12 sm:-right-10 sm:h-20 sm:w-20"
+            src={RankIcon(player1Rank)}
           />
           <div className="my-2 grow-0 truncate text-center font-content">
             {player1Name}
           </div>
         </div>
         <div className="mx-4 select-none text-center">VS</div>
-        <div className="flex w-48 grow-0 flex-col items-center ">
+        <div className="relative flex w-48 grow-0 flex-col items-center ">
           <img
             className="border border-black object-cover "
             src={`http://localhost:5173/upload/avatar/${player2Id}`}
             alt="Player 2 avatar"
-          />{" "}
+          />
+          <img
+            className="absolute top-2 -right-6 h-12 w-12 sm:-right-10 sm:h-20 sm:w-20"
+            src={RankIcon(player2Rank)}
+          />
           <div className="my-2 grow-0 truncate text-center font-content">
             {player2Name}
           </div>
@@ -462,12 +472,16 @@ const Intro = ({
 
   return (
     <div className="flex flex-col items-center justify-center">
-      <div className="relative mt-10 flex w-full items-center justify-center">
-        <div className="mx-2 flex w-40 flex-col items-center justify-center sm:w-60 ">
+      <div className=" mt-10 flex w-full items-center justify-center">
+        <div className="relative mx-2 flex w-40 flex-col items-center justify-center sm:w-60 ">
           <img
-            className="h-40 w-40 justify-end border border-black object-cover sm:h-60 sm:w-60 "
+            className=" h-40 w-40 justify-end border border-black object-cover sm:h-60 sm:w-60 "
             src={`http://localhost:5173/upload/avatar/${data.game.players.player1.id}`}
             alt="Player 2 avatar"
+          />
+          <img
+            className="absolute top-2 -right-6 h-12 w-12 sm:-right-10 sm:h-20 sm:w-20"
+            src={RankIcon(data.game.players.player1.rank)}
           />
           <div className="mt-2 truncate text-center text-xs sm:text-base ">
             {data.game.players.player1?.name}
@@ -476,11 +490,15 @@ const Intro = ({
         <div className="grow animate-pulse select-none self-center text-center text-3xl font-bold ">
           VS
         </div>
-        <div className="mx-2 flex w-40 flex-col items-center justify-center sm:w-60 ">
+        <div className="relative mx-2 flex w-40 flex-col items-center justify-center sm:w-60">
           <img
-            className="h-40 w-40 justify-end border border-black object-cover sm:h-60 sm:w-60 "
+            className="h-40 w-40 justify-end border border-black object-cover sm:h-60 sm:w-60"
             src={`http://localhost:5173/upload/avatar/${data.game.players.player2.id}`}
             alt="Player 2 avatar"
+          />
+          <img
+            className="absolute top-2 -right-6 h-12 w-12 sm:-right-10 sm:h-20 sm:w-20"
+            src={RankIcon(data.game.players.player2.rank)}
           />
           <div className="mt-2 truncate text-center text-xs sm:text-base ">
             {data.game.players.player2?.name}
@@ -551,6 +569,8 @@ export const Game = () => {
           player2Score={data.game.score.player2Score}
           player1Name={data.game.players.player1.name}
           player2Name={data.game.players.player2.name}
+          player1Rank={data.game.players.player1.rank}
+          player2Rank={data.game.players.player2.rank}
         />
       );
     case gameScreenState.PLAYING:

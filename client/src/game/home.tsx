@@ -363,19 +363,26 @@ const Error = ({
   return (
     <>
       {message ? (
-        <div className="absolute top-0 z-30  w-full justify-center ">
-          <div className=" flex w-full flex-auto flex-row  bg-slate-100 ">
-            <span className="flex grow truncate pl-2 pt-1 text-center align-middle font-sans text-black">{`${message}`}</span>
-            <div className="flex w-1/3 basis-1/5 justify-end ">
-              <RefuseIcon
-                className="mx-2 w-5 bg-red-300 hover:cursor-pointer "
-                onClick={() => {
-                  setMessage(undefined);
-                }}
-              />
-            </div>
+        <motion.div
+          onClick={() => setMessage(undefined)}
+          transition={{
+            duration: 0.1,
+            ease: "linear",
+          }}
+          initial={{ y: -128 }}
+          animate={{ y: 0 }}
+          className={`w-content absolute top-0 z-10 flex h-10 min-w-0 max-w-[80%] shrink grow-0 select-none items-center justify-center  border-b border-neutral-200 bg-neutral-100 text-center align-middle font-content text-neutral-600 shadow-[0_0px_10px_8px_rgba(0,0,0,0.5)] transition-all `}
+        >
+          <span className="min-w-0 truncate pl-2 pt-1 text-center font-content text-lg text-black">{`${message}`}</span>
+          <div className="flex">
+            <RefuseIcon
+              className="mx-2 h-6 w-6 border-2 border-red-400 bg-red-200 text-red-500 hover:cursor-pointer hover:bg-red-300"
+              onClick={() => {
+                setMessage(undefined);
+              }}
+            />
           </div>
-        </div>
+        </motion.div>
       ) : null}
     </>
   );
@@ -527,9 +534,10 @@ export const Home = () => {
           </a>
         )}
       </div>
-      {displayError ? (
+      <Error message={message} setMessage={setMessage} />
+      {/* {displayError ? (
         <Error message={message} setMessage={setMessage} />
-      ) : null}
+      ) : null} */}
       <GameInvitations
         setMessage={setMessage}
         setDisplayError={setDisplayError}
