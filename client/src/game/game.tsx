@@ -499,9 +499,9 @@ const Score = ({
       </div>
 
       <div className="text-4xl">
-        {player1Score && player2Score
-          ? `${player1Score} - ${player2Score}`
-          : `- - -`}
+        {player1Score === 0 && player2Score === 0
+          ? `- - -`
+          : `${player1Score} - ${player2Score}`}
       </div>
       <button
         className="my-6 text-3xl text-white hover:text-slate-300"
