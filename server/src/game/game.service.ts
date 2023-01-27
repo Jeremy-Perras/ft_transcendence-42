@@ -1770,4 +1770,21 @@ export class GameService {
       this.socketGateway.server.emit(`pauseGame${game.id}`);
     }
   };
+
+  resumeGame = async (userId: number) => {
+    const game = this.getGame(userId);
+
+    if (game) {
+      let other;
+      if (userId === game.player1.id) {
+        other = this.getPlayer(game?.player2.id);
+      } else {
+        other = this.getPlayer(game?.player1.id);
+      }
+      if (other && other.getSnapshot().matches("_.playing")) {
+        this.socketGateway.server.emit(`unpauseGame${game.id}`);
+        this.socketGateway.launchGame(game.id);
+      }
+    }
+  };
 }

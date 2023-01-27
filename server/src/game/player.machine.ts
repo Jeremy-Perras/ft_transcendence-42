@@ -404,17 +404,9 @@ export const PlayerMachine = (
             const gameId = game?.id;
 
             if (game) {
-              let other;
-              if (context.userId === game.player1.id) {
-                other = gameService.getPlayer(game?.player2.id);
-              } else {
-                other = gameService.getPlayer(game?.player1.id);
-              }
-              if (gameId && other) {
+              if (gameId) {
                 if (event.type === "CONNECT") {
-                  if (other.getSnapshot().matches("_.playing")) {
-                    socket.server.emit(`unpauseGame${game.id}`);
-                  }
+                  gameService.resumeGame(context.userId);
                 } else {
                   socket.sendToUser(context.userId, "gameStarting", { gameId });
                 }
