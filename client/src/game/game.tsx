@@ -648,15 +648,7 @@ export const Game = () => {
       );
     };
   }, [gameState]);
-  }, []);
 
-  const [gameState, setGameState] = useState<gameScreenState>(
-    data.game.finishedAt
-      ? gameScreenState.SCORE
-      : currentTime > startTime + INTRO_DURATION * 1000
-      ? gameScreenState.PLAYING
-      : gameScreenState.INTRO
-  );
   const Pause = () => {
     return (
       <div className="test-center my-10 flex w-20 justify-center text-5xl">
