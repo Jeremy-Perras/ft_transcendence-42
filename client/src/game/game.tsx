@@ -295,7 +295,7 @@ const GameCanvas = ({
       if (ctx)
         draw(ctx, frontGameData.current, playerBonus.current, currentUserId);
       updateGameData(frontGameData, backData, initData);
-      let t;
+
       if (currentUserId === frontGameData.current.player1.id) {
         if (frontGameData.current.game.type === "GIFT") {
           if (
@@ -320,12 +320,9 @@ const GameCanvas = ({
           playerSpeed.current = frontGameData.current.game.player1Gifts.speed;
         }
         nextYOpponent.current = backData.player2.coord.y;
-        t = moves.current.find(
-          (m) => m.timestamp === frontGameData.current.player1.lastMoveTimestamp
-        );
-        if (t) {
-          yPlayer.current = backData.player1.coord.y;
-        }
+
+        yPlayer.current = backData.player1.coord.y;
+
         frontGameData.current.player1.coord.y = yPlayer.current;
       } else if (currentUserId === frontGameData.current.player2.id) {
         if (frontGameData.current.game.type === "GIFT") {
@@ -351,18 +348,16 @@ const GameCanvas = ({
           playerSpeed.current = frontGameData.current.game.player2Gifts.speed;
         }
         nextYOpponent.current = backData.player1.coord.y;
-        t = moves.current.find(
-          (m) => m.timestamp === frontGameData.current.player2.lastMoveTimestamp
-        );
-        if (t) {
-          yPlayer.current = backData.player2.coord.y;
-        }
+
+        yPlayer.current = backData.player2.coord.y;
+
         frontGameData.current.player2.coord.y = yPlayer.current;
       }
     };
     const animate = () => {
       let ctx;
       if (canvas.current) ctx = canvas.current.getContext("2d");
+
       if (ctx) {
         if (frontGameData.current) {
           setCurrentPlayerY(
@@ -420,9 +415,9 @@ const GameCanvas = ({
     socket.on(`pauseGame${frontGameData.current.id}`, () =>
       setGameState(gameScreenState.PAUSE)
     );
-    socket.on(`unpauseGame${frontGameData.current.id}`, () =>
-      setGameState(gameScreenState.PLAYING)
-    );
+    socket.on(`unpauseGame${frontGameData.current.id}`, () => {
+      setGameState(gameScreenState.PLAYING);
+    });
     requestRef.current = setInterval(animate, FRAME_RATE);
     return () => {
       socket.off(`Game_${frontGameData.current.id}`, cb);
@@ -437,7 +432,7 @@ const GameCanvas = ({
       );
       clearInterval(requestRef.current);
     };
-  }, [playerMove, frontGameData]);
+  }, [playerMove, frontGameData, currentUserId]);
 
   return (
     <>
