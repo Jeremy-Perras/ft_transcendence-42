@@ -23,7 +23,10 @@ export function redraw(
   wrap: React.RefObject<HTMLElement>,
   canvas: React.RefObject<HTMLCanvasElement>,
   data: GameData,
-  playerBonus: string,
+  playerBonus: {
+    name: string;
+    timestamp: number;
+  }[],
   currentUserId: number | undefined
 ) {
   let cssWidth;
@@ -134,10 +137,21 @@ export const ball = {
 };
 
 const text = {
-  classicColor: "white",
-  draw(context: CanvasRenderingContext2D, playerBonus: string, coord: Coord) {
-    context.font = "48px serif";
-    context.fillText(playerBonus, coord.x, coord.y);
+  draw(
+    context: CanvasRenderingContext2D,
+    playerBonus: { name: string; timestamp: number },
+    coord: Coord
+  ) {
+    const diff = Date.now() - playerBonus.timestamp;
+    if (diff < 1000) {
+      context.globalAlpha = diff / 1000;
+    } else if (diff > 2000) {
+      context.globalAlpha = Math.abs(diff - 3000) / 1000;
+    }
+    context.fillStyle = "#FBBF24";
+    context.font = "48px w95fa";
+    context.fillText(playerBonus.name, coord.x, coord.y);
+    context.globalAlpha = 1;
   },
 };
 
@@ -291,7 +305,10 @@ const score = {
 export const draw = (
   context: CanvasRenderingContext2D,
   data: GameData,
-  playerBonus: string,
+  playerBonus: {
+    name: string;
+    timestamp: number;
+  }[],
   currentUserId: number | undefined
 ) => {
   context?.clearRect(background.x, background.y, CANVAS_WIDTH, CANVAS_HEIGHT);
@@ -317,14 +334,26 @@ export const draw = (
       data.game.player2Gifts.size
     );
     if (currentUserId === data.player1.id)
-      text.draw(context, playerBonus, {
-        x: CANVAS_WIDTH / 10,
-        y: CANVAS_HEIGHT / 10,
+      playerBonus = playerBonus.filter((b, i) => {
+        if (Date.now() - b.timestamp < 3000) {
+          text.draw(context, b, {
+            x: CANVAS_WIDTH / 10,
+            y: CANVAS_HEIGHT / 10 + i * 60,
+          });
+          return true;
+        }
+        return false;
       });
     else if (currentUserId) {
-      text.draw(context, playerBonus, {
-        x: (9 * CANVAS_WIDTH) / 10,
-        y: CANVAS_HEIGHT / 10,
+      playerBonus = playerBonus.filter((b, i) => {
+        if (Date.now() - b.timestamp < 3000) {
+          text.draw(context, b, {
+            x: (9 * CANVAS_WIDTH) / 10,
+            y: CANVAS_HEIGHT / 10 + i * 60,
+          });
+          return true;
+        }
+        return false;
       });
     }
   }
