@@ -591,7 +591,6 @@ export class GameService {
         CANVAS_HEIGHT - BALL_RADIUS - BORDER_HEIGHT
       ) {
         wallCollision = true;
-
         gameData.ball.coord.y =
           CANVAS_HEIGHT -
           BALL_RADIUS -
@@ -606,7 +605,6 @@ export class GameService {
         BALL_RADIUS + BORDER_HEIGHT
       ) {
         wallCollision = true;
-
         gameData.ball.coord.y =
           BALL_RADIUS +
           BORDER_HEIGHT +

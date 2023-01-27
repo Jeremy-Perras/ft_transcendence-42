@@ -426,7 +426,7 @@ const GameHistory = ({
                   <div>PLAYING</div>
                 </div>
               )}
-              <div className="flex justify-center">
+              <div className="flex items-center justify-center">
                 <img
                   className="h-8 w-10"
                   src={
