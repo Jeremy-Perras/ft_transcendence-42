@@ -141,7 +141,6 @@ export const GameInvitations = ({
         gameMode: gameMode,
         inviterName: name,
       };
-      console.log(newInvitation);
       setInvitationList([newInvitation, ...invitationList]);
     }
   );

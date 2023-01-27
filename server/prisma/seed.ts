@@ -55,7 +55,7 @@ try {
       })),
     });
 
-    await console.log("ADD ACHIEVEMENTS");
+    console.log("ADD ACHIEVEMENTS");
     await prisma.userAchievement.createMany({
       data: [
         // give user 1 all achievements
@@ -70,8 +70,7 @@ try {
         })),
       ],
     });
-
-    await console.log("CREATE FRIENDSHIPS");
+    console.log("CREATE FRIENDSHIPS");
     await prisma.friendRequest.createMany({
       data: [
         // user 1 and 2 are friends

@@ -190,7 +190,6 @@ const Invitation = ({
     {
       onError: () => setDisplayMutationError(true),
       onSuccess: () => {
-        console.log("refuseInvitation");
         queryClient.invalidateQueries(["DiscussionsAndInvitations"]);
       },
     }
