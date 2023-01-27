@@ -199,7 +199,7 @@ const WaitingScreen = () => {
   return (
     <div className="flex h-full w-full flex-col items-center justify-center">
       <div
-        className="relative mb-4 inline-block animate-pulse select-none  text-center text-4xl"
+        className="relative mb-4 inline-block animate-pulse select-none text-center text-4xl"
         style={{ textShadow: "none" }}
       >
         {`Waiting For ${invitationName ?? "An Opponent"}`}
@@ -364,20 +364,21 @@ const Error = ({
     <>
       {message ? (
         <motion.div
-          onClick={() => setMessage(undefined)}
           transition={{
             duration: 0.1,
             ease: "linear",
           }}
           initial={{ y: -128 }}
           animate={{ y: 0 }}
-          className={`w-content absolute top-0 z-10 flex h-10 min-w-0 max-w-[80%] shrink grow-0 select-none items-center justify-center  border-b border-neutral-200 bg-neutral-100 text-center align-middle font-content text-neutral-600 shadow-[0_0px_10px_8px_rgba(0,0,0,0.5)] transition-all `}
+          className={`w-content absolute top-0 z-50 flex h-10 min-w-0 max-w-[80%] shrink grow-0 select-none items-center justify-center bg-neutral-100 text-center font-content shadow-[0_0px_10px_8px_rgba(0,0,0,0.5)] transition-all `}
         >
-          <span className="min-w-0 truncate pl-2 pt-1 text-center font-content text-lg text-black">{`${message}`}</span>
+          <span className="min-w-0 truncate pl-2 pt-1 text-center font-content  text-black">{`${message}`}</span>
           <div className="flex">
             <RefuseIcon
-              className="mx-2 h-6 w-6 border-2 border-red-400 bg-red-200 text-red-500 hover:cursor-pointer hover:bg-red-300"
-              onClick={() => {
+              id="closeError"
+              className="mx-2 h-6 w-6 border-2 border-red-500 bg-red-300 text-red-500 hover:cursor-pointer hover:bg-red-400 hover:text-red-600"
+              onClick={(e) => {
+                e.preventDefault();
                 setMessage(undefined);
               }}
             />
@@ -534,10 +535,9 @@ export const Home = () => {
           </a>
         )}
       </div>
-      <Error message={message} setMessage={setMessage} />
-      {/* {displayError ? (
+      {displayError ? (
         <Error message={message} setMessage={setMessage} />
-      ) : null} */}
+      ) : null}
       <GameInvitations
         setMessage={setMessage}
         setDisplayError={setDisplayError}

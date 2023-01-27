@@ -160,6 +160,16 @@ export default function SideBar() {
             }
           }}
           onInteractOutside={(e) => {
+            const target = e.target as HTMLElement;
+            if (
+              target &&
+              (("id" in target && target.id === "closeError") ||
+                (target.tagName === "path" &&
+                  target.parentElement &&
+                  "id" in target.parentElement &&
+                  target.parentElement.id === "closeError"))
+            )
+              return;
             e.preventDefault();
             if (isSmallScreen) {
               closeSidebar();
