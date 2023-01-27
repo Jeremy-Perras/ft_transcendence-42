@@ -7,7 +7,7 @@ import queryClient from "./query";
 import { useAuthStore, useSocketStore } from "./stores";
 import "./index.css";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-
+import { ReactComponent as LogOutIcon } from "pixelarticons/svg/logout.svg";
 let init = false;
 const App = () => {
   const isLoggedIn = !!useAuthStore((state) => state.userId);
@@ -64,9 +64,19 @@ const App = () => {
       </QueryClientProvider>
     </div>
   ) : (
-    <span className="crt flex h-screen w-screen shrink grow select-none items-center justify-center bg-[#002a2a] text-center font-display text-gray-200 ">
-      You are already connected on another device
-    </span>
+    <div className="crt flex  h-screen w-screen grow  select-none flex-col items-center justify-center bg-[#002a2a] ">
+      <span className="shrink text-center font-display text-2xl text-gray-200">
+        You are already connected on another device
+      </span>
+      <LogOutIcon
+        onClick={() => {
+          useAuthStore.getState().logout();
+          socket.disconnect();
+          setIsConnected(false);
+        }}
+        className="absolute top-2 right-2 h-8 rotate-180 cursor-pointer bg-red-600"
+      />
+    </div>
   );
 };
 
