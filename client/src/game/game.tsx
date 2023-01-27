@@ -128,6 +128,7 @@ const GameCanvas = ({
   if (!canvas) return <>Error</>;
 
   const requestRef = useRef<number>();
+  const watchingLive = useRef<boolean>(false);
   const playerSpeed = useRef<number>(1);
   const playerSize = useRef<number>(1);
   const playerBonus = useRef<{ name: string; timestamp: number }[]>([]);
@@ -248,6 +249,7 @@ const GameCanvas = ({
         window.addEventListener("keydown", keyDownCb);
         window.addEventListener("keyup", keyUpCb);
       } else {
+        watchingLive.current = true;
         socket.emit("joinRoomAsViewer", initData.game.id);
       }
       socket.emit("gameReady", initData.game.id);
@@ -342,9 +344,7 @@ const GameCanvas = ({
           playerSpeed.current = frontGameData.current.game.player1Gifts.speed;
         }
         nextYOpponent.current = backData.player2.coord.y;
-
         yPlayer.current = backData.player1.coord.y;
-
         frontGameData.current.player1.coord.y = yPlayer.current;
       } else if (currentUserId === frontGameData.current.player2.id) {
         if (frontGameData.current.game.type === "GIFT") {
@@ -358,12 +358,14 @@ const GameCanvas = ({
           playerSpeed.current = frontGameData.current.game.player2Gifts.speed;
         }
         nextYOpponent.current = backData.player1.coord.y;
-
         yPlayer.current = backData.player2.coord.y;
-
         frontGameData.current.player2.coord.y = yPlayer.current;
+      } else {
+        frontGameData.current.player1.coord.y = backData.player1.coord.y;
+        frontGameData.current.player2.coord.y = backData.player2.coord.y;
       }
     };
+
     const animate = () => {
       let ctx;
       if (canvas.current) ctx = canvas.current.getContext("2d");
@@ -378,38 +380,28 @@ const GameCanvas = ({
           );
           if (currentUserId === frontGameData.current.player1.id) {
             frontGameData.current.player1.coord.y = yPlayer.current;
-            if (frontGameData.current.game.type === "GIFT") {
-              frontGameData.current.player2 = animateOpponentPad(
-                frontGameData.current.player2,
-                nextYOpponent.current,
-                frontGameData.current.game.player2Gifts.speed,
-                frontGameData.current.game.player2Gifts.size
-              );
-            } else {
-              frontGameData.current.player2 = animateOpponentPad(
-                frontGameData.current.player2,
-                nextYOpponent.current,
-                1,
-                1
-              );
-            }
+            frontGameData.current.player2 = animateOpponentPad(
+              frontGameData.current.player2,
+              nextYOpponent.current,
+              frontGameData.current.game.type === "GIFT"
+                ? frontGameData.current.game.player2Gifts.speed
+                : 1,
+              frontGameData.current.game.type === "GIFT"
+                ? frontGameData.current.game.player2Gifts.size
+                : 1
+            );
           } else if (currentUserId === frontGameData.current.player2.id) {
             frontGameData.current.player2.coord.y = yPlayer.current;
-            if (frontGameData.current.game.type === "GIFT") {
-              frontGameData.current.player1 = animateOpponentPad(
-                frontGameData.current.player1,
-                nextYOpponent.current,
-                frontGameData.current.game.player1Gifts.speed,
-                frontGameData.current.game.player1Gifts.size
-              );
-            } else {
-              frontGameData.current.player1 = animateOpponentPad(
-                frontGameData.current.player1,
-                nextYOpponent.current,
-                1,
-                1
-              );
-            }
+            frontGameData.current.player1 = animateOpponentPad(
+              frontGameData.current.player1,
+              nextYOpponent.current,
+              frontGameData.current.game.type === "GIFT"
+                ? frontGameData.current.game.player1Gifts.speed
+                : 1,
+              frontGameData.current.game.type === "GIFT"
+                ? frontGameData.current.game.player1Gifts.size
+                : 1
+            );
           }
           animateBall(frontGameData);
           if (frontGameData.current.game.type === "GIFT")
@@ -446,6 +438,11 @@ const GameCanvas = ({
 
   return (
     <>
+      {watchingLive.current && (
+        <div className="absolute top-1 left-0 right-0 mx-auto animate-pulse text-center">
+          LIVE STREAM
+        </div>
+      )}
       <div className="flex h-full w-full" ref={wrap} id="wrap">
         <canvas tabIndex={0} className="m-auto border-white" ref={canvas} />
       </div>
@@ -473,7 +470,7 @@ const MatchHeader = ({
       <div className="relative mx-2 flex w-40 flex-col items-center justify-center sm:w-60 ">
         <img
           className="h-40 w-40 justify-end border border-black object-cover sm:h-60 sm:w-60"
-          src={`http://localhost:5173/upload/avatar/${player1Id}`}
+          src={`/upload/avatar/${player1Id}`}
           alt="Player 2 avatar"
         />
         <img
@@ -488,7 +485,7 @@ const MatchHeader = ({
       <div className="relative mx-2 flex w-40 flex-col items-center justify-center sm:w-60">
         <img
           className="h-40 w-40 justify-end border border-black object-cover sm:h-60 sm:w-60"
-          src={`http://localhost:5173/upload/avatar/${player2Id}`}
+          src={`/upload/avatar/${player2Id}`}
           alt="Player 2 avatar"
         />
         <img

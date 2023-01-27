@@ -76,6 +76,7 @@ const loaderFn = (
 ) => {
   return (args: LoaderFunctionArgs) => fn(queryClient, args);
 };
+
 const router = createBrowserRouter([
   {
     element: <GameRoot />,
