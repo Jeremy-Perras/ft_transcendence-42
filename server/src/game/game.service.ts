@@ -1474,7 +1474,7 @@ export class GameService {
       player.send({ type: "CONNECT" });
       waitFor(
         player,
-        (state) => state.matches("disconnected") && state.matches("offline"),
+        (state) => !state.matches("disconnected") && !state.matches("offline"),
         { timeout: 1000 }
       ).catch(() => {
         this.socketGateway.sendToUser(
