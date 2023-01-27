@@ -469,7 +469,6 @@ describe("user", () => {
   it(`get self`, async () => {
     currentUserId = 1;
 
-    // TODO : add game
     const response = await supertest(app.getHttpServer())
       .post("/graphql")
       .send({
@@ -534,7 +533,6 @@ describe("user", () => {
     currentUserId = 2;
     const userId = 1;
 
-    // TODO : add game
     const response = await supertest(app.getHttpServer())
       .post("/graphql")
       .send({
@@ -600,7 +598,6 @@ describe("user", () => {
     currentUserId = 1;
     const search = "a";
 
-    // TODO : add game
     const response = await supertest(app.getHttpServer())
       .post("/graphql")
       .send({

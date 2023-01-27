@@ -259,7 +259,7 @@ export class UserResolver {
     return friendedBy.filter((f) => !friends.some((fb) => fb.id === f.id));
   }
 
-  @ResolveField() // TODO
+  @ResolveField()
   async games(@Root() user: User): Promise<GraphqlGame[]> {
     const gameList = await this.userService.getGames(user.id);
     return gameList;

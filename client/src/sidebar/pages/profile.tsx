@@ -309,7 +309,7 @@ const UserProfileHeader = ({
           {data.user.achievements.map((a, key) => (
             <Achievement
               key={key}
-              icon={`/achievements/${a.name.toLowerCase()}.svg`} //TODO : get corresponding icon
+              icon={`/achievements/${a.name.toLowerCase()}.svg`}
               name={a.name}
               achieved={true}
             />

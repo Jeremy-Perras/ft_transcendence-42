@@ -984,7 +984,6 @@ export class GameService {
     };
 
     if (gameData !== undefined) {
-      //TODO : gift pop
       if (checkWallCollision(gameData)) return;
       if (gameData.ball.velocity.vx < 0) {
         if (leftPadCollision(gameData)) return;
