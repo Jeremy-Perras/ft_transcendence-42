@@ -38,6 +38,7 @@ import {
   useInvitationStore,
   useSidebarStore,
   useSocketStore,
+  useStateStore,
 } from "../../stores";
 import { IsOnline } from "../components/isOnline";
 import { graphql } from "../../../src/gql";
@@ -620,6 +621,7 @@ const FriendButtons = ({
   setDisplayMutationError: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   const { createInvite } = useInvitationStore();
+  const { setState } = useStateStore();
   const blockUser = useMutation(
     async ({ userId }: { userId: number }) =>
       request("/graphql", BlockUserMutationDocument, {
@@ -654,7 +656,10 @@ const FriendButtons = ({
               const gameInProgress = data.user.games.find((g) => !g.finishedAt);
               socket.emit("watchLive", gameInProgress?.id);
               closeSidebar();
-            } else createInvite(data.user.name, data.user.id);
+            } else {
+              createInvite(data.user.name, data.user.id);
+              setState("InvitationSelect");
+            }
           }
         }}
         className={`flex h-24 basis-1/3 items-center justify-center border-2 p-4 text-center transition-all ${

@@ -5,7 +5,6 @@ import { SocketGateway } from "../socket/socket.gateway";
 import { PlayerMachine } from "./player.machine";
 import { waitFor } from "xstate/lib/waitFor";
 import { OnEvent } from "@nestjs/event-emitter";
-
 import { UserService } from "../user/user.service";
 
 const CANVAS_WIDTH = 2000;
