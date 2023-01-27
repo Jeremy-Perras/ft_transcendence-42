@@ -130,7 +130,7 @@ const GameCanvas = ({
   const requestRef = useRef<number>();
   const playerSpeed = useRef<number>(1);
   const playerSize = useRef<number>(1);
-  const playerBonus = useRef<string>("Bonus");
+  const playerBonus = useRef<{ name: string; timestamp: number }[]>([]);
   const playerMove = useRef(padMove.STILL);
   const keyboardStatus = useRef({
     arrowUp: false,
@@ -285,6 +285,40 @@ const GameCanvas = ({
     };
   }, [wrap, canvas, frontGameData]);
 
+  const getBonus = (
+    playerBonus: { name: string; timestamp: number }[],
+    playerSize: number,
+    playerSpeed: number,
+    playerGifts: {
+      speed: number;
+      size: number;
+    }
+  ) => {
+    if (playerSize > playerGifts.size) {
+      playerBonus.push({
+        name: "Size down",
+        timestamp: Date.now(),
+      });
+    } else if (playerSize < playerGifts.size) {
+      playerBonus.push({
+        name: "Size up",
+        timestamp: Date.now(),
+      });
+    }
+    if (playerSpeed > playerGifts.speed) {
+      playerBonus.push({
+        name: "Speed down",
+        timestamp: Date.now(),
+      });
+    } else if (playerSpeed < playerGifts.speed) {
+      playerBonus.push({
+        name: "Speed up",
+        timestamp: Date.now(),
+      });
+    }
+    return playerBonus;
+  };
+
   useEffect(() => {
     const cb = (backData: GameData) => {
       if (backData.player1.score >= 11 || backData.player2.score >= 11) {
@@ -298,24 +332,12 @@ const GameCanvas = ({
 
       if (currentUserId === frontGameData.current.player1.id) {
         if (frontGameData.current.game.type === "GIFT") {
-          if (
-            playerSize.current > frontGameData.current.game.player1Gifts.size
-          ) {
-            playerBonus.current = "Size down";
-          } else if (
-            playerSize.current < frontGameData.current.game.player1Gifts.size
-          ) {
-            playerBonus.current = "Size up";
-          }
-          if (
-            playerSpeed.current > frontGameData.current.game.player1Gifts.speed
-          ) {
-            playerBonus.current = "Speed down";
-          } else if (
-            playerSpeed.current < frontGameData.current.game.player1Gifts.speed
-          ) {
-            playerBonus.current = "Speed up";
-          }
+          playerBonus.current = getBonus(
+            playerBonus.current,
+            playerSize.current,
+            playerSpeed.current,
+            frontGameData.current.game.player1Gifts
+          );
           playerSize.current = frontGameData.current.game.player1Gifts.size;
           playerSpeed.current = frontGameData.current.game.player1Gifts.speed;
         }
@@ -326,24 +348,12 @@ const GameCanvas = ({
         frontGameData.current.player1.coord.y = yPlayer.current;
       } else if (currentUserId === frontGameData.current.player2.id) {
         if (frontGameData.current.game.type === "GIFT") {
-          if (
-            playerSize.current > frontGameData.current.game.player2Gifts.size
-          ) {
-            playerBonus.current = "Size down";
-          } else if (
-            playerSize.current < frontGameData.current.game.player2Gifts.size
-          ) {
-            playerBonus.current = "Size up";
-          }
-          if (
-            playerSpeed.current > frontGameData.current.game.player2Gifts.speed
-          ) {
-            playerBonus.current = "Speed down";
-          } else if (
-            playerSpeed.current < frontGameData.current.game.player2Gifts.speed
-          ) {
-            playerBonus.current = "Speed up";
-          }
+          playerBonus.current = getBonus(
+            playerBonus.current,
+            playerSize.current,
+            playerSpeed.current,
+            frontGameData.current.game.player2Gifts
+          );
           playerSize.current = frontGameData.current.game.player2Gifts.size;
           playerSpeed.current = frontGameData.current.game.player2Gifts.speed;
         }
