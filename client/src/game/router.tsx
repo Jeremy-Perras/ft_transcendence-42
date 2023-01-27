@@ -40,7 +40,18 @@ const GetStateQueryDocument = graphql(`
 `);
 
 const ErrorPage = () => {
-  return <div>404</div>;
+  const navigate = useNavigate();
+  return (
+    <div className="crt flex h-full w-full flex-col items-center justify-center text-xl">
+      <div className="mb-20">Page not found</div>
+      <div
+        className="text-2xl hover:cursor-pointer"
+        onClick={() => navigate(`/`)}
+      >
+        HOME
+      </div>
+    </div>
+  );
 };
 
 const GameRoot = () => {
@@ -60,11 +71,11 @@ const loaderFn = (
 const router = createBrowserRouter([
   {
     element: <GameRoot />,
+    errorElement: <ErrorPage />,
     children: [
       {
         path: "/",
         element: <Home />,
-        errorElement: <ErrorPage />,
       },
       {
         path: "/game/:gameId",

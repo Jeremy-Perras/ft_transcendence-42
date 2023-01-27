@@ -40,7 +40,7 @@ enum gameScreenState {
   PAUSE,
 }
 
-const INTRO_DURATION = 5; //INITIAL COUNTDOWN
+const INTRO_DURATION = 5;
 
 const GameQueryDocument = graphql(`
   query Game($gameId: Int!) {
@@ -511,12 +511,12 @@ const Score = ({ data }: { data: GameQuery }) => {
           ? `${data.game.score.player1Score} - ${data.game.score.player2Score}`
           : `- - -`}
       </div>
-      <button
-        className="my-6 text-3xl text-white hover:text-slate-300"
+      <div
+        className="my-6 text-3xl text-white hover:cursor-pointer"
         onClick={() => navigate(`/`)}
       >
         Home
-      </button>
+      </div>
     </div>
   );
 };
