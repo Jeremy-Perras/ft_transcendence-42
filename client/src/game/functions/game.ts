@@ -95,6 +95,7 @@ const leftPad = {
     context.closePath();
     context.fill();
   },
+
   drawGift(context: CanvasRenderingContext2D, y: number, size: number) {
     context.fillStyle = this.color;
     context.beginPath();
