@@ -40,7 +40,7 @@ enum gameScreenState {
   PAUSE,
 }
 
-const INTRO_DURATION = 500; //INITIAL COUNTDOWN
+const INTRO_DURATION = 5; //INITIAL COUNTDOWN
 
 const GameQueryDocument = graphql(`
   query Game($gameId: Int!) {
