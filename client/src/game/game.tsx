@@ -524,9 +524,7 @@ const Score = ({ data }: { data: GameQuery }) => {
         player2Rank={data.game.players.player2.rank}
       />
       <div className="text-4xl">
-        {data.game.score.player1Score && data.game.score.player2Score
-          ? `${data.game.score.player1Score} - ${data.game.score.player2Score}`
-          : `- - -`}
+        {`${data.game.score.player1Score} - ${data.game.score.player2Score}`}
       </div>
       <div
         className="my-6 text-3xl text-white hover:cursor-pointer"
@@ -638,7 +636,7 @@ export const Game = () => {
         queryClient.invalidateQueries(["Game", gameId])
       );
     };
-  }, [gameState]);
+  }, [gameState, data]);
 
   const Pause = () => {
     return (

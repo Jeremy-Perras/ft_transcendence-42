@@ -429,9 +429,10 @@ const GameHistory = ({
                     socket.emit("watchLive", game.id);
                     closeSidebar();
                   }}
-                  className="flex basis-24 animate-pulse flex-col justify-center border-x border-black bg-slate-200 text-center font-bold hover:cursor-pointer hover:bg-slate-300"
+                  className="flex basis-24 animate-pulse flex-col justify-center border-x border-black bg-slate-200 text-center text-xs font-bold hover:cursor-pointer hover:bg-slate-300"
                 >
                   <div>PLAYING</div>
+                  <div>Click to watch!</div>
                 </div>
               )}
               <div className="flex items-center justify-center">
