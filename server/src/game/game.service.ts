@@ -256,7 +256,7 @@ export class GameService {
           gameData.player2.coord.x + PAD_WIDTH,
           gameData.player2.coord.y,
           gameData.player2.coord.y +
-            PAD_HEIGHT * gameData.game.player1Gifts.size
+            PAD_HEIGHT * gameData.game.player2Gifts.size
         ) &&
         !this.isInside(
           e.coord.x - GIFT_WIDTH / 2,
@@ -265,7 +265,7 @@ export class GameService {
           gameData.player2.coord.x + PAD_WIDTH,
           gameData.player2.coord.y,
           gameData.player2.coord.y +
-            PAD_HEIGHT * gameData.game.player1Gifts.size
+            PAD_HEIGHT * gameData.game.player2Gifts.size
         ) &&
         !this.isInside(
           e.coord.x + GIFT_WIDTH / 2,
@@ -274,7 +274,7 @@ export class GameService {
           gameData.player2.coord.x + PAD_WIDTH,
           gameData.player2.coord.y,
           gameData.player2.coord.y +
-            PAD_HEIGHT * gameData.game.player1Gifts.size
+            PAD_HEIGHT * gameData.game.player2Gifts.size
         )
       ) {
         return true;
