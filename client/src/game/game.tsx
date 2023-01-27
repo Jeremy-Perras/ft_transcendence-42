@@ -29,7 +29,7 @@ import {
   FRAME_RATE,
   animateBall,
   animateOpponentPad,
-  animateBallGift,
+  animateGifts,
 } from "./functions/game";
 import { GameData, padMove } from "./types/gameData";
 
@@ -189,7 +189,7 @@ const GameCanvas = ({
             type: "GIFT",
 
             Gift: [],
-            player1Gifts: { size: 1, speed: 1 }, // ratio
+            player1Gifts: { size: 1, speed: 1 },
             player2Gifts: { size: 1, speed: 1 },
           },
   });
@@ -324,8 +324,6 @@ const GameCanvas = ({
           (m) => m.timestamp === frontGameData.current.player1.lastMoveTimestamp
         );
         if (t) {
-          // const diff = backData.player1.coord.y - t.y;
-          // console.log(diff);
           yPlayer.current = backData.player1.coord.y;
         }
         frontGameData.current.player1.coord.y = yPlayer.current;
@@ -357,8 +355,6 @@ const GameCanvas = ({
           (m) => m.timestamp === frontGameData.current.player2.lastMoveTimestamp
         );
         if (t) {
-          // const diff = backData.player2.coord.y - t.y;
-          // console.log(diff);
           yPlayer.current = backData.player2.coord.y;
         }
         frontGameData.current.player2.coord.y = yPlayer.current;
@@ -410,9 +406,9 @@ const GameCanvas = ({
               );
             }
           }
-          if (frontGameData.current.game.type !== "GIFT")
-            animateBall(frontGameData);
-          else animateBallGift(frontGameData);
+          animateBall(frontGameData);
+          if (frontGameData.current.game.type === "GIFT")
+            animateGifts(frontGameData);
           draw(ctx, frontGameData.current, playerBonus.current, currentUserId);
         }
       }
@@ -446,7 +442,7 @@ const GameCanvas = ({
   return (
     <>
       <div className="flex h-full w-full" ref={wrap} id="wrap">
-        <canvas tabIndex={0} className="m-auto  border-white" ref={canvas} />
+        <canvas tabIndex={0} className="m-auto border-white" ref={canvas} />
       </div>
     </>
   );
@@ -474,7 +470,7 @@ const Score = ({
   const navigate = useNavigate();
 
   return (
-    <div className="flex h-full w-full flex-col items-center justify-evenly">
+    <div className="cret flex h-full w-full flex-col items-center justify-evenly">
       <div className="flex items-center justify-center">
         <div className="relative flex w-48 grow-0 flex-col items-center justify-center">
           <img
@@ -566,7 +562,7 @@ const Intro = ({
   }, [timer]);
 
   return (
-    <div className="flex flex-col items-center justify-center">
+    <div className="crt flex flex-col items-center justify-center">
       <div className=" mt-10 flex w-full items-center justify-center">
         <div className="relative mx-2 flex w-40 flex-col items-center justify-center sm:w-60 ">
           <img
@@ -689,25 +685,3 @@ export const Game = () => {
       return <div>Error</div>;
   }
 };
-// const Counter = (context: CanvasRenderingContext2D, gameData: GameData) => {
-//   const [count, setCount] = useState(0);
-
-//   const requestRef = useRef<number>();
-//   const previousTimeRef = useRef<number>();
-
-//   const animate = (time: number) => {
-//     if (previousTimeRef.current != undefined) {
-//       const deltaTime = time - previousTimeRef.current;
-
-//       setCount((prevCount) => (prevCount + deltaTime * 0.01) % 100);
-//     }
-//     previousTimeRef.current = time;
-//     requestRef.current = requestAnimationFrame(animate);
-//   };
-
-//   useEffect(() => {
-//     requestRef.current = requestAnimationFrame(animate);
-//     return () => cancelAnimationFrame(requestRef.current!);
-//   }, []);
-//   return <div>{Math.round(count)}</div>;
-// };

@@ -516,8 +516,7 @@ export default function Channel() {
     : channel.muted.some((muted) => muted.user.id === userId)
     ? ChannelUserStatus.MUTED
     : ChannelUserStatus.OK;
-  console.log("members:", channel.members);
-  console.log("admins:", channel.admins);
+
   return (
     <>
       <Header>

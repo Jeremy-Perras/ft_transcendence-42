@@ -40,14 +40,6 @@ const App = () => {
         }
       });
 
-      socket.on("connect", () => {
-        console.log("connected", socket);
-      });
-
-      socket.on("disconnect", () => {
-        console.log("disconnected", socket);
-      });
-
       socket.on("invalidateDirectMessageCache", (targetId: number) => {
         queryClient.invalidateQueries(["DirectMessages"]);
         queryClient.invalidateQueries(["DirectMessages", targetId]);

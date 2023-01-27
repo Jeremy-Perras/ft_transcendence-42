@@ -1,4 +1,4 @@
-import { GameMode } from "../../gql/graphql";
+import { GameMode } from "../../../src/gql/graphql";
 import { Socket } from "socket.io-client";
 import { Coord, GameData, padMove, Player } from "../types/gameData";
 import { giftDraw } from "./gift";
@@ -15,10 +15,9 @@ export const PAD_WIDTH = Math.ceil(PAD_HEIGHT / 5);
 const BALL_RADIUS = CANVAS_WIDTH / 100;
 export const LEFT_PAD_X = CANVAS_WIDTH / 8;
 export const RIGHT_PAD_X = CANVAS_WIDTH - CANVAS_WIDTH / 8 - PAD_WIDTH;
-
-export const BALL_VELOCITY = 50; //px / 100 ms
-export const PAD_SPEED = 1; //px / ms
-export const GIFT_SPEED = 1;
+export const BALL_VELOCITY = 50;
+const GIFT_SPEED = 20; //px/100ms
+const PAD_SPEED = 1; //px / ms
 
 export function redraw(
   wrap: React.RefObject<HTMLElement>,
@@ -298,7 +297,7 @@ export const draw = (
   background.draw(context);
   names.draw(context, data.player1.name, data.player2.name);
   score.draw(context, data.player1.score, data.player2.score);
-  if (data.game.type === "CLASSIC") {
+  if (data.game.type === "CLASSIC" || data.game.type === "BOOST") {
     leftPad.draw(context, data.player1.coord.y);
     rightPad.draw(context, data.player2.coord.y);
   }
@@ -317,9 +316,15 @@ export const draw = (
       data.game.player2Gifts.size
     );
     if (currentUserId === data.player1.id)
-      text.draw(context, playerBonus, { x: 200, y: 200 });
+      text.draw(context, playerBonus, {
+        x: CANVAS_WIDTH / 10,
+        y: CANVAS_HEIGHT / 10,
+      });
     else if (currentUserId) {
-      text.draw(context, playerBonus, { x: 1800, y: 200 });
+      text.draw(context, playerBonus, {
+        x: (9 * CANVAS_WIDTH) / 10,
+        y: CANVAS_HEIGHT / 10,
+      });
     }
   }
   if (data.game.type === "CLASSIC" || data.game.type === "GIFT")
@@ -337,16 +342,8 @@ export const draw = (
   }
 };
 
-//TODO : aspect escalier deplacement balle parfois
-//TODO : animer autre pad
-//TODO : decrease progressively ball speed when unboost ? limit boost ?
-//TODO : sometimes crosses pad
-//passes through pad
-export const animateBall = (data: React.MutableRefObject<GameData>) => {
-  const vx = data.current.ball.velocity.vx;
+const wallCollision = (data: React.MutableRefObject<GameData>) => {
   const vy = data.current.ball.velocity.vy;
-
-  //wall collision
   if (vy < 0) {
     if (
       data.current.ball.coord.y + vy / FRAME_RATE <
@@ -360,7 +357,7 @@ export const animateBall = (data: React.MutableRefObject<GameData>) => {
             FRAME_RATE
         );
       data.current.ball.velocity.vy = -vy;
-      return;
+      return true;
     }
   } else if (vy > 0) {
     if (
@@ -377,181 +374,114 @@ export const animateBall = (data: React.MutableRefObject<GameData>) => {
             BORDER_HEIGHT -
             data.current.ball.coord.y));
       data.current.ball.velocity.vy = -vy;
-      return;
+      return true;
     }
   }
+  return false;
+};
 
-  //pad collision
-  //left
-  if (vx < 0) {
-    if (
-      data.current.ball.coord.x -
-        BALL_RADIUS -
-        (data.current.player1.coord.x + PAD_WIDTH) >=
-        0 &&
-      data.current.ball.coord.x -
-        BALL_RADIUS -
-        (data.current.player1.coord.x + PAD_WIDTH) <=
-        Math.abs(vx) / FRAME_RATE
-    ) {
-      const coeff =
-        (data.current.ball.coord.x -
-          BALL_RADIUS -
-          (data.current.player1.coord.x + PAD_WIDTH)) /
-        Math.abs(vx) /
-        FRAME_RATE;
-      const yColl = data.current.ball.coord.y + (vy / FRAME_RATE) * coeff;
-
-      if (
-        yColl > data.current.player1.coord.y - BALL_RADIUS &&
-        yColl < data.current.player1.coord.y + PAD_HEIGHT + BALL_RADIUS
-      ) {
-        return;
-      }
-      //TODO horizontal
-    }
-    //right
-  } else if (vx > 0) {
-    if (
-      data.current.ball.coord.x + BALL_RADIUS + vx / FRAME_RATE >=
-      data.current.player2.coord.x
-    ) {
-      const coeff =
-        (data.current.player2.coord.x -
-          (data.current.ball.coord.x + BALL_RADIUS)) /
-        vx /
-        FRAME_RATE;
-      const yColl = data.current.ball.coord.y + (vy / FRAME_RATE) * coeff;
-
-      if (
-        yColl > data.current.player2.coord.y - BALL_RADIUS &&
-        yColl < data.current.player2.coord.y + PAD_HEIGHT + BALL_RADIUS
-      ) {
-        return;
-      }
-    }
-  }
+const goal = (data: React.MutableRefObject<GameData>) => {
   if (
     data.current.ball.coord.x + data.current.ball.velocity.vx / FRAME_RATE >=
       CANVAS_WIDTH - BALL_RADIUS - BORDER_WIDTH ||
     data.current.ball.coord.x + data.current.ball.velocity.vx / FRAME_RATE <=
       BALL_RADIUS + BORDER_WIDTH
   ) {
-    return;
+    return true;
   }
-
-  //no collision
-  data.current.ball.coord.x += vx / FRAME_RATE;
-  data.current.ball.coord.y += vy / FRAME_RATE;
+  return false;
 };
 
-export const animateBallGift = (data: React.MutableRefObject<GameData>) => {
+const leftPadCollision = (data: React.MutableRefObject<GameData>) => {
   const vx = data.current.ball.velocity.vx;
   const vy = data.current.ball.velocity.vy;
+  let sizeMultiplicator = 1;
   if (data.current.game.type === "GIFT") {
-    //wall collision
-    if (vy < 0) {
-      if (
-        data.current.ball.coord.y + vy / FRAME_RATE <
-        BALL_RADIUS + BORDER_HEIGHT
-      ) {
-        data.current.ball.coord.y =
-          BALL_RADIUS +
-          BORDER_HEIGHT +
-          Math.floor(
-            (Math.abs(vy) - (data.current.ball.coord.y - BALL_RADIUS)) /
-              FRAME_RATE
-          );
-        data.current.ball.velocity.vy = -vy;
-        return;
-      }
-    } else if (vy > 0) {
-      if (
-        data.current.ball.coord.y + vy / FRAME_RATE >
-        CANVAS_HEIGHT - BALL_RADIUS - BORDER_HEIGHT
-      ) {
-        data.current.ball.coord.y =
-          CANVAS_HEIGHT -
-          BALL_RADIUS -
-          BORDER_HEIGHT -
-          (vy / FRAME_RATE -
-            (CANVAS_HEIGHT -
-              BALL_RADIUS -
-              BORDER_HEIGHT -
-              data.current.ball.coord.y));
-        data.current.ball.velocity.vy = -vy;
-        return;
-      }
-    }
+    sizeMultiplicator = data.current.game.player1Gifts.size;
+  }
+  if (
+    data.current.ball.coord.x -
+      BALL_RADIUS -
+      (data.current.player1.coord.x + PAD_WIDTH) >=
+      0 &&
+    data.current.ball.coord.x -
+      BALL_RADIUS -
+      (data.current.player1.coord.x + PAD_WIDTH) <=
+      Math.abs(vx) / FRAME_RATE
+  ) {
+    const coeff =
+      (data.current.ball.coord.x -
+        BALL_RADIUS -
+        (data.current.player1.coord.x + PAD_WIDTH)) /
+      Math.abs(vx) /
+      FRAME_RATE;
+    const yColl = data.current.ball.coord.y + (vy / FRAME_RATE) * coeff;
 
-    //pad collision
-    //left
-    if (vx < 0) {
-      if (
-        data.current.ball.coord.x -
-          BALL_RADIUS -
-          (data.current.player1.coord.x + PAD_WIDTH) >=
-          0 &&
-        data.current.ball.coord.x -
-          BALL_RADIUS -
-          (data.current.player1.coord.x + PAD_WIDTH) <=
-          Math.abs(vx) / FRAME_RATE
-      ) {
-        const coeff =
-          (data.current.ball.coord.x -
-            BALL_RADIUS -
-            (data.current.player1.coord.x + PAD_WIDTH)) /
-          Math.abs(vx) /
-          FRAME_RATE;
-        const yColl = data.current.ball.coord.y + (vy / FRAME_RATE) * coeff;
-
-        if (
-          yColl > data.current.player1.coord.y - BALL_RADIUS &&
-          yColl <
-            data.current.player1.coord.y +
-              PAD_HEIGHT * data.current.game.player1Gifts.size +
-              BALL_RADIUS
-        ) {
-          return;
-        }
-        //TODO horizontal
-      }
-      //right
-    } else if (vx > 0) {
-      if (
-        data.current.ball.coord.x + BALL_RADIUS + vx / FRAME_RATE >=
-        data.current.player2.coord.x
-      ) {
-        const coeff =
-          (data.current.player2.coord.x -
-            (data.current.ball.coord.x + BALL_RADIUS)) /
-          vx /
-          FRAME_RATE;
-        const yColl = data.current.ball.coord.y + (vy / FRAME_RATE) * coeff;
-
-        if (
-          yColl > data.current.player2.coord.y - BALL_RADIUS &&
-          yColl <
-            data.current.player2.coord.y +
-              PAD_HEIGHT * data.current.game.player2Gifts.size +
-              BALL_RADIUS
-        ) {
-          return;
-        }
-      }
-    }
     if (
-      data.current.ball.coord.x + data.current.ball.velocity.vx / FRAME_RATE >=
-        CANVAS_WIDTH - BALL_RADIUS - BORDER_WIDTH ||
-      data.current.ball.coord.x + data.current.ball.velocity.vx / FRAME_RATE <=
-        BALL_RADIUS + BORDER_WIDTH
+      yColl > data.current.player1.coord.y - BALL_RADIUS &&
+      yColl <
+        data.current.player1.coord.y +
+          sizeMultiplicator * PAD_HEIGHT +
+          BALL_RADIUS
     ) {
-      return;
+      return true;
     }
+  }
+  return false;
+};
 
-    //no collision
-    data.current.ball.coord.x += vx / FRAME_RATE;
-    data.current.ball.coord.y += vy / FRAME_RATE;
+const rightPadCollision = (data: React.MutableRefObject<GameData>) => {
+  const vx = data.current.ball.velocity.vx;
+  const vy = data.current.ball.velocity.vy;
+  let sizeMultiplicator = 1;
+  if (data.current.game.type === "GIFT") {
+    sizeMultiplicator = data.current.game.player2Gifts.size;
+  }
+  if (
+    data.current.ball.coord.x + BALL_RADIUS + vx / FRAME_RATE >=
+    data.current.player2.coord.x
+  ) {
+    const coeff =
+      (data.current.player2.coord.x -
+        (data.current.ball.coord.x + BALL_RADIUS)) /
+      vx /
+      FRAME_RATE;
+    const yColl = data.current.ball.coord.y + (vy / FRAME_RATE) * coeff;
+    if (
+      yColl > data.current.player2.coord.y - BALL_RADIUS &&
+      yColl <
+        data.current.player2.coord.y +
+          sizeMultiplicator * PAD_HEIGHT +
+          BALL_RADIUS
+    ) {
+      return true;
+    }
+  }
+  return false;
+};
+
+const padCollision = (data: React.MutableRefObject<GameData>) => {
+  if (data.current.ball.velocity.vx < 0) {
+    if (leftPadCollision(data)) return true;
+  } else if (data.current.ball.velocity.vx > 0) {
+    if (rightPadCollision(data)) return true;
+  }
+  return false;
+};
+
+export const animateBall = (data: React.MutableRefObject<GameData>) => {
+  if (wallCollision(data)) return;
+  if (padCollision(data)) return;
+  if (goal(data)) return;
+  data.current.ball.coord.x += data.current.ball.velocity.vx / FRAME_RATE;
+  data.current.ball.coord.y += data.current.ball.velocity.vy / FRAME_RATE;
+};
+
+export const animateGifts = (data: React.MutableRefObject<GameData>) => {
+  if (data.current.game.type === "GIFT") {
+    data.current.game.Gift.forEach((g) => {
+      g.coord.x = g.coord.x + (g.side * GIFT_SPEED) / FRAME_RATE;
+    });
   }
 };
 
@@ -576,7 +506,6 @@ export const animateOpponentPad = (
 
 export const setCurrentPlayerY = (
   playerY: React.MutableRefObject<number>,
-
   moves: React.MutableRefObject<
     {
       event: number;
@@ -590,6 +519,7 @@ export const setCurrentPlayerY = (
   playerSize: number
 ) => {
   const len = moves.current.length;
+
   moves.current.forEach((val, i) => {
     if (!val.done) {
       if (val.move === padMove.UP) {
@@ -682,7 +612,6 @@ export const handleKeyDown = (
           done: false,
         });
         setCurrentPlayerY(playerY, moves, playerSpeed, playerSize);
-
         playerMove.current = padMove.UP;
         socket.emit("movePadUp", { gameId: gameId, timestamp: n });
       }

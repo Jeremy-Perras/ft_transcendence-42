@@ -15,7 +15,8 @@ const PAD_WIDTH = Math.ceil(PAD_HEIGHT / 5);
 const BALL_RADIUS = CANVAS_WIDTH / 100;
 const LEFT_PAD_X = CANVAS_WIDTH / 8;
 const RIGHT_PAD_X = CANVAS_WIDTH - CANVAS_WIDTH / 8 - PAD_WIDTH;
-const BALL_VELOCITY = 50;
+const GIFT_VELOCITY = 20; //px / 100ms
+const BALL_VELOCITY = 50; //px / 100 ms
 const PAD_SPEED = 1; //px / ms
 export const GIFT_SPEED = 1;
 const BORDER_WIDTH = CANVAS_WIDTH / 100;
@@ -329,7 +330,7 @@ export class GameService {
 
     if (gameData?.game.type === "GIFT") {
       gameData.game.Gift.forEach((e) => {
-        e.coord.x += 20 * e.side;
+        e.coord.x += GIFT_VELOCITY * e.side;
       });
 
       const resultp1 = gameData.game.Gift.filter(
@@ -346,8 +347,6 @@ export class GameService {
           e.side === 1 &&
           this.giftInsidePlayer(gameData, e)
       );
-      console.log("1", gameData.game.player1Gifts.size);
-      console.log("2", gameData.game.player2Gifts.size);
       gameData.game.Gift = resultp2.concat(resultp1);
     }
   }
