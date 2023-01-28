@@ -32,7 +32,7 @@ import { ChannelUserRole } from "../types/channelUserRole";
 import { ChannelUserStatus } from "../types/channelUserStatus";
 import { graphql } from "../../gql";
 import { ChannelDiscussionQuery } from "../../gql/graphql";
-import request from "graphql-request";
+import { request } from "graphql-request";
 import queryClient from "../../query";
 import { ErrorMessage } from "../components/error";
 

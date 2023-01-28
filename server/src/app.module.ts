@@ -18,9 +18,8 @@ const serveStaticModule: DynamicModule[] = [];
 if (process.env.NODE_ENV === "production") {
   serveStaticModule.push(
     ServeStaticModule.forRoot({
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       rootPath: resolve(process.env.npm_config_local_prefix!, "client/dist"),
-      serveRoot: "/",
+      // serveRoot: "/",
     })
   );
 }
@@ -43,6 +42,7 @@ if (process.env.NODE_ENV === "production") {
     UploadModule,
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
+      persistedQueries: false,
       definitions: { emitTypenameField: true },
       autoSchemaFile: join(process.cwd(), "src/schema.gql"),
       buildSchemaOptions: {

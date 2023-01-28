@@ -1,0 +1,179 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type ChannelRestrictedUser {
+  user: User!
+  endAt: DateTime
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Channel {
+  id: Int!
+  private: Boolean!
+  passwordProtected: Boolean!
+  name: String!
+  owner: User!
+  admins: [User!]!
+  members: [User!]!
+  messages: [ChannelMessage!]!
+  banned: [ChannelRestrictedUser!]!
+  muted: [ChannelRestrictedUser!]!
+}
+
+type ChannelMessage {
+  id: Int!
+  authorId: Int!
+  author: User!
+  readBy: [User!]!
+  content: String
+  sentAt: DateTime!
+}
+
+type Players {
+  player1: User!
+  player2: User!
+}
+
+type Score {
+  player1Score: Int!
+  player2Score: Int!
+}
+
+type Game {
+  id: Int!
+  gameMode: GameMode!
+  startAt: DateTime!
+  finishedAt: DateTime
+  players: Players!
+  score: Score!
+}
+
+enum GameMode {
+  CLASSIC
+  BOOST
+  GIFT
+}
+
+type User {
+  id: Int!
+  name: String!
+  rank: Int!
+  friends: [User!]!
+  pendingFriends: [User!]!
+  games: [Game!]!
+  achievements: [Achievement!]!
+  blocked: Boolean
+  blocking: Boolean
+  channels: [Channel!]!
+  friendStatus: FriendStatus
+  status: UserStatus!
+  messages: [DirectMessage!]!
+  chats: [Chat!]!
+  state: StatesUnion
+  invitations: [Invitation!]
+}
+
+enum FriendStatus {
+  NOT_FRIEND
+  INVITATION_RECEIVED
+  INVITATION_SENT
+  FRIEND
+}
+
+enum UserStatus {
+  ONLINE
+  OFFLINE
+  PLAYING
+}
+
+union StatesUnion = WaitingForInviteeState | MatchmakingState | PlayingState
+
+type WaitingForInviteeState {
+  invitee: User!
+  gameMode: GameMode!
+}
+
+type MatchmakingState {
+  gameMode: GameMode!
+}
+
+type PlayingState {
+  game: Game!
+}
+
+type Invitation {
+  sender: User!
+  gameMode: GameMode!
+}
+
+type Chat {
+  id: Int!
+  type: ChatType!
+  name: String!
+  lastMessageContent: String
+  lastMessageDate: DateTime
+  hasUnreadMessages: Boolean!
+  status: UserStatus
+}
+
+enum ChatType {
+  CHANNEL
+  USER
+}
+
+type Achievement {
+  name: String!
+}
+
+type DirectMessage {
+  id: Int!
+  author: User!
+  recipient: User!
+  content: String!
+  sentAt: DateTime!
+  readAt: DateTime
+}
+
+type Query {
+  game(id: Int!): Game!
+  games(id: Int = null, gameMode: GameMode, finished: Boolean = null): [Game!]!
+  user(id: Int = null): User!
+  users(name: String!): [User]!
+  channel(id: Int!): Channel!
+  channels(name: String!): [Channel!]!
+}
+
+type Mutation {
+  sendGameInvite(userId: Int!, gameMode: GameMode!): Boolean!
+  cancelGameInvite: Boolean!
+  acceptGameInvite(userId: Int!): Boolean!
+  refuseGameInvite(userId: Int!): Boolean!
+  joinMatchmaking(gameMode: GameMode!): Boolean!
+  leaveMatchmaking: Boolean!
+  blockUser(userId: Int!): Boolean!
+  unblockUser(userId: Int!): Boolean!
+  friendUser(userId: Int!): Boolean!
+  unfriendUser(userId: Int!): Boolean!
+  cancelInvitation(userId: Int!): Boolean!
+  refuseInvitation(userId: Int!): Boolean!
+  updateUserName(name: String!): Boolean!
+  sendDirectMessage(userId: Int!, message: String!): Boolean!
+  joinChannel(id: Int!, password: String): Boolean!
+  leaveChannel(id: Int!): Boolean!
+  createChannel(name: String!, password: String, inviteOnly: Boolean!): Boolean!
+  deleteChannel(id: Int!): Boolean!
+  muteUser(id: Int!, userId: Int!, restrictUntil: DateTime): Boolean!
+  banUser(id: Int!, userId: Int!, restrictUntil: DateTime): Boolean!
+  unmuteUser(id: Int!, userId: Int!): Boolean!
+  unbanUser(id: Int!, userId: Int!): Boolean!
+  updatePassword(id: Int!, password: String): Boolean!
+  inviteUser(id: Int!, userId: Int!): Boolean!
+  addAdmin(id: Int!, userId: Int!): Boolean!
+  removeAdmin(id: Int!, userId: Int!): Boolean!
+  sendChannelMessage(id: Int!, message: String!): Boolean!
+}

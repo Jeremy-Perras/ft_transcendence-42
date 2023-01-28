@@ -7,7 +7,7 @@ import { ReactComponent as MessagePlusIcon } from "pixelarticons/svg/message-plu
 import * as Dialog from "@radix-ui/react-dialog";
 import { AnimatePresence, motion } from "framer-motion";
 import { useMutation } from "@tanstack/react-query";
-import request from "graphql-request";
+import { request } from "graphql-request";
 import { graphql } from "../../gql/gql";
 import queryClient from "../../query";
 

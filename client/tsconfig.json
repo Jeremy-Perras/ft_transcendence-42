@@ -1,5 +1,4 @@
-
-  {
+{
   "extends": "../tsconfig.json",
   "compilerOptions": {
     "rootDir": "./.",
@@ -12,7 +11,7 @@
     "useDefineForClassFields": true,
     "types": ["react", "react-dom"]
   },
-  "references": [{ "path": "./tsconfig.vite.json" }],
+  "references": [{ "path": "./tsconfig.node.json" }],
   "include": ["src"],
   "exclude": ["./dist"]
 }

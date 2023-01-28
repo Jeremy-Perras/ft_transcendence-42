@@ -43,7 +43,7 @@ import { Empty } from "../components/Empty";
 import { Highlight } from "../components/highlight";
 import { ChannelUserStatus } from "../types/channelUserStatus";
 import { graphql } from "../../gql";
-import request from "graphql-request";
+import { request } from "graphql-request";
 import { ChannelSettingsQuery, SearchUsersQuery } from "../../gql/graphql";
 import queryClient from "../../query";
 import { useDebouncedState } from "@react-hookz/web";

@@ -8,7 +8,7 @@ import { useSidebarStore } from "../../stores";
 
 import * as Avatar from "@radix-ui/react-avatar";
 import { useQuery } from "@tanstack/react-query";
-import request from "graphql-request";
+import { request } from "graphql-request";
 import { graphql } from "../../../src/gql/gql";
 
 const UserHeaderQueryDocument = graphql(`

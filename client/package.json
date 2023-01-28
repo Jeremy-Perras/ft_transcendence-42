@@ -6,7 +6,7 @@
     "generate:codegen": "graphql-codegen",
     "dev:codegen": "graphql-codegen --watch",
     "dev:client": "vite --host",
-    "build:client": "rm -rf dist && tsc && vite build"
+    "build:client": "NODE_ENV=production && rm -rf dist && graphql-codegen && vite build"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.0.0",
@@ -15,6 +15,7 @@
     "@tanstack/react-query": "^4.12.0",
     "@tanstack/react-query-devtools": "^4.16.1",
     "framer-motion": "^7.5.3",
+    "graphql": "^16.6.0",
     "graphql-request": "^5.0.0",
     "pixelarticons": "^1.7.0",
     "react": "^18.2.0",
@@ -34,6 +35,7 @@
     "@graphql-codegen/typescript-operations": "^2.5.5",
     "@graphql-codegen/typescript-resolvers": "^2.7.5",
     "@graphql-eslint/eslint-plugin": "^3.13.1",
+    "@rollup/plugin-commonjs": "^24.0.1",
     "@types/react": "^18.0.17",
     "@types/react-dom": "^18.0.6",
     "@vitejs/plugin-react": "^3.0.0",

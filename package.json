@@ -12,6 +12,7 @@
     "dev:client": "npm run dev:client -w client",
     "build:server": "npm run build:server -w server",
     "build:client": "npm run build:client -w client",
+    "start": "npm run start -w server",
     "test:server": "npm run test:e2e -w server"
   },
   "workspaces": [

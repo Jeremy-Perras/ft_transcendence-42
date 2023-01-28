@@ -48,7 +48,7 @@ import {
   UserProfileQuery,
   UserStatus,
 } from "../../../src/gql/graphql";
-import request from "graphql-request";
+import { request } from "graphql-request";
 import queryClient from "../../../src/query";
 import { ErrorMessage } from "../components/error";
 

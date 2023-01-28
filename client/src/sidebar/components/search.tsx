@@ -12,7 +12,7 @@ import { Highlight } from "./highlight";
 import { useAuthStore } from "../../stores";
 import { graphql } from "../../../src/gql";
 import { useQuery } from "@tanstack/react-query";
-import request from "graphql-request";
+import { request } from "graphql-request";
 import { SearchUsersAndChannelsQuery } from "../../../src/gql/graphql";
 
 const SearchUsersAndChannelsQueryDocument = graphql(`

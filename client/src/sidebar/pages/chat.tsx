@@ -26,7 +26,7 @@ import { RankIcon } from "../utils/rankIcon";
 import { useSidebarStore } from "../../stores";
 import { IsOnline } from "../components/isOnline";
 import { graphql } from "../../gql";
-import request from "graphql-request";
+import { request } from "graphql-request";
 import {
   DirectMessagesQuery,
   FriendStatus,

@@ -20,7 +20,7 @@ import { GameMode } from "../gql/graphql";
 import { ReactComponent as RefuseIcon } from "pixelarticons/svg/close.svg";
 import { graphql } from "../gql";
 import { useMutation } from "@tanstack/react-query";
-import request from "graphql-request";
+import { request } from "graphql-request";
 import queryClient from "../query";
 import { useNavigate } from "react-router-dom";
 

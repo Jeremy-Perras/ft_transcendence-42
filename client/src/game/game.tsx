@@ -1,5 +1,5 @@
 import { QueryClient, UseQueryOptions, useQuery } from "@tanstack/react-query";
-import request from "graphql-request";
+import { request } from "graphql-request";
 import { useRef, useEffect, useState } from "react";
 import {
   LoaderFunctionArgs,

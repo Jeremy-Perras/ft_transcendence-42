@@ -20,7 +20,7 @@ import ChannelSettings, {
   channelSettingsLoader,
 } from "./pages/channelSettings";
 import { graphql } from "../../src/gql";
-import request from "graphql-request";
+import { request } from "graphql-request";
 
 const NewMessagesQueryDocument = graphql(`
   query NewMessages($userId: Int) {

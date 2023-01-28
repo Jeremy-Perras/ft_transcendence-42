@@ -6,8 +6,8 @@ import SideBar from "./sidebar/sidebar";
 import queryClient from "./query";
 import { useAuthStore, useSocketStore } from "./stores";
 import "./index.css";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { ReactComponent as LogOutIcon } from "pixelarticons/svg/logout.svg";
+
 let init = false;
 const App = () => {
   const isLoggedIn = !!useAuthStore((state) => state.userId);
@@ -55,12 +55,12 @@ const App = () => {
       });
     }
   }, [isLoggedIn]);
+
   return !isConnected ? (
     <div className="relative flex h-screen w-screen overflow-hidden">
       <QueryClientProvider client={queryClient}>
         <GameRouter />
         {isLoggedIn ? <SideBar /> : null}
-        <ReactQueryDevtools initialIsOpen={false} panelPosition="left" />
       </QueryClientProvider>
     </div>
   ) : (

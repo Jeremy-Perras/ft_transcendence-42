@@ -1,5 +1,5 @@
 import { QueryClient, useQuery } from "@tanstack/react-query";
-import request from "graphql-request";
+import { request } from "graphql-request";
 import { useEffect } from "react";
 import {
   createBrowserRouter,
@@ -102,9 +102,19 @@ export const GameRouter = () => {
   const { createInvite } = useInvitationStore();
   const { setGameId } = useGameStore();
 
+  const isLoggedIn = !!useAuthStore().userId;
   const { data: getState } = useQuery({
     queryKey: ["Users", userId],
     queryFn: async () => request("/graphql", GetStateQueryDocument, {}),
+    initialData() {
+      if (!isLoggedIn) {
+        return {
+          user: {
+            state: null,
+          },
+        };
+      }
+    },
   });
 
   useEffect(() => {

@@ -5,7 +5,7 @@ import { ReactComponent as RefuseIcon } from "pixelarticons/svg/close.svg";
 import { useAuthStore, useSocketStore } from "../../stores";
 import { GameInvitation } from "../types/gameInvitation";
 import { graphql } from "../../gql";
-import request from "graphql-request";
+import { request } from "graphql-request";
 import { useMutation } from "@tanstack/react-query";
 import { GameMode } from "client/src/gql/graphql";
 import queryClient from "../../query";

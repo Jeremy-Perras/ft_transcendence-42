@@ -5,14 +5,12 @@ import {
   UseQueryOptions,
 } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-
 import { ReactComponent as UserIcon } from "pixelarticons/svg/user.svg";
 import { ReactComponent as UsersIcon } from "pixelarticons/svg/users.svg";
 import { ReactComponent as AcceptIcon } from "pixelarticons/svg/check.svg";
 import { ReactComponent as RefuseIcon } from "pixelarticons/svg/close.svg";
 import { Navigate, useLoaderData, useNavigate } from "react-router-dom";
 import * as Avatar from "@radix-ui/react-avatar";
-
 import CreateChannel, { CreateChannelBtn } from "../components/createChannel";
 import { SearchBar, SearchResults } from "../components/search";
 import {
@@ -21,20 +19,19 @@ import {
   HeaderLeftBtn,
 } from "../components/header";
 import { getDate } from "../utils/getDate";
-
 import { Empty } from "../components/Empty";
 import { ReactComponent as GamePadIcon } from "pixelarticons/svg/gamepad.svg";
 import { IsOnline } from "../components/isOnline";
 import { graphql } from "../../../src/gql";
-import request from "graphql-request";
+import { request } from "graphql-request";
 import {
   ChatType,
   DiscussionsAndInvitationsQuery,
 } from "../../../src/gql/graphql";
 import queryClient from "../../../src/query";
-
 import { useDebouncedState } from "@react-hookz/web";
 import { ErrorMessage } from "../components/error";
+import { useAuthStore } from "../../stores";
 
 const DiscussionsAndInvitationsQueryDocument = graphql(`
   query DiscussionsAndInvitations($userId: Int) {
@@ -57,27 +54,6 @@ const DiscussionsAndInvitationsQueryDocument = graphql(`
   }
 `);
 
-const GetUserStatus = graphql(`
-  query Query {
-    user {
-      state {
-        ... on WaitingForInviteeState {
-          gameMode
-        }
-        ... on MatchmakingState {
-          gameMode
-        }
-        ... on PlayingState {
-          game {
-            id
-          }
-        }
-      }
-    }
-  }
-`);
-//TODO : ask jerem if useful
-
 const query = (): UseQueryOptions<
   DiscussionsAndInvitationsQuery,
   unknown,
@@ -93,7 +69,18 @@ const query = (): UseQueryOptions<
 };
 
 export const homeLoader = async (queryClient: QueryClient) => {
-  return queryClient.fetchQuery(query());
+  const isLoggedIn = !!useAuthStore.getState().userId;
+  if (!isLoggedIn) {
+    const unsub = useAuthStore.subscribe((state) => {
+      if (state.userId) {
+        queryClient.fetchQuery(query());
+        unsub();
+      }
+    });
+    return true;
+  } else {
+    return queryClient.fetchQuery(query());
+  }
 };
 
 const AcceptInvitationMutationDocument = graphql(`
