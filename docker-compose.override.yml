@@ -1,8 +1,6 @@
 services:
   app:
     container_name: app_container_prod
-    build: .
-    volumes:
-      - app:/data/app
+    build:  .
     environment:
       NODE_ENV: production

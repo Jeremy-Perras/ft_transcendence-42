@@ -1,41 +1,14 @@
-# ------------------------------- DEPENDENCIES ------------------------------- #
-FROM node:19.2-bullseye-slim AS dependencies
+FROM node:current-slim 
 
-# Copy shared library
-COPY shared ./shared
+WORKDIR /var/local
 
-# Copy workspaces
-COPY ./client/package.json ./client/package-lock.json ./
-COPY ./server/package.json ./server/package-lock.json ./
-COPY package.json package-lock.json tsconfig.json ./
-
-# Install dependencies
-RUN npm ci
-
-# ----------------------------------- BUILD ---------------------------------- #
-FROM dependencies AS build
-
-# Copy source files
 COPY client ./client
 COPY server ./server
+COPY package.json package-lock.json tsconfig.json ./
 
-# Generate prisma
-RUN npm run generate:prisma
+RUN npm ci
 
-# Generate codegen
-RUN npm run generate:codegen
+COPY docker-entrypoint.sh /usr/local/bin/
+ENTRYPOINT [ "docker-entrypoint.sh" ]
 
-# Build server
-RUN npm run build:server
-
-# Build client
-RUN npm run build:client
-
-# TODO: Clean up
-# TODO: Move files
-
-# ---------------------------------- RELEASE --------------------------------- #
-FROM build AS release
-
-# Start server
-RUN npm run start:server
+CMD [ "start" ]

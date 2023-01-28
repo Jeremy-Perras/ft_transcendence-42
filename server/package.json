@@ -6,6 +6,7 @@
     "seed": "ts-node prisma/seed.ts"
   },
   "scripts": {
+    "build:prisma": "prisma migrate deploy",
     "generate:prisma": "prisma generate",
     "dev:seed": "prisma db execute --file ./prisma/drop.sql 2>/dev/null; prisma db push --force-reset --accept-data-loss && prisma db seed",
     "dev:studio": "prisma studio",

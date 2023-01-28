@@ -1,7 +1,7 @@
 services:
   app:
     container_name: app_container_dev
-    image: node:19.2-bullseye
+    image: node:current
     volumes:
       - .:/workspace:cached
       - vscode_extensions:/root/.vscode-server/extensions

@@ -5,6 +5,8 @@ services:
     container_name: postgres_container
     image: postgres
     environment:
+      POSTGRES_DB: "app"
+      POSTGRES_USER: "postgres"
       POSTGRES_PASSWORD: "test" #TODO: use env
       PGDATA: /data/postgres
     volumes:
@@ -12,18 +14,27 @@ services:
     networks:
       - postgres
     restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-q", "-d", "app", "-U", "postgres" ]
+      interval: 10s
+      timeout: 60s
+      retries: 5
+      start_period: 80s  
   app:
     environment:
       POSTGRES_URL: "postgresql://postgres:test@postgres:5432/app?schema=public" #TODO: use env
       SESSION_SECRET: "secret" #TODO: use env
+    ports:
+      - "80:3000"
     networks:
       - postgres
-      - app
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
 
 networks:
   postgres:
-  app:
 
 volumes:
     postgres:
-    app:
