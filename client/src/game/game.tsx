@@ -430,7 +430,7 @@ const GameCanvas = ({
     socket.on(`unpauseGame${frontGameData.current.id}`, () => {
       setGameState(gameScreenState.PLAYING);
     });
-    requestRef.current = setInterval(animate, FRAME_RATE);
+    requestRef.current = setInterval(animate, FRAME_RATE) as unknown as number;
     return () => {
       socket.off(`Game_${frontGameData.current.id}`, cb);
       socket.off(`forfeitGame${frontGameData.current.id}`, () =>

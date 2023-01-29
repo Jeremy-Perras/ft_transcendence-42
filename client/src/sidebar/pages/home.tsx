@@ -68,8 +68,10 @@ const query = (): UseQueryOptions<
   };
 };
 
-export const homeLoader = async (queryClient: QueryClient) => {
-  const isLoggedIn = !!useAuthStore.getState().userId;
+export const homeLoader = async (
+  queryClient: QueryClient
+): Promise<DiscussionsAndInvitationsQuery> => {
+  const isLoggedIn = useAuthStore.getState().isLoggedIn();
   if (!isLoggedIn) {
     const unsub = useAuthStore.subscribe((state) => {
       if (state.userId) {
@@ -77,7 +79,15 @@ export const homeLoader = async (queryClient: QueryClient) => {
         unsub();
       }
     });
-    return true;
+    return {
+      __typename: "Query",
+      user: {
+        __typename: "User",
+        id: 0,
+        chats: [],
+        pendingFriends: [],
+      },
+    };
   } else {
     return queryClient.fetchQuery(query());
   }

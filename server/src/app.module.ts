@@ -19,7 +19,6 @@ if (process.env.NODE_ENV === "production") {
   serveStaticModule.push(
     ServeStaticModule.forRoot({
       rootPath: resolve(process.env.npm_config_local_prefix!, "client/dist"),
-      // serveRoot: "/",
     })
   );
 }

@@ -1,16 +1,39 @@
+version: '3'
 services:
-  app:
+  postgres_dev:
+    container_name: postgres_container_dev
+    image: postgres
+    environment:
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=app
+      - PGDATA=/data/postgres
+    volumes:
+      - postgres_dev:/var/lib/postgresql/data
+    networks:
+      - postgres_dev
+    restart: unless-stopped
+  app_dev:
     container_name: app_container_dev
     image: node:current
     volumes:
-      - .:/workspace:cached
+      - ../:/workspace:cached
       - vscode_extensions:/root/.vscode-server/extensions
     command: /bin/sh -c "while sleep 1000; do :; done"
     ports: 
       - 3000:3000
       - 5173:5173
+    env_file: ../oauth42.env
     environment:
-      NODE_ENV: development
+      - NODE_ENV=development
+      - POSTGRES_URL=postgresql://postgres:password@postgres_dev:5432/app?schema=public
+      - SESSION_SECRET=secret
+    networks:
+      - postgres_dev
+
+networks:
+  postgres_dev:
 
 volumes:
   vscode_extensions:
+  postgres_dev:

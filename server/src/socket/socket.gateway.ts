@@ -3,7 +3,6 @@ import { EventEmitter2 } from "@nestjs/event-emitter";
 import {
   WebSocketGateway,
   WebSocketServer,
-  OnGatewayDisconnect,
   SubscribeMessage,
   ConnectedSocket,
   MessageBody,
@@ -81,14 +80,14 @@ export class SocketGateway implements OnModuleInit {
   onModuleInit() {
     this.server.on("connection", (client) => {
       client.on("getstatus", (callback) => {
-        const userId = client.request.session.passport.user;
-        const user = this.connectedUsers.get(userId);
+        const userSession = client.request.session.passport.user;
+        const user = this.connectedUsers.get(userSession.id);
         if (!user) {
           callback({
             status: "ok",
           });
-          this.connectedUsers.set(userId, client.id);
-          this.eventEmitter.emit("user.connection", userId);
+          this.connectedUsers.set(userSession.id, client.id);
+          this.eventEmitter.emit("user.connection", userSession.id);
         } else {
           callback({
             status: "You are already connected on another device",
@@ -99,12 +98,12 @@ export class SocketGateway implements OnModuleInit {
   }
 
   handleDisconnect(client: Socket) {
-    const userId = client.request.session.passport.user;
-    const user = this.connectedUsers.get(userId);
+    const userSession = client.request.session.passport.user;
+    const user = this.connectedUsers.get(userSession.id);
     if (user && user === client.id) {
-      this.connectedUsers.delete(userId);
+      this.connectedUsers.delete(userSession.id);
     }
-    this.eventEmitter.emit("user.disconnect", userId);
+    this.eventEmitter.emit("user.disconnect", userSession);
   }
 
   sendToUser(userId: number, event: string, data: unknown) {
@@ -124,10 +123,10 @@ export class SocketGateway implements OnModuleInit {
     @MessageBody()
     { gameId, timestamp }: { gameId: number; timestamp: number }
   ) {
-    const currentUserId = client.request.session.passport.user;
+    const userSession = client.request.session.passport.user;
     this.gameService.playerMove(
       playerMove.UP,
-      currentUserId,
+      userSession.id,
       gameId,
       timestamp
     );
@@ -139,10 +138,10 @@ export class SocketGateway implements OnModuleInit {
     @MessageBody()
     { gameId, timestamp }: { gameId: number; timestamp: number }
   ) {
-    const currentUserId = client.request.session.passport.user;
+    const userSession = client.request.session.passport.user;
     this.gameService.playerMove(
       playerMove.DOWN,
-      currentUserId,
+      userSession.id,
       gameId,
       timestamp
     );
@@ -153,10 +152,10 @@ export class SocketGateway implements OnModuleInit {
     @ConnectedSocket() client: Socket,
     @MessageBody() { gameId, timestamp }: { gameId: number; timestamp: number }
   ) {
-    const currentUserId = client.request.session.passport.user;
+    const userSession = client.request.session.passport.user;
     this.gameService.playerMove(
       playerMove.STILL,
-      currentUserId,
+      userSession.id,
       gameId,
       timestamp
     );
@@ -168,8 +167,8 @@ export class SocketGateway implements OnModuleInit {
     @MessageBody()
     gameId: number
   ) {
-    const currentUserId = client.request.session.passport.user;
-    this.gameService.handleBoostOn(gameId, currentUserId);
+    const userSession = client.request.session.passport.user;
+    this.gameService.handleBoostOn(gameId, userSession.id);
   }
 
   @SubscribeMessage("boostDeactivated")
@@ -178,8 +177,8 @@ export class SocketGateway implements OnModuleInit {
     @MessageBody()
     gameId: number
   ) {
-    const currentUserId = client.request.session.passport.user;
-    this.gameService.handleBoostOff(gameId, currentUserId);
+    const userSession = client.request.session.passport.user;
+    this.gameService.handleBoostOff(gameId, userSession.id);
   }
 
   @SubscribeMessage("watchLive")
@@ -189,14 +188,5 @@ export class SocketGateway implements OnModuleInit {
     gameId: number
   ) {
     client.emit("gameStarting", { gameId: gameId });
-  }
-
-  @SubscribeMessage("handleKey")
-  async onHandleKey(
-    @ConnectedSocket() client: Socket,
-    @MessageBody()
-    gameId: number
-  ) {
-    const currentUserId = client.request.session.passport.user;
   }
 }

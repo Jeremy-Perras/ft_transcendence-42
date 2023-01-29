@@ -51,6 +51,7 @@ import {
 import { request } from "graphql-request";
 import queryClient from "../../../src/query";
 import { ErrorMessage } from "../components/error";
+import { TwoFABtn } from "../components/2fa";
 
 type formData = {
   name: string;
@@ -62,6 +63,7 @@ const UserProfileQueryDocument = graphql(`
       id
       name
       rank
+      twoFAEnabled
       games {
         id
         finishedAt
@@ -305,6 +307,7 @@ const UserProfileHeader = ({
           <span>Matchs played : {numberOfGames} </span>
           <span>Victories : {victories} </span>
           <span>Victory rate : {numberOfGames ? `${victoryRate} %` : "-"}</span>
+          <TwoFABtn enabled={!!data.user.twoFAEnabled} />
         </div>
         <div className="relative mr-2 flex shrink-0 basis-1/3 flex-wrap items-center justify-center pt-1">
           {data.user.achievements.map((a, key) => (
@@ -604,6 +607,7 @@ const Disconnect = () => {
       onClick={() => {
         useAuthStore.getState().logout();
         socket.disconnect();
+        window.history.replaceState({}, "", "/");
       }}
       className="flex h-24 w-full select-none items-center justify-center border-2 border-slate-200 bg-slate-100 p-4 text-xl font-bold text-slate-600 transition-all hover:cursor-pointer  hover:bg-slate-200 hover:text-slate-600"
     >
@@ -705,9 +709,9 @@ const FriendButtons = ({
 
 const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
   const currentUserId = useAuthStore((state) => state.userId);
-  if (!currentUserId) {
-    return <Navigate to={"/"} replace={true} />;
-  }
+  // if (!currentUserId) {
+  //   return <Navigate to={"/"} replace={true} />;
+  // }
 
   const [showNameError, setShowNameError] = useState(false);
   const [displayMutationError, setDisplayMutationError] = useState(false);
@@ -759,127 +763,134 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
 
   return (
     <div className="flex h-full w-full flex-col ">
-      <Header>
+      {currentUserId ? (
         <>
-          <HeaderLeftBtn>
-            <HeaderNavigateBack />
-          </HeaderLeftBtn>
-          <HeaderCenterContent>
-            <div className="relative flex h-full items-center justify-center">
-              {currentUserId === data.user.id ? (
-                <>
-                  <img className="mr-2 h-8" src={RankIcon(data?.user.rank)} />
-                  <div className="relative flex w-fit">
-                    <form
-                      onSubmit={(e) => {
-                        e.preventDefault();
-                      }}
-                      className="relative"
-                    >
-                      <span
-                        className="invisible absolute w-fit whitespace-pre px-2"
-                        ref={setSpan}
-                      >
-                        {watchName}
-                      </span>
-                      <input
-                        {...register("name", {
-                          maxLength: 100,
-                          required: true,
-                        })}
-                        onFocus={() => setShowNameError(false)}
-                        autoComplete="off"
-                        defaultValue={data.user.name}
-                        className="peer h-8 max-w-fit self-center text-ellipsis bg-slate-50 px-2"
-                        style={{ width }}
-                        onBlur={
-                          watch("name") !== data?.user.name
-                            ? handleSubmit((param) => {
-                                updateName.mutate({ name: param.name });
-                              })
-                            : () => null
-                        }
+          <Header>
+            <>
+              <HeaderLeftBtn>
+                <HeaderNavigateBack />
+              </HeaderLeftBtn>
+              <HeaderCenterContent>
+                <div className="relative flex h-full items-center justify-center">
+                  {currentUserId === data.user.id ? (
+                    <>
+                      <img
+                        className="mr-2 h-8"
+                        src={RankIcon(data?.user.rank)}
                       />
-                      {errors.name?.type === "required" ? (
-                        <p className="absolute left-1 -bottom-5 w-32 border border-red-500 bg-red-50 text-xs text-red-300 before:content-['⚠']">
-                          Name cannot be empty
-                        </p>
-                      ) : errors.name?.type === "maxLength" ? (
-                        <p className="absolute left-1 -bottom-5 w-32 border border-red-500 bg-red-50 text-xs text-red-300 before:content-['⚠']">
-                          Name too long
-                        </p>
-                      ) : showNameError ? (
-                        <p className="absolute left-1 -bottom-5 w-28 border border-red-500 bg-red-50 text-xs text-red-300 before:content-['⚠']">
-                          Name already used
-                        </p>
-                      ) : null}
-                    </form>
-                    <div
-                      onClick={() => {
-                        setFocus("name");
-                      }}
-                      className="top-0 right-2 flex items-center hover:cursor-pointer peer-focus:hidden"
-                    >
-                      <EditIcon className="mb-2 h-3 text-slate-400" />
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="relative mr-4 h-8 w-8 shrink-0 ">
-                    <img
-                      className="h-8 w-8 border border-black"
-                      src={`/upload/avatar/${data.user.id}`}
-                    />
-                    <IsOnline userStatus={data?.user.status} />
-                    <img
-                      className="absolute top-0 -right-2 h-4"
-                      src={RankIcon(data?.user.rank)}
-                    />
-                  </div>
-                  <span className="select-none truncate">
-                    {data?.user.name}
-                  </span>
-                </>
-              )}
-            </div>
-          </HeaderCenterContent>
+                      <div className="relative flex w-fit">
+                        <form
+                          onSubmit={(e) => {
+                            e.preventDefault();
+                          }}
+                          className="relative"
+                        >
+                          <span
+                            className="invisible absolute w-fit whitespace-pre px-2"
+                            ref={setSpan}
+                          >
+                            {watchName}
+                          </span>
+                          <input
+                            {...register("name", {
+                              maxLength: 100,
+                              required: true,
+                            })}
+                            onFocus={() => setShowNameError(false)}
+                            autoComplete="off"
+                            defaultValue={data.user.name}
+                            className="peer h-8 max-w-fit self-center text-ellipsis bg-slate-50 px-2"
+                            style={{ width }}
+                            onBlur={
+                              watch("name") !== data?.user.name
+                                ? handleSubmit((param) => {
+                                    updateName.mutate({ name: param.name });
+                                  })
+                                : () => null
+                            }
+                          />
+                          {errors.name?.type === "required" ? (
+                            <p className="absolute left-1 -bottom-5 w-32 border border-red-500 bg-red-50 text-xs text-red-300 before:content-['⚠']">
+                              Name cannot be empty
+                            </p>
+                          ) : errors.name?.type === "maxLength" ? (
+                            <p className="absolute left-1 -bottom-5 w-32 border border-red-500 bg-red-50 text-xs text-red-300 before:content-['⚠']">
+                              Name too long
+                            </p>
+                          ) : showNameError ? (
+                            <p className="absolute left-1 -bottom-5 w-28 border border-red-500 bg-red-50 text-xs text-red-300 before:content-['⚠']">
+                              Name already used
+                            </p>
+                          ) : null}
+                        </form>
+                        <div
+                          onClick={() => {
+                            setFocus("name");
+                          }}
+                          className="top-0 right-2 flex items-center hover:cursor-pointer peer-focus:hidden"
+                        >
+                          <EditIcon className="mb-2 h-3 text-slate-400" />
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="relative mr-4 h-8 w-8 shrink-0 ">
+                        <img
+                          className="h-8 w-8 border border-black"
+                          src={`/upload/avatar/${data.user.id}`}
+                        />
+                        <IsOnline userStatus={data?.user.status} />
+                        <img
+                          className="absolute top-0 -right-2 h-4"
+                          src={RankIcon(data?.user.rank)}
+                        />
+                      </div>
+                      <span className="select-none truncate">
+                        {data?.user.name}
+                      </span>
+                    </>
+                  )}
+                </div>
+              </HeaderCenterContent>
+            </>
+          </Header>
+          {displayMutationError && (
+            <ErrorMessage
+              error={"You cannot do this action"}
+              setDisplay={setDisplayMutationError}
+            />
+          )}
+          <UserProfileHeader data={data} currentUserId={currentUserId} />
+          <GameHistory data={data} currentUserId={currentUserId} />
+          {currentUserId === data.user.id ? (
+            <Disconnect />
+          ) : data.user.blocked ? (
+            <Unblock
+              userId={data.user.id}
+              setDisplayMutationError={setDisplayMutationError}
+            />
+          ) : data.user.blocking ? (
+            <Blocked />
+          ) : data.user.friendStatus === FriendStatus.Friend ? (
+            <FriendButtons
+              data={data}
+              setDisplayMutationError={setDisplayMutationError}
+            />
+          ) : (
+            <AddFriend
+              userId={data.user.id}
+              pendingInvitation={
+                data.user.friendStatus === FriendStatus.InvitationSent
+              }
+              pendingAccept={
+                data.user.friendStatus === FriendStatus.InvitationReceived
+              }
+              setDisplayMutationError={setDisplayMutationError}
+            />
+          )}
         </>
-      </Header>
-      {displayMutationError && (
-        <ErrorMessage
-          error={"You cannot do this action"}
-          setDisplay={setDisplayMutationError}
-        />
-      )}
-      <UserProfileHeader data={data} currentUserId={currentUserId} />
-      <GameHistory data={data} currentUserId={currentUserId} />
-      {currentUserId === data.user.id ? (
-        <Disconnect />
-      ) : data.user.blocked ? (
-        <Unblock
-          userId={data.user.id}
-          setDisplayMutationError={setDisplayMutationError}
-        />
-      ) : data.user.blocking ? (
-        <Blocked />
-      ) : data.user.friendStatus === FriendStatus.Friend ? (
-        <FriendButtons
-          data={data}
-          setDisplayMutationError={setDisplayMutationError}
-        />
-      ) : (
-        <AddFriend
-          userId={data.user.id}
-          pendingInvitation={
-            data.user.friendStatus === FriendStatus.InvitationSent
-          }
-          pendingAccept={
-            data.user.friendStatus === FriendStatus.InvitationReceived
-          }
-          setDisplayMutationError={setDisplayMutationError}
-        />
-      )}
+      ) : null}
     </div>
   );
 };

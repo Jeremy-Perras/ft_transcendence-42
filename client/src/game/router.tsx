@@ -102,7 +102,7 @@ export const GameRouter = () => {
   const { createInvite } = useInvitationStore();
   const { setGameId } = useGameStore();
 
-  const isLoggedIn = !!useAuthStore().userId;
+  const isLoggedIn = useAuthStore().isLoggedIn();
   const { data: getState } = useQuery({
     queryKey: ["Users", userId],
     queryFn: async () => request("/graphql", GetStateQueryDocument, {}),
@@ -157,9 +157,5 @@ export const GameRouter = () => {
     };
   }, [userId]);
 
-  return (
-    <div className="relative flex h-screen w-screen shrink grow flex-col items-center bg-[#002a2a] p-10 font-display text-gray-200 sm:w-[calc(theme(width.full)-theme(width.128))]">
-      <RouterProvider router={router} />
-    </div>
-  );
+  return <RouterProvider router={router} />;
 };

@@ -6,7 +6,6 @@ import {
   ChannelRestrictedUser,
 } from "@prisma/client";
 import DataLoader from "dataloader";
-
 import { NestDataLoader } from "../dataloader";
 import { PrismaService } from "../prisma/prisma.service";
 

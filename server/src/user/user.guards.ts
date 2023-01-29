@@ -6,15 +6,16 @@ import {
   UnauthorizedException,
 } from "@nestjs/common";
 import { GqlExecutionContext } from "@nestjs/graphql";
+import UserSession from "../auth/userSession.model";
 import { PrismaService } from "../prisma/prisma.service";
 
 @Injectable()
 export class SelfGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const ctx = GqlExecutionContext.create(context);
-    const userId = +ctx.getContext().req.user;
+    const userSession: UserSession = ctx.getContext().req.user;
     const targetUserId = ctx.getArgs<{ userId: number }>().userId;
-    if (userId === targetUserId) {
+    if (userSession.id === targetUserId) {
       throw new UnauthorizedException("You cannot do this action to yourself");
     }
     return true;
@@ -27,29 +28,29 @@ export class BlockGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const ctx = GqlExecutionContext.create(context);
-    const userId = +ctx.getContext().req.user;
+    const userSession: UserSession = ctx.getContext().req.user;
     const targetUserId = ctx.getArgs<{ userId: number }>().userId;
 
     const blocked = await this.prisma.userBlock.findMany({
       where: {
         OR: [
           {
-            blockeeId: userId,
+            blockeeId: userSession.id,
             blockerId: targetUserId,
           },
           {
             blockeeId: targetUserId,
-            blockerId: userId,
+            blockerId: userSession.id,
           },
         ],
       },
     });
 
     blocked.forEach((block) => {
-      if (block.blockerId === userId) {
+      if (block.blockerId === userSession.id) {
         throw new ForbiddenException("You are blocking this user");
       }
-      if (block.blockeeId === userId) {
+      if (block.blockeeId === userSession.id) {
         throw new ForbiddenException("You are blocked by this user");
       }
     });
@@ -64,19 +65,19 @@ export class FriendGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const ctx = GqlExecutionContext.create(context);
-    const userId = +ctx.getContext().req.user;
+    const userSession: UserSession = ctx.getContext().req.user;
     const targetUserId = ctx.getArgs<{ userId: number }>().userId;
 
     const friendship = await this.prisma.friendRequest.findMany({
       where: {
         OR: [
           {
-            senderId: userId,
+            senderId: userSession.id,
             receiverId: targetUserId,
           },
           {
             senderId: targetUserId,
-            receiverId: userId,
+            receiverId: userSession.id,
           },
         ],
       },

@@ -1,8 +1,6 @@
 import { Module } from "@nestjs/common";
-import { AuthModule } from "../auth/auth.module";
 import { PrismaModule } from "../prisma/prisma.module";
 import { SocketModule } from "../socket/socket.module";
-
 import {
   ChannelLoader,
   ChannelMembersLoader,
@@ -14,7 +12,7 @@ import { ChannelMessageResolver, ChannelResolver } from "./channel.resolver";
 import { ChannelService } from "./channel.service";
 
 @Module({
-  imports: [PrismaModule, AuthModule, SocketModule],
+  imports: [PrismaModule, SocketModule],
   providers: [
     ChannelResolver,
     ChannelMessageResolver,

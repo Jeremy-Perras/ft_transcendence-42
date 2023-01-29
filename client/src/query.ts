@@ -11,7 +11,7 @@ const queryClient = new QueryClient({
   },
   queryCache: new QueryCache({
     onError: () => {
-      useAuthStore.setState({ userId: undefined });
+      useAuthStore.setState({ userId: undefined, twoFAVerified: undefined });
     },
   }),
 });

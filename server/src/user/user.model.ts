@@ -50,6 +50,9 @@ export class User {
   @Field((type) => Int)
   rank: number;
 
+  @Field((type) => Boolean, { nullable: true })
+  twoFAEnabled: boolean | null;
+
   @Field((type) => [User])
   friends: [User | undefined];
 

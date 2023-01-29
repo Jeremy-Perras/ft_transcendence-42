@@ -34,35 +34,11 @@ type ChannelMessage {
   sentAt: DateTime!
 }
 
-type Players {
-  player1: User!
-  player2: User!
-}
-
-type Score {
-  player1Score: Int!
-  player2Score: Int!
-}
-
-type Game {
-  id: Int!
-  gameMode: GameMode!
-  startAt: DateTime!
-  finishedAt: DateTime
-  players: Players!
-  score: Score!
-}
-
-enum GameMode {
-  CLASSIC
-  BOOST
-  GIFT
-}
-
 type User {
   id: Int!
   name: String!
   rank: Int!
+  twoFAEnabled: Boolean
   friends: [User!]!
   pendingFriends: [User!]!
   games: [Game!]!
@@ -96,6 +72,12 @@ union StatesUnion = WaitingForInviteeState | MatchmakingState | PlayingState
 type WaitingForInviteeState {
   invitee: User!
   gameMode: GameMode!
+}
+
+enum GameMode {
+  CLASSIC
+  BOOST
+  GIFT
 }
 
 type MatchmakingState {
@@ -139,6 +121,25 @@ type DirectMessage {
   readAt: DateTime
 }
 
+type Players {
+  player1: User!
+  player2: User!
+}
+
+type Score {
+  player1Score: Int!
+  player2Score: Int!
+}
+
+type Game {
+  id: Int!
+  gameMode: GameMode!
+  startAt: DateTime!
+  finishedAt: DateTime
+  players: Players!
+  score: Score!
+}
+
 type Query {
   game(id: Int!): Game!
   games(id: Int = null, gameMode: GameMode, finished: Boolean = null): [Game!]!
@@ -162,6 +163,8 @@ type Mutation {
   cancelInvitation(userId: Int!): Boolean!
   refuseInvitation(userId: Int!): Boolean!
   updateUserName(name: String!): Boolean!
+  enable2Fa(secret: String!): Boolean!
+  disable2Fa(token: String!): Boolean!
   sendDirectMessage(userId: Int!, message: String!): Boolean!
   joinChannel(id: Int!, password: String): Boolean!
   leaveChannel(id: Int!): Boolean!

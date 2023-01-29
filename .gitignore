@@ -12,6 +12,7 @@ lerna-debug.log*
 
 # Local
 .env
+oauth42.env
 node_modules
 *.local
 dist/

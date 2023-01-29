@@ -4,6 +4,33 @@ import {
   UnauthorizedException,
 } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
+import { Strategy } from "passport-oauth2";
+import { PassportStrategy } from "@nestjs/passport";
+import { UserService } from "../user/user.service";
+import UserSession from "./userSession.model";
+
+@Injectable()
+export class AuthStrategy extends PassportStrategy(Strategy, "auth") {
+  constructor(private userService: UserService) {
+    super({
+      authorizationURL: "https://api.intra.42.fr/oauth/authorize",
+      tokenURL: "https://api.intra.42.fr/oauth/token",
+      callbackURL: process.env.PUBLIC_OAUTH42_CALLBACK_URL,
+      clientID: process.env.PUBLIC_OAUTH42_CLIENT_ID,
+      clientSecret: process.env.OAUTH42_CLIENT_SECRET,
+    });
+  }
+
+  async validate(
+    accessToken: string,
+    refreshToken: string,
+    profile: unknown,
+    cb: (err: string | null, user?: UserSession) => void
+  ) {
+    const user = await this.userService.getOrCreateUser(accessToken);
+    cb(null, user);
+  }
+}
 
 @Injectable()
 export class LoginGuard extends AuthGuard("auth") {

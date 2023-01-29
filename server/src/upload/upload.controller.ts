@@ -6,7 +6,6 @@ import {
   UseGuards,
   UseInterceptors,
   UnsupportedMediaTypeException,
-  UnauthorizedException,
   Get,
   Param,
   NotFoundException,
@@ -15,8 +14,9 @@ import {
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { ImageFileType } from "@prisma/client";
-import { Request as ExpressRequest, Response } from "express";
+import { Response } from "express";
 import { AuthenticatedGuard } from "../auth/authenticated.guard";
+import AuthenticatedRequest from "../auth/authenticatedRequest.interface";
 import { PrismaService } from "../prisma/prisma.service";
 
 @UseGuards(AuthenticatedGuard)
@@ -58,23 +58,17 @@ export class UploadController {
     })
   )
   async uploadAvatar(
-    @Request() req: ExpressRequest,
+    @Request() req: AuthenticatedRequest,
     @UploadedFile()
     file: Express.Multer.File
   ) {
-    const userId = req.user;
-
-    if (!userId) {
-      throw new UnauthorizedException();
-    }
-
     const type = file.mimetype.match(/\/(jpg)$/)
       ? ImageFileType.JPG
       : ImageFileType.PNG;
 
     try {
       await this.prismaService.avatar.update({
-        where: { userId: +userId },
+        where: { userId: req.user.id },
         data: { fileType: type, image: file.buffer },
       });
     } catch (error) {

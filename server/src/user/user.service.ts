@@ -1,7 +1,9 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from "@nestjs/common";
 import { UserAchievement, Channel, DirectMessage, User } from "@prisma/client";
 import DataLoader from "dataloader";
@@ -20,6 +22,8 @@ import { GraphqlChannel } from "../channel/channel.resolver";
 import { SocketGateway } from "../socket/socket.gateway";
 import { GameService } from "../game/game.service";
 import { waitFor } from "xstate/lib/waitFor";
+import UserSession from "../auth/userSession.model";
+import { authenticator } from "otplib";
 
 @Injectable()
 export class UserService {
@@ -35,6 +39,94 @@ export class UserService {
       name: user.name,
       rank: user.rank,
     };
+  }
+
+  async getOrCreateUser(accessToken: string): Promise<UserSession> {
+    try {
+      const user42_response = await fetch("https://api.intra.42.fr/v2/me", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      if (!user42_response.ok) throw new Error();
+      const user42_data = await user42_response.json();
+      if (
+        "id" in user42_data &&
+        "login" in user42_data &&
+        "image" in user42_data &&
+        "link" in user42_data.image
+      ) {
+        const user = await this.prismaService.user.findUnique({
+          where: {
+            id: user42_data.id,
+          },
+        });
+
+        if (user) {
+          return {
+            id: user.id,
+            twoFactorVerified: user.twoFASecret ? false : undefined,
+          };
+        } else {
+          const image_response = await fetch(user42_data.image.link);
+          if (!image_response.ok) throw new Error("image_response not ok");
+          const image_array_buffer = await image_response.arrayBuffer();
+          const image_magic_code = Buffer.from(image_array_buffer, 0, 4);
+          let file_type: "JPG" | "PNG" | undefined;
+          if (
+            Buffer.from("ffd8ffe0", "hex").equals(image_magic_code) ||
+            Buffer.from("ffd8ffe1", "hex").equals(image_magic_code)
+          ) {
+            file_type = "JPG";
+          } else if (Buffer.from("89504e47", "hex").equals(image_magic_code)) {
+            file_type = "PNG";
+          }
+          if (!file_type) throw new Error("file_type not ok");
+          const newUser = await this.prismaService.user.create({
+            data: {
+              id: user42_data.id,
+              name: user42_data.login,
+            },
+          });
+          await this.prismaService.avatar.create({
+            data: {
+              userId: newUser.id,
+              image: Buffer.from(image_array_buffer),
+              fileType: file_type,
+            },
+          });
+          return {
+            id: newUser.id,
+            twoFactorVerified: undefined,
+          };
+        }
+      } else {
+        throw new Error();
+      }
+    } catch (error) {
+      throw new UnauthorizedException();
+    }
+  }
+
+  async getUser2FASecret(userId: number) {
+    const user = await this.prismaService.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+    if (!user) throw new NotFoundException("User not found");
+    return user.twoFASecret;
+  }
+
+  async get2FAStatus(userId: number) {
+    const user = await this.prismaService.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+    if (!user) throw new NotFoundException("User not found");
+    return user.twoFASecret ? true : false;
   }
 
   async getUserById(userLoader: DataLoader<User["id"], User>, id: number) {
@@ -468,7 +560,7 @@ export class UserService {
 
     const mergeResult: Chat[] = [];
 
-    const formatChannel = (channel: typeof res.ownedChannels[number]) => {
+    const formatChannel = (channel: (typeof res.ownedChannels)[number]) => {
       mergeResult.push({
         type: ChatType.CHANNEL,
         id: channel.id,
@@ -609,6 +701,42 @@ export class UserService {
       }
     } catch (error) {
       return null;
+    }
+  }
+
+  async enable2Fa(currentUserId: number, secret: string) {
+    const user = await this.prismaService.user.findUnique({
+      where: { id: currentUserId },
+    });
+
+    if (!user) throw new NotFoundException("User not found");
+    if (user.twoFASecret) throw new BadRequestException("2FA already enabled");
+
+    await this.prismaService.user.update({
+      where: { id: currentUserId },
+      data: {
+        twoFASecret: secret,
+      },
+    });
+  }
+
+  async disable2Fa(currentUserId: number, token: string) {
+    const user = await this.prismaService.user.findUnique({
+      where: { id: currentUserId },
+    });
+
+    if (!user) throw new NotFoundException("User not found");
+    if (!user.twoFASecret) throw new BadRequestException("2FA not enabled");
+
+    if (authenticator.check(token, user.twoFASecret)) {
+      await this.prismaService.user.update({
+        where: { id: currentUserId },
+        data: {
+          twoFASecret: null,
+        },
+      });
+    } else {
+      throw new UnauthorizedException("Invalid token");
     }
   }
 }

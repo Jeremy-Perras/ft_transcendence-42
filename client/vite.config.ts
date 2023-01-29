@@ -15,6 +15,7 @@ export default defineConfig({
       },
     },
   },
+  envPrefix: "PUBLIC_",
   plugins: [
     react(),
     svgr({

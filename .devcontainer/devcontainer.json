@@ -1,15 +1,15 @@
 {
   "name": "devcontainer",
 
-  "dockerComposeFile": ["../docker-compose.yml", "docker-compose.yml"],
+  "dockerComposeFile": ["docker-compose.yml"],
 
-  "service": "app",
+  "service": "app_dev",
 
   "workspaceFolder": "/workspace",
 
   "forwardPorts": [5555],
 
-  "runServices": ["postgres"],
+  "runServices": ["postgres_dev"],
 
   "remoteUser": "node",
 

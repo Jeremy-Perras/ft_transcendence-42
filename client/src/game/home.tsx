@@ -93,7 +93,7 @@ const Mode = ({
           });
         },
         isSelected ? 40 : 60
-      );
+      ) as unknown as number;
       return () => {
         clearInterval(gameModeIntervalId[i]);
         gameModeIntervalId[i] = -1;
@@ -170,7 +170,7 @@ const WaitingScreen = () => {
           if (width == 3) return 0;
           else return width + 1;
         });
-      }, 1000);
+      }, 1000) as unknown as number;
       return () => {
         clearInterval(waitingScreenIntervalId);
         waitingScreenIntervalId = -1;
@@ -365,7 +365,6 @@ const Error = ({
 };
 
 export const Home = () => {
-  const isLoggedIn = !!useAuthStore((state) => state.userId);
   const userId = useAuthStore().userId;
   const isSmall = useMediaQuery("(max-height : 1000px)");
   const isNarrow = useMediaQuery("(max-width : 640px)");
@@ -455,21 +454,13 @@ export const Home = () => {
           className="crt turn absolute left-2 top-1 w-8 cursor-pointer text-red-600 sm:w-9"
         />
       ) : null}
-      <div className="crt turn flex h-full select-none items-center justify-center">
-        {isLoggedIn ? (
-          <RenderState
-            isNarrow={isNarrow}
-            setMessage={setMessage}
-            setDisplayError={setDisplayError}
-          />
-        ) : (
-          <a
-            href={`${window.location.protocol}//${window.location.host}/auth/login`}
-            className="animate-pulse cursor-pointer select-none text-center text-4xl sm:text-5xl md:text-6xl lg:text-7xl"
-          >
-            Click To Login
-          </a>
-        )}
+
+      <div className="flex h-full select-none items-center justify-center">
+        <RenderState
+          isNarrow={isNarrow}
+          setMessage={setMessage}
+          setDisplayError={setDisplayError}
+        />
       </div>
       {displayError ? (
         <Error message={message} setMessage={setMessage} />

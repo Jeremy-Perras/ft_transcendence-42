@@ -1,14 +1,12 @@
 version: '3'
-
 services:
   postgres:
     container_name: postgres_container
     image: postgres
     environment:
-      POSTGRES_DB: "app"
-      POSTGRES_USER: "postgres"
-      POSTGRES_PASSWORD: "test" #TODO: use env
-      PGDATA: /data/postgres
+      - POSTGRES_DB
+      - POSTGRES_USER
+      - PGDATA=/data/postgres
     volumes:
       - postgres:/var/lib/postgresql/data
     networks:
@@ -21,11 +19,21 @@ services:
       retries: 5
       start_period: 80s  
   app:
+    container_name: app_container
+    build:  .
+    env_file: ./oauth42.env
     environment:
-      POSTGRES_URL: "postgresql://postgres:test@postgres:5432/app?schema=public" #TODO: use env
-      SESSION_SECRET: "secret" #TODO: use env
+      - NODE_ENV=production
+      - POSTGRES_URL
+      - SESSION_SECRET
+    ports:
+      - "80:3000"
     networks:
       - postgres
+    depends_on:
+        postgres:
+          condition: service_healthy
+    restart: unless-stopped
 
 networks:
   postgres:

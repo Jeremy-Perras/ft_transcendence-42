@@ -6,11 +6,8 @@ import {
 import bcrypt from "bcrypt";
 import {
   Args,
-  ArgsType,
-  Field,
   Int,
   Mutation,
-  PickType,
   Query,
   ResolveField,
   Resolver,
@@ -42,7 +39,6 @@ import {
 import DataLoader from "dataloader";
 import { ChannelService } from "./channel.service";
 import {
-  BlockingIdsLoader,
   BlockedByIdsLoader,
   UserChannelIdsLoader,
   UserLoader,
@@ -50,8 +46,17 @@ import {
 import { UserService } from "../user/user.service";
 import { PrismaService } from "../prisma/prisma.service";
 import { GraphqlUser } from "../user/user.resolver";
-import { IsByteLength, IsOptional, Length, Min } from "class-validator";
 import { SocketGateway } from "../socket/socket.gateway";
+import {
+  ChannelPasswordArgs,
+  CreateChannelArgs,
+  GetChannelArgs,
+  RestrictUserArgs,
+  SearchChannelsArgs,
+  SendChannelMessageArgs,
+  TargetUserArgs,
+} from "./channel.args";
+import UserSession from "../auth/userSession.model";
 
 export type GraphqlChannel = Omit<
   Channel,
@@ -64,68 +69,6 @@ export type GraphqlChannelRestrictedUser = Omit<
   ChannelRestrictedUser,
   "user"
 > & { user: GraphqlUser };
-
-@ArgsType()
-class ChannelArgs {
-  @Field((type) => Int)
-  @Min(0)
-  id: number;
-
-  @Field((type) => String)
-  @Length(1, 50)
-  name: string;
-
-  @Field((type) => String, { nullable: true })
-  @IsOptional()
-  @Length(1, 255)
-  password: string | null;
-
-  @Field((type) => Boolean)
-  inviteOnly: boolean;
-}
-
-@ArgsType()
-class GetChannelArgs extends PickType(ChannelArgs, ["id"] as const) {}
-
-@ArgsType()
-class SearchChannelsArgs extends PickType(ChannelArgs, ["name"] as const) {}
-
-@ArgsType()
-class ChannelPasswordArgs extends PickType(ChannelArgs, [
-  "id",
-  "password",
-] as const) {}
-
-@ArgsType()
-class TargetUserArgs extends PickType(ChannelArgs, ["id"] as const) {
-  @Field((type) => Int)
-  @Min(0)
-  userId: number;
-}
-
-@ArgsType()
-class CreateChannelArgs extends PickType(ChannelArgs, [
-  "name",
-  "inviteOnly",
-  "password",
-] as const) {}
-
-@ArgsType()
-class RestrictUserArgs extends PickType(ChannelArgs, ["id"] as const) {
-  @Field((type) => Int)
-  @Min(0)
-  userId: number;
-
-  @Field((type) => Date, { nullable: true })
-  restrictUntil: Date | null;
-}
-
-@ArgsType()
-class SendChannelMessageArgs extends GetChannelArgs {
-  @Field((type) => String)
-  @IsByteLength(1, 65535)
-  message: string;
-}
 
 @Resolver(Channel)
 @UseGuards(GqlAuthenticatedGuard)
@@ -176,11 +119,11 @@ export class ChannelResolver {
     >,
     @Loader(UserLoader)
     userLoader: DataLoader<PrismaUser["id"], PrismaUser>,
-    @CurrentUser() currentUserId: number,
+    @CurrentUser() currentUser: UserSession,
     @Root() channel: Channel
   ): Promise<GraphqlUser[]> {
     return await this.channelService.getAdmins(
-      currentUserId,
+      currentUser.id,
       channelLoader,
       channelMembersLoader,
       userLoader,
@@ -199,11 +142,11 @@ export class ChannelResolver {
     >,
     @Loader(UserLoader)
     userLoader: DataLoader<PrismaUser["id"], PrismaUser>,
-    @CurrentUser() currentUserId: number,
+    @CurrentUser() currentUser: UserSession,
     @Root() channel: Channel
   ): Promise<GraphqlUser[]> {
     return await this.channelService.getMembers(
-      currentUserId,
+      currentUser.id,
       channelLoader,
       channelMembersLoader,
       userLoader,
@@ -215,7 +158,7 @@ export class ChannelResolver {
   async muted(
     @Loader(UserChannelIdsLoader)
     userChannelIdsLoader: DataLoader<PrismaUser["id"], number[]>,
-    @CurrentUser() currentUserId: number,
+    @CurrentUser() currentUser: UserSession,
     @Root() channel: Channel,
     @Loader(ChannelRestrictedUserLoader)
     channelMutedMembersLoader: DataLoader<
@@ -226,7 +169,7 @@ export class ChannelResolver {
   ): Promise<GraphqlChannelRestrictedUser[]> {
     return await this.channelService.getRestrictedMembers(
       userChannelIdsLoader,
-      currentUserId,
+      currentUser.id,
       channelMutedMembersLoader,
       userLoader,
       channel.id,
@@ -238,7 +181,7 @@ export class ChannelResolver {
   async banned(
     @Loader(UserChannelIdsLoader)
     userChannelIdsLoader: DataLoader<PrismaUser["id"], number[]>,
-    @CurrentUser() currentUserId: number,
+    @CurrentUser() currentUser: UserSession,
     @Root() channel: Channel,
     @Loader(ChannelRestrictedUserLoader)
     channelBannedMembersLoader: DataLoader<
@@ -249,7 +192,7 @@ export class ChannelResolver {
   ): Promise<GraphqlChannelRestrictedUser[]> {
     return await this.channelService.getRestrictedMembers(
       userChannelIdsLoader,
-      currentUserId,
+      currentUser.id,
       channelBannedMembersLoader,
       userLoader,
       channel.id,
@@ -269,14 +212,14 @@ export class ChannelResolver {
     @Loader(BlockedByIdsLoader)
     blockedByIdsLoader: DataLoader<PrismaUser["id"], number[]>,
     @Root() channel: Channel,
-    @CurrentUser() currentUserId: number
+    @CurrentUser() currentUser: UserSession
   ): Promise<GraphqlChannelMessage[]> {
     const m = await this.channelService.getMessages(
       userChannelIdsLoader,
       channelMessagesLoader,
       blockedByIdsLoader,
       channel.id,
-      currentUserId
+      currentUser.id
     );
 
     return m;
@@ -285,9 +228,9 @@ export class ChannelResolver {
   @Mutation((returns) => Boolean)
   async joinChannel(
     @Args() { id, password }: ChannelPasswordArgs,
-    @CurrentUser() currentUserId: number
+    @CurrentUser() currentUser: UserSession
   ) {
-    await this.channelService.joinChannel(id, password, currentUserId);
+    await this.channelService.joinChannel(id, password, currentUser.id);
 
     return true;
   }
@@ -295,9 +238,9 @@ export class ChannelResolver {
   @Mutation((returns) => Boolean)
   async leaveChannel(
     @Args() { id }: GetChannelArgs,
-    @CurrentUser() currentUserId: number
+    @CurrentUser() currentUser: UserSession
   ) {
-    await this.channelService.leaveChannel(id, currentUserId);
+    await this.channelService.leaveChannel(id, currentUser.id);
 
     return true;
   }
@@ -305,14 +248,14 @@ export class ChannelResolver {
   @Mutation((returns) => Boolean)
   async createChannel(
     @Args() { inviteOnly, name, password }: CreateChannelArgs,
-    @CurrentUser() currentUserId: number
+    @CurrentUser() currentUser: UserSession
   ) {
     const hash = password ? bcrypt.hashSync(password, 10) : null;
     await this.channelService.createChannel(
       inviteOnly,
       name,
       hash,
-      currentUserId
+      currentUser.id
     );
 
     return true;
@@ -321,9 +264,9 @@ export class ChannelResolver {
   @Mutation((returns) => Boolean)
   async deleteChannel(
     @Args() { id }: GetChannelArgs,
-    @CurrentUser() currentUserId: number
+    @CurrentUser() currentUser: UserSession
   ) {
-    await this.channelService.deleteChannel(id, currentUserId);
+    await this.channelService.deleteChannel(id, currentUser.id);
 
     return true;
   }
@@ -331,10 +274,10 @@ export class ChannelResolver {
   @Mutation((returns) => Boolean)
   async muteUser(
     @Args() { id, userId, restrictUntil }: RestrictUserArgs,
-    @CurrentUser() currentUserId: number
+    @CurrentUser() currentUser: UserSession
   ) {
     await this.channelService.setUserRestriction(
-      currentUserId,
+      currentUser.id,
       id,
       userId,
       restrictUntil,
@@ -347,10 +290,10 @@ export class ChannelResolver {
   @Mutation((returns) => Boolean)
   async banUser(
     @Args() { id, userId, restrictUntil }: RestrictUserArgs,
-    @CurrentUser() currentUserId: number
+    @CurrentUser() currentUser: UserSession
   ) {
     await this.channelService.setUserRestriction(
-      currentUserId,
+      currentUser.id,
       id,
       userId,
       restrictUntil,
@@ -363,10 +306,10 @@ export class ChannelResolver {
   @Mutation((returns) => Boolean)
   async unmuteUser(
     @Args() { id, userId }: TargetUserArgs,
-    @CurrentUser() currentUserId: number
+    @CurrentUser() currentUser: UserSession
   ) {
     await this.channelService.setUserRestriction(
-      currentUserId,
+      currentUser.id,
       id,
       userId,
       new Date(),
@@ -379,10 +322,10 @@ export class ChannelResolver {
   @Mutation((returns) => Boolean)
   async unbanUser(
     @Args() { id, userId }: TargetUserArgs,
-    @CurrentUser() currentUserId: number
+    @CurrentUser() currentUser: UserSession
   ) {
     await this.channelService.setUserRestriction(
-      currentUserId,
+      currentUser.id,
       id,
       userId,
       new Date(),
@@ -395,10 +338,10 @@ export class ChannelResolver {
   @Mutation((returns) => Boolean)
   async updatePassword(
     @Args() { id, password }: ChannelPasswordArgs,
-    @CurrentUser() currentUserId: number
+    @CurrentUser() currentUser: UserSession
   ) {
     const hash = password ? bcrypt.hashSync(password, 10) : null;
-    await this.channelService.updatePassword(id, hash, currentUserId);
+    await this.channelService.updatePassword(id, hash, currentUser.id);
 
     return true;
   }
@@ -413,9 +356,9 @@ export class ChannelResolver {
   @Mutation((returns) => Boolean)
   async addAdmin(
     @Args() { id, userId }: TargetUserArgs,
-    @CurrentUser() currentUserId: number
+    @CurrentUser() currentUser: UserSession
   ) {
-    await this.channelService.addAdmin(id, userId, currentUserId);
+    await this.channelService.addAdmin(id, userId, currentUser.id);
 
     return true;
   }
@@ -423,9 +366,9 @@ export class ChannelResolver {
   @Mutation((returns) => Boolean)
   async removeAdmin(
     @Args() { id, userId }: TargetUserArgs,
-    @CurrentUser() currentUserId: number
+    @CurrentUser() currentUser: UserSession
   ) {
-    await this.channelService.removeAdmin(id, userId, currentUserId);
+    await this.channelService.removeAdmin(id, userId, currentUser.id);
 
     return true;
   }
@@ -472,7 +415,7 @@ export class ChannelMessageResolver {
   @Mutation((returns) => Boolean)
   async sendChannelMessage(
     @Args() { id, message }: SendChannelMessageArgs,
-    @CurrentUser() currentUserId: number
+    @CurrentUser() currentUser: UserSession
   ) {
     try {
       const channel = await this.prismaService.channel.findUnique({
@@ -498,15 +441,15 @@ export class ChannelMessageResolver {
       });
 
       if (
-        channel?.ownerId !== currentUserId &&
-        !channel?.members.some((member) => member.userId === currentUserId)
+        channel?.ownerId !== currentUser.id &&
+        !channel?.members.some((member) => member.userId === currentUser.id)
       ) {
         throw new ForbiddenException("You are not a member of this channel");
       }
 
       const isMuted = await this.prismaService.channelRestrictedUser.findFirst({
         where: {
-          userId: currentUserId,
+          userId: currentUser.id,
           channelId: id,
           OR: [
             {
@@ -528,7 +471,7 @@ export class ChannelMessageResolver {
         data: {
           content: message,
           sentAt: new Date(),
-          authorId: currentUserId,
+          authorId: currentUser.id,
           channelId: id,
         },
       });

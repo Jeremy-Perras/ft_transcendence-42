@@ -2,13 +2,14 @@ import { IoAdapter } from "@nestjs/platform-socket.io";
 import { ServerOptions, Server } from "socket.io";
 import { Request, Response, NextFunction } from "express";
 import { Session } from "express-session";
+import UserSession from "../auth/userSession.model";
 
 declare module "http" {
   interface IncomingMessage {
     session: Session & {
       authenticated: boolean;
       passport: {
-        user: number;
+        user: UserSession;
       };
     };
   }
@@ -33,7 +34,10 @@ export class ExpressIoAdapter extends IoAdapter {
     });
     server.use((socket, next) => {
       const session = socket.request.session;
-      if (!session.passport?.user) {
+      if (
+        !session.passport?.user ||
+        session.passport.user.twoFactorVerified === false
+      ) {
         next(new Error("unauthorized"));
       } else {
         next();

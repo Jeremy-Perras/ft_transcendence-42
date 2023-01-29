@@ -6,24 +6,24 @@ import {
 } from "@nestjs/common";
 import {
   Args,
-  ArgsType,
-  Field,
   Int,
-  IntersectionType,
   Mutation,
   Query,
   ResolveField,
   Resolver,
   Root,
 } from "@nestjs/graphql";
-import { Prisma, GameMode, prisma } from "@prisma/client";
+import { Prisma, GameMode } from "@prisma/client";
 import { GqlAuthenticatedGuard } from "../auth/authenticated.guard";
 import { CurrentUser } from "../auth/currentUser.decorator";
 import { PrismaService } from "../prisma/prisma.service";
-import { GetUserArgs, GraphqlUser } from "../user/user.resolver";
+import { GraphqlUser } from "../user/user.resolver";
 import { Game } from "./game.model";
 import { GameService } from "./game.service";
 import { waitFor } from "xstate/lib/waitFor";
+import { GameModeArgs, InviteArgs } from "./game.args";
+import { GetUserArgs } from "../user/user.args";
+import UserSession from "../auth/userSession.model";
 
 export type GraphqlGame = Omit<Game, "players">;
 
@@ -31,15 +31,6 @@ type GraphqlPlayers = {
   player1: GraphqlUser;
   player2: GraphqlUser;
 };
-
-@ArgsType()
-class GameModeArgs {
-  @Field((type) => GameMode)
-  gameMode: GameMode;
-}
-
-@ArgsType()
-class InviteArgs extends IntersectionType(GetUserArgs, GameModeArgs) {}
 
 @Resolver(Game)
 @UseGuards(GqlAuthenticatedGuard)
@@ -191,9 +182,9 @@ export class GameResolver {
   @Mutation((returns) => Boolean)
   async sendGameInvite(
     @Args() { userId, gameMode }: InviteArgs,
-    @CurrentUser() currentUserId: number
+    @CurrentUser() currentUser: UserSession
   ) {
-    const currentPlayer = this.gameService.getPlayer(currentUserId);
+    const currentPlayer = this.gameService.getPlayer(currentUser.id);
     if (!currentPlayer) throw new BadRequestException();
     const wait = waitFor(
       currentPlayer,
@@ -207,7 +198,7 @@ export class GameResolver {
 
     const name = await this.prisma.user.findFirst({
       select: { name: true },
-      where: { id: currentUserId },
+      where: { id: currentUser.id },
     });
 
     currentPlayer.send({
@@ -222,8 +213,8 @@ export class GameResolver {
   }
 
   @Mutation((returns) => Boolean)
-  async cancelGameInvite(@CurrentUser() currentUserId: number) {
-    const currentPlayer = this.gameService.getPlayer(currentUserId);
+  async cancelGameInvite(@CurrentUser() currentUser: UserSession) {
+    const currentPlayer = this.gameService.getPlayer(currentUser.id);
     if (!currentPlayer) throw new BadRequestException();
     const wait = waitFor(currentPlayer, (state) => state.matches("_.idle"), {
       timeout: 10000,
@@ -240,9 +231,9 @@ export class GameResolver {
   @Mutation((returns) => Boolean)
   async acceptGameInvite(
     @Args() { userId }: GetUserArgs,
-    @CurrentUser() currentUserId: number
+    @CurrentUser() currentUser: UserSession
   ) {
-    const currentPlayer = this.gameService.getPlayer(currentUserId);
+    const currentPlayer = this.gameService.getPlayer(currentUser.id);
     if (!currentPlayer) throw new BadRequestException();
     const wait = waitFor(currentPlayer, (state) => state.matches("_.playing"), {
       timeout: 10000,
@@ -257,9 +248,9 @@ export class GameResolver {
   @Mutation((returns) => Boolean)
   async refuseGameInvite(
     @Args() { userId }: GetUserArgs,
-    @CurrentUser() currentUserId: number
+    @CurrentUser() currentUser: UserSession
   ) {
-    const currentPlayer = this.gameService.getPlayer(currentUserId);
+    const currentPlayer = this.gameService.getPlayer(currentUser.id);
     if (!currentPlayer) throw new BadRequestException();
     const wait = waitFor(
       currentPlayer,
@@ -281,9 +272,9 @@ export class GameResolver {
   @Mutation((returns) => Boolean)
   async joinMatchmaking(
     @Args() { gameMode }: GameModeArgs,
-    @CurrentUser() currentUserId: number
+    @CurrentUser() currentUser: UserSession
   ) {
-    const currentPlayer = this.gameService.getPlayer(currentUserId);
+    const currentPlayer = this.gameService.getPlayer(currentUser.id);
     if (!currentPlayer) throw new BadRequestException();
     const wait = waitFor(
       currentPlayer,
@@ -302,8 +293,8 @@ export class GameResolver {
   }
 
   @Mutation((returns) => Boolean)
-  async leaveMatchmaking(@CurrentUser() currentUserId: number) {
-    const currentPlayer = this.gameService.getPlayer(currentUserId);
+  async leaveMatchmaking(@CurrentUser() currentUser: UserSession) {
+    const currentPlayer = this.gameService.getPlayer(currentUser.id);
     if (!currentPlayer) throw new BadRequestException();
     const wait = waitFor(currentPlayer, (state) => state.matches("_.idle"), {
       timeout: 10000,

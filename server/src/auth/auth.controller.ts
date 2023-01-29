@@ -1,61 +1,52 @@
 import {
   Controller,
   UseGuards,
-  Body,
-  Post,
-  UnauthorizedException,
   Get,
+  Req,
   Redirect,
-  Request,
+  Post,
+  Body,
+  UnauthorizedException,
 } from "@nestjs/common";
-import { Request as RequestExpress } from "express";
+import { authenticator } from "otplib";
+import { UserService } from "../user/user.service";
 import { AuthenticatedGuard } from "./authenticated.guard";
+import AuthenticatedRequest from "./authenticatedRequest.interface";
 import { LoginGuard } from "./login.guard";
 
 @Controller("/auth")
 export class AuthController {
-  @Get("/login") // TODO: 42 oauth
-  loginRedirect(): string {
-    return `
-    <html>
-    <body style="height: 100vh; margin: 0;">
-    <div style="height: 100%; flex: 1; display: flex; justify-content: center; align-items: center;">
-    <form action="/auth/callback" method="post">
-      <label for="id">user id:</label>
-      <input type="number" id="id" name="id">
-      <input type="submit" value="Submit">
-    </form> 
-    </div>
-    </body>
-    </html>
-    `;
-  }
+  constructor(private userService: UserService) {}
 
   @UseGuards(LoginGuard)
-  @Post("/callback")
+  @Get("/callback")
   @Redirect(
     process.env.NODE_ENV === "production" ? "/" : "http://localhost:5173",
     301
   )
-  callback(@Body("id") userId: number): void {
-    if (!userId) {
-      throw new UnauthorizedException();
-    }
+  callback(): void {
+    return;
   }
 
-  @UseGuards(AuthenticatedGuard)
+  @Post("/verify-otp")
+  async otp(@Req() req: AuthenticatedRequest, @Body("token") token: string) {
+    const secret = await this.userService.getUser2FASecret(req.user.id);
+    if (secret && authenticator.check(token, secret)) {
+      req.user.twoFactorVerified = true;
+      return "ok";
+    }
+    throw new UnauthorizedException();
+  }
+
   @Get("/session")
-  session(@Request() req: RequestExpress) {
-    return { userId: req.session.passport.user };
+  session(@Req() req: AuthenticatedRequest) {
+    if (!req.user) throw new UnauthorizedException();
+    return req.user;
   }
 
   @UseGuards(AuthenticatedGuard)
   @Get("/logout")
-  async logout(@Request() req: RequestExpress) {
-    const userId = req.user as string;
-    if (!userId) {
-      throw new UnauthorizedException();
-    }
+  async logout(@Req() req: AuthenticatedRequest) {
     req.session.destroy(() => {
       return "ok";
     });

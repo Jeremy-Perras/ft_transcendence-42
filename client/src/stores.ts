@@ -1,5 +1,5 @@
 import { Socket, io } from "socket.io-client";
-import create from "zustand";
+import { create } from "zustand";
 
 type SidebarStore = {
   isOpen: boolean;
@@ -23,19 +23,31 @@ const useSocketStore = create<SocketStore>(() => ({
 
 type AuthStore = {
   userId: number | undefined;
+  twoFAVerified: boolean | undefined;
+  set2Fa: (verified: boolean) => void;
   login: (id: number) => void;
   logout: () => void;
+  isLoggedIn: () => boolean;
 };
-const useAuthStore = create<AuthStore>((set) => ({
+const useAuthStore = create<AuthStore>((set, get) => ({
   userId: undefined,
+  twoFAVerified: undefined,
+  set2Fa: (verified) => {
+    set({ twoFAVerified: verified });
+  },
   login: (id: number) => {
     return set({ userId: id });
   },
   logout: () => {
     fetch("/auth/logout").then(() => {
-      set({ userId: undefined });
-      window.location.href = "/";
+      set({ userId: undefined, twoFAVerified: undefined });
     });
+  },
+  isLoggedIn: () => {
+    return (
+      get().userId !== undefined &&
+      (get().twoFAVerified === undefined || get().twoFAVerified !== false)
+    );
   },
 }));
 
