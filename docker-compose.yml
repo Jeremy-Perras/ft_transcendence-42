@@ -24,14 +24,8 @@ services:
     environment:
       POSTGRES_URL: "postgresql://postgres:test@postgres:5432/app?schema=public" #TODO: use env
       SESSION_SECRET: "secret" #TODO: use env
-    ports:
-      - "80:3000"
     networks:
       - postgres
-    restart: unless-stopped
-    depends_on:
-      postgres:
-        condition: service_healthy
 
 networks:
   postgres:
