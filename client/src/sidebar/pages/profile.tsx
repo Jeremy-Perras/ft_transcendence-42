@@ -212,9 +212,11 @@ const Achievement = ({
 const UserProfileHeader = ({
   data,
   currentUserId,
+  setDisplayMutationError,
 }: {
   data: UserProfileQuery;
   currentUserId: number | undefined;
+  setDisplayMutationError: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   const numberOfGames = data?.user.games.length;
 
@@ -249,9 +251,11 @@ const UserProfileHeader = ({
     fetch("/upload/avatar/", {
       method: "POST",
       body: formData,
-    }).then(() => {
-      queryClient.invalidateQueries(["UserProfile", data.user.id]);
-      invalidateAvatarCache();
+    }).then((resp) => {
+      if (resp.ok) {
+        queryClient.invalidateQueries(["UserProfile", data.user.id]);
+        invalidateAvatarCache();
+      } else setDisplayMutationError(true);
     });
   };
 
@@ -858,7 +862,11 @@ const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
               setDisplay={setDisplayMutationError}
             />
           )}
-          <UserProfileHeader data={data} currentUserId={currentUserId} />
+          <UserProfileHeader
+            data={data}
+            currentUserId={currentUserId}
+            setDisplayMutationError={setDisplayMutationError}
+          />
           <GameHistory data={data} currentUserId={currentUserId} />
           {currentUserId === data.user.id ? (
             <Disconnect />
