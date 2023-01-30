@@ -103,7 +103,8 @@ const App = () => {
   } = useForm<ValidateFormInput>();
 
   useEffect(() => {
-    if (window.location.pathname != "/") window.location.replace("/");
+    if (window.location.pathname != "/")
+      window.history.replaceState({}, "", "/");
   }, []);
 
   return (
