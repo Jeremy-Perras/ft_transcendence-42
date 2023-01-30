@@ -977,8 +977,8 @@ export class GameService {
           this.endGame(gameId);
         }
         if (gameData.game.type === "BOOST") {
-          if (gameData.game.player1Boost.remaining < 90)
-            gameData.game.player1Boost.remaining += 10;
+          if (gameData.game.player1Boost.remaining < 98)
+            gameData.game.player1Boost.remaining += 2;
           else gameData.game.player1Boost.remaining = 100;
         }
         isScoring = true;
@@ -991,8 +991,8 @@ export class GameService {
           this.endGame(gameId);
         }
         if (gameData.game.type === "BOOST") {
-          if (gameData.game.player2Boost.remaining < 95)
-            gameData.game.player2Boost.remaining += 5;
+          if (gameData.game.player2Boost.remaining < 98)
+            gameData.game.player2Boost.remaining += 2;
           else gameData.game.player2Boost.remaining = 100;
         }
         isScoring = true;
