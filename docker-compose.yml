@@ -27,6 +27,7 @@ services:
       - NODE_ENV=production
       - POSTGRES_URL
       - SESSION_SECRET
+      - IP
     ports:
       - "80:3000"
     networks:

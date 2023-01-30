@@ -26,8 +26,6 @@ services:
     env_file: ../oauth42.env
     environment:
       - NODE_ENV=development
-      - POSTGRES_URL=postgresql://postgres:password@postgres_dev:5432/app?schema=public
-      - SESSION_SECRET=secret
     networks:
       - postgres_dev
 
