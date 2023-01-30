@@ -13,9 +13,9 @@ const PAD_WIDTH = Math.ceil(PAD_HEIGHT / 5);
 const BALL_RADIUS = CANVAS_WIDTH / 100;
 const LEFT_PAD_X = CANVAS_WIDTH / 8;
 const RIGHT_PAD_X = CANVAS_WIDTH - CANVAS_WIDTH / 8 - PAD_WIDTH;
-const GIFT_VELOCITY = 20; //px / 100ms
-const BALL_VELOCITY = 75; //px / 100 ms
-const PAD_SPEED = 1; //px / ms
+const GIFT_VELOCITY = 20;
+const BALL_VELOCITY = 75;
+const PAD_SPEED = 1;
 export const GIFT_SPEED = 1;
 const BORDER_WIDTH = CANVAS_WIDTH / 100;
 const BORDER_HEIGHT = CANVAS_HEIGHT / 100;
@@ -175,13 +175,13 @@ export class GameService {
           : gameMode === GameMode.BOOST
           ? {
               type: "BOOST",
-              player1Boost: { activated: false, remaining: 100 }, // percent
+              player1Boost: { activated: false, remaining: 100 },
               player2Boost: { activated: false, remaining: 100 },
             }
           : {
               type: "GIFT",
               Gift: [],
-              player1Gifts: { size: 1, speed: 1 }, // ratio
+              player1Gifts: { size: 1, speed: 1 },
               player2Gifts: { size: 1, speed: 1 },
             },
     };
@@ -618,7 +618,6 @@ export class GameService {
     };
 
     const leftPadCollision = (gameData: GameData): boolean => {
-      //VERTICAL COLLISION
       if (
         gameData.ball.coord.x -
           BALL_RADIUS -
@@ -639,7 +638,6 @@ export class GameService {
           yColl >= gameData.player1.coord.y &&
           yColl <= gameData.player1.coord.y + PAD_HEIGHT
         ) {
-          //collision
           const padCollisionRatio =
             (yColl - gameData.player1.coord.y - PAD_HEIGHT / 2) /
             (PAD_HEIGHT / 2);
@@ -653,14 +651,11 @@ export class GameService {
           else if (padCollisionRatio < 0.75) angle = Math.PI / 6;
           else angle = Math.PI / 4;
 
-          //new velocity
-
           let sinus = Math.sin(angle);
           if (Math.abs(sinus) < Number.EPSILON) sinus = 0;
           gameData.ball.velocity.vy = BALL_VELOCITY * 2 * sinus;
           gameData.ball.velocity.vx = -gameData.ball.velocity.vx;
 
-          //next coordinate
           gameData.ball.coord.x =
             gameData.player1.coord.x +
             PAD_WIDTH +
@@ -674,7 +669,6 @@ export class GameService {
           return true;
         }
 
-        //upper corner
         if (
           yColl > gameData.player1.coord.y - BALL_RADIUS &&
           yColl < gameData.player1.coord.y
@@ -695,7 +689,6 @@ export class GameService {
           return true;
         }
 
-        //lower corner
         if (
           yColl > gameData.player1.coord.y + PAD_HEIGHT &&
           yColl < gameData.player1.coord.y + PAD_HEIGHT + BALL_RADIUS
@@ -716,7 +709,6 @@ export class GameService {
         }
       }
 
-      //horizontal collision - inferior border
       if (
         gameData.ball.velocity.vy < 0 &&
         gameData.ball.coord.y - BALL_RADIUS >=
@@ -750,7 +742,6 @@ export class GameService {
         }
       }
 
-      //horizontal - superior border
       if (
         gameData.ball.velocity.vy > 0 &&
         gameData.ball.coord.y + BALL_RADIUS <= gameData.player1.coord.y &&
@@ -782,7 +773,6 @@ export class GameService {
     };
 
     const rightPadCollision = (gameData: GameData): boolean => {
-      //vertical collision
       if (
         gameData.player2.coord.x - (gameData.ball.coord.x + BALL_RADIUS) >= 0 &&
         gameData.ball.coord.x +
@@ -795,7 +785,6 @@ export class GameService {
           Math.abs(gameData.ball.velocity.vx);
         const yColl = gameData.ball.coord.y + gameData.ball.velocity.vy * coeff;
 
-        //pad core collision
         if (
           yColl >= gameData.player2.coord.y &&
           yColl <= gameData.player2.coord.y + PAD_HEIGHT
@@ -866,7 +855,6 @@ export class GameService {
         }
       }
 
-      // horizontal collision - inferior border
       if (
         gameData.ball.velocity.vy < 0 &&
         gameData.ball.coord.y - BALL_RADIUS >=
@@ -901,7 +889,6 @@ export class GameService {
         }
       }
 
-      //horizontal collision - superior border
       if (
         gameData.ball.velocity.vy > 0 &&
         gameData.ball.coord.y + BALL_RADIUS <= gameData.player2.coord.y &&
@@ -934,7 +921,6 @@ export class GameService {
     };
 
     const goal = (gameData: GameData): boolean => {
-      // OK
       let isScoring = false;
       if (
         gameData.ball.coord.x + gameData.ball.velocity.vx >=
@@ -1040,7 +1026,6 @@ export class GameService {
       };
 
       const leftPadCollision = (gameData: GameData): boolean => {
-        //VERTICAL COLLISION
         if (gameData.game.type === "GIFT") {
           if (
             gameData.ball.coord.x -
@@ -1066,7 +1051,6 @@ export class GameService {
                 gameData.player1.coord.y +
                   PAD_HEIGHT * gameData.game.player1Gifts.size
             ) {
-              //collision
               const padCollisionRatio =
                 (yColl -
                   gameData.player1.coord.y -
@@ -1082,14 +1066,11 @@ export class GameService {
               else if (padCollisionRatio < 0.75) angle = Math.PI / 6;
               else angle = Math.PI / 4;
 
-              //new velocity
-
               let sinus = Math.sin(angle);
               if (Math.abs(sinus) < Number.EPSILON) sinus = 0;
               gameData.ball.velocity.vy = BALL_VELOCITY * 2 * sinus;
               gameData.ball.velocity.vx = -gameData.ball.velocity.vx;
 
-              //next coordinate
               gameData.ball.coord.x =
                 gameData.player1.coord.x +
                 PAD_WIDTH +
@@ -1103,7 +1084,6 @@ export class GameService {
               return true;
             }
 
-            //upper corner
             if (
               yColl > gameData.player1.coord.y - BALL_RADIUS &&
               yColl < gameData.player1.coord.y
@@ -1124,7 +1104,6 @@ export class GameService {
               return true;
             }
 
-            //lower corner
             if (
               yColl >
                 gameData.player1.coord.y +
@@ -1151,7 +1130,6 @@ export class GameService {
             }
           }
 
-          //horizontal collision - inferior border
           if (
             gameData.ball.velocity.vy < 0 &&
             gameData.ball.coord.y - BALL_RADIUS >=
@@ -1189,7 +1167,6 @@ export class GameService {
             }
           }
 
-          //horizontal - superior border
           if (
             gameData.ball.velocity.vy > 0 &&
             gameData.ball.coord.y + BALL_RADIUS <= gameData.player1.coord.y &&
@@ -1224,7 +1201,6 @@ export class GameService {
       };
 
       const rightPadCollision = (gameData: GameData): boolean => {
-        //vertical collision
         if (gameData.game.type === "GIFT") {
           if (
             gameData.player2.coord.x - (gameData.ball.coord.x + BALL_RADIUS) >=
@@ -1241,7 +1217,6 @@ export class GameService {
             const yColl =
               gameData.ball.coord.y + gameData.ball.velocity.vy * coeff;
 
-            //pad core collision
             if (
               yColl >= gameData.player2.coord.y &&
               yColl <=
@@ -1321,7 +1296,6 @@ export class GameService {
             }
           }
 
-          // horizontal collision - inferior border
           if (
             gameData.ball.velocity.vy < 0 &&
             gameData.ball.coord.y - BALL_RADIUS >=
@@ -1360,7 +1334,6 @@ export class GameService {
             }
           }
 
-          //horizontal collision - superior border
           if (
             gameData.ball.velocity.vy > 0 &&
             gameData.ball.coord.y + BALL_RADIUS <= gameData.player2.coord.y &&
@@ -1395,7 +1368,6 @@ export class GameService {
       };
 
       const goal = (gameData: GameData): boolean => {
-        // OK
         let isScoring = false;
         if (gameData.game.type === "GIFT") {
           if (

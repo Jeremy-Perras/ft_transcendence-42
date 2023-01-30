@@ -673,7 +673,7 @@ export class UserService {
       const snap = player.getSnapshot();
       if (snap.matches("_.playing")) {
         const game = this.gameService.getGame(currentUserId)!;
-        const c = new PlayingState(); // TODO: verify graphql Game;
+        const c = new PlayingState();
         c.game = {
           gameMode: game.game.type,
           id: game.id,
@@ -689,7 +689,7 @@ export class UserService {
           where: { id: player.getSnapshot().context.inviteeId },
         });
         const c = new WaitingForInviteeState();
-        c.invitee = { id: user!.id, name: user!.name, rank: user!.rank }; // TODO: verify graphql USER
+        c.invitee = { id: user!.id, name: user!.name, rank: user!.rank };
         c.gameMode = player.getSnapshot().context.gameMode!;
         return c;
       } else if (snap.matches("_.waitingForMatchmaking")) {

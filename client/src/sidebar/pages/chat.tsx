@@ -93,9 +93,6 @@ const query = (
       status: data.user.status,
       friendStatus: data.user.friendStatus,
       messages: data.user.messages,
-      // messages: data.user.messages.sort(
-      //   (a, b) => new Date(a.sentAt).valueOf() - b.sentAt.valueOf()
-      // ),
     }),
   };
 };

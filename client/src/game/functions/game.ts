@@ -3,7 +3,7 @@ import { Socket } from "socket.io-client";
 import { Coord, GameData, padMove, Player } from "../types/gameData";
 import { giftDraw } from "./gift";
 
-export const FRAME_RATE = 10; //draw every 10 ms
+export const FRAME_RATE = 10;
 export const CANVAS_WIDTH = 2000;
 export const CANVAS_HEIGHT = 2000;
 const BORDER_WIDTH = CANVAS_WIDTH / 100;
@@ -16,8 +16,8 @@ const BALL_RADIUS = CANVAS_WIDTH / 100;
 export const LEFT_PAD_X = CANVAS_WIDTH / 8;
 export const RIGHT_PAD_X = CANVAS_WIDTH - CANVAS_WIDTH / 8 - PAD_WIDTH;
 export const BALL_VELOCITY = 75;
-const GIFT_SPEED = 20; //px/100ms
-const PAD_SPEED = 1; //px / ms
+const GIFT_SPEED = 20;
+const PAD_SPEED = 1;
 
 export function redraw(
   wrap: React.RefObject<HTMLElement>,

@@ -709,9 +709,6 @@ const FriendButtons = ({
 
 const DisplayUserProfile = ({ data }: { data: UserProfileQuery }) => {
   const currentUserId = useAuthStore((state) => state.userId);
-  // if (!currentUserId) {
-  //   return <Navigate to={"/"} replace={true} />;
-  // }
 
   const [showNameError, setShowNameError] = useState(false);
   const [displayMutationError, setDisplayMutationError] = useState(false);
