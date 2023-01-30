@@ -187,7 +187,7 @@ export default function CreateChannel({
                                 className="text-center text-sm text-red-600"
                                 role="alert"
                               >
-                                You must set a name for a channel
+                                Name must be between 1 and 100 characters
                               </span>
                             )}
                           </div>
@@ -234,7 +234,7 @@ export default function CreateChannel({
                               className="text-center text-sm text-red-600"
                               role="alert"
                             >
-                              You must set a password
+                              You must set a password (max 100 characters)
                             </span>
                           )}
                         </div>
