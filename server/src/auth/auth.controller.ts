@@ -21,7 +21,9 @@ export class AuthController {
   @UseGuards(LoginGuard)
   @Get("/callback")
   @Redirect(
-    process.env.NODE_ENV === "production" ? "/" : "http://localhost:5173",
+    process.env.NODE_ENV === "production"
+      ? "/"
+      : `http://${process.env.IP}:5173`,
     301
   )
   callback(): void {

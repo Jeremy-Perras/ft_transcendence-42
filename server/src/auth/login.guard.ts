@@ -45,7 +45,9 @@ export class LoginGuard extends AuthGuard("auth") {
       request.session.destroy();
       const response: Response = context.switchToHttp().getResponse();
       response.redirect(
-        process.env.NODE_ENV === "production" ? "/" : "http://localhost:5173"
+        process.env.NODE_ENV === "production"
+          ? "/"
+          : `http://${process.env.IP}:5173`
       );
       return false;
     }

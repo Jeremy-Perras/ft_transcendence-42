@@ -18,7 +18,7 @@ module.export = {
         "prettier/prettier": "error",
       },
       parserOptions: {
-        schema: "http://localhost:3000/graphql",
+        schema: `http://${process.env.IP}:3000/graphql`,
       },
     },
   ],

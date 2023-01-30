@@ -18,7 +18,6 @@
       "type": "chrome",
       "request": "launch",
       "name": "Launch Chrome against localhost",
-      "url": "http://localhost:5173",
       "webRoot": "${workspaceFolder}/client/src"
     }
   ]
