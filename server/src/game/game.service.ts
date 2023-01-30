@@ -280,23 +280,57 @@ export class GameService {
       }
       if (e.side === -1 && gameData.game.type === "GIFT") {
         if (e.gift.name === "SIZE_DOWN") {
-          gameData.game.player1Gifts.size *= e.gift.size;
+          if (
+            gameData.game.player1Gifts.size * e.gift.size >
+            PAD_HEIGHT * 0.1
+          ) {
+            gameData.game.player1Gifts.size *= e.gift.size;
+          }
         } else if (e.gift.name === "SIZE_UP") {
-          gameData.game.player1Gifts.size *= e.gift.size;
+          if (
+            gameData.game.player1Gifts.size * e.gift.size <
+            CANVAS_HEIGHT - 2 * BORDER_HEIGHT
+          ) {
+            gameData.game.player1Gifts.size *= e.gift.size;
+          }
         } else if (e.gift.name === "SPEED_SLOW") {
-          gameData.game.player1Gifts.speed *= e.gift.speed;
+          if (
+            gameData.game.player1Gifts.size * e.gift.speed >
+            PAD_SPEED * 0.1
+          ) {
+            gameData.game.player1Gifts.speed *= e.gift.speed;
+          }
         } else if (e.gift.name === "SPEED_UP") {
-          gameData.game.player1Gifts.speed *= e.gift.speed;
+          if (gameData.game.player1Gifts.size * e.gift.speed < PAD_SPEED * 5) {
+            gameData.game.player1Gifts.speed *= e.gift.speed;
+          }
         }
       } else if (gameData.game.type === "GIFT") {
         if (e.gift.name === "SIZE_DOWN") {
-          gameData.game.player2Gifts.size *= e.gift.size;
+          if (
+            gameData.game.player2Gifts.size * e.gift.size >
+            PAD_HEIGHT * 0.1
+          ) {
+            gameData.game.player2Gifts.size *= e.gift.size;
+          }
         } else if (e.gift.name === "SIZE_UP") {
-          gameData.game.player2Gifts.size *= e.gift.size;
+          if (
+            gameData.game.player2Gifts.size * e.gift.size <
+            CANVAS_HEIGHT - 2 * BORDER_HEIGHT
+          ) {
+            gameData.game.player2Gifts.size *= e.gift.size;
+          }
         } else if (e.gift.name === "SPEED_SLOW") {
-          gameData.game.player2Gifts.speed *= e.gift.speed;
+          if (
+            gameData.game.player2Gifts.size * e.gift.speed >
+            PAD_SPEED * 0.1
+          ) {
+            gameData.game.player2Gifts.speed *= e.gift.speed;
+          }
         } else if (e.gift.name === "SPEED_UP") {
-          gameData.game.player2Gifts.speed *= e.gift.speed;
+          if (gameData.game.player2Gifts.size * e.gift.speed < PAD_SPEED * 5) {
+            gameData.game.player2Gifts.speed *= e.gift.speed;
+          }
         }
       }
       return false;
