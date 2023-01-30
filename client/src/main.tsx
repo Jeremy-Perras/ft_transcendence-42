@@ -9,6 +9,11 @@ import "./index.css";
 import { ReactComponent as LogOutIcon } from "pixelarticons/svg/logout.svg";
 import { useMediaQuery } from "@react-hookz/web";
 import LogoImage from "./assets/images/logo.svg";
+import { useForm } from "react-hook-form";
+
+type ValidateFormInput = {
+  code: string;
+};
 
 const AuthLayout = ({ children }: { children: ReactElement }) => {
   const isSmall = useMediaQuery("(max-height : 1000px)");
@@ -57,6 +62,7 @@ const App = () => {
 
   useEffect(() => {
     if (isLoggedIn) {
+      if (!socket.connected) socket.connect();
       socket.emit("getstatus", (response: { status: string }) => {
         if (response.status === "You are already connected on another device") {
           setConnectionStatus("OTHER_DEVICE");
@@ -90,6 +96,13 @@ const App = () => {
     }
   }, [isLoggedIn, userId, twoFAVerified]);
 
+  const {
+    register,
+    formState: { errors },
+    handleSubmit,
+    setError,
+  } = useForm<ValidateFormInput>();
+
   return (
     <div className="relative flex h-screen w-screen overflow-hidden">
       <QueryClientProvider client={queryClient}>
@@ -117,9 +130,9 @@ const App = () => {
                   </span>
                   <LogOutIcon
                     onClick={() => {
-                      // useAuthStore.getState().logout();
-                      // socket.disconnect();
-                      // setIsConnected(false);
+                      useAuthStore.getState().logout();
+                      socket.disconnect();
+                      setConnectionStatus("DISCONNECTED");
                     }}
                     className="absolute top-2 right-2 h-8 rotate-180 cursor-pointer bg-red-600 text-black hover:bg-red-500"
                   />
@@ -133,7 +146,27 @@ const App = () => {
                     <h2 className="mb-8 block text-center text-4xl">
                       Two-Factor Authentication
                     </h2>
-                    <form className="flex w-fit flex-col items-center">
+                    <form
+                      onSubmit={handleSubmit((data) => {
+                        fetch("/auth/verify-otp", {
+                          method: "POST",
+                          body: JSON.stringify({
+                            token: data.code,
+                          }),
+                          headers: { "Content-Type": "application/json" },
+                        }).then((data) => {
+                          if (data.ok) {
+                            set2Fa(true);
+                          } else {
+                            setError("code", {
+                              type: "custom",
+                              message: "This code is invalid",
+                            });
+                          }
+                        });
+                      })}
+                      className="flex w-fit flex-col items-center"
+                    >
                       <fieldset>
                         <label htmlFor="code" className="text-xl">
                           Enter the code provided by the app
@@ -141,16 +174,17 @@ const App = () => {
                         <input
                           id="code"
                           type="text"
-                          className={"mt-1 block w-full"}
-                          // {...register("code", {
-                          //   required: true,
-                          //   pattern: /[0-9]{6}/,
-                          // })}
+                          className={"mt-1 block w-full text-gray-700"}
+                          {...register("code", {
+                            required: true,
+                            pattern: /[0-9]{6}/,
+                          })}
                         />
                         <span className="text-sm text-red-500">
-                          {/* {errors.code
-                  ? errors.code.message || "You must input a valid code"
-                  : null} */}
+                          {errors.code
+                            ? errors.code.message ||
+                              "You must input a valid code"
+                            : null}
                         </span>
                       </fieldset>
                       <div className="mt-4 flex justify-end">
@@ -167,9 +201,9 @@ const App = () => {
                   </div>
                   <LogOutIcon
                     onClick={() => {
-                      // useAuthStore.getState().logout();
-                      // socket.disconnect();
-                      // setIsConnected(false);
+                      useAuthStore.getState().logout();
+                      socket.disconnect();
+                      setConnectionStatus("DISCONNECTED");
                     }}
                     className="absolute top-2 right-2 h-8 rotate-180 cursor-pointer bg-red-600 text-black hover:bg-red-500"
                   />
