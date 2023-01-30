@@ -354,7 +354,48 @@ const GameCanvas = ({
           playerSpeed.current = frontGameData.current.game.player1Gifts.speed;
         }
         nextYOpponent.current = backData.player2.coord.y;
-        yPlayer.current = backData.player1.coord.y;
+
+        const lastMoveIndex = moves.current.findIndex(
+          (m) => m.timestamp === backData.player1.lastMoveTimestamp
+        );
+        const lastMove = moves.current[lastMoveIndex];
+
+        if (lastMove) {
+          const diff = backData.player1.coord.y - lastMove.y;
+          console.log(
+            backData.player1.lastMoveTimestamp,
+            lastMoveIndex,
+            backData.player1.coord.y,
+            lastMove.y,
+            diff
+          );
+          for (
+            let index = lastMoveIndex;
+            index < moves.current.length;
+            index++
+          ) {
+            const copy = moves.current[index];
+            if (copy) {
+              copy.y += diff;
+              moves.current[index] = copy;
+            }
+          }
+          // console.log(backData.player1.coord.y, lastMove.y);
+          yPlayer.current += diff;
+        }
+
+        // [0, 1, 2]
+        // [1,2,3]
+        // 1
+
+        // console.log(
+        //   "Last move :",
+
+        // );
+        // console.log("last move", backData.player1.lastMoveTimestamp);
+        // console.log("P1 - Current front position: ", yPlayer);
+        // console.log("P1 - Current back position: ", backData.player1.coord.y);
+        // yPlayer.current = backData.player1.coord.y;
         frontGameData.current.player1.coord.y = yPlayer.current;
       } else if (currentUserId === frontGameData.current.player2.id) {
         if (frontGameData.current.game.type === "GIFT") {
@@ -368,7 +409,36 @@ const GameCanvas = ({
           playerSpeed.current = frontGameData.current.game.player2Gifts.speed;
         }
         nextYOpponent.current = backData.player1.coord.y;
-        yPlayer.current = backData.player2.coord.y;
+        // yPlayer.current = backData.player2.coord.y;
+        const lastMoveIndex = moves.current.findIndex(
+          (m) => m.timestamp === backData.player2.lastMoveTimestamp
+        );
+        const lastMove = moves.current[lastMoveIndex];
+
+        if (lastMove) {
+          const diff = backData.player2.coord.y - lastMove.y;
+          console.log(
+            backData.player2.lastMoveTimestamp,
+            lastMoveIndex,
+            backData.player2.coord.y,
+            lastMove.y,
+            diff
+          );
+          for (
+            let index = lastMoveIndex;
+            index < moves.current.length;
+            index++
+          ) {
+            const copy = moves.current[index];
+            if (copy) {
+              copy.y += diff;
+              moves.current[index] = copy;
+            }
+          }
+          // console.log(backData.player1.coord.y, lastMove.y);
+          yPlayer.current += diff;
+        }
+
         frontGameData.current.player2.coord.y = yPlayer.current;
       } else {
         frontGameData.current.player1.coord.y = backData.player1.coord.y;
