@@ -6,7 +6,6 @@ import {
 } from "@tanstack/react-query";
 import {
   LoaderFunctionArgs,
-  Navigate,
   useLoaderData,
   useNavigate,
   useParams,

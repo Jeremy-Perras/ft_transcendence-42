@@ -1,5 +1,4 @@
 const GIFT_HEIGHT = 338;
-const GIFT_WIDTH = 338;
 const SCALE_LOW = 0.2;
 const SCALE_TOP = 5;
 

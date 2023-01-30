@@ -32,7 +32,9 @@ import {
   animateGifts,
 } from "./functions/game";
 import { GameData, padMove } from "./types/gameData";
-
+import { ReactComponent as ArrowUp } from "pixelarticons/svg/arrow-up-box.svg";
+import { ReactComponent as ArrowDown } from "pixelarticons/svg/arrow-down-box.svg";
+import { useMediaQuery } from "@react-hookz/web";
 enum gameScreenState {
   INTRO,
   PLAYING,
@@ -362,13 +364,7 @@ const GameCanvas = ({
 
         if (lastMove) {
           const diff = backData.player1.coord.y - lastMove.y;
-          console.log(
-            backData.player1.lastMoveTimestamp,
-            lastMoveIndex,
-            backData.player1.coord.y,
-            lastMove.y,
-            diff
-          );
+
           for (
             let index = lastMoveIndex;
             index < moves.current.length;
@@ -380,22 +376,10 @@ const GameCanvas = ({
               moves.current[index] = copy;
             }
           }
-          // console.log(backData.player1.coord.y, lastMove.y);
+
           yPlayer.current += diff;
         }
 
-        // [0, 1, 2]
-        // [1,2,3]
-        // 1
-
-        // console.log(
-        //   "Last move :",
-
-        // );
-        // console.log("last move", backData.player1.lastMoveTimestamp);
-        // console.log("P1 - Current front position: ", yPlayer);
-        // console.log("P1 - Current back position: ", backData.player1.coord.y);
-        // yPlayer.current = backData.player1.coord.y;
         frontGameData.current.player1.coord.y = yPlayer.current;
       } else if (currentUserId === frontGameData.current.player2.id) {
         if (frontGameData.current.game.type === "GIFT") {
@@ -409,21 +393,14 @@ const GameCanvas = ({
           playerSpeed.current = frontGameData.current.game.player2Gifts.speed;
         }
         nextYOpponent.current = backData.player1.coord.y;
-        // yPlayer.current = backData.player2.coord.y;
+
         const lastMoveIndex = moves.current.findIndex(
           (m) => m.timestamp === backData.player2.lastMoveTimestamp
         );
         const lastMove = moves.current[lastMoveIndex];
-
         if (lastMove) {
           const diff = backData.player2.coord.y - lastMove.y;
-          console.log(
-            backData.player2.lastMoveTimestamp,
-            lastMoveIndex,
-            backData.player2.coord.y,
-            lastMove.y,
-            diff
-          );
+
           for (
             let index = lastMoveIndex;
             index < moves.current.length;
@@ -435,7 +412,7 @@ const GameCanvas = ({
               moves.current[index] = copy;
             }
           }
-          // console.log(backData.player1.coord.y, lastMove.y);
+
           yPlayer.current += diff;
         }
 
@@ -495,7 +472,6 @@ const GameCanvas = ({
       setGameState(gameScreenState.SCORE)
     );
     socket.on(`pauseGame${frontGameData.current.id}`, () => {
-      console.log("test");
       setGameState(gameScreenState.PAUSE);
     });
     socket.on(`unpauseGame${frontGameData.current.id}`, () => {
@@ -546,16 +522,28 @@ const MatchHeader = ({
   player2Name: string;
   player2Rank: number;
 }) => {
+  const isSmall = useMediaQuery("(max-height : 1000px)");
+  const isNarrow = useMediaQuery("(max-width : 640px)");
   return (
-    <div className=" mt-10 flex w-full items-center justify-center">
-      <div className="relative mx-2 flex w-40 flex-col items-center justify-center sm:w-60 ">
+    <div className="mt-10 flex w-full items-center justify-center">
+      <div
+        className={`${
+          isSmall || isNarrow ? " w-40" : " w-60"
+        } relative mx-2 flex flex-col items-center justify-center`}
+      >
         <img
-          className="h-40 w-40 justify-end border border-black object-cover sm:h-60 sm:w-60"
+          className={`${
+            isSmall || isNarrow ? "h-40 w-40" : "h-60 w-60"
+          }  justify-end border border-black object-cover `}
           src={`/upload/avatar/${player1Id}`}
-          alt="Player 2 avatar"
+          alt="Player 1 avatar"
         />
         <img
-          className="absolute top-2 -right-6 h-12 w-12 sm:-right-10 sm:h-20 sm:w-20"
+          className={`${
+            isSmall || isNarrow
+              ? "-right-6 h-12 w-12 "
+              : "-right-10 sm:h-20 sm:w-20 "
+          } absolute top-2`}
           src={RankIcon(player1Rank)}
         />
         <div className="mt-2 truncate text-center text-xs sm:text-base ">
@@ -563,14 +551,24 @@ const MatchHeader = ({
         </div>
       </div>
       <div className="mx-4 select-none text-center">VS</div>
-      <div className="relative mx-2 flex w-40 flex-col items-center justify-center sm:w-60">
+      <div
+        className={`${
+          isSmall || isNarrow ? " w-40" : " w-60"
+        } relative mx-2 flex flex-col items-center justify-center`}
+      >
         <img
-          className="h-40 w-40 justify-end border border-black object-cover sm:h-60 sm:w-60"
+          className={`${
+            isSmall || isNarrow ? "h-40 w-40" : "h-60 w-60"
+          }  justify-end border border-black object-cover `}
           src={`/upload/avatar/${player2Id}`}
           alt="Player 2 avatar"
         />
         <img
-          className="absolute top-2 -right-6 h-12 w-12 sm:-right-10 sm:h-20 sm:w-20"
+          className={`${
+            isSmall || isNarrow
+              ? "-right-6 h-12 w-12 "
+              : "-right-10 sm:h-20 sm:w-20 "
+          } absolute top-2`}
           src={RankIcon(player2Rank)}
         />
         <div className="mt-2 truncate text-center text-xs sm:text-base ">
@@ -583,7 +581,8 @@ const MatchHeader = ({
 
 const Score = ({ data }: { data: GameQuery }) => {
   const navigate = useNavigate();
-
+  const isSmall = useMediaQuery("(max-height : 1000px)");
+  const isNarrow = useMediaQuery("(max-width : 640px)");
   useEffect(() => {
     queryClient.invalidateQueries(["Game", data.game.id]);
   }, []);
@@ -598,11 +597,13 @@ const Score = ({ data }: { data: GameQuery }) => {
         player2Name={data.game.players.player2.name}
         player2Rank={data.game.players.player2.rank}
       />
-      <div className="text-4xl">
+      <div className={`${isSmall || isNarrow ? "text-xl" : ""} text-4xl `}>
         {`${data.game.score.player1Score} - ${data.game.score.player2Score}`}
       </div>
       <div
-        className="my-6 text-3xl text-white hover:cursor-pointer"
+        className={`${
+          isSmall || isNarrow ? "text-xl" : "text-3xl"
+        } my-6  text-white hover:cursor-pointer `}
         onClick={() => navigate(`/`)}
       >
         Home
@@ -622,6 +623,8 @@ const Intro = ({
 }) => {
   const currentUserId = useAuthStore((state) => state.userId);
   const socket = useSocketStore().socket;
+  const isSmall = useMediaQuery("(max-height : 1000px)");
+  const isNarrow = useMediaQuery("(max-width : 640px)");
 
   const [timer, setTimer] = useState(
     Math.floor(
@@ -686,18 +689,42 @@ const Intro = ({
         player2Rank={data.game.players.player2.rank}
       />
 
-      <div className="my-10 flex w-20 justify-center text-5xl">
+      <div
+        className={`${
+          isSmall || isNarrow ? "my-2 text-base" : "my-5 text-xl"
+        } flex w-20 justify-center `}
+      >
         <span>{Math.floor(timer / 60)} </span>
         <span className="mx-1 pb-1 font-mono">:</span>
         <span>{timer % 60 < 10 ? `0${timer % 60}` : `${timer % 60}`}</span>
       </div>
+      <div
+        className={`${
+          isSmall || isNarrow ? "text-base" : "my-5 text-xl"
+        } flex `}
+      >
+        <div>Move the pad with</div>
+        <ArrowUp className="mx-2 w-8" />
+        <div>and</div>
+        <ArrowDown className="mx-2 w-8" />
+      </div>
       {data.game.gameMode === GameMode.Boost && (
-        <div className="my-10 text-center  text-xl">
-          Press SPACE to fire the ball!
+        <div
+          className={`${
+            isSmall || isNarrow ? "my-2 text-center text-base " : "my-5 text-xl"
+          }`}
+        >
+          Boost Mode - Press SPACE to fire the ball!
         </div>
       )}
       {data.game.gameMode === GameMode.Gift && (
-        <div className="my-10 text-center  text-xl">Catch the gifts!</div>
+        <div
+          className={`${
+            isSmall || isNarrow ? "my-2 text-center text-base " : "my-5 text-xl"
+          }`}
+        >
+          Bonus Mode - Catch the gifts!
+        </div>
       )}
     </div>
   );
