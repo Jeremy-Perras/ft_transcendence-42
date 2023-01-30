@@ -8,6 +8,7 @@ import { Strategy } from "passport-oauth2";
 import { PassportStrategy } from "@nestjs/passport";
 import { UserService } from "../user/user.service";
 import UserSession from "./userSession.model";
+import { Response } from "express";
 
 @Injectable()
 export class AuthStrategy extends PassportStrategy(Strategy, "auth") {
@@ -42,7 +43,11 @@ export class LoginGuard extends AuthGuard("auth") {
       return result;
     } catch (error) {
       request.session.destroy();
-      throw new UnauthorizedException();
+      const response: Response = context.switchToHttp().getResponse();
+      response.redirect(
+        process.env.NODE_ENV === "production" ? "/" : "http://localhost:5173"
+      );
+      return false;
     }
   }
 }
