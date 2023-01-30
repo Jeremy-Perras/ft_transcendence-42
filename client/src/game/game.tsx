@@ -424,9 +424,10 @@ const GameCanvas = ({
     socket.on(`forfeitGame${frontGameData.current.id}`, () =>
       setGameState(gameScreenState.SCORE)
     );
-    socket.on(`pauseGame${frontGameData.current.id}`, () =>
-      setGameState(gameScreenState.PAUSE)
-    );
+    socket.on(`pauseGame${frontGameData.current.id}`, () => {
+      // console.log("test");
+      setGameState(gameScreenState.PAUSE);
+    });
     socket.on(`unpauseGame${frontGameData.current.id}`, () => {
       setGameState(gameScreenState.PLAYING);
     });

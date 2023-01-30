@@ -376,7 +376,7 @@ const GameHistory = ({
                     onClick={() =>
                       navigate(`/profile/${game.players.player1.id}`)
                     }
-                    className="h-10 object-cover hover:cursor-pointer"
+                    className="h-10 w-10 object-cover hover:cursor-pointer"
                     src={`/upload/avatar/${game.players.player1.id}`}
                     alt="Player 1 avatar"
                   />
@@ -398,7 +398,7 @@ const GameHistory = ({
                     onClick={() =>
                       navigate(`/profile/${game.players.player2.id}`)
                     }
-                    className="relative h-10 object-cover hover:cursor-pointer"
+                    className="relative h-10 w-10 object-cover hover:cursor-pointer"
                     src={`/upload/avatar/${game.players.player2.id}`}
                     alt="Player 2 avatar"
                   />
