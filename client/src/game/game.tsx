@@ -565,7 +565,28 @@ const Intro = ({
     currentUserId === data.game.players.player2.id
       ? true
       : false;
-
+  useEffect(() => {
+    socket.on(`forfeitGame${data.game.id}`, () =>
+      setGameState(gameScreenState.SCORE)
+    );
+    socket.on(`pauseGame${data.game.id}`, () => {
+      setGameState(gameScreenState.PAUSE);
+    });
+    socket.on(`unpauseGame${data.game.id}`, () => {
+      setGameState(gameScreenState.INTRO);
+    });
+    return () => {
+      socket.off(`forfeitGame${data.game.id}`, () =>
+        setGameState(gameScreenState.SCORE)
+      );
+      socket.off(`pauseGame${data.game.id}`, () =>
+        setGameState(gameScreenState.PAUSE)
+      );
+      socket.off(`unpauseGame${data.game.id}`, () =>
+        setGameState(gameScreenState.PLAYING)
+      );
+    };
+  });
   useEffect(() => {
     if (!isPlayer) socket.emit("joinRoomAsViewer", data.game.id);
   }, []);
