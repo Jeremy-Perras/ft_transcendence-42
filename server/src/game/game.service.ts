@@ -449,7 +449,7 @@ export class GameService {
         } else if (player.coord.y < BORDER_HEIGHT) {
           player.coord.y = BORDER_HEIGHT;
         }
-        if (i === len - 1) player.lastMoveTimestamp = val.timestamp;
+
         if (val.move !== playerMove.STILL && i === len - 1) {
           newMoves.push({
             event: i + 1,
@@ -457,6 +457,9 @@ export class GameService {
             move: val.move,
             done: false,
           });
+          player.lastMoveTimestamp = 0;
+        } else if (i === len - 1) {
+          player.lastMoveTimestamp = val.timestamp;
         }
         val.done = true;
       }
@@ -550,6 +553,15 @@ export class GameService {
     const gameData = this.games.get(gameId);
     if (gameData?.game.type !== "BOOST") return;
     if (gameData !== undefined) {
+      let coeff;
+      const angle = Math.atan(
+        Math.abs(gameData.ball.velocity.vy / gameData.ball.velocity.vx)
+      );
+      if (angle < Math.PI / 12) coeff = 1.6;
+      else if (angle < Math.PI / 6) coeff = 1.4;
+      else if (angle < Math.PI / 4) coeff = 1.2;
+      else coeff = 1.1;
+
       if (playerId === gameData.player1.id) {
         if (
           gameData.game.player1Boost.remaining > 0 &&
@@ -557,9 +569,9 @@ export class GameService {
         ) {
           gameData.game.player1Boost.activated = true;
           gameData.game.player1Boost.remaining--;
-          if (Math.abs(gameData.ball.velocity.vx) < 2 * BALL_VELOCITY) {
-            gameData.ball.velocity.vx *= 1.05;
-            gameData.ball.velocity.vy *= 1.05;
+          if (Math.abs(gameData.ball.velocity.vx) < coeff * BALL_VELOCITY) {
+            gameData.ball.velocity.vx *= coeff;
+            gameData.ball.velocity.vy *= coeff;
           }
         }
         if (gameData.game.player1Boost.remaining <= 0) {
@@ -577,9 +589,9 @@ export class GameService {
         ) {
           gameData.game.player2Boost.activated = true;
           gameData.game.player2Boost.remaining--;
-          if (Math.abs(gameData.ball.velocity.vx) < 2 * BALL_VELOCITY) {
-            gameData.ball.velocity.vx *= 1.05;
-            gameData.ball.velocity.vy *= 1.05;
+          if (Math.abs(gameData.ball.velocity.vx) < coeff * BALL_VELOCITY) {
+            gameData.ball.velocity.vx *= coeff;
+            gameData.ball.velocity.vy *= coeff;
           }
         }
         if (gameData.game.player2Boost.remaining <= 0) {
