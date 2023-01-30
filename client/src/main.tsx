@@ -17,7 +17,6 @@ type ValidateFormInput = {
 
 const AuthLayout = ({ children }: { children: ReactElement }) => {
   const isSmall = useMediaQuery("(max-height : 1000px)");
-
   return (
     <>
       <img
@@ -102,6 +101,11 @@ const App = () => {
     handleSubmit,
     setError,
   } = useForm<ValidateFormInput>();
+
+  useEffect(() => {
+    if (window.location.pathname != "/")
+      window.history.replaceState({}, "", "/");
+  }, []);
 
   return (
     <div className="relative flex h-screen w-screen overflow-hidden">

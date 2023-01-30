@@ -494,9 +494,10 @@ const GameCanvas = ({
     socket.on(`forfeitGame${frontGameData.current.id}`, () =>
       setGameState(gameScreenState.SCORE)
     );
-    socket.on(`pauseGame${frontGameData.current.id}`, () =>
-      setGameState(gameScreenState.PAUSE)
-    );
+    socket.on(`pauseGame${frontGameData.current.id}`, () => {
+      console.log("test");
+      setGameState(gameScreenState.PAUSE);
+    });
     socket.on(`unpauseGame${frontGameData.current.id}`, () => {
       setGameState(gameScreenState.PLAYING);
     });
@@ -583,6 +584,10 @@ const MatchHeader = ({
 const Score = ({ data }: { data: GameQuery }) => {
   const navigate = useNavigate();
 
+  useEffect(() => {
+    queryClient.invalidateQueries(["Game", data.game.id]);
+  }, []);
+
   return (
     <div className="crt flex h-full w-full flex-col items-center justify-evenly">
       <MatchHeader
@@ -630,7 +635,28 @@ const Intro = ({
     currentUserId === data.game.players.player2.id
       ? true
       : false;
-
+  useEffect(() => {
+    socket.on(`forfeitGame${data.game.id}`, () =>
+      setGameState(gameScreenState.SCORE)
+    );
+    socket.on(`pauseGame${data.game.id}`, () => {
+      setGameState(gameScreenState.PAUSE);
+    });
+    socket.on(`unpauseGame${data.game.id}`, () => {
+      setGameState(gameScreenState.INTRO);
+    });
+    return () => {
+      socket.off(`forfeitGame${data.game.id}`, () =>
+        setGameState(gameScreenState.SCORE)
+      );
+      socket.off(`pauseGame${data.game.id}`, () =>
+        setGameState(gameScreenState.PAUSE)
+      );
+      socket.off(`unpauseGame${data.game.id}`, () =>
+        setGameState(gameScreenState.PLAYING)
+      );
+    };
+  });
   useEffect(() => {
     if (!isPlayer) socket.emit("joinRoomAsViewer", data.game.id);
   }, []);

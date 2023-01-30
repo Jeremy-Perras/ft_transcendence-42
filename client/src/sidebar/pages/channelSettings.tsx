@@ -764,7 +764,7 @@ const SearchResults = ({
     select(data) {
       return data.users.filter((u) => {
         if (u === null || channel.owner.id === u.id) return false;
-        const pred = (m: typeof channel.members[number]) => m.id === u.id;
+        const pred = (m: (typeof channel.members)[number]) => m.id === u.id;
         return !channel.members.some(pred) && !channel.admins.some(pred);
       }) as Exclude<SearchUsersQuery["users"][number], null>[];
     },
@@ -883,9 +883,11 @@ const LeaveChannelConfirm = ({
 const DeleteConfirm = ({
   channelId,
   setConfirmation,
+  setDisplayMutationError,
 }: {
   channelId: number;
   setConfirmation: React.Dispatch<React.SetStateAction<boolean>>;
+  setDisplayMutationError: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   const navigate = useNavigate();
 
@@ -895,6 +897,7 @@ const DeleteConfirm = ({
         id: channelId,
       }),
     {
+      onError: () => setDisplayMutationError(true),
       onSuccess: () =>
         queryClient.invalidateQueries(["DiscussionsAndInvitations"]),
     }
@@ -958,10 +961,12 @@ const ChannelMode = ({
   channelId,
   activeMode,
   changesAuthorized,
+  setDisplayMutationError,
 }: {
   channelId: number;
   activeMode: string;
   changesAuthorized: boolean;
+  setDisplayMutationError: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   const {
     register,
@@ -983,6 +988,7 @@ const ChannelMode = ({
         password: password,
       }),
     {
+      onError: () => setDisplayMutationError(true),
       onSuccess: () => {
         setShowPasswordField(false);
         queryClient.invalidateQueries(["ChannelSettings", channelId]);
@@ -1105,6 +1111,7 @@ const ChannelHeader = ({
   passwordProtected,
   setDeleteConfirmation,
   setLeaveConfirmation,
+  setDisplayMutationError,
 }: {
   isOwner: boolean;
   channelId: number;
@@ -1113,6 +1120,7 @@ const ChannelHeader = ({
   passwordProtected: boolean | undefined;
   setDeleteConfirmation: React.Dispatch<React.SetStateAction<boolean>>;
   setLeaveConfirmation: React.Dispatch<React.SetStateAction<boolean>>;
+  setDisplayMutationError: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   return (
     <div className="relative flex w-full flex-col border-b-2 bg-slate-100 p-1">
@@ -1149,6 +1157,7 @@ const ChannelHeader = ({
                 ? "Password"
                 : "Public"
             }
+            setDisplayMutationError={setDisplayMutationError}
             changesAuthorized={isOwner}
           />
         </div>
@@ -1300,6 +1309,7 @@ export default function ChannelSettings() {
           <DeleteConfirm
             channelId={channelId}
             setConfirmation={setDeleteConfirmation}
+            setDisplayMutationError={setDisplayMutationError}
           />
         ) : leaveConfirmation ? (
           <LeaveChannelConfirm
@@ -1321,6 +1331,7 @@ export default function ChannelSettings() {
             passwordProtected={channel.passwordProtected}
             setDeleteConfirmation={setDeleteConfirmation}
             setLeaveConfirmation={setLeaveConfirmation}
+            setDisplayMutationError={setDisplayMutationError}
           />
           <MemberList
             channel={channel}
