@@ -103,7 +103,7 @@ export class SocketGateway implements OnModuleInit {
     if (user && user === client.id) {
       this.connectedUsers.delete(userSession.id);
     }
-    this.eventEmitter.emit("user.disconnect", userSession);
+    this.eventEmitter.emit("user.disconnect", userSession.id);
   }
 
   sendToUser(userId: number, event: string, data: unknown) {

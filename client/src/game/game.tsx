@@ -425,7 +425,7 @@ const GameCanvas = ({
       setGameState(gameScreenState.SCORE)
     );
     socket.on(`pauseGame${frontGameData.current.id}`, () => {
-      // console.log("test");
+      console.log("test");
       setGameState(gameScreenState.PAUSE);
     });
     socket.on(`unpauseGame${frontGameData.current.id}`, () => {
@@ -513,6 +513,10 @@ const MatchHeader = ({
 
 const Score = ({ data }: { data: GameQuery }) => {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    queryClient.invalidateQueries(["Game", data.game.id]);
+  }, []);
 
   return (
     <div className="crt flex h-full w-full flex-col items-center justify-evenly">
