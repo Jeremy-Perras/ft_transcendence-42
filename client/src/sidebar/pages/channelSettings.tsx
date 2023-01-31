@@ -108,7 +108,6 @@ const query = (
       request("/graphql", ChannelSettingsQueryDocument, {
         id: channelId,
       }),
-
     select: (data) => ({
       id: data.channel.id,
       name: data.channel.name,
@@ -1259,7 +1258,8 @@ export default function ChannelSettings() {
 
   const userId = useAuthStore((state) => state.userId);
   if (!userId) {
-    return <Navigate to={"/"} replace={true} />;
+    // return <Navigate to={"/"} replace={true} />;
+    return <div></div>;
   }
 
   const params = useParams();
@@ -1270,9 +1270,17 @@ export default function ChannelSettings() {
   const initialData = useLoaderData() as Awaited<
     ReturnType<typeof channelSettingsLoader>
   >;
-  const { data: channel } = useQuery({ ...query(channelId), initialData });
-  if (typeof channel === "undefined")
-    return <Navigate to={"/"} replace={true} />;
+
+  const { data: channel } = useQuery({
+    ...query(channelId),
+    initialData,
+  });
+
+  if (typeof channel === "undefined") {
+    // console.log(1);
+    return <div></div>;
+    // return <Navigate to={"/"} replace={true} />;
+  }
 
   const currentUserRole =
     channel.owner.id === userId

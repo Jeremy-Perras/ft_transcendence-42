@@ -23,6 +23,7 @@ import { ChannelLoader } from "../channel/channel.loaders";
 import { GraphqlChannel } from "../channel/channel.resolver";
 import { Loader } from "../dataloader";
 import { GraphqlGame } from "../game/game.resolver";
+import { GameService } from "../game/game.service";
 import { SocketGateway } from "../socket/socket.gateway";
 import {
   GetUserArgs,
@@ -91,7 +92,8 @@ type GraphqlStatesUnion =
 export class UserResolver {
   constructor(
     private userService: UserService,
-    private socketGateway: SocketGateway
+    private socketGateway: SocketGateway,
+    private gameService: GameService
   ) {}
 
   @Query((returns) => User)
@@ -209,6 +211,10 @@ export class UserResolver {
 
   @ResolveField()
   async status(@Root() user: User): Promise<UserStatus> {
+    const player = this.gameService.getPlayer(user.id);
+    if (player) {
+      if (player.getSnapshot().matches("_.playing")) return UserStatus.PLAYING;
+    }
     return this.socketGateway.isOnline(user.id)
       ? UserStatus.ONLINE
       : UserStatus.OFFLINE;

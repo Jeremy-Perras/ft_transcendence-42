@@ -1,5 +1,4 @@
-import { QueryCache, QueryClient } from "@tanstack/react-query";
-import { useAuthStore } from "./stores";
+import { QueryClient } from "@tanstack/react-query";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -9,11 +8,6 @@ const queryClient = new QueryClient({
       retry: true,
     },
   },
-  queryCache: new QueryCache({
-    onError: () => {
-      useAuthStore.setState({ userId: undefined, twoFAVerified: undefined });
-    },
-  }),
 });
 
 export default queryClient;
