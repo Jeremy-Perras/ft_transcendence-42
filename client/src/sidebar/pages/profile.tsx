@@ -310,7 +310,9 @@ const UserProfileHeader = ({
           <span>Matchs played : {numberOfGames} </span>
           <span>Victories : {victories} </span>
           <span>Victory rate : {numberOfGames ? `${victoryRate} %` : "-"}</span>
-          <TwoFABtn enabled={!!data.user.twoFAEnabled} />
+          {data.user.id === currentUserId ? (
+            <TwoFABtn enabled={!!data.user.twoFAEnabled} />
+          ) : null}
         </div>
         <div className="relative mr-2 flex shrink-0 basis-1/3 flex-wrap items-center justify-center pt-1">
           {data.user.achievements.map((a, key) => (

@@ -54,7 +54,7 @@ export class UploadController {
           cb(new UnsupportedMediaTypeException(), false);
         }
       },
-      limits: { fileSize: 100000 },
+      limits: { fileSize: 1000000 },
     })
   )
   async uploadAvatar(
