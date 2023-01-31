@@ -1263,8 +1263,7 @@ export default function ChannelSettings() {
 
   const userId = useAuthStore((state) => state.userId);
   if (!userId) {
-    // return <Navigate to={"/"} replace={true} />;
-    return <div></div>;
+    return <Navigate to={"/"} replace={true} />;
   }
 
   const params = useParams();
@@ -1282,9 +1281,7 @@ export default function ChannelSettings() {
   });
 
   if (typeof channel === "undefined") {
-    // console.log(1);
-    return <div></div>;
-    // return <Navigate to={"/"} replace={true} />;
+    return <Navigate to={"/"} replace={true} />;
   }
 
   const currentUserRole =
