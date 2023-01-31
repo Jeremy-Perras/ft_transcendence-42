@@ -352,7 +352,7 @@ export class GameService {
     const gameData = this.games.get(gameId);
     const c = Math.random();
 
-    if (c > 0.992 && gameData?.game.type === "GIFT") {
+    if (c > 0.98 && gameData?.game.type === "GIFT") {
       gameData?.game.Gift.push({
         coord: {
           x: CANVAS_WIDTH / 2 + GIFT_WIDTH / 2,
@@ -532,7 +532,6 @@ export class GameService {
         } else if (player.coord.y < BORDER_HEIGHT) {
           player.coord.y = BORDER_HEIGHT;
         }
-        if (i === len - 1) player.lastMoveTimestamp = val.timestamp;
         if (val.move !== playerMove.STILL && i === len - 1) {
           newMoves.push({
             event: i + 1,
@@ -540,6 +539,9 @@ export class GameService {
             move: val.move,
             done: false,
           });
+          player.lastMoveTimestamp = 0;
+        } else if (i === len - 1) {
+          player.lastMoveTimestamp = val.timestamp;
         }
         val.done = true;
       }
@@ -550,9 +552,8 @@ export class GameService {
   movePads(gameId: number) {
     const gameData = this.games.get(gameId);
 
-    if (gameData && gameData.game.type != "GIFT") {
+    if (gameData && gameData.game.type !== "GIFT") {
       this.movePad(gameData.player1);
-
       this.movePad(gameData.player2);
     } else if (gameData && gameData.game.type === "GIFT") {
       this.movePadGift(gameData.player1, gameData.game.player1Gifts);
