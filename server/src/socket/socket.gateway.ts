@@ -9,6 +9,7 @@ import {
 } from "@nestjs/websockets";
 import { GameService, playerMove } from "../game/game.service";
 import { Server, Socket } from "socket.io";
+import { UserStatus } from "../user/user.model";
 
 @WebSocketGateway({ cors: "*", transports: ["websocket"] })
 export class SocketGateway implements OnModuleInit {
@@ -115,6 +116,16 @@ export class SocketGateway implements OnModuleInit {
 
   isOnline(userId: number) {
     return this.connectedUsers.has(userId);
+  }
+
+  userStatus(userId: number) {
+    const player = this.gameService.getPlayer(userId);
+    if (player) {
+      if (player.getSnapshot().matches("_.playing")) {
+        return UserStatus.PLAYING;
+      }
+    }
+    return this.isOnline(userId) ? UserStatus.ONLINE : UserStatus.OFFLINE;
   }
 
   @SubscribeMessage("movePadUp")

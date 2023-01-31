@@ -211,13 +211,7 @@ export class UserResolver {
 
   @ResolveField()
   async status(@Root() user: User): Promise<UserStatus> {
-    const player = this.gameService.getPlayer(user.id);
-    if (player) {
-      if (player.getSnapshot().matches("_.playing")) return UserStatus.PLAYING;
-    }
-    return this.socketGateway.isOnline(user.id)
-      ? UserStatus.ONLINE
-      : UserStatus.OFFLINE;
+    return this.socketGateway.userStatus(user.id);
   }
 
   @ResolveField()
