@@ -641,9 +641,7 @@ export class UserService {
           : false,
         lastMessageContent: lastMessage?.content,
         lastMessageDate: lastMessage?.sentAt,
-        status: this.socketGateway.isOnline(f.receiver.id)
-          ? UserStatus.ONLINE
-          : UserStatus.OFFLINE,
+        status: this.socketGateway.userStatus(f.receiver.id),
       });
     });
 

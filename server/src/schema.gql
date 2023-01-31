@@ -34,6 +34,31 @@ type ChannelMessage {
   sentAt: DateTime!
 }
 
+type Players {
+  player1: User!
+  player2: User!
+}
+
+type Score {
+  player1Score: Int!
+  player2Score: Int!
+}
+
+type Game {
+  id: Int!
+  gameMode: GameMode!
+  startAt: DateTime!
+  finishedAt: DateTime
+  players: Players!
+  score: Score!
+}
+
+enum GameMode {
+  CLASSIC
+  BOOST
+  GIFT
+}
+
 type User {
   id: Int!
   name: String!
@@ -72,12 +97,6 @@ union StatesUnion = WaitingForInviteeState | MatchmakingState | PlayingState
 type WaitingForInviteeState {
   invitee: User!
   gameMode: GameMode!
-}
-
-enum GameMode {
-  CLASSIC
-  BOOST
-  GIFT
 }
 
 type MatchmakingState {
@@ -119,25 +138,6 @@ type DirectMessage {
   content: String!
   sentAt: DateTime!
   readAt: DateTime
-}
-
-type Players {
-  player1: User!
-  player2: User!
-}
-
-type Score {
-  player1Score: Int!
-  player2Score: Int!
-}
-
-type Game {
-  id: Int!
-  gameMode: GameMode!
-  startAt: DateTime!
-  finishedAt: DateTime
-  players: Players!
-  score: Score!
 }
 
 type Query {
