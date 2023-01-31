@@ -15,6 +15,10 @@ type ValidateFormInput = {
   code: string;
 };
 
+type NewAccountFormInput = {
+  name: string;
+};
+
 const AuthLayout = ({ children }: { children: ReactElement }) => {
   const isSmall = useMediaQuery("(max-height : 1000px)");
   return (
@@ -36,7 +40,7 @@ const AuthLayout = ({ children }: { children: ReactElement }) => {
 let init = false;
 const App = () => {
   const [connectionStatus, setConnectionStatus] = useState<
-    "CONNECTED" | "2FA" | "OTHER_DEVICE" | "DISCONNECTED"
+    "CONNECTED" | "2FA" | "ACCOUNT_CREATION" | "OTHER_DEVICE" | "DISCONNECTED"
   >("DISCONNECTED");
   const { login, set2Fa, userId, twoFAVerified } = useAuthStore();
   const isLoggedIn = useAuthStore().isLoggedIn();
@@ -95,17 +99,29 @@ const App = () => {
     }
   }, [isLoggedIn, userId, twoFAVerified]);
 
-  const {
-    register,
-    formState: { errors },
-    handleSubmit,
-    setError,
-  } = useForm<ValidateFormInput>();
+  const validateForm = useForm<ValidateFormInput>();
+
+  const newAccountForm = useForm<NewAccountFormInput>();
 
   useEffect(() => {
-    if (window.location.pathname != "/")
-      window.history.replaceState({}, "", "/");
-  }, []);
+    if (isLoggedIn) {
+      if (window.location.pathname === "/signup")
+        window.history.replaceState({}, "", "/");
+    } else {
+      const search = new URLSearchParams(window.location.search);
+      if (
+        !(
+          window.location.pathname === "/" ||
+          (window.location.pathname === "/signup" && !!search.get("id"))
+        )
+      ) {
+        window.history.replaceState({}, "", "/");
+      }
+      if (window.location.pathname === "/signup" && !!search.get("id")) {
+        setConnectionStatus("ACCOUNT_CREATION");
+      }
+    }
+  }, [isLoggedIn, connectionStatus]);
 
   return (
     <div className="relative flex h-screen w-screen overflow-hidden">
@@ -151,7 +167,7 @@ const App = () => {
                       Two-Factor Authentication
                     </h2>
                     <form
-                      onSubmit={handleSubmit((data) => {
+                      onSubmit={validateForm.handleSubmit((data) => {
                         fetch("/auth/verify-otp", {
                           method: "POST",
                           body: JSON.stringify({
@@ -162,7 +178,7 @@ const App = () => {
                           if (data.ok) {
                             set2Fa(true);
                           } else {
-                            setError("code", {
+                            validateForm.setError("code", {
                               type: "custom",
                               message: "This code is invalid",
                             });
@@ -179,14 +195,14 @@ const App = () => {
                           id="code"
                           type="text"
                           className={"mt-1 block w-full text-gray-700"}
-                          {...register("code", {
+                          {...validateForm.register("code", {
                             required: true,
                             pattern: /[0-9]{6}/,
                           })}
                         />
                         <span className="text-sm text-red-500">
-                          {errors.code
-                            ? errors.code.message ||
+                          {validateForm.formState.errors.code
+                            ? validateForm.formState.errors.code.message ||
                               "You must input a valid code"
                             : null}
                         </span>
@@ -215,6 +231,88 @@ const App = () => {
               </AuthLayout>
             ) : null}
             {connectionStatus === "CONNECTED" ? <GameRouter /> : null}
+            {connectionStatus === "ACCOUNT_CREATION" ? (
+              <AuthLayout>
+                <div className="flex flex-col items-center">
+                  <h2 className="mb-8 block text-center text-4xl">
+                    Create new account
+                  </h2>
+                  <img />
+                  <form
+                    onSubmit={newAccountForm.handleSubmit((data) => {
+                      const id = new URLSearchParams(
+                        window.location.search
+                      ).get("id");
+                      if (id) {
+                        fetch("/auth/signup", {
+                          method: "POST",
+                          body: JSON.stringify({
+                            name: data.name,
+                            id: +id,
+                          }),
+                          headers: { "Content-Type": "application/json" },
+                        }).then((data) => {
+                          if (data.ok) {
+                            window.location.assign(
+                              `https://api.intra.42.fr/oauth/authorize?client_id=${
+                                import.meta.env.PUBLIC_OAUTH42_CLIENT_ID
+                              }&redirect_uri=${encodeURIComponent(
+                                import.meta.env.PUBLIC_OAUTH42_CALLBACK_URL
+                              )}&response_type=code&scope=public`
+                            );
+                          } else {
+                            data
+                              .json()
+                              .then((err) => {
+                                newAccountForm.setError("name", {
+                                  message: err.message,
+                                });
+                              })
+                              .catch(() => {
+                                newAccountForm.setError("name", {
+                                  message: "Error creating account, try again!",
+                                });
+                              });
+                          }
+                        });
+                      }
+                    })}
+                    className="flex w-fit flex-col items-center"
+                  >
+                    <fieldset>
+                      <label htmlFor="name" className="text-xl">
+                        Enter your unique name
+                      </label>
+                      <input
+                        id="name"
+                        type="text"
+                        className={"mt-1 block w-full text-gray-700"}
+                        {...newAccountForm.register("name", {
+                          required: true,
+                          maxLength: 50,
+                        })}
+                      />
+                      <span className="text-sm text-red-500">
+                        {newAccountForm.formState.errors.name
+                          ? newAccountForm.formState.errors.name.message ||
+                            "You must input a valid name"
+                          : null}
+                      </span>
+                    </fieldset>
+                    <div className="mt-4 flex justify-end">
+                      <button
+                        type="submit"
+                        className={
+                          "border-2 border-slate-200 bg-slate-100 px-2 py-1 text-gray-700 hover:bg-slate-200"
+                        }
+                      >
+                        Create your account
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </AuthLayout>
+            ) : null}
           </div>
           {connectionStatus === "CONNECTED" ? <SideBar /> : null}
         </>

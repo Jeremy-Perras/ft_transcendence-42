@@ -7,12 +7,30 @@ import {
   Post,
   Body,
   UnauthorizedException,
+  Query,
+  BadRequestException,
 } from "@nestjs/common";
+import { Length, Matches, Min } from "class-validator";
 import { authenticator } from "otplib";
 import { UserService } from "../user/user.service";
 import { AuthenticatedGuard } from "./authenticated.guard";
 import AuthenticatedRequest from "./authenticatedRequest.interface";
 import { LoginGuard } from "./login.guard";
+
+class TokenValidation {
+  @Matches(/[0-9]{6}/)
+  token: string;
+}
+
+class IdValidation {
+  @Min(0)
+  id: number;
+}
+
+class UserValidation extends IdValidation {
+  @Length(1, 50)
+  name: string;
+}
 
 @Controller("/auth")
 export class AuthController {
@@ -31,13 +49,33 @@ export class AuthController {
   }
 
   @Post("/verify-otp")
-  async otp(@Req() req: AuthenticatedRequest, @Body("token") token: string) {
+  async otp(@Req() req: AuthenticatedRequest, @Body() body: TokenValidation) {
     const secret = await this.userService.getUser2FASecret(req.user.id);
-    if (secret && authenticator.check(token, secret)) {
+    if (secret && authenticator.check(body.token, secret)) {
       req.user.twoFactorVerified = true;
       return "ok";
     }
     throw new UnauthorizedException();
+  }
+
+  @Get("/signup")
+  getSignupInfo(@Query() body: IdValidation) {
+    const user = this.userService.getNewAccountInfo(body.id);
+    if (user) return user;
+    throw new BadRequestException();
+  }
+
+  @Post("/signup")
+  async createAccount(@Body() body: UserValidation) {
+    const account = await this.userService.validateNewAccount(
+      body.id,
+      body.name
+    );
+    if (typeof account === "object") {
+      return "ok";
+    } else {
+      throw new BadRequestException(account);
+    }
   }
 
   @Get("/session")
