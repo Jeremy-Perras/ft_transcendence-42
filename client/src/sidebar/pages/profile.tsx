@@ -243,32 +243,41 @@ const UserProfileHeader = ({
     );
   }
 
-  const [_, invalidateAvatarCache] = useReducer((x) => x + 1, 0);
+  const [avatarId, invalidateAvatarCache] = useState<number>(Date.now());
   const changeHandler = (event: File) => {
     const formData = new FormData();
     formData.append("file", event);
     fetch("/upload/avatar/", {
       method: "POST",
       body: formData,
-    }).then((resp) => {
-      if (resp.ok) {
-        queryClient.invalidateQueries(["UserProfile", data.user.id]);
-        invalidateAvatarCache();
-      } else setDisplayMutationError(true);
-    });
+    })
+      .then((resp) => {
+        if (resp.ok) {
+          queryClient.invalidateQueries(["UserProfile", data.user.id]);
+          invalidateAvatarCache(Date.now());
+        } else setDisplayMutationError(true);
+      })
+      .catch((_) => setDisplayMutationError(true));
   };
 
   useEffect(() => {
-    const url = `/upload/avatar/${data.user.id}`;
-    fetch(url, {
+    const urlPattern = `/upload/avatar/${data.user.id}#[0-9].*`;
+    const re = new RegExp(urlPattern);
+
+    fetch(`/upload/avatar/${data.user.id}#${avatarId}`, {
       cache: "reload",
       mode: "no-cors",
     }).then(() => {
-      document.body
-        .querySelectorAll<HTMLImageElement>(`img[src='${url}']`)
-        .forEach((img) => (img.src = url));
+      document.querySelectorAll<HTMLImageElement>("img").forEach((img) => {
+        if (
+          img.src.match(re) ||
+          img.src.includes(`/upload/avatar/${data.user.id}`)
+        ) {
+          img.src = `/upload/avatar/${data.user.id}#${avatarId}`;
+        }
+      });
     });
-  }, [data.user.id, _]);
+  }, [data.user.id, avatarId]);
 
   const inputFile = useRef<HTMLInputElement>(null);
 
@@ -277,7 +286,7 @@ const UserProfileHeader = ({
       <div className="flex w-full items-center">
         <div className="relative my-2 ml-3 mr-2 flex shrink-0">
           <img
-            src={`/upload/avatar/${data.user.id}`}
+            src={`/upload/avatar/${data.user.id}#${avatarId}`}
             alt="Player avatar"
             className="h-28 w-28 border border-black"
           />

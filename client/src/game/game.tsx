@@ -763,7 +763,7 @@ export const Game = () => {
 
   const Pause = () => {
     return (
-      <div className="test-center my-10 flex w-20 justify-center text-5xl">
+      <div className="my-10 flex h-full w-full items-center justify-center text-xl">
         <span className="text-center">Other player is disconnected</span>
       </div>
     );
