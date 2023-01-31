@@ -23,9 +23,12 @@ services:
     ports: 
       - 3000:3000
       - 5173:5173
-    env_file: ../oauth42.env
+    env_file: 
+      - ../oauth42.env
+      - ../.env
     environment:
       - NODE_ENV=development
+      - POSTGRES_URL=postgresql://postgres:password@postgres_dev:5432/app?schema=public
     networks:
       - postgres_dev
 
