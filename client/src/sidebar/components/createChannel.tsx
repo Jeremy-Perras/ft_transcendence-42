@@ -115,7 +115,6 @@ export default function CreateChannel({
     {
       onSuccess: () =>
         queryClient.invalidateQueries(["DiscussionsAndInvitations"]),
-      //TODO : manage error
       onError: () => setDisplayMutationError(true),
     }
   );
