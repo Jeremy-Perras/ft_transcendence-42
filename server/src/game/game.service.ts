@@ -120,7 +120,18 @@ export class GameService {
     @Inject(forwardRef(() => SocketGateway))
     private readonly socketGateway: SocketGateway,
     private readonly prismaService: PrismaService
-  ) {}
+  ) {
+    this.prismaService.game
+      .updateMany({
+        where: {
+          finishedAt: null,
+        },
+        data: {
+          finishedAt: new Date(),
+        },
+      })
+      .then();
+  }
 
   private players: Map<number, ReturnType<typeof PlayerMachine>> = new Map();
   public games: Map<number, GameData> = new Map();
