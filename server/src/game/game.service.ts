@@ -1537,8 +1537,15 @@ export class GameService {
     return null;
   };
 
-  removePlayer = (userId: number) => {
+  removePlayer = async (userId: number) => {
     const player = this.players.get(userId);
+    const game = this.getGame(userId);
+    if (game) {
+      await this.prismaService.game.update({
+        where: { id: game.id },
+        data: { finishedAt: new Date() },
+      });
+    }
     if (player) {
       player.stop();
       this.players.delete(userId);
