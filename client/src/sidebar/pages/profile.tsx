@@ -340,8 +340,10 @@ const GameHistory = ({
   const closeSidebar = useSidebarStore((state) => state.close);
   return (
     <>
-      <h2 className="mt-3 pb-2 text-center text-xl font-bold">MATCH HISTORY</h2>
-      <ul className="flex w-full grow flex-col overflow-auto p-1 text-sm">
+      <h2 className="mt-3 border-b pb-2 text-center text-xl font-bold">
+        MATCH HISTORY
+      </h2>
+      <ul className="flex w-full grow flex-col overflow-auto px-1 pb-1 text-sm">
         {data.user.games.length === 0 ? (
           <div className="flex flex-col">
             <div className="mt-20 text-center text-2xl text-slate-300">

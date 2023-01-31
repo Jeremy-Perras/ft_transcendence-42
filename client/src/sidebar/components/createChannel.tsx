@@ -83,9 +83,11 @@ const ChannelModeButton = ({
 export default function CreateChannel({
   showChannelCreation,
   setShowChannelCreation,
+  setDisplayMutationError,
 }: {
   showChannelCreation: boolean;
   setShowChannelCreation: (showChannelCreation: boolean) => void;
+  setDisplayMutationError: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const {
     register,
@@ -113,6 +115,7 @@ export default function CreateChannel({
     {
       onSuccess: () =>
         queryClient.invalidateQueries(["DiscussionsAndInvitations"]),
+      onError: () => setDisplayMutationError(true),
     }
   );
 

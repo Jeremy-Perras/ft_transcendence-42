@@ -266,6 +266,7 @@ export const Home = () => {
         <CreateChannel
           showChannelCreation={showChannelCreation}
           setShowChannelCreation={setShowChannelCreation}
+          setDisplayMutationError={setDisplayMutationError}
         />
         {searchInput ? (
           <SearchResults
