@@ -120,7 +120,18 @@ export class GameService {
     @Inject(forwardRef(() => SocketGateway))
     private readonly socketGateway: SocketGateway,
     private readonly prismaService: PrismaService
-  ) {}
+  ) {
+    this.prismaService.game
+      .updateMany({
+        where: {
+          finishedAt: null,
+        },
+        data: {
+          finishedAt: new Date(),
+        },
+      })
+      .then();
+  }
 
   private players: Map<number, ReturnType<typeof PlayerMachine>> = new Map();
   public games: Map<number, GameData> = new Map();
@@ -1527,8 +1538,15 @@ export class GameService {
     return null;
   };
 
-  removePlayer = (userId: number) => {
+  removePlayer = async (userId: number) => {
     const player = this.players.get(userId);
+    const game = this.getGame(userId);
+    if (game) {
+      await this.prismaService.game.update({
+        where: { id: game.id },
+        data: { finishedAt: new Date() },
+      });
+    }
     if (player) {
       player.stop();
       this.players.delete(userId);
