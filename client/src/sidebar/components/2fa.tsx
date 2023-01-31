@@ -68,7 +68,7 @@ const EnableTwoFA = () => {
   return (
     <DialogPrimitive.Root open={open} onOpenChange={setOpen}>
       <DialogPrimitive.Trigger asChild>
-        <button className="w-fit cursor-pointer border-2 border-slate-200 bg-green-100 px-2 py-1 hover:bg-green-200">
+        <button className="mt-1 w-fit cursor-pointer border border-black bg-green-100 px-2 py-1 hover:bg-green-200">
           Enable 2FA
         </button>
       </DialogPrimitive.Trigger>
@@ -197,7 +197,7 @@ const DisableTwoFA = () => {
   return (
     <DialogPrimitive.Root open={open} onOpenChange={setOpen}>
       <DialogPrimitive.Trigger asChild>
-        <button className="w-fit cursor-pointer border-2 border-slate-200 bg-red-100 px-2 py-1 hover:bg-red-200">
+        <button className="mt-1 w-fit cursor-pointer border border-black bg-red-100 px-2 py-1 hover:bg-red-200">
           Disable 2FA
         </button>
       </DialogPrimitive.Trigger>

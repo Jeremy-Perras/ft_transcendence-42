@@ -740,9 +740,11 @@ const SearchBar = ({
 const SearchResults = ({
   searchInput,
   channel,
+  setDisplayMutationError,
 }: {
   searchInput: string;
   channel: ChannelQueryResult;
+  setDisplayMutationError: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   const updateMembers = useMutation(
     async ({ channelId, userId }: { channelId: number; userId: number }) =>
@@ -753,6 +755,7 @@ const SearchResults = ({
     {
       onSuccess: () =>
         queryClient.invalidateQueries(["ChannelSettings", channel.id]),
+      onError: () => setDisplayMutationError(true),
     }
   );
   const { data: searchResults } = useQuery({
@@ -988,7 +991,9 @@ const ChannelMode = ({
         password: password,
       }),
     {
-      onError: () => setDisplayMutationError(true),
+      onError: () => {
+        setDisplayMutationError(true);
+      },
       onSuccess: () => {
         setShowPasswordField(false);
         queryClient.invalidateQueries(["ChannelSettings", channelId]);
@@ -1080,10 +1085,10 @@ const ChannelMode = ({
 
               {errors.password && showPasswordField && (
                 <span
-                  className="absolute -bottom-4 -left-0 w-full text-center text-xs text-red-600"
+                  className="absolute -bottom-4 -left-10 w-60 text-center text-xs text-red-600"
                   role="alert"
                 >
-                  You must set a password
+                  Password must be 1 - 100 characters
                 </span>
               )}
             </div>
@@ -1348,7 +1353,11 @@ export default function ChannelSettings() {
               }  mt-5 flex w-full flex-col justify-end `}
             >
               {search.length > 0 ? (
-                <SearchResults searchInput={search} channel={channel} />
+                <SearchResults
+                  searchInput={search}
+                  channel={channel}
+                  setDisplayMutationError={setDisplayMutationError}
+                />
               ) : null}
               <SearchBar search={search} setSearch={setSearch} />
             </div>
