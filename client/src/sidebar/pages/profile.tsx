@@ -624,7 +624,7 @@ const Disconnect = () => {
       onClick={() => {
         useAuthStore.getState().logout();
         socket.disconnect();
-        window.history.replaceState({}, "", "/");
+        window.location.assign("/");
       }}
       className="flex h-24 w-full select-none items-center justify-center border-2 border-slate-200 bg-slate-100 p-4 text-xl font-bold text-slate-600 transition-all hover:cursor-pointer  hover:bg-slate-200 hover:text-slate-600"
     >
