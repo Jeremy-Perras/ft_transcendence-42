@@ -358,11 +358,14 @@ export class GameService {
           x: CANVAS_WIDTH / 2 + GIFT_WIDTH / 2,
           y:
             Math.floor(
-              (CANVAS_HEIGHT - BORDER_HEIGHT - GIFT_HEIGHT) * Math.random()
+              (CANVAS_HEIGHT - 2 * BORDER_HEIGHT - GIFT_HEIGHT) *
+                Math.random() +
+                100
             ) >=
-            BORDER_HEIGHT + GIFT_HEIGHT
+            100 + BORDER_HEIGHT + GIFT_HEIGHT
               ? Math.floor(
-                  (CANVAS_HEIGHT - BORDER_HEIGHT - GIFT_HEIGHT) * Math.random()
+                  (CANVAS_HEIGHT - 2 * BORDER_HEIGHT - GIFT_HEIGHT) *
+                    Math.random()
                 )
               : BORDER_HEIGHT + GIFT_HEIGHT,
         },
