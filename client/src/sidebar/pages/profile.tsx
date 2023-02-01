@@ -51,6 +51,7 @@ import { request } from "graphql-request";
 import queryClient from "../../../src/query";
 import { ErrorMessage } from "../components/error";
 import { TwoFABtn } from "../components/2fa";
+import { useMediaQuery } from "@react-hookz/web";
 
 type formData = {
   name: string;
@@ -347,8 +348,8 @@ const GameHistory = ({
   currentUserId: number;
 }) => {
   const navigate = useNavigate();
-  const socket = useSocketStore().socket;
   const closeSidebar = useSidebarStore((state) => state.close);
+  const isSmallScreen = useMediaQuery("(max-width: 1536px)");
   return (
     <>
       <h2 className="mt-3 border-b pb-2 text-center text-xl font-bold">
@@ -445,8 +446,8 @@ const GameHistory = ({
               ) : (
                 <div
                   onClick={() => {
-                    socket.emit("watchLive", game.id);
-                    closeSidebar();
+                    window.location.assign(`/game/${game.id}`);
+                    isSmallScreen ? closeSidebar() : null;
                   }}
                   className="flex basis-24 animate-pulse flex-col justify-center border-x border-black bg-slate-200 text-center text-xs font-bold hover:cursor-pointer hover:bg-slate-300"
                 >
@@ -673,7 +674,7 @@ const FriendButtons = ({
         queryClient.invalidateQueries(["UserProfile", data.user.id]),
     }
   );
-  const socket = useSocketStore().socket;
+  const isSmallScreen = useMediaQuery("(max-width: 1536px)");
   const closeSidebar = useSidebarStore((state) => state.close);
   return (
     <div className="flex h-24 select-none bg-slate-100 text-2xl font-bold text-slate-600">
@@ -682,8 +683,8 @@ const FriendButtons = ({
           if (data.user.status === UserStatus.Online) {
             if (data.user.games.some((g) => !g.finishedAt)) {
               const gameInProgress = data.user.games.find((g) => !g.finishedAt);
-              socket.emit("watchLive", gameInProgress?.id);
-              closeSidebar();
+              window.location.assign(`/game/${gameInProgress.id}`);
+              isSmallScreen ? closeSidebar() : null;
             } else {
               createInvite(data.user.name, data.user.id);
               setState("InvitationSelect");
