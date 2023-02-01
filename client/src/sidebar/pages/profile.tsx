@@ -21,7 +21,7 @@ import { ReactComponent as UnfriendIcon } from "pixelarticons/svg/user-x.svg";
 import { ReactComponent as AcceptIcon } from "pixelarticons/svg/check.svg";
 import { ReactComponent as RefuseIcon } from "pixelarticons/svg/close.svg";
 import { ReactComponent as EditIcon } from "pixelarticons/svg/edit.svg";
-import { useCallback, useEffect, useReducer, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ReactComponent as LogOutIcon } from "pixelarticons/svg/logout.svg";
 import {
   Header,
@@ -680,15 +680,15 @@ const FriendButtons = ({
     <div className="flex h-24 select-none bg-slate-100 text-2xl font-bold text-slate-600">
       <div
         onClick={() => {
-          if (data.user.status === UserStatus.Online) {
+          if (data.user.status === UserStatus.Playing) {
             if (data.user.games.some((g) => !g.finishedAt)) {
               const gameInProgress = data.user.games.find((g) => !g.finishedAt);
-              window.location.assign(`/game/${gameInProgress.id}`);
+              window.location.assign(`/game/${gameInProgress?.id}`);
               isSmallScreen ? closeSidebar() : null;
-            } else {
-              createInvite(data.user.name, data.user.id);
-              setState("InvitationSelect");
             }
+          } else if (data.user.status === UserStatus.Online) {
+            createInvite(data.user.name, data.user.id);
+            setState("InvitationSelect");
           }
         }}
         className={`flex h-24 basis-1/3 items-center justify-center border-2 p-4 text-center transition-all ${
