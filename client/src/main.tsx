@@ -105,8 +105,7 @@ const App = () => {
 
   useEffect(() => {
     if (isLoggedIn) {
-      if (window.location.pathname === "/signup")
-        window.history.replaceState({}, "", "/");
+      if (window.location.pathname === "/signup") window.location.assign("/");
     } else {
       const search = new URLSearchParams(window.location.search);
       if (
@@ -115,7 +114,7 @@ const App = () => {
           (window.location.pathname === "/signup" && !!search.get("id"))
         )
       ) {
-        window.history.replaceState({}, "", "/");
+        window.location.assign("/");
       }
       if (window.location.pathname === "/signup" && !!search.get("id")) {
         setConnectionStatus("ACCOUNT_CREATION");
