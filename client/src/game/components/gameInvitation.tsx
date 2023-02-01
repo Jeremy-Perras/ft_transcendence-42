@@ -66,7 +66,7 @@ const Invitation = ({
   const [display, setDisplay] = useState(true);
 
   return display ? (
-    <div className="absolute bottom-0 z-10 flex w-screen max-w-[screen] flex-wrap justify-center">
+    <div className="absolute bottom-0 z-10 flex w-screen max-w-[100%] flex-wrap justify-center">
       <motion.span
         onClick={() => setDisplay(false)}
         transition={{
