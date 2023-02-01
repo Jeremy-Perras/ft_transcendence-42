@@ -18,7 +18,7 @@ async function bootstrap() {
     logger:
       process.env.NODE_ENV === "development"
         ? ["log", "error", "warn", "debug", "verbose"]
-        : ["error", "warn"],
+        : [],
     cors: true,
   });
 
