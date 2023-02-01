@@ -1,4 +1,4 @@
-import React, { ReactElement, useEffect, useState } from "react";
+import React, { ReactElement, useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom/client";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { GameRouter } from "./game/router";
@@ -45,6 +45,7 @@ const App = () => {
   const { login, set2Fa, userId, twoFAVerified } = useAuthStore();
   const isLoggedIn = useAuthStore().isLoggedIn();
   const socket = useSocketStore().socket;
+  const sessionFetched = useRef(false);
 
   useEffect(() => {
     if (!init) {
@@ -58,10 +59,11 @@ const App = () => {
               set2Fa(data.twoFactorVerified);
             }
           }
+          sessionFetched.current = true;
         }
       });
     }
-  }, []);
+  }, [sessionFetched]);
 
   useEffect(() => {
     if (isLoggedIn) {
@@ -114,13 +116,13 @@ const App = () => {
           (window.location.pathname === "/signup" && !!search.get("id"))
         )
       ) {
-        window.location.assign("/");
+        if (sessionFetched.current) window.location.assign("/");
       }
       if (window.location.pathname === "/signup" && !!search.get("id")) {
         setConnectionStatus("ACCOUNT_CREATION");
       }
     }
-  }, [isLoggedIn, connectionStatus]);
+  }, [isLoggedIn, connectionStatus, sessionFetched]);
 
   return (
     <div className="relative flex h-screen w-screen overflow-hidden">
