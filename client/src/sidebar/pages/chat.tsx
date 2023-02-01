@@ -23,7 +23,7 @@ import {
   HeaderLeftBtn,
 } from "../components/header";
 import { RankIcon } from "../utils/rankIcon";
-import { useSidebarStore } from "../../stores";
+import { useAuthStore, useSidebarStore } from "../../stores";
 import { IsOnline } from "../components/isOnline";
 import { graphql } from "../../gql";
 import { request } from "graphql-request";
@@ -44,6 +44,14 @@ type DirectMessage = {
   author: User;
   status: UserStatus;
 };
+
+const StatusQueryDocument = graphql(`
+  query Status($userId: Int!) {
+    user(id: $userId) {
+      status
+    }
+  }
+`);
 
 const DirectMessagesQueryDocument = graphql(`
   query DirectMessages($userId: Int!) {
@@ -122,6 +130,17 @@ const DirectMessage = ({
   status,
 }: DirectMessage) => {
   const navigate = useNavigate();
+  const currentUserId = useAuthStore().userId;
+  if (typeof currentUserId === "undefined")
+    return <Navigate to={"/"} replace={true} />;
+
+  const { data: currentUserStatus } = useQuery({
+    queryKey: ["UsersStatus", currentUserId],
+    queryFn: async () =>
+      request("/graphql", StatusQueryDocument, {
+        userId: currentUserId,
+      }),
+  });
 
   return (
     <li className="mx-2 mb-5 flex flex-col ">
@@ -145,7 +164,17 @@ const DirectMessage = ({
               alt="Message author avatar"
               onClick={() => navigate(`/profile/${author.id}`)}
             />
-            <IsOnline userStatus={status} />
+            {author.id === currentUserId ? (
+              <IsOnline
+                userStatus={
+                  currentUserStatus
+                    ? currentUserStatus.user.status
+                    : UserStatus.Offline
+                }
+              />
+            ) : (
+              <IsOnline userStatus={status} />
+            )}
           </div>
         </div>
         <span
@@ -192,7 +221,6 @@ export default function Chat() {
         queryClient.invalidateQueries(["DirectMessages", userId]),
     }
   );
-
   const messagesEndRef = useRef<null | HTMLDivElement>(null);
   useEffect(() => {
     sidebarIsOpen &&
