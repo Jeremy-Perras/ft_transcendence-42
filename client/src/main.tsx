@@ -145,7 +145,7 @@ const App = () => {
             {connectionStatus === "OTHER_DEVICE" ? (
               <AuthLayout>
                 <>
-                  <span className="text-center text-2xl">
+                  <span className="animate-none text-center text-2xl">
                     You are already connected on another device!
                   </span>
                   <LogOutIcon
@@ -188,19 +188,21 @@ const App = () => {
                       className="flex w-fit flex-col items-center"
                     >
                       <fieldset>
-                        <label htmlFor="code" className="text-xl">
+                        <label htmlFor="code" className="animate-none text-xl">
                           Enter the code provided by the app
                         </label>
                         <input
                           id="code"
                           type="text"
-                          className={"mt-1 block w-full text-gray-700"}
+                          className={
+                            "mt-1 block w-full animate-none text-gray-700"
+                          }
                           {...validateForm.register("code", {
                             required: true,
                             pattern: /[0-9]{6}/,
                           })}
                         />
-                        <span className="text-sm text-red-500">
+                        <span className="animate-none text-sm text-red-500">
                           {validateForm.formState.errors.code
                             ? validateForm.formState.errors.code.message ||
                               "You must input a valid code"
@@ -211,7 +213,7 @@ const App = () => {
                         <button
                           type="submit"
                           className={
-                            "border-2 border-slate-200 bg-slate-100 px-2 py-1 text-gray-700 hover:bg-slate-200"
+                            "animate-none border-2 border-slate-200 bg-slate-100 px-2 py-1 text-gray-700 hover:bg-slate-200"
                           }
                         >
                           Verify Code
@@ -280,19 +282,21 @@ const App = () => {
                     className="flex w-fit flex-col items-center"
                   >
                     <fieldset>
-                      <label htmlFor="name" className="text-xl">
+                      <label htmlFor="name" className="animate-none text-xl">
                         Enter your unique name
                       </label>
                       <input
                         id="name"
                         type="text"
-                        className={"mt-1 block w-full text-gray-700"}
+                        className={
+                          "mt-1 block w-full animate-none text-gray-700"
+                        }
                         {...newAccountForm.register("name", {
                           required: true,
                           maxLength: 50,
                         })}
                       />
-                      <span className="text-sm text-red-500">
+                      <span className="animate-none text-sm text-red-500">
                         {newAccountForm.formState.errors.name
                           ? newAccountForm.formState.errors.name.message ||
                             "You must input a valid name"
@@ -303,7 +307,7 @@ const App = () => {
                       <button
                         type="submit"
                         className={
-                          "border-2 border-slate-200 bg-slate-100 px-2 py-1 text-gray-700 hover:bg-slate-200"
+                          "animate-none border-2 border-slate-200 bg-slate-100 px-2 py-1 text-gray-700 hover:bg-slate-200"
                         }
                       >
                         Create your account

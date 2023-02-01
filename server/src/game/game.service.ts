@@ -669,6 +669,38 @@ export class GameService {
       }
       if (wallCollision) {
         gameData.ball.coord.x += gameData.ball.velocity.vx;
+        if (gameData.ball.velocity.vx < 0) {
+          if (
+            gameData.ball.coord.x - BALL_RADIUS <=
+              gameData.player1.coord.x + PAD_WIDTH &&
+            gameData.ball.coord.x - BALL_RADIUS >= gameData.player1.coord.x
+          ) {
+            if (
+              gameData.ball.coord.y >= gameData.player1.coord.y &&
+              gameData.ball.coord.y <= gameData.player1.coord.y + PAD_HEIGHT
+            ) {
+              gameData.ball.coord.x =
+                gameData.player1.coord.x + BALL_RADIUS + PAD_WIDTH;
+              gameData.ball.velocity.vx = -gameData.ball.velocity.vx;
+            }
+          }
+        }
+
+        if (gameData.ball.velocity.vx > 0) {
+          if (
+            gameData.ball.coord.x - BALL_RADIUS >= gameData.player2.coord.x &&
+            gameData.ball.coord.x - BALL_RADIUS <=
+              gameData.player2.coord.x + PAD_WIDTH
+          ) {
+            if (
+              gameData.ball.coord.y >= gameData.player2.coord.y &&
+              gameData.ball.coord.y <= gameData.player2.coord.y + PAD_HEIGHT
+            ) {
+              gameData.ball.coord.x = gameData.player2.coord.x - BALL_RADIUS;
+              gameData.ball.velocity.vx = -gameData.ball.velocity.vx;
+            }
+          }
+        }
         gameData.ball.velocity.vy = -gameData.ball.velocity.vy;
         this.games.set(gameId, gameData);
       }
@@ -1076,6 +1108,44 @@ export class GameService {
           }
           if (wallCollision) {
             gameData.ball.coord.x += gameData.ball.velocity.vx;
+            if (gameData.ball.velocity.vx < 0) {
+              if (
+                gameData.ball.coord.x - BALL_RADIUS <=
+                  gameData.player1.coord.x + PAD_WIDTH &&
+                gameData.ball.coord.x - BALL_RADIUS >= gameData.player1.coord.x
+              ) {
+                if (
+                  gameData.ball.coord.y >= gameData.player1.coord.y &&
+                  gameData.ball.coord.y <=
+                    gameData.player1.coord.y +
+                      PAD_HEIGHT * gameData.game.player1Gifts.size
+                ) {
+                  gameData.ball.coord.x =
+                    gameData.player1.coord.x + BALL_RADIUS + PAD_WIDTH;
+                  gameData.ball.velocity.vx = -gameData.ball.velocity.vx;
+                }
+              }
+            }
+
+            if (gameData.ball.velocity.vx > 0) {
+              if (
+                gameData.ball.coord.x - BALL_RADIUS >=
+                  gameData.player2.coord.x &&
+                gameData.ball.coord.x - BALL_RADIUS <=
+                  gameData.player2.coord.x + PAD_WIDTH
+              ) {
+                if (
+                  gameData.ball.coord.y >= gameData.player2.coord.y &&
+                  gameData.ball.coord.y <=
+                    gameData.player2.coord.y +
+                      PAD_HEIGHT * gameData.game.player2Gifts.size
+                ) {
+                  gameData.ball.coord.x =
+                    gameData.player2.coord.x - BALL_RADIUS;
+                  gameData.ball.velocity.vx = -gameData.ball.velocity.vx;
+                }
+              }
+            }
             gameData.ball.velocity.vy = -gameData.ball.velocity.vy;
             this.games.set(gameId, gameData);
           }
