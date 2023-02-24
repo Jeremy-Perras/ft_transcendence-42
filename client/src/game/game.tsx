@@ -3,6 +3,7 @@ import { request } from "graphql-request";
 import { useRef, useEffect, useState } from "react";
 import {
   LoaderFunctionArgs,
+  Navigate,
   useLoaderData,
   useNavigate,
   useParams,
@@ -73,13 +74,19 @@ const GameQueryDocument = graphql(`
 
 const query = (
   gameId: number
-): UseQueryOptions<GameQuery, unknown, GameQuery> => {
+): UseQueryOptions<GameQuery | null, unknown, GameQuery> => {
   return {
     queryKey: ["Game", gameId],
-    queryFn: async () =>
-      request("/graphql", GameQueryDocument, {
-        gameId: gameId,
-      }),
+    queryFn: async () => {
+      try {
+        const resp = await request("/graphql", GameQueryDocument, {
+          gameId: gameId,
+        });
+        return resp;
+      } catch (error) {
+        return null;
+      }
+    },
   };
 };
 
@@ -732,11 +739,15 @@ const Intro = ({
 
 export const Game = () => {
   const params = useParams();
-  if (typeof params.gameId === "undefined") return <div>Error</div>;
+  if (typeof params.gameId === "undefined") {
+    return <Navigate to={"/"} replace={true} />;
+  }
   const gameId = +params.gameId;
   const initialData = useLoaderData() as Awaited<ReturnType<typeof gameLoader>>;
   const { data } = useQuery({ ...query(gameId), initialData });
-  if (typeof data === "undefined") return <div>Error</div>;
+  if (typeof data === "undefined" || data === null) {
+    return <Navigate to={"/"} replace={true} />;
+  }
 
   const startTime = new Date(data.game.startAt).getTime();
   const currentTime = new Date().getTime();
@@ -784,8 +795,7 @@ export const Game = () => {
       );
     case gameScreenState.PAUSE:
       return <Pause />;
-
     default:
-      return <div>Error</div>;
+      return <Navigate to={"/"} replace={true} />;
   }
 };

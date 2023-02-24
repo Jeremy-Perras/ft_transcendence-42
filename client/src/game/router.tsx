@@ -85,11 +85,13 @@ const router = createBrowserRouter([
       {
         path: "/",
         element: <Home />,
+        errorElement: <ErrorPage />,
       },
       {
         path: "/game/:gameId",
         element: <Game />,
         loader: loaderFn(gameLoader),
+        errorElement: <ErrorPage />,
       },
     ],
   },

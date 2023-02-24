@@ -45,7 +45,7 @@ const App = () => {
   const { login, set2Fa, userId, twoFAVerified } = useAuthStore();
   const isLoggedIn = useAuthStore().isLoggedIn();
   const socket = useSocketStore().socket;
-  const sessionFetched = useRef(false);
+  const [sessionFetched, setSessionFetched] = useState(false);
 
   useEffect(() => {
     if (!init) {
@@ -59,11 +59,11 @@ const App = () => {
               set2Fa(data.twoFactorVerified);
             }
           }
-          sessionFetched.current = true;
         }
+        setSessionFetched(true);
       });
     }
-  }, [sessionFetched]);
+  }, []);
 
   useEffect(() => {
     if (isLoggedIn) {
@@ -116,7 +116,7 @@ const App = () => {
           (window.location.pathname === "/signup" && !!search.get("id"))
         )
       ) {
-        if (sessionFetched.current) window.location.assign("/");
+        if (sessionFetched) window.location.assign("/");
       }
       if (window.location.pathname === "/signup" && !!search.get("id")) {
         setConnectionStatus("ACCOUNT_CREATION");
@@ -186,7 +186,7 @@ const App = () => {
                           }
                         });
                       })}
-                      className="flex w-fit flex-col items-center"
+                      className="flex w-fit flex-col items-center font-content"
                     >
                       <fieldset>
                         <label htmlFor="code" className="animate-none text-xl">
@@ -280,7 +280,7 @@ const App = () => {
                         });
                       }
                     })}
-                    className="flex w-fit flex-col items-center"
+                    className="flex w-fit flex-col items-center font-content"
                   >
                     <fieldset>
                       <label htmlFor="name" className="animate-none text-xl">
